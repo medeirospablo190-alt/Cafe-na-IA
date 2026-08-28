@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <title>CAFEÍNA</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">CAFEÍNA</div>
+        <h1>Central de arquivos</h1>
+      </div>
+      <div id="serverStatus" class="status"><span></span> verificando</div>
+    </header>
+
+    <nav class="tabs" aria-label="Áreas do site">
+      <button class="tab active" data-tab="diagnostic">Diagnóstico</button>
+      <button class="tab" data-tab="scanner">Arquivos do scanner</button>
+    </nav>
+
+    <section id="diagnostic" class="panel active">
+      <div class="section-head">
+        <div>
+          <p class="kicker">DIAGNÓSTICO DE SCRIPT</p>
+          <h2>Analise um arquivo Lua</h2>
+          <p>Selecione o script, envie para diagnóstico e baixe o resultado identificado pelo nome original.</p>
+        </div>
+      </div>
+
+      <label class="dropzone" id="dropzone">
+        <input id="scriptFile" type="file" accept=".lua,.luau,.txt,text/plain" />
+        <span class="drop-icon">＋</span>
+        <strong id="fileLabel">Escolher script</strong>
+        <small>Lua, Luau ou TXT • até 2 MB</small>
+      </label>
+
+      <button id="diagnoseBtn" class="primary" disabled>Gerar diagnóstico</button>
+
+      <div id="diagProgress" class="progress-card hidden">
+        <div class="spinner"></div>
+        <div><strong>Analisando script</strong><small>O resultado aparecerá aqui.</small></div>
+      </div>
+
+      <article id="diagResult" class="result hidden">
+        <div class="result-head">
+          <div>
+            <span class="badge">PRONTO</span>
+            <h3 id="diagTitle">Diagnóstico</h3>
+          </div>
+          <a id="downloadDiagnostic" class="secondary" href="#">Baixar diagnóstico</a>
+        </div>
+        <pre id="diagText"></pre>
+      </article>
+    </section>
+
+    <section id="scanner" class="panel">
+      <div class="section-head inline">
+        <div>
+          <p class="kicker">SERVER SCANNER</p>
+          <h2>Arquivos recebidos</h2>
+          <p>Uploads finalizados pelo executor aparecem automaticamente nesta lista.</p>
+        </div>
+        <button id="refreshBtn" class="secondary compact">Atualizar</button>
+      </div>
+
+      <div id="scanEmpty" class="empty hidden">
+        <strong>Nenhum arquivo recebido</strong>
+        <span>Quando o scanner finalizar um envio, ele aparecerá aqui.</span>
+      </div>
+      <div id="scanList" class="file-list"></div>
+
+      <article id="scanViewer" class="viewer hidden">
+        <div class="result-head">
+          <div>
+            <span class="badge">VISUALIZAÇÃO</span>
+            <h3 id="viewerTitle">Arquivo</h3>
+          </div>
+          <a id="downloadScan" class="secondary" href="#">Baixar arquivo</a>
+        </div>
+        <p id="viewerMeta" class="viewer-meta"></p>
+        <pre id="viewerText"></pre>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
