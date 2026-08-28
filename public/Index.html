@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>CAFEÍNA</title>
+
+  <link
+    rel="stylesheet"
+    href="/styles.css"
+  >
+
+  <script
+    src="/app.js"
+    defer
+  ></script>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+      <div class="brand">
+        <div class="brand-icon">
+          C
+        </div>
+
+        <div>
+          <strong>CAFEÍNA</strong>
+          <span>CONTROL PANEL</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+
+        <button
+          class="nav-item active"
+          data-page="home"
+        >
+          <span>⌂</span>
+          Início
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="files"
+        >
+          <span>▱</span>
+          Arquivos
+
+          <span
+            id="filesNavBadge"
+            class="nav-badge hidden"
+          >
+            0
+          </span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="diagnostics"
+        >
+          <span>!</span>
+          Diagnóstico
+
+          <span
+            id="diagnosticsNavBadge"
+            class="nav-badge hidden"
+          >
+            0
+          </span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-page="status"
+        >
+          <span>●</span>
+          Status
+        </button>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <div class="server-state">
+          <span
+            id="headerStatusDot"
+            class="status-dot"
+          ></span>
+
+          <span id="headerStatusText">
+            Verificando...
+          </span>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- =====================================================
+         CONTEÚDO
+    ====================================================== -->
+
+    <main class="content">
+
+      <!-- HOME -->
+
+      <section
+        id="page-home"
+        class="page active"
+      >
+
+        <div class="page-header">
+
+          <div>
+            <div class="eyebrow">
+              CAFEÍNA
+            </div>
+
+            <h1>
+              Painel
+            </h1>
+
+            <p>
+              Arquivos, diagnósticos e status
+              em uma interface simples.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="hero">
+
+          <span class="hero-small">
+            CAFEÍNA SYSTEM
+          </span>
+
+          <h2>
+            Tudo em um só lugar.
+          </h2>
+
+          <p>
+            Um painel direto para acompanhar
+            seus arquivos e identificar erros
+            enviados pelos scripts.
+          </p>
+
+          <div class="hero-actions">
+
+            <button
+              class="button primary"
+              data-open-page="diagnostics"
+            >
+              Abrir diagnóstico
+            </button>
+
+            <button
+              class="button secondary"
+              data-open-page="files"
+            >
+              Ver arquivos
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="home-grid">
+
+          <article class="mini-card">
+
+            <span>
+              ARQUIVOS
+            </span>
+
+            <strong
+              id="homeFilesCount"
+            >
+              0
+            </strong>
+
+            <small>
+              armazenados
+            </small>
+
+          </article>
+
+          <article class="mini-card">
+
+            <span>
+              DIAGNÓSTICOS
+            </span>
+
+            <strong
+              id="homeDiagnosticsCount"
+            >
+              0
+            </strong>
+
+            <small>
+              registros
+            </small>
+
+          </article>
+
+          <article class="mini-card">
+
+            <span>
+              SERVIDOR
+            </span>
+
+            <strong
+              id="homeServerStatus"
+            >
+              ...
+            </strong>
+
+            <small>
+              backend
+            </small>
+
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================
+           ARQUIVOS
+      ==================================================== -->
+
+      <section
+        id="page-files"
+        class="page"
+      >
+
+        <div class="page-header">
+
+          <div>
+            <div class="eyebrow">
+              STORAGE
+            </div>
+
+            <h1>
+              Arquivos
+            </h1>
+
+            <p>
+              Arquivos enviados para o servidor.
+            </p>
+          </div>
+
+          <button
+            id="refreshFilesButton"
+            class="button secondary"
+          >
+            Atualizar
+          </button>
+
+        </div>
+
+        <div class="summary-grid">
+
+          <article class="summary">
+
+            <span>
+              TOTAL
+            </span>
+
+            <strong id="filesCount">
+              0 arquivos
+            </strong>
+
+          </article>
+
+          <article class="summary">
+
+            <span>
+              TAMANHO
+            </span>
+
+            <strong id="filesSize">
+              0 B
+            </strong>
+
+          </article>
+
+          <article class="summary">
+
+            <span>
+              ATUALIZADO
+            </span>
+
+            <strong id="filesUpdatedAt">
+              —
+            </strong>
+
+          </article>
+
+        </div>
+
+        <div
+          id="filesList"
+          class="cards-list"
+        ></div>
+
+      </section>
+
+      <!-- ===================================================
+           DIAGNÓSTICO
+      ==================================================== -->
+
+      <section
+        id="page-diagnostics"
+        class="page"
+      >
+
+        <div class="page-header">
+
+          <div>
+            <div class="eyebrow">
+              SCRIPT DEBUGGER
+            </div>
+
+            <h1>
+              Diagnóstico
+            </h1>
+
+            <p>
+              Área exclusiva para erros enviados
+              pelos scripts CAFEÍNA.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="diagnostic-status-panel">
+
+          <div class="diagnostic-status-main">
+
+            <span class="label">
+              STATUS DO DIAGNÓSTICO
+            </span>
+
+            <strong
+              id="diagnosticStatus"
+              class="diagnostic-status-text"
+            >
+              Verificando...
+            </strong>
+
+            <p id="diagnosticStatusDescription">
+              Conectando à API de diagnóstico.
+            </p>
+
+          </div>
+
+          <div class="diagnostic-live">
+
+            <div>
+              <span>ERROS</span>
+
+              <strong
+                id="diagnosticsCount"
+              >
+                0
+              </strong>
+            </div>
+
+            <div>
+              <span>ÚLTIMO</span>
+
+              <strong
+                id="diagnosticsLastType"
+              >
+                Nenhum
+              </strong>
+            </div>
+
+            <div>
+              <span>ATUALIZADO</span>
+
+              <strong
+                id="diagnosticsUpdatedAt"
+              >
+                —
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="diagnostic-actions">
+
+          <button
+            id="copyAllDiagnosticsButton"
+            class="button primary"
+          >
+            Copiar diagnóstico
+          </button>
+
+          <button
+            id="refreshDiagnosticsButton"
+            class="button secondary"
+          >
+            Atualizar
+          </button>
+
+          <button
+            id="clearDiagnosticsButton"
+            class="button danger"
+          >
+            Limpar
+          </button>
+
+        </div>
+
+        <div class="filters">
+
+          <button
+            class="filter active"
+            data-diagnostic-filter="all"
+          >
+            Todos
+          </button>
+
+          <button
+            class="filter"
+            data-diagnostic-filter="compile"
+          >
+            Compilação
+          </button>
+
+          <button
+            class="filter"
+            data-diagnostic-filter="runtime"
+          >
+            Runtime
+          </button>
+
+          <button
+            class="filter"
+            data-diagnostic-filter="async-runtime"
+          >
+            Assíncrono
+          </button>
+
+          <button
+            class="filter"
+            data-diagnostic-filter="http"
+          >
+            HTTP
+          </button>
+
+        </div>
+
+        <div
+          id="diagnosticsList"
+          class="cards-list"
+        ></div>
+
+      </section>
+
+      <!-- ===================================================
+           STATUS
+      ==================================================== -->
+
+      <section
+        id="page-status"
+        class="page"
+      >
+
+        <div class="page-header">
+
+          <div>
+            <div class="eyebrow">
+              SYSTEM
+            </div>
+
+            <h1>
+              Status
+            </h1>
+
+            <p>
+              Estado atual dos serviços.
+            </p>
+          </div>
+
+          <button
+            id="refreshHealthButton"
+            class="button secondary"
+          >
+            Verificar
+          </button>
+
+        </div>
+
+        <div class="status-list">
+
+          <article class="status-card">
+
+            <div>
+              <span>Servidor</span>
+
+              <small>
+                API principal
+              </small>
+            </div>
+
+            <strong
+              id="statusServer"
+              class="status-value"
+            >
+              Verificando...
+            </strong>
+
+          </article>
+
+          <article class="status-card">
+
+            <div>
+              <span>Arquivos</span>
+
+              <small>
+                API de armazenamento
+              </small>
+            </div>
+
+            <strong
+              id="statusFiles"
+              class="status-value"
+            >
+              Verificando...
+            </strong>
+
+          </article>
+
+          <article class="status-card">
+
+            <div>
+              <span>Diagnóstico</span>
+
+              <small>
+                /api/diagnostics
+              </small>
+            </div>
+
+            <strong
+              id="statusDiagnostics"
+              class="status-value"
+            >
+              Verificando...
+            </strong>
+
+          </article>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- =======================================================
+       MOBILE NAV
+  ======================================================== -->
+
+  <nav class="mobile-nav">
+
+    <button
+      class="active"
+      data-page="home"
+    >
+      <span>⌂</span>
+      Início
+    </button>
+
+    <button
+      data-page="files"
+    >
+      <span>▱</span>
+      Arquivos
+    </button>
+
+    <button
+      data-page="diagnostics"
+    >
+      <span>!</span>
+      Diagnóstico
+    </button>
+
+    <button
+      data-page="status"
+    >
+      <span>●</span>
+      Status
+    </button>
+
+  </nav>
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+</body>
+</html>
