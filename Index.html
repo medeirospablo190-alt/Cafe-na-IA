@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0e" />
+  <title>CAFEÍNA</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div class="brand-copy">
+          <strong>CAFEÍNA</strong>
+          <span>WEB CONTROL CENTER</span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="server-pill" title="Status do backend">
+          <span id="headerStatusDot" class="status-dot"></span>
+          <span class="server-pill-label">Servidor</span>
+          <strong id="headerStatusText">Verificando...</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="sidebar-section-label">PRINCIPAL</div>
+
+        <nav class="side-nav" aria-label="Navegação principal">
+          <button class="nav-item active" data-page="home">
+            <span class="nav-icon">⌂</span>
+            <span>Início</span>
+          </button>
+
+          <button class="nav-item" data-page="explorer">
+            <span class="nav-icon">⌕</span>
+            <span>Explorer</span>
+          </button>
+
+          <button class="nav-item" data-page="files">
+            <span class="nav-icon">▱</span>
+            <span>Arquivos</span>
+            <span id="filesNavBadge" class="nav-badge hidden">0</span>
+          </button>
+
+          <button class="nav-item" data-page="diagnostics">
+            <span class="nav-icon">!</span>
+            <span>Diagnósticos</span>
+            <span id="diagnosticsNavBadge" class="nav-badge danger hidden">0</span>
+          </button>
+
+          <div class="sidebar-section-label sub">SISTEMA</div>
+
+          <button class="nav-item" data-page="ai">
+            <span class="nav-icon">✦</span>
+            <span>CAFEÍNA AI</span>
+          </button>
+
+          <button class="nav-item" data-page="status">
+            <span class="nav-icon">●</span>
+            <span>Status</span>
+          </button>
+
+          <button class="nav-item" data-page="about">
+            <span class="nav-icon">i</span>
+            <span>Sobre</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="mini-status">
+            <span class="mini-status-dot"></span>
+            <div>
+              <strong>CAFEÍNA WEB</strong>
+              <span>Interface protegida</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <!-- HOME -->
+        <section id="page-home" class="page active">
+          <div class="hero">
+            <div class="hero-content">
+              <span class="eyebrow">CAFEÍNA WEB SYSTEM</span>
+              <h1>Controle, arquivos e diagnóstico em um só lugar.</h1>
+              <p>
+                Visualize arquivos enviados pelo Explorer, acompanhe o backend e leia
+                erros dos scripts sem misturar diagnóstico com downloads.
+              </p>
+
+              <div class="hero-actions">
+                <button class="btn primary" data-open-page="files">
+                  Abrir arquivos
+                </button>
+
+                <button class="btn secondary" data-open-page="diagnostics">
+                  Ver diagnósticos
+                </button>
+              </div>
+            </div>
+
+            <div class="hero-orb" aria-hidden="true"></div>
+          </div>
+
+          <div class="overview-grid">
+            <button class="overview-card" data-open-page="files">
+              <div class="overview-icon">▱</div>
+              <div>
+                <span class="overview-label">ARQUIVOS</span>
+                <strong id="homeFilesCount">—</strong>
+                <p>Downloads e relatórios enviados.</p>
+              </div>
+            </button>
+
+            <button class="overview-card" data-open-page="diagnostics">
+              <div class="overview-icon danger">!</div>
+              <div>
+                <span class="overview-label">DIAGNÓSTICOS</span>
+                <strong id="homeDiagnosticsCount">—</strong>
+                <p>Erros enviados pelo Loader.</p>
+              </div>
+            </button>
+
+            <button class="overview-card" data-open-page="status">
+              <div class="overview-icon success">●</div>
+              <div>
+                <span class="overview-label">BACKEND</span>
+                <strong id="homeServerStatus">Verificando</strong>
+                <p>Disponibilidade do servidor.</p>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- EXPLORER -->
+        <section id="page-explorer" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow">COLETA</span>
+              <h1>Explorer</h1>
+              <p>Integração com o sistema de coleta e envio de informações.</p>
+            </div>
+          </div>
+
+          <div class="surface-card feature-card">
+            <div class="feature-icon">⌕</div>
+            <div class="feature-content">
+              <h2>Game Explorer</h2>
+              <p>
+                Os relatórios enviados pelo scanner aparecem na área Arquivos após a
+                finalização do upload.
+              </p>
+
+              <div class="feature-actions">
+                <button class="btn primary" data-open-page="files">
+                  Abrir arquivos enviados
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FILES -->
+        <section id="page-files" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow">ARMAZENAMENTO</span>
+              <h1>Arquivos</h1>
+              <p>
+                Área exclusiva para relatórios e arquivos disponíveis para download.
+              </p>
+            </div>
+
+            <button id="refreshFilesButton" class="btn secondary">
+              ↻ Atualizar
+            </button>
+          </div>
+
+          <div class="summary-strip">
+            <div class="summary-item">
+              <span>Quantidade</span>
+              <strong id="filesCount">Carregando...</strong>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-item">
+              <span>Armazenamento</span>
+              <strong id="filesSize">Consultando...</strong>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-item">
+              <span>Atualização</span>
+              <strong id="filesUpdatedAt">—</strong>
+            </div>
+          </div>
+
+          <div id="filesList" class="content-list">
+            <div class="state-card">
+              <div class="state-icon">▱</div>
+              <strong>Carregando arquivos...</strong>
+              <span>Consultando o servidor CAFEÍNA.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- DIAGNOSTICS -->
+        <section id="page-diagnostics" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow danger-text">MONITORAMENTO</span>
+              <h1>Diagnósticos</h1>
+              <p>
+                Erros enviados pelo Loader ficam separados dos arquivos do Explorer.
+              </p>
+            </div>
+
+            <div class="page-actions">
+              <button id="refreshDiagnosticsButton" class="btn secondary">
+                ↻ Atualizar
+              </button>
+              <button id="clearDiagnosticsButton" class="btn ghost-danger">
+                Limpar
+              </button>
+            </div>
+          </div>
+
+          <div class="summary-strip diagnostics-summary">
+            <div class="summary-item">
+              <span>Registros</span>
+              <strong id="diagnosticsCount">Carregando...</strong>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-item">
+              <span>Mais recente</span>
+              <strong id="diagnosticsLastType">—</strong>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-item">
+              <span>Atualização</span>
+              <strong id="diagnosticsUpdatedAt">—</strong>
+            </div>
+          </div>
+
+          <div class="diagnostic-toolbar">
+            <div class="filter-group">
+              <button class="filter-chip active" data-diagnostic-filter="all">Todos</button>
+              <button class="filter-chip" data-diagnostic-filter="compile">Compilação</button>
+              <button class="filter-chip" data-diagnostic-filter="runtime">Runtime</button>
+              <button class="filter-chip" data-diagnostic-filter="async-runtime">Assíncrono</button>
+              <button class="filter-chip" data-diagnostic-filter="http">HTTP</button>
+            </div>
+          </div>
+
+          <div id="diagnosticsList" class="content-list">
+            <div class="state-card">
+              <div class="state-icon danger">!</div>
+              <strong>Carregando diagnósticos...</strong>
+              <span>Consultando os últimos registros recebidos.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI -->
+        <section id="page-ai" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow">INTELIGÊNCIA</span>
+              <h1>CAFEÍNA AI</h1>
+              <p>Status da integração com inteligência artificial.</p>
+            </div>
+          </div>
+
+          <div class="surface-card feature-card">
+            <div class="feature-icon">✦</div>
+            <div class="feature-content">
+              <h2>Integração de IA</h2>
+              <p id="aiDescription">Verificando disponibilidade da API...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STATUS -->
+        <section id="page-status" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow">SISTEMA</span>
+              <h1>Status</h1>
+              <p>Estado atual dos componentes públicos do backend.</p>
+            </div>
+
+            <button id="refreshHealthButton" class="btn secondary">
+              ↻ Verificar
+            </button>
+          </div>
+
+          <div class="status-grid">
+            <div class="status-card">
+              <span>Servidor</span>
+              <strong id="statusServer" class="status-value">Verificando...</strong>
+            </div>
+
+            <div class="status-card">
+              <span>Arquivos</span>
+              <strong id="statusFiles" class="status-value">—</strong>
+            </div>
+
+            <div class="status-card">
+              <span>Diagnósticos</span>
+              <strong id="statusDiagnostics" class="status-value">—</strong>
+            </div>
+
+            <div class="status-card">
+              <span>CAFEÍNA AI</span>
+              <strong id="statusAI" class="status-value">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="page-about" class="page">
+          <div class="page-title-row">
+            <div>
+              <span class="eyebrow">PROJETO</span>
+              <h1>Sobre</h1>
+              <p>Informações gerais do painel CAFEÍNA.</p>
+            </div>
+          </div>
+
+          <div class="surface-card about-card">
+            <h2>CAFEÍNA WEB</h2>
+            <p>
+              Interface web para acompanhar arquivos enviados, disponibilidade do
+              backend e diagnósticos de execução dos scripts.
+            </p>
+            <p>
+              Arquivos e diagnósticos são apresentados em áreas diferentes para
+              facilitar leitura, manutenção e testes.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Navegação mobile">
+      <button class="mobile-nav-item active" data-page="home">
+        <span>⌂</span>
+        <small>Início</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="explorer">
+        <span>⌕</span>
+        <small>Explorer</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="files">
+        <span>▱</span>
+        <small>Arquivos</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="diagnostics">
+        <span>!</span>
+        <small>Erros</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="ai">
+        <span>✦</span>
+        <small>AI</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="status">
+        <span>●</span>
+        <small>Status</small>
+      </button>
+
+      <button class="mobile-nav-item" data-page="about">
+        <span>i</span>
+        <small>Sobre</small>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
