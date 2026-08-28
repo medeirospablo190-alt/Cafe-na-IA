@@ -1,13 +1,16 @@
 {
-  "name": "cafeina-ai-backend",
+  "name": "cafeina-web",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "openai": "^5.0.0"
+    "express": "^4.21.2"
   }
 }
