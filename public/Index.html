@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <title>CAFEÍNA • Arquivos</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">CAFEÍNA</div>
+        <h1>Arquivos do scanner</h1>
+        <p class="subtitle">Recebimento, visualização e download dos scans enviados pelo menu.</p>
+      </div>
+      <div id="serverStatus" class="status"><span></span> verificando</div>
+    </header>
+
+    <section class="stats" aria-label="Resumo">
+      <article>
+        <span>ARQUIVOS</span>
+        <strong id="fileCount">0</strong>
+      </article>
+      <article>
+        <span>ARMAZENADO</span>
+        <strong id="totalSize">0 B</strong>
+      </article>
+      <article>
+        <span>UPLOAD</span>
+        <strong id="uploadState">—</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="kicker">SERVER SCANNER</p>
+          <h2>Arquivos recebidos</h2>
+          <p>Quando o scanner concluir <code>/upload/finish</code>, o arquivo aparece aqui.</p>
+        </div>
+        <button id="refreshBtn" class="secondary">Atualizar</button>
+      </div>
+
+      <div id="scanEmpty" class="empty hidden">
+        <strong>Nenhum arquivo recebido</strong>
+        <span>Execute um scan e use “Enviar Tudo” ou “Enviar esta área”.</span>
+      </div>
+
+      <div id="scanList" class="file-list"></div>
+    </section>
+
+    <article id="scanViewer" class="viewer hidden">
+      <div class="result-head">
+        <div>
+          <span class="badge">VISUALIZAÇÃO</span>
+          <h3 id="viewerTitle">Arquivo</h3>
+        </div>
+        <div class="viewer-actions">
+          <button id="closeViewer" class="secondary">Fechar</button>
+          <a id="downloadScan" class="primary-link" href="#">Baixar arquivo</a>
+        </div>
+      </div>
+
+      <p id="viewerMeta" class="viewer-meta"></p>
+      <pre id="viewerText"></pre>
+    </article>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
