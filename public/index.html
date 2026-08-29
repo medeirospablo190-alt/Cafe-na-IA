@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#05070a" />
+  <title>CAFEÍNA • Darkside</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">CAFEÍNA / CONTROL CENTER</div>
+        <h1>Darkside Console</h1>
+        <p class="hero-copy">Scans e diagnósticos isolados, organizados e prontos para mobile.</p>
+      </div>
+      <div id="serverStatus" class="status"><span></span> verificando</div>
+    </header>
+
+    <nav class="tabs" aria-label="Áreas do site">
+      <button class="tab active" data-tab="diagnostics">Diagnósticos</button>
+      <button class="tab" data-tab="scans">Arquivos do Scam</button>
+      <button class="tab" data-tab="analyzer">Analisar Lua</button>
+    </nav>
+
+    <section id="diagnostics" class="panel active">
+      <div class="section-head inline">
+        <div>
+          <p class="kicker">RUNTIME DIAGNOSTICS</p>
+          <h2>Execuções monitoradas</h2>
+          <p>Cada execução gera ou atualiza seu próprio arquivo JSON. Os arquivos do Scam ficam fora desta área.</p>
+        </div>
+        <button id="refreshDiagnostics" class="secondary compact">Atualizar</button>
+      </div>
+
+      <div id="scriptFilters" class="script-filters" aria-label="Filtro de scripts"></div>
+      <div class="stat-grid">
+        <div class="stat-card"><span>Total</span><strong id="diagTotal">0</strong></div>
+        <div class="stat-card"><span>Sucesso</span><strong id="diagSuccess">0</strong></div>
+        <div class="stat-card"><span>Erros</span><strong id="diagErrors">0</strong></div>
+        <div class="stat-card"><span>Rodando</span><strong id="diagRunning">0</strong></div>
+      </div>
+
+      <div id="diagnosticEmpty" class="empty hidden">
+        <strong>Nenhum diagnóstico recebido</strong>
+        <span>Quando um dos scripts monitorados enviar um relatório, ele aparecerá aqui.</span>
+      </div>
+      <div id="diagnosticList" class="file-list"></div>
+
+      <article id="diagnosticViewer" class="viewer hidden">
+        <div class="result-head">
+          <div><span class="badge">JSON COMPLETO</span><h3 id="diagnosticViewerTitle">Diagnóstico</h3></div>
+          <a id="downloadRuntimeDiagnostic" class="secondary" href="#">Baixar JSON</a>
+        </div>
+        <p id="diagnosticViewerMeta" class="viewer-meta"></p>
+        <pre id="diagnosticViewerText"></pre>
+      </article>
+    </section>
+
+    <section id="scans" class="panel">
+      <div class="section-head inline">
+        <div>
+          <p class="kicker">SCAM STORAGE</p>
+          <h2>Arquivos recebidos</h2>
+          <p>Área exclusiva dos arquivos enviados pelo Scam. O fluxo de upload permanece independente dos diagnósticos.</p>
+        </div>
+        <button id="refreshScans" class="secondary compact">Atualizar</button>
+      </div>
+
+      <div id="scanEmpty" class="empty hidden">
+        <strong>Nenhum arquivo recebido</strong>
+        <span>Quando o Scam finalizar um envio, o JSON aparecerá aqui.</span>
+      </div>
+      <div id="scanList" class="file-list"></div>
+
+      <article id="scanViewer" class="viewer hidden">
+        <div class="result-head">
+          <div><span class="badge">SCAM FILE</span><h3 id="viewerTitle">Arquivo</h3></div>
+          <a id="downloadScan" class="secondary" href="#">Baixar arquivo</a>
+        </div>
+        <p id="viewerMeta" class="viewer-meta"></p>
+        <pre id="viewerText"></pre>
+      </article>
+    </section>
+
+    <section id="analyzer" class="panel">
+      <div class="section-head">
+        <p class="kicker">STATIC ANALYZER</p>
+        <h2>Analisar um script Lua</h2>
+        <p>Ferramenta separada dos relatórios de execução. Ela não altera nem os diagnósticos runtime nem os arquivos do Scam.</p>
+      </div>
+
+      <label class="dropzone" id="dropzone">
+        <input id="scriptFile" type="file" accept=".lua,.luau,.txt,text/plain" />
+        <span class="drop-icon">＋</span>
+        <strong id="fileLabel">Escolher script</strong>
+        <small>Lua, Luau ou TXT • até 2 MB</small>
+      </label>
+      <button id="diagnoseBtn" class="primary" disabled>Gerar diagnóstico</button>
+      <div id="diagProgress" class="progress-card hidden"><div class="spinner"></div><div><strong>Analisando script</strong><small>O resultado aparecerá aqui.</small></div></div>
+      <article id="diagResult" class="result hidden">
+        <div class="result-head"><div><span class="badge">PRONTO</span><h3 id="diagTitle">Diagnóstico</h3></div><a id="downloadDiagnostic" class="secondary" href="#">Baixar diagnóstico</a></div>
+        <pre id="diagText"></pre>
+      </article>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
