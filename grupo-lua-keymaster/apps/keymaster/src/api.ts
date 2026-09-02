@@ -7,7 +7,8 @@ export type CriticalAction =
   | "APP1_RESTART"
   | "APP1_MAINTENANCE_ON"
   | "APP1_MAINTENANCE_OFF"
-  | "DELETE_APP1_ACCOUNT";
+  | "DELETE_APP1_ACCOUNT"
+  | "DELETE_MANAGED_MENU";
 
 export type Account = {
   id: string;
@@ -279,6 +280,21 @@ export async function setManagedMenuState(session: string, menuId: string, actio
   );
 }
 
+export async function deleteManagedMenu(
+  session: string,
+  menuId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; revokedKeys: number; revokedSessions: number }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}`,
+    {
+      method: "DELETE",
+      headers: { "x-critical-authorization": authorizationToken }
+    },
+    session
+  );
+}
+
 export async function listMenuAccessKeys(session: string, menuId: string) {
   return request<{ ok: true; keys: MenuAccessKey[] }>(
     `/v1/keymaster/menus/${encodeURIComponent(menuId)}/keys`,
@@ -366,7 +382,7 @@ export async function authorizeCriticalAction(
 
 export async function executeCriticalAction(
   session: string,
-  action: Exclude<CriticalAction, "DELETE_APP1_ACCOUNT">,
+  action: Exclude<CriticalAction, "DELETE_APP1_ACCOUNT" | "DELETE_MANAGED_MENU">,
   authorizationToken: string
 ) {
   return request<{ ok: true; action: string; app1Maintenance?: boolean }>("/v1/keymaster/critical/execute", {
