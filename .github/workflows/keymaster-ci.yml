@@ -34,7 +34,20 @@ jobs:
       - name: Security and menu unit tests
         run: node --test test/*.test.mjs
 
-  keymaster-mobile:
+  shared-contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: grupo-lua-keymaster
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Contract tests
+        run: node --test packages/contracts/test/*.test.mjs
+
+  mobile-compatibility:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,5 +59,7 @@ jobs:
           node-version: 22
       - name: Install workspace dependencies
         run: npm install --ignore-scripts
-      - name: TypeScript check
+      - name: Keymaster TypeScript check
         run: npm --workspace @grupo-lua/keymaster run typecheck
+      - name: App 1 compatibility probe TypeScript check
+        run: npm --workspace @grupo-lua/app1-probe run typecheck
