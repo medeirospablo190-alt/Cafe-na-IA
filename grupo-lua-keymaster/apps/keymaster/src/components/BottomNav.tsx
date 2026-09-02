@@ -1,18 +1,20 @@
 import { Pressable, Text, View } from "react-native";
 import { styles } from "../styles";
 
-export type NavKey = "home" | "accounts" | "audit" | "critical";
+export type NavKey = "home" | "accounts" | "menus" | "audit" | "critical";
 
-export function BottomNav({ current, onHome, onAccounts, onAudit, onCritical }: {
+export function BottomNav({ current, onHome, onAccounts, onMenus, onAudit, onCritical }: {
   current: NavKey;
   onHome: () => void;
   onAccounts: () => void;
+  onMenus: () => void;
   onAudit: () => void;
   onCritical: () => void;
 }) {
   const items: Array<{ key: NavKey; icon: string; label: string; onPress: () => void }> = [
     { key: "home", icon: "⌂", label: "Início", onPress: onHome },
     { key: "accounts", icon: "♙", label: "Contas", onPress: onAccounts },
+    { key: "menus", icon: "⌘", label: "Chaves", onPress: onMenus },
     { key: "audit", icon: "≣", label: "Auditoria", onPress: onAudit },
     { key: "critical", icon: "!", label: "Crítico", onPress: onCritical }
   ];
