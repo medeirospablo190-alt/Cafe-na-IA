@@ -7,7 +7,7 @@ import { Header } from "../components/Common";
 import { DevAuthorizationModal } from "../components/DevAuthorizationModal";
 import { styles } from "../styles";
 
-type ExecutableCriticalAction = Exclude<CriticalAction, "DELETE_APP1_ACCOUNT">;
+type ExecutableCriticalAction = Exclude<CriticalAction, "DELETE_APP1_ACCOUNT" | "DELETE_MANAGED_MENU">;
 
 export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }: {
   session: string;
