@@ -20,6 +20,7 @@ import {
   type MenuKeyKind,
   createManagedMenu,
   createMenuAccessKey,
+  deleteManagedMenu,
   listManagedMenus,
   listMenuAccessKeys,
   listMenuAccessSessions,
@@ -33,6 +34,7 @@ import {
 import { BottomNav } from "../components/BottomNav";
 import { Button, Header } from "../components/Common";
 import { CredentialModal } from "../components/CredentialModal";
+import { DevAuthorizationModal } from "../components/DevAuthorizationModal";
 import { styles } from "../styles";
 
 type StatusFilter = "ALL" | "ACTIVE" | "SUSPENDED";
@@ -76,6 +78,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
   const [name, setName] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [selected, setSelected] = useState<ManagedMenu | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ManagedMenu | null>(null);
   const [editName, setEditName] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [keys, setKeys] = useState<MenuAccessKey[]>([]);
@@ -204,6 +207,17 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       [
         { text: "Cancelar", style: "cancel" },
         { text: "Suspender", style: "destructive", onPress: () => toggleMenu(menu) }
+      ]
+    );
+  }
+
+  function requestMenuDeletion(menu: ManagedMenu) {
+    Alert.alert(
+      "Excluir menu definitivamente",
+      `Excluir ${menu.name}? O menu deixará de aparecer, todas as chaves serão revogadas e todas as sessões serão encerradas. Esta ação não pode ser desfeita pelo painel.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Continuar", style: "destructive", onPress: () => setDeleteTarget(menu) }
       ]
     );
   }
@@ -585,6 +599,8 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                 ))}
 
                 <Button title={selected.status === "ACTIVE" ? "SUSPENDER MENU" : "LIBERAR MENU"} danger={selected.status === "ACTIVE"} secondary={selected.status !== "ACTIVE"} onPress={() => requestMenuToggle(selected)} />
+                <Button title="EXCLUIR MENU DEFINITIVAMENTE" danger onPress={() => requestMenuDeletion(selected)} />
+                <Text style={styles.muted}>A exclusão exige uma conta DEV ativa. O servidor revoga as chaves e sessões, marca o menu como removido e preserva apenas os registros necessários de auditoria.</Text>
               </ScrollView>
             ) : null}
           </View>
@@ -622,6 +638,28 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       </Modal>
 
       <CredentialModal credential={revealedKey} onClose={() => setRevealedKey(null)} />
+      <DevAuthorizationModal
+        visible={Boolean(deleteTarget)}
+        session={session}
+        action="DELETE_MANAGED_MENU"
+        targetId={deleteTarget?.id}
+        title={deleteTarget ? `Excluir ${deleteTarget.name}` : "Excluir menu"}
+        onCancel={() => setDeleteTarget(null)}
+        onAuthorized={async (authorizationToken) => {
+          if (!deleteTarget) return;
+          const targetName = deleteTarget.name;
+          const result = await deleteManagedMenu(session, deleteTarget.id, authorizationToken);
+          setDeleteTarget(null);
+          setSelected(null);
+          setKeys([]);
+          setAccessSessions([]);
+          await refresh();
+          Alert.alert(
+            "Menu excluído",
+            `${targetName} foi removido. ${result.revokedKeys} chave(s) e ${result.revokedSessions} sessão(ões) foram revogadas no processo.`
+          );
+        }}
+      />
     </SafeAreaView>
   );
 }

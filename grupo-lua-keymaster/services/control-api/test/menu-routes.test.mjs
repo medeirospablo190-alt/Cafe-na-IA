@@ -49,3 +49,9 @@ test("menu routes register on Express without ambiguous path syntax", () => {
   const app = express();
   assert.doesNotThrow(() => registerMenuRoutes(app));
 });
+
+test("menu routes accept the one-use critical authorization dependency", () => {
+  const app = express();
+  const consumeCriticalAuthorization = async () => null;
+  assert.doesNotThrow(() => registerMenuRoutes(app, { consumeCriticalAuthorization }));
+});
