@@ -1,15 +1,17 @@
 {
   "name": "@grupo-lua/app1-probe",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "fix": "expo install --fix"
+    "fix": "expo install --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@grupo-lua/contracts": "0.6.0",
     "expo": "~57.0.0",
     "expo-constants": "~57.0.0",
     "expo-secure-store": "~57.0.3",
