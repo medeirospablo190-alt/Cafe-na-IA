@@ -72,6 +72,7 @@ export type ManagedMenu = {
   active_accesses: number;
   accesses_month: number;
   loader_url: string;
+  loadstring?: string;
 };
 
 export type MenuAccessKey = {
@@ -81,6 +82,8 @@ export type MenuAccessKey = {
   key_hint: string;
   note: string | null;
   expires_at: string | null;
+  use_count?: number;
+  last_used_at?: string | null;
   created_at: string;
   updated_at: string;
   revoked_at: string | null;
@@ -256,6 +259,14 @@ export async function setManagedMenuState(session: string, menuId: string, actio
   );
 }
 
+export async function deleteManagedMenu(session: string, menuId: string) {
+  return request<{ ok: true }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}`,
+    { method: "DELETE" },
+    session
+  );
+}
+
 export async function listMenuAccessKeys(session: string, menuId: string) {
   return request<{ ok: true; keys: MenuAccessKey[] }>(
     `/v1/keymaster/menus/${encodeURIComponent(menuId)}/keys`,
@@ -286,6 +297,14 @@ export async function setMenuAccessKeyState(
   return request<{ ok: true; key: MenuAccessKey }>(
     `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/${action}`,
     { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function setMenuAccessKeyDuration(session: string, keyId: string, durationHours: number) {
+  return request<{ ok: true; key: MenuAccessKey }>(
+    `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/duration`,
+    { method: "POST", body: JSON.stringify({ durationHours }) },
     session
   );
 }
