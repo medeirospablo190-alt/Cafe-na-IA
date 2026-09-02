@@ -55,6 +55,38 @@ export type AuditEvent = {
   created_at: string;
 };
 
+export type ManagedMenuStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
+export type MenuKeyKind = "FREE" | "VIP";
+export type MenuKeyStatus = "ACTIVE" | "SUSPENDED" | "REVOKED";
+
+export type ManagedMenu = {
+  id: string;
+  public_id: string;
+  name: string;
+  source_url: string;
+  status: ManagedMenuStatus;
+  created_at: string;
+  updated_at: string;
+  free_keys: number;
+  vip_keys: number;
+  active_accesses: number;
+  accesses_month: number;
+  loader_url: string;
+};
+
+export type MenuAccessKey = {
+  id: string;
+  kind: MenuKeyKind;
+  status: MenuKeyStatus;
+  key_hint: string;
+  note: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+  revoked_at: string | null;
+  usable?: boolean;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -190,6 +222,70 @@ export async function listAudit(session: string, before?: string) {
   return request<{ ok: true; events: AuditEvent[]; nextBefore: string | null }>(
     `/v1/keymaster/audit${qs}`,
     {},
+    session
+  );
+}
+
+export async function listManagedMenus(
+  session: string,
+  filters: { q?: string; status?: Exclude<ManagedMenuStatus, "DELETED"> } = {}
+) {
+  const qs = queryString({ q: filters.q?.trim(), status: filters.status });
+  return request<{ ok: true; menus: ManagedMenu[] }>(`/v1/keymaster/menus${qs}`, {}, session);
+}
+
+export async function createManagedMenu(session: string, name: string, sourceUrl: string) {
+  return request<{ ok: true; menu: ManagedMenu }>("/v1/keymaster/menus", {
+    method: "POST",
+    body: JSON.stringify({ name, sourceUrl })
+  }, session);
+}
+
+export async function updateManagedMenu(session: string, menuId: string, values: { name?: string; sourceUrl?: string }) {
+  return request<{ ok: true; menu: ManagedMenu }>(`/v1/keymaster/menus/${encodeURIComponent(menuId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(values)
+  }, session);
+}
+
+export async function setManagedMenuState(session: string, menuId: string, action: "suspend" | "restore") {
+  return request<{ ok: true; menu: ManagedMenu }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/${action}`,
+    { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function listMenuAccessKeys(session: string, menuId: string) {
+  return request<{ ok: true; keys: MenuAccessKey[] }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/keys`,
+    {},
+    session
+  );
+}
+
+export async function createMenuAccessKey(
+  session: string,
+  menuId: string,
+  values: { kind: MenuKeyKind; durationHours?: number; note?: string }
+) {
+  return request<{
+    ok: true;
+    key: MenuAccessKey & { value: string; revealOnce: true };
+  }>(`/v1/keymaster/menus/${encodeURIComponent(menuId)}/keys`, {
+    method: "POST",
+    body: JSON.stringify(values)
+  }, session);
+}
+
+export async function setMenuAccessKeyState(
+  session: string,
+  keyId: string,
+  action: "suspend" | "restore" | "revoke" | "permanent"
+) {
+  return request<{ ok: true; key: MenuAccessKey }>(
+    `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/${action}`,
+    { method: "POST", body: "{}" },
     session
   );
 }
