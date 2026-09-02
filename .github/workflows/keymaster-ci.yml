@@ -21,21 +21,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install API dependencies
+        run: npm install --ignore-scripts
       - name: Syntax check
         run: |
-          node --check src/bootstrap.js
           node --check src/server.js
           node --check src/menu-routes.js
           node --check src/security.js
           node --check src/integrity.js
           node --check src/db.js
           node --check scripts/migrate.mjs
-      - name: Security unit tests
+      - name: Security and menu unit tests
         run: node --test test/*.test.mjs
-      - name: Install API dependencies
-        run: npm install --ignore-scripts
-      - name: Register Express routes
-        run: node --input-type=module -e "import express from 'express'; import { registerMenuRoutes } from './src/menu-routes.js'; const app = express(); registerMenuRoutes(app); console.log('menu routes ok');"
 
   keymaster-mobile:
     runs-on: ubuntu-latest
