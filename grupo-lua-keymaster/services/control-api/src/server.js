@@ -29,6 +29,11 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "64kb" }));
+app.use((_req, res, next) => {
+  res.set("Cache-Control", "no-store, max-age=0");
+  res.set("Pragma", "no-cache");
+  next();
+});
 
 function sendError(res, status, code, message, extra = {}) {
   return res.status(status).json({ ok: false, code, message, ...extra });
@@ -366,6 +371,94 @@ app.get("/v1/keymaster/system-status", requireKeymaster, async (_req, res, next)
   } catch (error) { next(error); }
 });
 
+app.get("/v1/keymaster/dashboard", requireKeymaster, async (_req, res, next) => {
+  try {
+    const [accountsResult, sessionsResult, auditResult, app1Maintenance] = await Promise.all([
+      pool.query(
+        `SELECT
+           COUNT(*)::int AS total,
+           COUNT(*) FILTER (WHERE status = 'ACTIVE')::int AS active,
+           COUNT(*) FILTER (WHERE status = 'SUSPENDED')::int AS suspended,
+           COUNT(*) FILTER (WHERE role = 'ADM')::int AS adm,
+           COUNT(*) FILTER (WHERE role = 'DEV')::int AS dev
+         FROM app1_accounts
+         WHERE status <> 'DELETED'`
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS active_sessions
+           FROM app1_sessions
+          WHERE revoked_at IS NULL AND expires_at > NOW()`
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS events_24h
+           FROM audit_events
+          WHERE created_at >= NOW() - INTERVAL '24 hours'`
+      ),
+      getApp1Maintenance()
+    ]);
+    const accounts = accountsResult.rows[0] || {};
+    res.json({
+      ok: true,
+      dashboard: {
+        app1Maintenance,
+        accounts: {
+          total: Number(accounts.total || 0),
+          active: Number(accounts.active || 0),
+          suspended: Number(accounts.suspended || 0),
+          adm: Number(accounts.adm || 0),
+          dev: Number(accounts.dev || 0)
+        },
+        activeSessions: Number(sessionsResult.rows[0]?.active_sessions || 0),
+        auditEvents24h: Number(auditResult.rows[0]?.events_24h || 0)
+      }
+    });
+  } catch (error) { next(error); }
+});
+
+app.get("/v1/keymaster/audit", requireKeymaster, async (req, res, next) => {
+  try {
+    const requestedLimit = Number(req.query?.limit || 40);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, Math.floor(requestedLimit))) : 40;
+    const before = String(req.query?.before || "").trim();
+    if (before && !/^\d+$/.test(before)) return sendError(res, 400, "INVALID_CURSOR", "Cursor de auditoria inválido.");
+
+    const params = [];
+    let beforeClause = "";
+    if (before) {
+      params.push(before);
+      beforeClause = `WHERE e.id < $${params.length}::bigint`;
+    }
+    params.push(limit);
+    const { rows } = await pool.query(
+      `SELECT
+         e.id::text AS id,
+         e.actor_kind,
+         e.actor_id,
+         actor.login AS actor_login,
+         e.action,
+         e.target_kind,
+         e.target_id,
+         target.login AS target_login,
+         e.metadata,
+         e.created_at
+       FROM audit_events e
+       LEFT JOIN app1_accounts actor
+         ON e.actor_kind = 'DEV' AND actor.id::text = e.actor_id
+       LEFT JOIN app1_accounts target
+         ON e.target_kind = 'APP1_ACCOUNT' AND target.id::text = e.target_id
+       ${beforeClause}
+       ORDER BY e.id DESC
+       LIMIT $${params.length}`,
+      params
+    );
+    res.json({
+      ok: true,
+      events: rows,
+      nextBefore: rows.length === limit ? rows[rows.length - 1].id : null
+    });
+  } catch (error) { next(error); }
+});
+
 app.post("/v1/keymaster/critical/authorize", requireKeymaster, async (req, res, next) => {
   try {
     const devCredential = String(req.body?.devCredential || "");
@@ -421,13 +514,46 @@ app.post("/v1/keymaster/critical/execute", requireKeymaster, async (req, res, ne
   } catch (error) { next(error); }
 });
 
-app.get("/v1/keymaster/accounts", requireKeymaster, async (_req, res, next) => {
+app.get("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
   try {
+    const q = normalizeLogin(req.query?.q).replace(/[%_]/g, "");
+    const role = String(req.query?.role || "").toUpperCase();
+    const status = String(req.query?.status || "").toUpperCase();
+    if (role && !["ADM", "DEV"].includes(role)) return sendError(res, 400, "INVALID_ROLE", "Filtro de role inválido.");
+    if (status && !["ACTIVE", "SUSPENDED"].includes(status)) return sendError(res, 400, "INVALID_STATUS", "Filtro de status inválido.");
+
+    const params = [];
+    const clauses = ["a.status <> 'DELETED'"];
+    if (q) {
+      params.push(q);
+      clauses.push(`LOWER(a.login) LIKE '%' || LOWER($${params.length}) || '%'`);
+    }
+    if (role) {
+      params.push(role);
+      clauses.push(`a.role = $${params.length}`);
+    }
+    if (status) {
+      params.push(status);
+      clauses.push(`a.status = $${params.length}`);
+    }
+
     const { rows } = await pool.query(
-      `SELECT id, login, role, status, created_at, updated_at, deleted_at
-         FROM app1_accounts
-        WHERE status <> 'DELETED'
-        ORDER BY role DESC, login ASC`
+      `SELECT
+         a.id,
+         a.login,
+         a.role,
+         a.status,
+         a.created_at,
+         a.updated_at,
+         COUNT(s.id) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW())::int AS active_sessions,
+         MAX(s.created_at) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW()) AS last_session_at
+       FROM app1_accounts a
+       LEFT JOIN app1_sessions s ON s.account_id = a.id
+       WHERE ${clauses.join(" AND ")}
+       GROUP BY a.id
+       ORDER BY a.role DESC, a.login ASC
+       LIMIT 250`,
+      params
     );
     res.json({ ok: true, accounts: rows });
   } catch (error) {
@@ -543,6 +669,92 @@ app.post("/v1/keymaster/accounts/:id/rotate", requireKeymaster, async (req, res,
       });
     });
     res.json({ ok: true, credential, credentialLength: credential.length, revealOnce: true });
+  } catch (error) { next(error); }
+});
+
+app.get("/v1/keymaster/accounts/:id/sessions", requireKeymaster, async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const account = (await pool.query(
+      `SELECT id FROM app1_accounts WHERE id = $1 AND status <> 'DELETED' LIMIT 1`,
+      [id]
+    )).rows[0];
+    if (!account) return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
+    const { rows } = await pool.query(
+      `SELECT
+         id,
+         device_label,
+         created_at,
+         expires_at,
+         revoked_at,
+         (revoked_at IS NULL AND expires_at > NOW()) AS active
+       FROM app1_sessions
+       WHERE account_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [id]
+    );
+    res.json({ ok: true, sessions: rows });
+  } catch (error) { next(error); }
+});
+
+app.post("/v1/keymaster/accounts/:id/sessions/:sessionId/revoke", requireKeymaster, async (req, res, next) => {
+  try {
+    const accountId = String(req.params.id);
+    const sessionId = String(req.params.sessionId);
+    const revoked = await withTransaction(async (client) => {
+      const row = (await client.query(
+        `SELECT id, revoked_at FROM app1_sessions WHERE id = $1 AND account_id = $2 FOR UPDATE`,
+        [sessionId, accountId]
+      )).rows[0];
+      if (!row) return null;
+      if (row.revoked_at) return false;
+      await client.query(`UPDATE app1_sessions SET revoked_at = NOW() WHERE id = $1`, [sessionId]);
+      await audit(client, {
+        actorKind: "KEYMASTER_SESSION",
+        actorId: req.keymasterSession.id,
+        action: "APP1_SESSION_REVOKED",
+        targetKind: "APP1_ACCOUNT",
+        targetId: accountId,
+        metadata: { app1SessionId: sessionId }
+      });
+      return true;
+    });
+    if (revoked === null) return sendError(res, 404, "NOT_FOUND", "Sessão não encontrada.");
+    res.json({ ok: true, revoked });
+  } catch (error) { next(error); }
+});
+
+app.post("/v1/keymaster/accounts/:id/sessions/revoke-all", requireKeymaster, async (req, res, next) => {
+  try {
+    const accountId = String(req.params.id);
+    const result = await withTransaction(async (client) => {
+      const account = (await client.query(
+        `SELECT id FROM app1_accounts WHERE id = $1 AND status <> 'DELETED' LIMIT 1`,
+        [accountId]
+      )).rows[0];
+      if (!account) return null;
+      const revokedRows = await client.query(
+        `UPDATE app1_sessions
+            SET revoked_at = NOW()
+          WHERE account_id = $1
+            AND revoked_at IS NULL
+            AND expires_at > NOW()
+          RETURNING id`,
+        [accountId]
+      );
+      await audit(client, {
+        actorKind: "KEYMASTER_SESSION",
+        actorId: req.keymasterSession.id,
+        action: "APP1_SESSIONS_REVOKED_ALL",
+        targetKind: "APP1_ACCOUNT",
+        targetId: accountId,
+        metadata: { count: revokedRows.rowCount }
+      });
+      return revokedRows.rowCount;
+    });
+    if (result === null) return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
+    res.json({ ok: true, revokedCount: result });
   } catch (error) { next(error); }
 });
 

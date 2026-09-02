@@ -1,6 +1,6 @@
-# GRUPO LUA KEYMASTER — V0.2.1
+# GRUPO LUA KEYMASTER — V0.3.0
 
-Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com um cliente mínimo do Aplicativo 1 para validar compatibilidade desde o início.
+Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com cliente móvel Android/iPhone, API server-side e cliente mínimo do Aplicativo 1 para validar compatibilidade desde o início.
 
 ## Estrutura
 
@@ -21,7 +21,29 @@ packages/contracts    Constantes compartilhadas
 - identificação por Android ID / IDFV + installation ID, protegida por HMAC no servidor;
 - estrutura para Play Integrity / App Attest;
 - sessão Keymaster revogável, validada novamente no servidor após biometria;
-- token da sessão salvo somente em SecureStore/Keychain/Keystore.
+- token da sessão salvo somente em SecureStore/Keychain/Keystore;
+- respostas administrativas usam `Cache-Control: no-store`;
+- ações destrutivas continuam dependendo do servidor.
+
+## V0.3 — painel administrativo mobile
+
+A V0.3 aproxima o Keymaster do layout mobile preto/minimalista definido nos mockups e adiciona administração operacional real:
+
+- dashboard com status do App 1;
+- quantidade de ADM/DEV;
+- quantidade de sessões ativas;
+- eventos de auditoria das últimas 24h;
+- barra de navegação inferior compacta;
+- busca de contas por login;
+- filtros ADM/DEV e ativa/suspensa;
+- detalhes da conta;
+- visualização de sessões do App 1;
+- revogação individual de sessão;
+- revogação de todas as sessões ativas da conta;
+- timeline de auditoria server-side com paginação;
+- DEVs destacados em vermelho e Keymaster em roxo/preto.
+
+Busca, filtros, contagens e auditoria são consultados em endpoints autenticados. O cliente não recebe hashes de credenciais, tokens persistidos no banco nem segredos do servidor.
 
 ## Contas do Aplicativo 1
 
@@ -32,11 +54,12 @@ packages/contracts    Constantes compartilhadas
 - suspender/liberar conta;
 - rotação de credencial revoga sessões abertas;
 - exclusão individual exige **reautenticação DEV** e autorização server-side de uso único;
+- sessões podem ser encerradas pelo Keymaster e a ação fica na auditoria;
 - App 1 probe autentica as mesmas contas criadas pelo Keymaster.
 
-## V0.2+ — ações críticas
+## Ações críticas
 
-A V0.2 adiciona uma camada de *step-up authentication* para ações críticas:
+A camada de *step-up authentication* funciona assim:
 
 1. sessão Keymaster válida;
 2. reautenticação com uma conta `DEV` ativa;
@@ -97,6 +120,7 @@ Sem isso, a API recusa o reinício com erro de configuração em vez de fingir q
 npm install
 cd apps/keymaster
 npx expo install --fix
+npm run typecheck
 npx expo run:android
 # ou
 npx expo run:ios
