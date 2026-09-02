@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "GRUPO LUA KEYMASTER",
+    "slug": "grupo-lua-keymaster",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "scheme": "grupolua-keymaster",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.grupolua.keymaster",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use o Face ID para desbloquear sua sessão segura do Keymaster."
+      }
+    },
+    "android": {
+      "package": "com.grupolua.keymaster",
+      "adaptiveIcon": {
+        "backgroundColor": "#050505"
+      }
+    },
+    "plugins": [
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Use o Face ID para desbloquear sua sessão segura do Keymaster."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://cafe-na-ia.onrender.com"
+    }
+  }
+}
