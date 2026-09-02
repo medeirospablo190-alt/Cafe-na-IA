@@ -27,6 +27,7 @@ Uma autorização criada para um menu não serve para excluir outro menu.
 A operação ocorre dentro de transação de banco:
 
 - o menu passa para `status = DELETED`;
+- `deleted_at` é preenchido automaticamente quando o status entra em `DELETED`;
 - todas as chaves ainda não revogadas passam para `REVOKED`;
 - `revoked_at` é preenchido nas chaves afetadas;
 - todas as sessões ainda sem `revoked_at` são revogadas;
@@ -34,6 +35,8 @@ A operação ocorre dentro de transação de banco:
 - a URL pública deixa de resolver o menu;
 - novas validações FREE/VIP deixam de encontrar o menu;
 - não existe rota de restauração de um menu `DELETED`.
+
+A migration `005_managed_menu_deleted_at.sql` cria o gatilho que registra `deleted_at` e também corrige registros antigos que por acaso já estejam em `DELETED` sem timestamp.
 
 ## Auditoria
 
