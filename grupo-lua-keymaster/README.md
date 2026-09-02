@@ -1,4 +1,4 @@
-# GRUPO LUA KEYMASTER — V0.5.0
+# GRUPO LUA KEYMASTER — V0.7.0
 
 Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com cliente móvel Android/iPhone, API server-side, PostgreSQL e cliente mínimo do Aplicativo 1 para validar compatibilidade.
 
@@ -8,7 +8,7 @@ Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com cliente móvel A
 apps/keymaster        Aplicativo 2 Android/iPhone (Expo SDK 57)
 apps/app1-probe       Cliente mínimo para testar logins criados pelo Keymaster
 services/control-api  API server-side + PostgreSQL
-packages/contracts    Constantes compartilhadas
+packages/contracts    Constantes e contratos compartilhados
 docs                   Requisitos salvos antes da implementação completa do App 1
 ```
 
@@ -21,6 +21,7 @@ O aplicativo pede; o servidor decide.
 - a KEYMASTER ACCESS KEY original não é persistida no app;
 - chaves FREE/VIP completas são exibidas somente no momento da criação;
 - depois disso, a interface recebe somente um `key_hint` parcial;
+- tokens secretos de sessões de menu nunca são exibidos no painel administrativo;
 - respostas administrativas usam `Cache-Control: no-store`;
 - segredos reais ficam apenas em variáveis privadas do servidor.
 
@@ -135,13 +136,13 @@ Suspender um menu pelo aplicativo exige uma confirmação visual antes da chamad
 
 ### Administração de chaves
 
-Ao abrir um menu, o Keymaster agora mostra resumo de:
+Ao abrir um menu, o Keymaster mostra resumo de:
 
 - total de chaves;
 - chaves atualmente utilizáveis;
 - soma do contador de usos.
 
-Também foi adicionada busca local por `key_hint` ou observação e filtros rápidos:
+Também foram adicionados busca local por `key_hint` ou observação e filtros rápidos:
 
 ```text
 TODAS
@@ -153,7 +154,7 @@ EXPIRADAS
 REVOGADAS
 ```
 
-Cada chave passa a destacar no painel móvel:
+Cada chave destaca no painel móvel:
 
 - tipo FREE/VIP;
 - estado atual;
@@ -163,6 +164,62 @@ Cada chave passa a destacar no painel móvel:
 - data/hora do último uso.
 
 A autoridade dos estados continua no servidor; os filtros são apenas uma forma de visualizar melhor os dados já retornados pela API.
+
+## V0.6 — contrato mínimo App 1 ↔ Keymaster
+
+A V0.6 formaliza somente o necessário para que as contas criadas pelo Keymaster permaneçam compatíveis com o futuro Aplicativo 1.
+
+- contrato compartilhado de roles `ADM` e `DEV`;
+- ADMIN APP KEY com 256 caracteres;
+- DEV KEY com 600 caracteres;
+- testes automáticos verificam que o gerador real continua obedecendo esses tamanhos;
+- permissões-base compartilhadas entre os clientes;
+- `app1.social.pin-post` reservado somente a DEV, sem implementar o Social;
+- App 1 Probe testa login, sessão, role, status e revogação, mas continua sendo apenas uma sonda de compatibilidade;
+- Feed, Chats, Arquivos, perfis e notificações do App 1 continuam adiados.
+
+O contrato detalhado fica em:
+
+```text
+docs/app1-keymaster-contract.md
+```
+
+## V0.7 — controle de sessões de acesso dos menus
+
+A V0.7 adiciona ao Keymaster administração direta das sessões temporárias emitidas após uma chave FREE/VIP ser validada.
+
+### O painel pode visualizar
+
+Para cada sessão recente de um menu:
+
+- ID administrativo da sessão;
+- tipo da chave de origem (FREE/VIP);
+- `key_hint` da chave, nunca a chave completa;
+- observação da chave quando existir;
+- rótulo informado pelo cliente;
+- criação;
+- expiração;
+- último sinal (`last_seen_at`);
+- estado ativa/revogada/expirada.
+
+O token secreto usado pelo cliente para consumir o menu **não é retornado ao Keymaster**.
+
+### Ações disponíveis
+
+- atualizar a lista de sessões;
+- buscar por cliente, dica da chave ou observação;
+- filtrar por todas / ativas / encerradas;
+- revogar uma sessão específica;
+- revogar todas as sessões ainda ativas de um menu de uma vez.
+
+Revogar sessões não apaga nem revoga automaticamente a chave FREE/VIP de origem. Se a chave continuar válida, ela pode criar uma nova sessão posteriormente. Para impedir novos acessos, suspenda/revogue a chave ou suspenda o menu.
+
+As revogações ficam registradas na auditoria server-side com os eventos:
+
+```text
+MENU_ACCESS_SESSION_REVOKED
+MENU_ACCESS_SESSIONS_REVOKED_ALL
+```
 
 ## Requisito salvo do Aplicativo 1 — ainda não implementado
 
@@ -185,7 +242,8 @@ O documento registra que somente DEV poderá fixar/desafixar publicações, que 
 5. O cliente envia `menuId` + chave para `/v1/menu-access/validate`.
 6. Se a chave estiver válida, o servidor emite uma sessão curta de acesso, atualmente de no máximo 15 minutos.
 7. Com essa sessão, `/v1/menu-access/:publicId/manifest` retorna os metadados autorizados do menu.
-8. Suspensão/revogação do menu ou da chave impede novas validações e invalida sessões quando aplicável.
+8. O Keymaster pode encerrar a sessão específica ou todas as sessões ativas do menu.
+9. Suspensão/revogação do menu ou da chave impede novas validações e invalida sessões quando aplicável.
 
 A sessão curta nunca pode ultrapassar o tempo restante de uma chave FREE.
 
@@ -205,7 +263,7 @@ Para proteção mais forte do conteúdo, a origem do código precisará deixar d
 - rotação de credencial revoga sessões abertas;
 - exclusão individual exige reautenticação DEV e autorização server-side de uso único;
 - sessões podem ser encerradas pelo Keymaster e a ação fica na auditoria;
-- App 1 probe autentica as mesmas contas criadas pelo Keymaster.
+- App 1 Probe autentica as mesmas contas criadas pelo Keymaster.
 
 ## Ações críticas
 
@@ -225,11 +283,11 @@ Já implementado:
 - excluir uma conta individual somente após reautenticação DEV;
 - auditoria das autorizações e execuções críticas.
 
-Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir. A exclusão definitiva de um menu também deve entrar em uma etapa DEV protegida antes de ser habilitada no painel; a V0.5 continua sem habilitar exclusão definitiva de menu.
+Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir. A exclusão definitiva de um menu também deve entrar em uma etapa DEV protegida antes de ser habilitada no painel; a V0.7 continua sem habilitar exclusão definitiva de menu.
 
 ## Banco de dados
 
-Rode todas as migrations em ordem. A V0.4 adiciona:
+Rode todas as migrations em ordem. A camada de menus usa:
 
 ```text
 003_menus_keys.sql
@@ -243,6 +301,8 @@ managed_menus
 menu_access_keys
 menu_access_sessions
 ```
+
+A V0.7 reutiliza `menu_access_sessions`; não exige uma nova migration.
 
 ## Preparar o servidor
 
