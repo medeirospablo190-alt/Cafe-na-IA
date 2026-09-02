@@ -1,4 +1,4 @@
-# GRUPO LUA KEYMASTER — V0.7.0
+# GRUPO LUA KEYMASTER — V0.8.0
 
 Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com cliente móvel Android/iPhone, API server-side, PostgreSQL e cliente mínimo do Aplicativo 1 para validar compatibilidade.
 
@@ -9,7 +9,7 @@ apps/keymaster        Aplicativo 2 Android/iPhone (Expo SDK 57)
 apps/app1-probe       Cliente mínimo para testar logins criados pelo Keymaster
 services/control-api  API server-side + PostgreSQL
 packages/contracts    Constantes e contratos compartilhados
-docs                   Requisitos salvos antes da implementação completa do App 1
+docs                  Requisitos e decisões de arquitetura
 ```
 
 ## Princípio de segurança
@@ -154,16 +154,7 @@ EXPIRADAS
 REVOGADAS
 ```
 
-Cada chave destaca no painel móvel:
-
-- tipo FREE/VIP;
-- estado atual;
-- expiração quando aplicável;
-- observação;
-- contador de usos;
-- data/hora do último uso.
-
-A autoridade dos estados continua no servidor; os filtros são apenas uma forma de visualizar melhor os dados já retornados pela API.
+Cada chave destaca no painel móvel tipo, estado, expiração, observação, contador de usos e data/hora do último uso.
 
 ## V0.6 — contrato mínimo App 1 ↔ Keymaster
 
@@ -178,56 +169,59 @@ A V0.6 formaliza somente o necessário para que as contas criadas pelo Keymaster
 - App 1 Probe testa login, sessão, role, status e revogação, mas continua sendo apenas uma sonda de compatibilidade;
 - Feed, Chats, Arquivos, perfis e notificações do App 1 continuam adiados.
 
-O contrato detalhado fica em:
-
-```text
-docs/app1-keymaster-contract.md
-```
+O contrato detalhado fica em `docs/app1-keymaster-contract.md`.
 
 ## V0.7 — controle de sessões de acesso dos menus
 
 A V0.7 adiciona ao Keymaster administração direta das sessões temporárias emitidas após uma chave FREE/VIP ser validada.
 
-### O painel pode visualizar
+Para cada sessão recente o painel mostra tipo da chave, `key_hint`, observação, cliente, criação, expiração, último sinal e estado ativa/revogada/expirada. O token secreto usado pelo cliente não é retornado ao Keymaster.
 
-Para cada sessão recente de um menu:
+Ações disponíveis:
 
-- ID administrativo da sessão;
-- tipo da chave de origem (FREE/VIP);
-- `key_hint` da chave, nunca a chave completa;
-- observação da chave quando existir;
-- rótulo informado pelo cliente;
-- criação;
-- expiração;
-- último sinal (`last_seen_at`);
-- estado ativa/revogada/expirada.
-
-O token secreto usado pelo cliente para consumir o menu **não é retornado ao Keymaster**.
-
-### Ações disponíveis
-
-- atualizar a lista de sessões;
-- buscar por cliente, dica da chave ou observação;
+- atualizar e pesquisar sessões;
 - filtrar por todas / ativas / encerradas;
 - revogar uma sessão específica;
-- revogar todas as sessões ainda ativas de um menu de uma vez.
+- revogar todas as sessões ainda ativas de um menu.
 
-Revogar sessões não apaga nem revoga automaticamente a chave FREE/VIP de origem. Se a chave continuar válida, ela pode criar uma nova sessão posteriormente. Para impedir novos acessos, suspenda/revogue a chave ou suspenda o menu.
+Revogar sessões não revoga automaticamente a chave FREE/VIP de origem. Para impedir novas autenticações, suspenda/revogue a chave ou suspenda o menu.
 
-As revogações ficam registradas na auditoria server-side com os eventos:
+As revogações ficam na auditoria como:
 
 ```text
 MENU_ACCESS_SESSION_REVOKED
 MENU_ACCESS_SESSIONS_REVOKED_ALL
 ```
 
-## Requisito salvo do Aplicativo 1 — ainda não implementado
+## V0.8 — exclusão protegida de menu
 
-Antes de continuar o desenvolvimento completo do App 1, uma regra da área Social foi registrada em:
+A V0.8 adiciona exclusão definitiva operacional de um menu, protegida pelo mesmo sistema de *step-up authentication* usado nas ações críticas do Keymaster.
+
+Fluxo:
+
+1. sessão Keymaster válida;
+2. confirmação destrutiva no painel;
+3. reautenticação com uma conta `DEV` ativa;
+4. autorização server-side de uso único com escopo `DELETE_MANAGED_MENU:<menuId>`;
+5. validade máxima de 2 minutos;
+6. `DELETE /v1/keymaster/menus/:id` consome a autorização;
+7. servidor revoga sessões e chaves associadas e marca o menu como `DELETED` em transação.
+
+Uma autorização emitida para um menu não pode excluir outro. O painel não possui restauração para `DELETED`, a URL pública deixa de resolver o menu e novas validações FREE/VIP deixam de funcionar.
+
+A exclusão é lógica e definitiva para o produto: os registros mínimos permanecem no PostgreSQL para integridade referencial e auditoria. A migration `005_managed_menu_deleted_at.sql` garante o preenchimento de `deleted_at` quando um menu entra em `DELETED`.
+
+Evento principal de auditoria:
 
 ```text
-docs/app1-social-requirements.md
+MENU_DELETED
 ```
+
+Detalhes completos em `docs/keymaster-v0.8-menu-deletion.md`.
+
+## Requisito salvo do Aplicativo 1 — ainda não implementado
+
+Antes de continuar o desenvolvimento completo do App 1, uma regra da área Social foi registrada em `docs/app1-social-requirements.md`.
 
 O documento registra que somente DEV poderá fixar/desafixar publicações, que a publicação fixada mais recentemente deve aparecer no topo do feed com destaque/aura vermelha e que os outros administradores devem receber uma notificação quando um DEV fixar uma publicação.
 
@@ -249,9 +243,9 @@ A sessão curta nunca pode ultrapassar o tempo restante de uma chave FREE.
 
 ## Limitação importante da fonte GitHub
 
-Se o arquivo principal `.lua` estiver publicamente acessível por uma URL GitHub/raw conhecida, alguém que já conheça essa URL ainda pode tentar acessá-la diretamente. Portanto, esta camada protege distribuição, autorização, gerenciamento de chaves e fluxo de acesso, mas não transforma código cliente público em um segredo impossível de copiar.
+Se o arquivo principal `.lua` estiver publicamente acessível por uma URL GitHub/raw conhecida, alguém que já conheça essa URL ainda pode acessá-la diretamente. Esta camada protege distribuição, autorização, gerenciamento de chaves e fluxo de acesso, mas não transforma código cliente público em um segredo impossível de copiar.
 
-Para proteção mais forte do conteúdo, a origem do código precisará deixar de ser uma URL pública direta e passar por uma camada de entrega controlada pelo servidor. Isso deve ser tratado separadamente antes de produção.
+Para proteção mais forte do conteúdo, a origem do código precisará deixar de ser uma URL pública direta e passar por uma camada de entrega controlada pelo servidor.
 
 ## Contas do Aplicativo 1
 
@@ -271,7 +265,7 @@ A camada de *step-up authentication* funciona assim:
 
 1. sessão Keymaster válida;
 2. reautenticação com uma conta `DEV` ativa;
-3. servidor gera uma autorização aleatória de uso único, escopada à ação e com validade de 2 minutos;
+3. servidor gera uma autorização aleatória de uso único, escopada à ação/alvo e com validade de 2 minutos;
 4. a autorização é consumida uma única vez e não pode ser reutilizada.
 
 Já implementado:
@@ -281,9 +275,10 @@ Já implementado:
 - bloquear login/uso de sessões do App 1 durante manutenção;
 - solicitar reinício por webhook privado quando configurado;
 - excluir uma conta individual somente após reautenticação DEV;
+- excluir definitivamente um menu somente após reautenticação DEV;
 - auditoria das autorizações e execuções críticas.
 
-Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir. A exclusão definitiva de um menu também deve entrar em uma etapa DEV protegida antes de ser habilitada no painel; a V0.7 continua sem habilitar exclusão definitiva de menu.
+Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir.
 
 ## Banco de dados
 
@@ -292,6 +287,7 @@ Rode todas as migrations em ordem. A camada de menus usa:
 ```text
 003_menus_keys.sql
 004_menu_key_usage.sql
+005_managed_menu_deleted_at.sql
 ```
 
 As tabelas principais são:
@@ -301,8 +297,6 @@ managed_menus
 menu_access_keys
 menu_access_sessions
 ```
-
-A V0.7 reutiliza `menu_access_sessions`; não exige uma nova migration.
 
 ## Preparar o servidor
 
