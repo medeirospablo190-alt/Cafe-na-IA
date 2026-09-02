@@ -7,9 +7,10 @@ import { BottomNav } from "../components/BottomNav";
 import { Header } from "../components/Common";
 import { styles } from "../styles";
 
-export function HomeScreen({ session, onAccounts, onAudit, onCritical, onLogout }: {
+export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, onLogout }: {
   session: string;
   onAccounts: () => void;
+  onMenus: () => void;
   onAudit: () => void;
   onCritical: () => void;
   onLogout: () => void;
@@ -32,7 +33,7 @@ export function HomeScreen({ session, onAccounts, onAudit, onCritical, onLogout 
           <View style={styles.heroCard}>
             <View style={styles.heroBadge}><Text style={styles.heroBadgeText}>ROOT ACCESS</Text></View>
             <Text style={styles.heroTitle}>GRUPO LUA</Text>
-            <Text style={styles.heroSubtitle}>Painel de credenciais e ações críticas</Text>
+            <Text style={styles.heroSubtitle}>Painel de credenciais, menus e ações críticas</Text>
             <View style={styles.statusLine}>
               <View style={styles.greenDot} />
               <Text style={styles.securityTitle}>Sessão protegida e validada</Text>
@@ -74,11 +75,20 @@ export function HomeScreen({ session, onAccounts, onAudit, onCritical, onLogout 
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
 
+          <Pressable style={styles.featureCard} onPress={onMenus}>
+            <View style={styles.featureIcon}><Text style={styles.featureIconText}>⌘</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Menus e chaves FREE/VIP</Text>
+              <Text style={styles.muted}>Cadastrar fontes .lua, gerar URLs de acesso e administrar autorizações por menu.</Text>
+            </View>
+            <Text style={styles.cardArrow}>›</Text>
+          </Pressable>
+
           <Pressable style={styles.featureCard} onPress={onAudit}>
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>≣</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Auditoria do sistema</Text>
-              <Text style={styles.muted}>Histórico server-side de logins, contas, sessões e ações críticas.</Text>
+              <Text style={styles.muted}>Histórico server-side de logins, contas, sessões, menus e ações críticas.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
@@ -94,7 +104,7 @@ export function HomeScreen({ session, onAccounts, onAudit, onCritical, onLogout 
             <Text style={[styles.cardArrow, styles.redText]}>›</Text>
           </Pressable>
         </ScrollView>
-        <BottomNav current="home" onHome={() => {}} onAccounts={onAccounts} onAudit={onAudit} onCritical={onCritical} />
+        <BottomNav current="home" onHome={() => {}} onAccounts={onAccounts} onMenus={onMenus} onAudit={onAudit} onCritical={onCritical} />
       </View>
     </SafeAreaView>
   );

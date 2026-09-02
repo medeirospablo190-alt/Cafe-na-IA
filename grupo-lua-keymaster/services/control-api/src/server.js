@@ -14,6 +14,7 @@ import {
   verifySecret
 } from "./security.js";
 import { verifyAppIntegrity } from "./integrity.js";
+import { registerMenuRoutes } from "./menu-routes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT || 3100);
@@ -845,6 +846,8 @@ app.get("/v1/app1/me", async (req, res, next) => {
     res.json({ ok: true, account: row });
   } catch (error) { next(error); }
 });
+
+registerMenuRoutes(app);
 
 app.use((error, _req, res, _next) => {
   console.error("CONTROL_API_ERROR", error?.stack || error);

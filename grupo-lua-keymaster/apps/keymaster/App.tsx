@@ -7,11 +7,12 @@ import { logoutKeymaster, validateKeymasterSession } from "./src/api";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { AccountsScreen } from "./src/screens/AccountsScreen";
+import { MenusScreen } from "./src/screens/MenusScreen";
 import { AuditScreen } from "./src/screens/AuditScreen";
 import { CriticalScreen } from "./src/screens/CriticalScreen";
 import { styles } from "./src/styles";
 
-type Screen = "login" | "home" | "accounts" | "audit" | "critical";
+type Screen = "login" | "home" | "accounts" | "menus" | "audit" | "critical";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("login");
@@ -50,6 +51,7 @@ export default function App() {
 
   const goHome = () => setScreen("home");
   const goAccounts = () => setScreen("accounts");
+  const goMenus = () => setScreen("menus");
   const goAudit = () => setScreen("audit");
   const goCritical = () => setScreen("critical");
 
@@ -71,19 +73,23 @@ export default function App() {
   }
 
   if (screen === "accounts") {
-    return <AccountsScreen session={session} onHome={goHome} onAudit={goAudit} onCritical={goCritical} />;
+    return <AccountsScreen session={session} onHome={goHome} onMenus={goMenus} onAudit={goAudit} onCritical={goCritical} />;
+  }
+  if (screen === "menus") {
+    return <MenusScreen session={session} onHome={goHome} onAccounts={goAccounts} onAudit={goAudit} onCritical={goCritical} />;
   }
   if (screen === "audit") {
-    return <AuditScreen session={session} onHome={goHome} onAccounts={goAccounts} onCritical={goCritical} />;
+    return <AuditScreen session={session} onHome={goHome} onAccounts={goAccounts} onMenus={goMenus} onCritical={goCritical} />;
   }
   if (screen === "critical") {
-    return <CriticalScreen session={session} onHome={goHome} onAccounts={goAccounts} onAudit={goAudit} />;
+    return <CriticalScreen session={session} onHome={goHome} onAccounts={goAccounts} onMenus={goMenus} onAudit={goAudit} />;
   }
 
   return (
     <HomeScreen
       session={session}
       onAccounts={goAccounts}
+      onMenus={goMenus}
       onAudit={goAudit}
       onCritical={goCritical}
       onLogout={doLogout}

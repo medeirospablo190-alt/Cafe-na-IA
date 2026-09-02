@@ -18,6 +18,17 @@ const ACTION_LABELS: Record<string, string> = {
   APP1_ACCOUNT_DELETED: "Conta excluída",
   APP1_SESSION_REVOKED: "Sessão revogada",
   APP1_SESSIONS_REVOKED_ALL: "Sessões revogadas",
+  MENU_CREATED: "Menu cadastrado",
+  MENU_UPDATED: "Menu atualizado",
+  MENU_SUSPENDED: "Menu suspenso",
+  MENU_RESTORED: "Menu restabelecido",
+  MENU_DELETED: "Menu excluído",
+  MENU_KEY_CREATED: "Chave de menu criada",
+  MENU_KEY_SUSPEND: "Chave de menu suspensa",
+  MENU_KEY_RESTORE: "Chave de menu liberada",
+  MENU_KEY_REVOKE: "Chave de menu revogada",
+  MENU_KEY_PERMANENT: "Chave FREE convertida para VIP",
+  MENU_KEY_DURATION_CHANGED: "Duração FREE alterada",
   CRITICAL_AUTHORIZATION_CREATED: "Autorização crítica criada",
   APP1_MAINTENANCE_ON: "Manutenção ativada",
   APP1_MAINTENANCE_OFF: "Manutenção encerrada",
@@ -33,10 +44,11 @@ function eventTitle(event: AuditEvent) {
   return ACTION_LABELS[event.action] || event.action.replaceAll("_", " ");
 }
 
-export function AuditScreen({ session, onHome, onAccounts, onCritical }: {
+export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }: {
   session: string;
   onHome: () => void;
   onAccounts: () => void;
+  onMenus: () => void;
   onCritical: () => void;
 }) {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -107,7 +119,7 @@ export function AuditScreen({ session, onHome, onAccounts, onCritical }: {
             />
           )}
         </View>
-        <BottomNav current="audit" onHome={onHome} onAccounts={onAccounts} onAudit={() => {}} onCritical={onCritical} />
+        <BottomNav current="audit" onHome={onHome} onAccounts={onAccounts} onMenus={onMenus} onAudit={() => {}} onCritical={onCritical} />
       </View>
     </SafeAreaView>
   );
