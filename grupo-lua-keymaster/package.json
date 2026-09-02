@@ -1,0 +1,17 @@
+{
+  "name": "grupo-lua-platform",
+  "version": "0.2.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "api:start": "npm --workspace @grupo-lua/control-api start",
+    "api:dev": "npm --workspace @grupo-lua/control-api run dev",
+    "api:migrate": "npm --workspace @grupo-lua/control-api run migrate",
+    "keymaster:start": "npm --workspace @grupo-lua/keymaster start",
+    "app1:start": "npm --workspace @grupo-lua/app1-probe start"
+  }
+}
