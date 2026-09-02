@@ -1,4 +1,4 @@
-# GRUPO LUA KEYMASTER — V0.4.0
+# GRUPO LUA KEYMASTER — V0.5.0
 
 Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com cliente móvel Android/iPhone, API server-side, PostgreSQL e cliente mínimo do Aplicativo 1 para validar compatibilidade.
 
@@ -9,6 +9,7 @@ apps/keymaster        Aplicativo 2 Android/iPhone (Expo SDK 57)
 apps/app1-probe       Cliente mínimo para testar logins criados pelo Keymaster
 services/control-api  API server-side + PostgreSQL
 packages/contracts    Constantes compartilhadas
+docs                   Requisitos salvos antes da implementação completa do App 1
 ```
 
 ## Princípio de segurança
@@ -103,6 +104,78 @@ A chave completa não é guardada em texto puro no banco. A API persiste:
 
 A chave completa aparece uma única vez no aplicativo imediatamente após a geração.
 
+## V0.5 — operação mobile do Keymaster
+
+A V0.5 continua focada somente no Aplicativo 2. Nenhuma área completa de Social/Chats/Arquivos/Feed do Aplicativo 1 foi iniciada.
+
+### Tela inicial
+
+O dashboard móvel passa a mostrar também:
+
+- total de menus cadastrados;
+- menus ativos;
+- total agregado de chaves FREE;
+- total agregado de chaves VIP;
+- acessos/validações de menus acumulados no mês.
+
+As métricas de contas, sessões do App 1, manutenção e auditoria continuam presentes.
+
+### Administração de menus
+
+Os cartões de menu foram compactados para celular e mostram de forma mais direta:
+
+- FREE ativas;
+- VIP ativas;
+- acessos ativos agora;
+- acessos registrados no mês;
+- URL de acesso;
+- estado ativo/suspenso.
+
+Suspender um menu pelo aplicativo exige uma confirmação visual antes da chamada ao servidor, pois a operação revoga sessões de acesso abertas.
+
+### Administração de chaves
+
+Ao abrir um menu, o Keymaster agora mostra resumo de:
+
+- total de chaves;
+- chaves atualmente utilizáveis;
+- soma do contador de usos.
+
+Também foi adicionada busca local por `key_hint` ou observação e filtros rápidos:
+
+```text
+TODAS
+FREE
+VIP
+ATIVAS
+SUSPENSAS
+EXPIRADAS
+REVOGADAS
+```
+
+Cada chave passa a destacar no painel móvel:
+
+- tipo FREE/VIP;
+- estado atual;
+- expiração quando aplicável;
+- observação;
+- contador de usos;
+- data/hora do último uso.
+
+A autoridade dos estados continua no servidor; os filtros são apenas uma forma de visualizar melhor os dados já retornados pela API.
+
+## Requisito salvo do Aplicativo 1 — ainda não implementado
+
+Antes de continuar o desenvolvimento completo do App 1, uma regra da área Social foi registrada em:
+
+```text
+docs/app1-social-requirements.md
+```
+
+O documento registra que somente DEV poderá fixar/desafixar publicações, que a publicação fixada mais recentemente deve aparecer no topo do feed com destaque/aura vermelha e que os outros administradores devem receber uma notificação quando um DEV fixar uma publicação.
+
+**Esse requisito está apenas salvo. O desenvolvimento atual continua no Aplicativo 2 — Keymaster.**
+
 ## Fluxo de acesso a um menu
 
 1. Keymaster cadastra o menu.
@@ -152,7 +225,7 @@ Já implementado:
 - excluir uma conta individual somente após reautenticação DEV;
 - auditoria das autorizações e execuções críticas.
 
-Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir. A exclusão definitiva de um menu também deve entrar em uma etapa DEV protegida antes de ser habilitada no painel; a V0.4 implementa cadastro, edição, suspensão e restauração.
+Exclusão global de dados/chaves e recuperação crítica continuam bloqueadas até o modelo de dados completo do App 1 existir. A exclusão definitiva de um menu também deve entrar em uma etapa DEV protegida antes de ser habilitada no painel; a V0.5 continua sem habilitar exclusão definitiva de menu.
 
 ## Banco de dados
 
