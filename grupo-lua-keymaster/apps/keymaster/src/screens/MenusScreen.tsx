@@ -32,6 +32,7 @@ import { CredentialModal } from "../components/CredentialModal";
 import { styles } from "../styles";
 
 type StatusFilter = "ALL" | "ACTIVE" | "SUSPENDED";
+type KeyFilter = "ALL" | "FREE" | "VIP" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "REVOKED";
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -41,6 +42,12 @@ function formatDate(value?: string | null) {
 
 function accessUrl(menu: ManagedMenu) {
   return menu.access_url || menu.loader_url;
+}
+
+function isExpired(item: MenuAccessKey) {
+  if (item.kind !== "FREE" || !item.expires_at) return false;
+  const timestamp = new Date(item.expires_at).getTime();
+  return Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
 export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }: {
@@ -69,6 +76,8 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [durationTarget, setDurationTarget] = useState<MenuAccessKey | null>(null);
   const [newDurationHours, setNewDurationHours] = useState("24");
+  const [keyQuery, setKeyQuery] = useState("");
+  const [keyFilter, setKeyFilter] = useState<KeyFilter>("ALL");
 
   async function refresh() {
     setLoading(true);
@@ -110,6 +119,8 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     setSelected(menu);
     setEditName(menu.name);
     setEditUrl(menu.source_url);
+    setKeyQuery("");
+    setKeyFilter("ALL");
     await reloadKeys(menu);
   }
 
@@ -151,6 +162,21 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     } catch (error) {
       Alert.alert("Falha", error instanceof Error ? error.message : "Erro desconhecido");
     }
+  }
+
+  function requestMenuToggle(menu: ManagedMenu) {
+    if (menu.status !== "ACTIVE") {
+      toggleMenu(menu).catch(() => {});
+      return;
+    }
+    Alert.alert(
+      "Suspender menu",
+      "Novas validações serão bloqueadas e as sessões de acesso já abertas serão revogadas.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Suspender", style: "destructive", onPress: () => toggleMenu(menu) }
+      ]
+    );
   }
 
   async function generateKey() {
@@ -202,6 +228,26 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     }
   }
 
+  const normalizedKeyQuery = keyQuery.trim().toLowerCase();
+  const visibleKeys = keys.filter((item) => {
+    const expired = isExpired(item);
+    const matchesQuery = !normalizedKeyQuery ||
+      item.key_hint.toLowerCase().includes(normalizedKeyQuery) ||
+      String(item.note || "").toLowerCase().includes(normalizedKeyQuery);
+    if (!matchesQuery) return false;
+
+    if (keyFilter === "FREE") return item.kind === "FREE";
+    if (keyFilter === "VIP") return item.kind === "VIP";
+    if (keyFilter === "ACTIVE") return item.status === "ACTIVE" && !expired && item.usable !== false;
+    if (keyFilter === "SUSPENDED") return item.status === "SUSPENDED";
+    if (keyFilter === "EXPIRED") return expired || (item.status === "ACTIVE" && item.usable === false);
+    if (keyFilter === "REVOKED") return item.status === "REVOKED";
+    return true;
+  });
+
+  const usableKeys = keys.filter((item) => item.status === "ACTIVE" && item.usable !== false && !isExpired(item)).length;
+  const totalKeyUses = keys.reduce((sum, item) => sum + Number(item.use_count || 0), 0);
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="light" />
@@ -251,6 +297,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                         <Text style={styles.badge}>{item.public_id}</Text>
                       </View>
                       <Text style={styles.accountMeta} numberOfLines={1}>{item.source_url}</Text>
+                      <Text style={styles.accountMeta}>{item.accesses_month} acessos no mês</Text>
                     </View>
                     <Text style={item.status === "ACTIVE" ? styles.active : styles.suspended}>{item.status === "ACTIVE" ? "ATIVO" : "SUSPENSO"}</Text>
                   </Pressable>
@@ -258,7 +305,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   <View style={styles.detailGrid}>
                     <View style={styles.detailCell}><Text style={styles.detailLabel}>FREE</Text><Text style={styles.detailValue}>{item.free_keys}</Text></View>
                     <View style={styles.detailCell}><Text style={styles.detailLabel}>VIP</Text><Text style={styles.detailValue}>{item.vip_keys}</Text></View>
-                    <View style={styles.detailCell}><Text style={styles.detailLabel}>ACESSOS</Text><Text style={styles.detailValue}>{item.accesses_month}</Text></View>
+                    <View style={styles.detailCell}><Text style={styles.detailLabel}>ONLINE</Text><Text style={styles.detailValue}>{item.active_accesses}</Text></View>
                   </View>
 
                   <View style={styles.credentialBox}>
@@ -271,7 +318,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                     <Pressable style={styles.smallAction} onPress={() => openMenu(item)}>
                       <Text style={styles.smallActionText}>CHAVES</Text>
                     </Pressable>
-                    <Pressable style={[styles.smallAction, item.status === "ACTIVE" && styles.smallDanger]} onPress={() => toggleMenu(item)}>
+                    <Pressable style={[styles.smallAction, item.status === "ACTIVE" && styles.smallDanger]} onPress={() => requestMenuToggle(item)}>
                       <Text style={item.status === "ACTIVE" ? styles.smallDangerText : styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"}</Text>
                     </Pressable>
                   </View>
@@ -309,7 +356,13 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   <Pressable onPress={() => setSelected(null)}><Text style={styles.closeText}>✕</Text></Pressable>
                 </View>
 
-                <Text style={styles.sectionInline}>URL DE ACESSO</Text>
+                <View style={styles.detailGrid}>
+                  <View style={styles.detailCell}><Text style={styles.detailLabel}>CHAVES</Text><Text style={styles.detailValue}>{keys.length}</Text></View>
+                  <View style={styles.detailCell}><Text style={styles.detailLabel}>UTILIZÁVEIS</Text><Text style={styles.detailValue}>{usableKeys}</Text></View>
+                  <View style={styles.detailCell}><Text style={styles.detailLabel}>USOS</Text><Text style={styles.detailValue}>{totalKeyUses}</Text></View>
+                </View>
+
+                <Text style={styles.section}>URL DE ACESSO</Text>
                 <View style={styles.credentialBox}>
                   <Text style={styles.credentialText}>{accessUrl(selected)}</Text>
                 </View>
@@ -325,22 +378,44 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   <Pressable onPress={() => setKeyModal(true)}><Text style={styles.refreshLink}>＋ GERAR CHAVE</Text></Pressable>
                 </View>
 
-                {keysLoading ? <ActivityIndicator style={{ marginVertical: 22 }} /> : keys.length === 0 ? (
-                  <Text style={styles.emptyCompact}>Nenhuma chave criada.</Text>
-                ) : keys.map((item) => (
+                <TextInput
+                  value={keyQuery}
+                  onChangeText={setKeyQuery}
+                  style={styles.searchInput}
+                  placeholder="Buscar por dica ou observação..."
+                  placeholderTextColor="#6D6D73"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                  {(["ALL", "FREE", "VIP", "ACTIVE", "SUSPENDED", "EXPIRED", "REVOKED"] as KeyFilter[]).map((item) => (
+                    <Pressable key={item} style={[styles.filterChip, keyFilter === item && styles.filterChipActive]} onPress={() => setKeyFilter(item)}>
+                      <Text style={[styles.filterChipText, keyFilter === item && styles.filterChipTextActive]}>
+                        {item === "ALL" ? "TODAS" : item === "ACTIVE" ? "ATIVAS" : item === "SUSPENDED" ? "SUSPENSAS" : item === "EXPIRED" ? "EXPIRADAS" : item === "REVOKED" ? "REVOGADAS" : item}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+
+                {keysLoading ? <ActivityIndicator style={{ marginVertical: 22 }} /> : visibleKeys.length === 0 ? (
+                  <Text style={styles.emptyCompact}>{keys.length === 0 ? "Nenhuma chave criada." : "Nenhuma chave corresponde aos filtros."}</Text>
+                ) : visibleKeys.map((item) => (
                   <View key={item.id} style={styles.sessionCard}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.accountTitleRow}>
                         <Text style={[styles.badge, item.kind === "VIP" && { color: "#D49CFF" }]}>{item.kind}</Text>
-                        <Text style={item.status === "ACTIVE" && item.usable !== false ? styles.active : styles.sessionOff}>
-                          {item.status === "ACTIVE" && item.usable !== false ? "ATIVA" : item.status === "REVOKED" ? "REVOGADA" : item.usable === false ? "EXPIRADA" : "SUSPENSA"}
+                        <Text style={item.status === "ACTIVE" && item.usable !== false && !isExpired(item) ? styles.active : styles.sessionOff}>
+                          {item.status === "ACTIVE" && item.usable !== false && !isExpired(item) ? "ATIVA" : item.status === "REVOKED" ? "REVOGADA" : isExpired(item) || item.usable === false ? "EXPIRADA" : "SUSPENSA"}
                         </Text>
                       </View>
                       <Text style={styles.sessionTitle}>{item.key_hint}</Text>
                       <Text style={styles.accountMeta}>
                         {item.kind === "FREE" ? `Expira ${formatDate(item.expires_at)}` : "Permanente"}
                         {item.note ? ` • ${item.note}` : ""}
-                        {typeof item.use_count === "number" ? ` • ${item.use_count} usos` : ""}
+                      </Text>
+                      <Text style={styles.accountMeta}>
+                        {Number(item.use_count || 0)} usos • último uso {formatDate(item.last_used_at)}
                       </Text>
                     </View>
                     {item.status !== "REVOKED" ? (
@@ -369,7 +444,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   </View>
                 ))}
 
-                <Button title={selected.status === "ACTIVE" ? "SUSPENDER MENU" : "LIBERAR MENU"} danger={selected.status === "ACTIVE"} secondary={selected.status !== "ACTIVE"} onPress={() => toggleMenu(selected)} />
+                <Button title={selected.status === "ACTIVE" ? "SUSPENDER MENU" : "LIBERAR MENU"} danger={selected.status === "ACTIVE"} secondary={selected.status !== "ACTIVE"} onPress={() => requestMenuToggle(selected)} />
               </ScrollView>
             ) : null}
           </View>
