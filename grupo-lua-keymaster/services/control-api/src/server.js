@@ -24,7 +24,13 @@ const KEYMASTER_LOCK_MS = 24 * 60 * 60 * 1000;
 const KEYMASTER_SESSION_MS = 12 * 60 * 60 * 1000;
 const APP1_SESSION_MS = 12 * 60 * 60 * 1000;
 const CRITICAL_AUTH_MS = 2 * 60 * 1000;
-const CRITICAL_ACTIONS = new Set(["APP1_RESTART", "APP1_MAINTENANCE_ON", "APP1_MAINTENANCE_OFF", "DELETE_APP1_ACCOUNT"]);
+const CRITICAL_ACTIONS = new Set([
+  "APP1_RESTART",
+  "APP1_MAINTENANCE_ON",
+  "APP1_MAINTENANCE_OFF",
+  "DELETE_APP1_ACCOUNT",
+  "DELETE_MANAGED_MENU"
+]);
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -86,7 +92,7 @@ function deviceInput(req) {
 function criticalScope(action, targetId = "") {
   const normalized = String(action || "").toUpperCase();
   if (!CRITICAL_ACTIONS.has(normalized)) return "";
-  if (normalized === "DELETE_APP1_ACCOUNT") {
+  if (["DELETE_APP1_ACCOUNT", "DELETE_MANAGED_MENU"].includes(normalized)) {
     const target = String(targetId || "").trim();
     return target ? `${normalized}:${target}` : "";
   }
@@ -847,7 +853,7 @@ app.get("/v1/app1/me", async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-registerMenuRoutes(app);
+registerMenuRoutes(app, { consumeCriticalAuthorization });
 
 app.use((error, _req, res, _next) => {
   console.error("CONTROL_API_ERROR", error?.stack || error);
