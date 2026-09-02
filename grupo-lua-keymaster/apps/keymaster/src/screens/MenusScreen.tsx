@@ -38,8 +38,8 @@ function formatDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
 }
 
-function loaderText(menu: ManagedMenu) {
-  return `loadstring(game:HttpGet("${menu.loader_url}"))()`;
+function accessUrlText(menu: ManagedMenu) {
+  return menu.loader_url;
 }
 
 export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }: {
@@ -185,7 +185,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
               <Text style={styles.screenTitle}>Chaves</Text>
-              <Text style={styles.muted}>Cadastre menus e administre acessos FREE/VIP sem colocar a lista de chaves no código Lua.</Text>
+              <Text style={styles.muted}>Cadastre menus e administre acessos FREE/VIP sem colocar a lista de chaves no código cliente.</Text>
             </View>
             <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
@@ -236,11 +236,11 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   </View>
 
                   <View style={styles.credentialBox}>
-                    <Text style={styles.credentialText} numberOfLines={2}>{loaderText(item)}</Text>
+                    <Text style={styles.credentialText} numberOfLines={2}>{accessUrlText(item)}</Text>
                   </View>
                   <View style={styles.rowGap}>
-                    <Pressable style={styles.smallAction} onPress={() => Clipboard.setStringAsync(loaderText(item))}>
-                      <Text style={styles.smallActionText}>COPIAR LOADSTRING</Text>
+                    <Pressable style={styles.smallAction} onPress={() => Clipboard.setStringAsync(accessUrlText(item))}>
+                      <Text style={styles.smallActionText}>COPIAR URL DE ACESSO</Text>
                     </Pressable>
                     <Pressable style={styles.smallAction} onPress={() => openMenu(item)}>
                       <Text style={styles.smallActionText}>CHAVES</Text>
