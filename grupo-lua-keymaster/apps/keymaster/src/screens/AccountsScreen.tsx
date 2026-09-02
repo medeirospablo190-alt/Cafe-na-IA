@@ -29,9 +29,10 @@ function formatDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
 }
 
-export function AccountsScreen({ session, onHome, onAudit, onCritical }: {
+export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }: {
   session: string;
   onHome: () => void;
+  onMenus: () => void;
   onAudit: () => void;
   onCritical: () => void;
 }) {
@@ -196,7 +197,7 @@ export function AccountsScreen({ session, onHome, onAudit, onCritical }: {
             />
           )}
         </View>
-        <BottomNav current="accounts" onHome={onHome} onAccounts={() => {}} onAudit={onAudit} onCritical={onCritical} />
+        <BottomNav current="accounts" onHome={onHome} onAccounts={() => {}} onMenus={onMenus} onAudit={onAudit} onCritical={onCritical} />
       </View>
 
       <Modal visible={createModal} transparent animationType="fade" onRequestClose={() => setCreateModal(false)}>
