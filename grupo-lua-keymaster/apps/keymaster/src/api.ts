@@ -72,7 +72,7 @@ export type ManagedMenu = {
   active_accesses: number;
   accesses_month: number;
   loader_url: string;
-  loadstring?: string;
+  access_url?: string;
 };
 
 export type MenuAccessKey = {
@@ -82,6 +82,7 @@ export type MenuAccessKey = {
   key_hint: string;
   note: string | null;
   expires_at: string | null;
+  suspended_at?: string | null;
   use_count?: number;
   last_used_at?: string | null;
   created_at: string;
@@ -244,7 +245,11 @@ export async function createManagedMenu(session: string, name: string, sourceUrl
   }, session);
 }
 
-export async function updateManagedMenu(session: string, menuId: string, values: { name?: string; sourceUrl?: string }) {
+export async function updateManagedMenu(
+  session: string,
+  menuId: string,
+  values: { name?: string; sourceUrl?: string }
+) {
   return request<{ ok: true; menu: ManagedMenu }>(`/v1/keymaster/menus/${encodeURIComponent(menuId)}`, {
     method: "PATCH",
     body: JSON.stringify(values)
@@ -253,16 +258,8 @@ export async function updateManagedMenu(session: string, menuId: string, values:
 
 export async function setManagedMenuState(session: string, menuId: string, action: "suspend" | "restore") {
   return request<{ ok: true; menu: ManagedMenu }>(
-    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/${action}`,
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/state/${action}`,
     { method: "POST", body: "{}" },
-    session
-  );
-}
-
-export async function deleteManagedMenu(session: string, menuId: string) {
-  return request<{ ok: true }>(
-    `/v1/keymaster/menus/${encodeURIComponent(menuId)}`,
-    { method: "DELETE" },
     session
   );
 }
@@ -295,7 +292,7 @@ export async function setMenuAccessKeyState(
   action: "suspend" | "restore" | "revoke" | "permanent"
 ) {
   return request<{ ok: true; key: MenuAccessKey }>(
-    `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/${action}`,
+    `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/state/${action}`,
     { method: "POST", body: "{}" },
     session
   );
