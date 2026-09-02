@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   APP1_CREDENTIAL_POLICY,
   APP1_PERMISSIONS,
+  CRITICAL_ACTIONS,
   permissionsForRole,
   roleHasPermission
 } from "../src/index.js";
@@ -25,6 +26,11 @@ test("DEV receives privileged permission and reserved Social pin permission", ()
   assert.equal(roleHasPermission("DEV", APP1_PERMISSIONS.DEV_PRIVILEGED), true);
   assert.equal(roleHasPermission("DEV", APP1_PERMISSIONS.SOCIAL_PIN_POST), true);
   assert.equal(roleHasPermission("ADM", APP1_PERMISSIONS.SOCIAL_PIN_POST), false);
+});
+
+test("critical action contract includes target-scoped managed menu deletion", () => {
+  assert.equal(CRITICAL_ACTIONS.DELETE_APP1_ACCOUNT, "DELETE_APP1_ACCOUNT");
+  assert.equal(CRITICAL_ACTIONS.DELETE_MANAGED_MENU, "DELETE_MANAGED_MENU");
 });
 
 test("unknown roles receive no permissions", () => {
