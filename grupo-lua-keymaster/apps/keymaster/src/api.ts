@@ -16,6 +16,43 @@ export type Account = {
   status: AccountStatus;
   created_at?: string;
   updated_at?: string;
+  active_sessions?: number;
+  last_session_at?: string | null;
+};
+
+export type AccountSession = {
+  id: string;
+  device_label: string | null;
+  created_at: string;
+  expires_at: string;
+  revoked_at: string | null;
+  active: boolean;
+};
+
+export type Dashboard = {
+  app1Maintenance: boolean;
+  accounts: {
+    total: number;
+    active: number;
+    suspended: number;
+    adm: number;
+    dev: number;
+  };
+  activeSessions: number;
+  auditEvents24h: number;
+};
+
+export type AuditEvent = {
+  id: string;
+  actor_kind: string;
+  actor_id: string | null;
+  actor_login: string | null;
+  action: string;
+  target_kind: string | null;
+  target_id: string | null;
+  target_login: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
 };
 
 export class ApiError extends Error {
@@ -50,6 +87,13 @@ async function request<T>(path: string, init: RequestInit = {}, session?: string
   return data as T;
 }
 
+function queryString(values: Record<string, string | undefined>) {
+  const parts = Object.entries(values)
+    .filter(([, value]) => Boolean(value))
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  return parts.length ? `?${parts.join("&")}` : "";
+}
+
 export async function loginKeymaster(accessKey: string, device: DeviceIdentity) {
   return request<{
     ok: true;
@@ -77,8 +121,16 @@ export async function getSystemStatus(session: string) {
   return request<{ ok: true; app1Maintenance: boolean }>("/v1/keymaster/system-status", {}, session);
 }
 
-export async function listAccounts(session: string) {
-  return request<{ ok: true; accounts: Account[] }>("/v1/keymaster/accounts", {}, session);
+export async function getDashboard(session: string) {
+  return request<{ ok: true; dashboard: Dashboard }>("/v1/keymaster/dashboard", {}, session);
+}
+
+export async function listAccounts(
+  session: string,
+  filters: { q?: string; role?: AccountRole; status?: Exclude<AccountStatus, "DELETED"> } = {}
+) {
+  const qs = queryString({ q: filters.q?.trim(), role: filters.role, status: filters.status });
+  return request<{ ok: true; accounts: Account[] }>(`/v1/keymaster/accounts${qs}`, {}, session);
 }
 
 export async function createAccount(session: string, login: string, role: AccountRole) {
@@ -105,6 +157,39 @@ export async function rotateCredential(session: string, accountId: string) {
   return request<{ ok: true; credential: string; credentialLength: number; revealOnce: true }>(
     `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/rotate`,
     { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function listAccountSessions(session: string, accountId: string) {
+  return request<{ ok: true; sessions: AccountSession[] }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/sessions`,
+    {},
+    session
+  );
+}
+
+export async function revokeAccountSession(session: string, accountId: string, sessionId: string) {
+  return request<{ ok: true; revoked: boolean }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/sessions/${encodeURIComponent(sessionId)}/revoke`,
+    { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function revokeAllAccountSessions(session: string, accountId: string) {
+  return request<{ ok: true; revokedCount: number }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/sessions/revoke-all`,
+    { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function listAudit(session: string, before?: string) {
+  const qs = queryString({ limit: "40", before });
+  return request<{ ok: true; events: AuditEvent[]; nextBefore: string | null }>(
+    `/v1/keymaster/audit${qs}`,
+    {},
     session
   );
 }
