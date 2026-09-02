@@ -79,7 +79,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>⌘</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Menus e chaves FREE/VIP</Text>
-              <Text style={styles.muted}>Cadastrar fontes .lua, gerar loadstrings de acesso e administrar autorizações por menu.</Text>
+              <Text style={styles.muted}>Cadastrar fontes .lua, gerar URLs de acesso e administrar autorizações por menu.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
