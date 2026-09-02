@@ -91,6 +91,21 @@ export type MenuAccessKey = {
   usable?: boolean;
 };
 
+export type MenuAccessSession = {
+  id: string;
+  menu_key_id: string;
+  key_kind: MenuKeyKind;
+  key_hint: string;
+  key_note: string | null;
+  client_label: string | null;
+  created_at: string;
+  expires_at: string;
+  last_seen_at: string | null;
+  revoked_at: string | null;
+  key_expires_at: string | null;
+  active: boolean;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -302,6 +317,30 @@ export async function setMenuAccessKeyDuration(session: string, keyId: string, d
   return request<{ ok: true; key: MenuAccessKey }>(
     `/v1/keymaster/menu-keys/${encodeURIComponent(keyId)}/duration`,
     { method: "POST", body: JSON.stringify({ durationHours }) },
+    session
+  );
+}
+
+export async function listMenuAccessSessions(session: string, menuId: string) {
+  return request<{ ok: true; sessions: MenuAccessSession[] }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/access-sessions`,
+    {},
+    session
+  );
+}
+
+export async function revokeMenuAccessSession(session: string, accessSessionId: string) {
+  return request<{ ok: true; revoked: boolean }>(
+    `/v1/keymaster/menu-access-sessions/${encodeURIComponent(accessSessionId)}/revoke`,
+    { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function revokeAllMenuAccessSessions(session: string, menuId: string) {
+  return request<{ ok: true; revokedCount: number }>(
+    `/v1/keymaster/menus/${encodeURIComponent(menuId)}/access-sessions/revoke-all`,
+    { method: "POST", body: "{}" },
     session
   );
 }
