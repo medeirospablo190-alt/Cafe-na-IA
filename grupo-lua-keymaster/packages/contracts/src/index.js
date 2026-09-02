@@ -9,6 +9,41 @@ export const ACCOUNT_STATUS = Object.freeze({
   DELETED: "DELETED"
 });
 
+export const APP1_CREDENTIAL_POLICY = Object.freeze({
+  ADM_CHARS: 256,
+  DEV_CHARS: 600,
+  SESSION_HOURS: 12
+});
+
+export const APP1_PERMISSIONS = Object.freeze({
+  SESSION_USE: "app1.session.use",
+  ADMIN_AREA: "app1.admin",
+  DEV_PRIVILEGED: "app1.dev.privileged",
+  SOCIAL_PIN_POST: "app1.social.pin-post"
+});
+
+export const APP1_ROLE_PERMISSIONS = Object.freeze({
+  [APP1_ROLES.ADM]: Object.freeze([
+    APP1_PERMISSIONS.SESSION_USE,
+    APP1_PERMISSIONS.ADMIN_AREA
+  ]),
+  [APP1_ROLES.DEV]: Object.freeze([
+    APP1_PERMISSIONS.SESSION_USE,
+    APP1_PERMISSIONS.ADMIN_AREA,
+    APP1_PERMISSIONS.DEV_PRIVILEGED,
+    APP1_PERMISSIONS.SOCIAL_PIN_POST
+  ])
+});
+
+export function permissionsForRole(role) {
+  const normalized = String(role || "").toUpperCase();
+  return APP1_ROLE_PERMISSIONS[normalized] || Object.freeze([]);
+}
+
+export function roleHasPermission(role, permission) {
+  return permissionsForRole(role).includes(String(permission || ""));
+}
+
 export const KEYMASTER = Object.freeze({
   MAX_KEY_CHARS: 16384,
   DEFAULT_ACCESS_KEY_CHARS: 5000,
