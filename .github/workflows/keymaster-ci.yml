@@ -1,0 +1,32 @@
+name: Keymaster CI
+
+on:
+  push:
+    paths:
+      - "grupo-lua-keymaster/**"
+      - ".github/workflows/keymaster-ci.yml"
+  pull_request:
+    paths:
+      - "grupo-lua-keymaster/**"
+      - ".github/workflows/keymaster-ci.yml"
+
+jobs:
+  control-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: grupo-lua-keymaster/services/control-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: |
+          node --check src/server.js
+          node --check src/security.js
+          node --check src/integrity.js
+          node --check src/db.js
+          node --check scripts/migrate.mjs
+      - name: Security unit tests
+        run: node --test test/*.test.mjs

@@ -251,8 +251,6 @@ app.post("/v1/keymaster/login", async (req, res, next) => {
         return { locked: true, lockedUntil: row.locked_until };
       }
 
-      // Ao completar integralmente as 24 horas, inicia-se um novo ciclo de
-      // três tentativas. Não existe endpoint para antecipar este reset.
       if (row.locked_until && new Date(row.locked_until).getTime() <= Date.now()) {
         await client.query(
           `UPDATE keymaster_devices SET failed_attempts = 0, locked_until = NULL WHERE id = $1`,
@@ -442,7 +440,7 @@ app.post("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
     const login = normalizeLogin(req.body?.login);
     const role = String(req.body?.role || "ADM").toUpperCase();
     if (!login || login.length < 2) return sendError(res, 400, "INVALID_LOGIN", "Informe um login válido.");
-    if (!['ADM', 'DEV'].includes(role)) return sendError(res, 400, "INVALID_ROLE", "Role deve ser ADM ou DEV.");
+    if (!["ADM", "DEV"].includes(role)) return sendError(res, 400, "INVALID_ROLE", "Role deve ser ADM ou DEV.");
 
     const credential = createApp1Credential(login, role);
     const credentialHash = await hashSecret(credential);
@@ -465,7 +463,6 @@ app.post("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
       });
     });
 
-    // A credencial é devolvida UMA ÚNICA VEZ. O servidor guarda apenas o hash.
     res.status(201).json({
       ok: true,
       account: { id: accountId, login, role, status: "ACTIVE" },
@@ -505,12 +502,24 @@ app.post("/v1/keymaster/accounts/:id/suspend", requireKeymaster, async (req, res
 app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res, next) => {
   try {
     const id = String(req.params.id);
-    const result = await pool.query(
-      `UPDATE app1_accounts SET status = 'ACTIVE', updated_at = NOW()
-        WHERE id = $1 AND status = 'SUSPENDED' RETURNING id`,
-      [id]
-    );
-    if (!result.rowCount) return sendError(res, 404, "NOT_SUSPENDED", "Conta não encontrada ou não está suspensa.");
+    const restored = await withTransaction(async (client) => {
+      const result = await client.query(
+        `UPDATE app1_accounts SET status = 'ACTIVE', updated_at = NOW()
+          WHERE id = $1 AND status = 'SUSPENDED' RETURNING id, login, role`,
+        [id]
+      );
+      if (!result.rowCount) return null;
+      await audit(client, {
+        actorKind: "KEYMASTER_SESSION",
+        actorId: req.keymasterSession.id,
+        action: "APP1_ACCOUNT_RESTORED",
+        targetKind: "APP1_ACCOUNT",
+        targetId: id,
+        metadata: { login: result.rows[0].login, role: result.rows[0].role }
+      });
+      return result.rows[0];
+    });
+    if (!restored) return sendError(res, 404, "NOT_SUSPENDED", "Conta não encontrada ou não está suspensa.");
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -572,7 +581,6 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
   } catch (error) { next(error); }
 });
 
-// Compatibilidade mínima do Aplicativo 1: login ADM/DEV criado pelo Keymaster.
 app.post("/v1/app1/login", async (req, res, next) => {
   try {
     const login = normalizeLogin(req.body?.login);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, SafeAreaView, Text, TextInput, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as Clipboard from "expo-clipboard";
@@ -19,6 +19,21 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (token: stri
     () => `${key.length.toLocaleString("pt-BR")} / ${KEYMASTER_MAX_CHARS.toLocaleString("pt-BR")}`,
     [key.length]
   );
+
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const until = new Date(lockedUntil).getTime();
+    if (!Number.isFinite(until)) {
+      setLockedUntil(null);
+      return;
+    }
+    const delay = Math.max(0, until - Date.now());
+    const timer = setTimeout(() => {
+      setLockedUntil(null);
+      setMessage("Bloqueio concluído. A próxima tentativa será validada novamente pelo servidor.");
+    }, Math.min(delay + 250, 2_147_000_000));
+    return () => clearTimeout(timer);
+  }, [lockedUntil]);
 
   async function paste() {
     const value = await Clipboard.getStringAsync();
