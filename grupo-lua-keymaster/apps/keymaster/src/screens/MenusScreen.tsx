@@ -16,11 +16,15 @@ import * as Clipboard from "expo-clipboard";
 import {
   type ManagedMenu,
   type MenuAccessKey,
+  type MenuAccessSession,
   type MenuKeyKind,
   createManagedMenu,
   createMenuAccessKey,
   listManagedMenus,
   listMenuAccessKeys,
+  listMenuAccessSessions,
+  revokeAllMenuAccessSessions,
+  revokeMenuAccessSession,
   setManagedMenuState,
   setMenuAccessKeyDuration,
   setMenuAccessKeyState,
@@ -33,6 +37,7 @@ import { styles } from "../styles";
 
 type StatusFilter = "ALL" | "ACTIVE" | "SUSPENDED";
 type KeyFilter = "ALL" | "FREE" | "VIP" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "REVOKED";
+type SessionFilter = "ALL" | "ACTIVE" | "ENDED";
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -48,6 +53,12 @@ function isExpired(item: MenuAccessKey) {
   if (item.kind !== "FREE" || !item.expires_at) return false;
   const timestamp = new Date(item.expires_at).getTime();
   return Number.isFinite(timestamp) && timestamp <= Date.now();
+}
+
+function accessSessionState(item: MenuAccessSession) {
+  if (item.active) return "ATIVA";
+  if (item.revoked_at) return "REVOGADA";
+  return "EXPIRADA";
 }
 
 export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }: {
@@ -78,6 +89,10 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
   const [newDurationHours, setNewDurationHours] = useState("24");
   const [keyQuery, setKeyQuery] = useState("");
   const [keyFilter, setKeyFilter] = useState<KeyFilter>("ALL");
+  const [accessSessions, setAccessSessions] = useState<MenuAccessSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionQuery, setSessionQuery] = useState("");
+  const [sessionFilter, setSessionFilter] = useState<SessionFilter>("ALL");
 
   async function refresh() {
     setLoading(true);
@@ -121,7 +136,9 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     setEditUrl(menu.source_url);
     setKeyQuery("");
     setKeyFilter("ALL");
-    await reloadKeys(menu);
+    setSessionQuery("");
+    setSessionFilter("ALL");
+    await Promise.all([reloadKeys(menu), reloadAccessSessions(menu)]);
   }
 
   async function reloadKeys(menu: ManagedMenu) {
@@ -133,6 +150,18 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       Alert.alert("Chaves indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
       setKeysLoading(false);
+    }
+  }
+
+  async function reloadAccessSessions(menu: ManagedMenu) {
+    setSessionsLoading(true);
+    try {
+      setAccessSessions((await listMenuAccessSessions(session, menu.id)).sessions);
+    } catch (error) {
+      setAccessSessions([]);
+      Alert.alert("Acessos indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
+    } finally {
+      setSessionsLoading(false);
     }
   }
 
@@ -156,7 +185,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       const result = await setManagedMenuState(session, menu.id, action);
       if (selected?.id === menu.id) {
         setSelected(result.menu);
-        await reloadKeys(result.menu);
+        await Promise.all([reloadKeys(menu), reloadAccessSessions(menu)]);
       }
       await refresh();
     } catch (error) {
@@ -192,7 +221,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       setKeyModal(false);
       setNote("");
       setDurationHours("24");
-      await reloadKeys(selected);
+      await Promise.all([reloadKeys(selected), reloadAccessSessions(selected)]);
       await refresh();
     } catch (error) {
       Alert.alert("Não foi possível gerar", error instanceof Error ? error.message : "Erro desconhecido");
@@ -203,7 +232,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     if (!selected) return;
     try {
       await setMenuAccessKeyState(session, item.id, action);
-      await reloadKeys(selected);
+      await Promise.all([reloadKeys(selected), reloadAccessSessions(selected)]);
       await refresh();
     } catch (error) {
       Alert.alert("Falha na chave", error instanceof Error ? error.message : "Erro desconhecido");
@@ -221,11 +250,46 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       await setMenuAccessKeyDuration(session, durationTarget.id, hours);
       setDurationTarget(null);
       setNewDurationHours("24");
-      await reloadKeys(selected);
+      await Promise.all([reloadKeys(selected), reloadAccessSessions(selected)]);
       await refresh();
     } catch (error) {
       Alert.alert("Falha na duração", error instanceof Error ? error.message : "Erro desconhecido");
     }
+  }
+
+  async function revokeAccessSession(item: MenuAccessSession) {
+    if (!selected) return;
+    try {
+      await revokeMenuAccessSession(session, item.id);
+      await reloadAccessSessions(selected);
+      await refresh();
+    } catch (error) {
+      Alert.alert("Falha ao encerrar acesso", error instanceof Error ? error.message : "Erro desconhecido");
+    }
+  }
+
+  async function revokeAllAccessSessions() {
+    if (!selected) return;
+    try {
+      const result = await revokeAllMenuAccessSessions(session, selected.id);
+      await reloadAccessSessions(selected);
+      await refresh();
+      Alert.alert("Acessos encerrados", `${result.revokedCount} sessão(ões) ativa(s) foram revogadas.`);
+    } catch (error) {
+      Alert.alert("Falha ao encerrar acessos", error instanceof Error ? error.message : "Erro desconhecido");
+    }
+  }
+
+  function requestRevokeAllAccessSessions() {
+    if (!selected) return;
+    Alert.alert(
+      "Encerrar todos os acessos",
+      "Todos os tokens de acesso ainda ativos deste menu serão revogados. As chaves FREE/VIP continuam existindo e poderão gerar novas sessões se permanecerem válidas.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Encerrar todos", style: "destructive", onPress: () => revokeAllAccessSessions() }
+      ]
+    );
   }
 
   const normalizedKeyQuery = keyQuery.trim().toLowerCase();
@@ -245,8 +309,21 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     return true;
   });
 
+  const normalizedSessionQuery = sessionQuery.trim().toLowerCase();
+  const visibleAccessSessions = accessSessions.filter((item) => {
+    const matchesQuery = !normalizedSessionQuery ||
+      String(item.client_label || "").toLowerCase().includes(normalizedSessionQuery) ||
+      item.key_hint.toLowerCase().includes(normalizedSessionQuery) ||
+      String(item.key_note || "").toLowerCase().includes(normalizedSessionQuery);
+    if (!matchesQuery) return false;
+    if (sessionFilter === "ACTIVE") return item.active;
+    if (sessionFilter === "ENDED") return !item.active;
+    return true;
+  });
+
   const usableKeys = keys.filter((item) => item.status === "ACTIVE" && item.usable !== false && !isExpired(item)).length;
   const totalKeyUses = keys.reduce((sum, item) => sum + Number(item.use_count || 0), 0);
+  const activeAccessSessions = accessSessions.filter((item) => item.active).length;
 
   return (
     <SafeAreaView style={styles.root}>
@@ -316,7 +393,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                       <Text style={styles.smallActionText}>COPIAR URL</Text>
                     </Pressable>
                     <Pressable style={styles.smallAction} onPress={() => openMenu(item)}>
-                      <Text style={styles.smallActionText}>CHAVES</Text>
+                      <Text style={styles.smallActionText}>GERENCIAR</Text>
                     </Pressable>
                     <Pressable style={[styles.smallAction, item.status === "ACTIVE" && styles.smallDanger]} onPress={() => requestMenuToggle(item)}>
                       <Text style={item.status === "ACTIVE" ? styles.smallDangerText : styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"}</Text>
@@ -359,8 +436,9 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                 <View style={styles.detailGrid}>
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>CHAVES</Text><Text style={styles.detailValue}>{keys.length}</Text></View>
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>UTILIZÁVEIS</Text><Text style={styles.detailValue}>{usableKeys}</Text></View>
-                  <View style={styles.detailCell}><Text style={styles.detailLabel}>USOS</Text><Text style={styles.detailValue}>{totalKeyUses}</Text></View>
+                  <View style={styles.detailCell}><Text style={styles.detailLabel}>ONLINE</Text><Text style={styles.detailValue}>{activeAccessSessions}</Text></View>
                 </View>
+                <Text style={styles.accountMeta}>Usos acumulados das chaves: {totalKeyUses}</Text>
 
                 <Text style={styles.section}>URL DE ACESSO</Text>
                 <View style={styles.credentialBox}>
@@ -372,6 +450,68 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                 <TextInput value={editName} onChangeText={setEditName} style={styles.input} placeholder="Nome" placeholderTextColor="#666" />
                 <TextInput value={editUrl} onChangeText={setEditUrl} style={styles.input} placeholder="URL GitHub" placeholderTextColor="#666" autoCapitalize="none" autoCorrect={false} />
                 <Button title="SALVAR ALTERAÇÕES" onPress={saveMenu} secondary />
+
+                <View style={styles.detailSectionRow}>
+                  <Text style={styles.sectionInline}>SESSÕES DE ACESSO</Text>
+                  <Pressable onPress={() => reloadAccessSessions(selected)}><Text style={styles.refreshLink}>↻ ATUALIZAR</Text></Pressable>
+                </View>
+                <Text style={styles.muted}>O Keymaster mostra somente metadados administrativos. O token secreto de acesso nunca é exibido nesta tela.</Text>
+
+                <View style={styles.rowGap}>
+                  <Pressable style={styles.smallAction} onPress={() => setSessionFilter("ACTIVE")}>
+                    <Text style={styles.smallActionText}>{activeAccessSessions} ONLINE</Text>
+                  </Pressable>
+                  <Pressable style={[styles.smallAction, activeAccessSessions > 0 && styles.smallDanger]} disabled={activeAccessSessions === 0} onPress={requestRevokeAllAccessSessions}>
+                    <Text style={activeAccessSessions > 0 ? styles.smallDangerText : styles.smallActionText}>ENCERRAR TODAS</Text>
+                  </Pressable>
+                </View>
+
+                <TextInput
+                  value={sessionQuery}
+                  onChangeText={setSessionQuery}
+                  style={styles.searchInput}
+                  placeholder="Buscar cliente, chave ou observação..."
+                  placeholderTextColor="#6D6D73"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                  {(["ALL", "ACTIVE", "ENDED"] as SessionFilter[]).map((item) => (
+                    <Pressable key={item} style={[styles.filterChip, sessionFilter === item && styles.filterChipActive]} onPress={() => setSessionFilter(item)}>
+                      <Text style={[styles.filterChipText, sessionFilter === item && styles.filterChipTextActive]}>
+                        {item === "ALL" ? "TODAS" : item === "ACTIVE" ? "ATIVAS" : "ENCERRADAS"}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+
+                {sessionsLoading ? <ActivityIndicator style={{ marginVertical: 22 }} /> : visibleAccessSessions.length === 0 ? (
+                  <Text style={styles.emptyCompact}>{accessSessions.length === 0 ? "Nenhuma sessão de acesso registrada." : "Nenhuma sessão corresponde aos filtros."}</Text>
+                ) : visibleAccessSessions.map((item) => (
+                  <View key={item.id} style={styles.sessionCard}>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.accountTitleRow}>
+                        <Text style={[styles.badge, item.key_kind === "VIP" && { color: "#D49CFF" }]}>{item.key_kind}</Text>
+                        <Text style={item.active ? styles.active : styles.sessionOff}>{accessSessionState(item)}</Text>
+                      </View>
+                      <Text style={styles.sessionTitle}>{item.client_label || "Cliente sem identificação"}</Text>
+                      <Text style={styles.accountMeta}>{item.key_hint}{item.key_note ? ` • ${item.key_note}` : ""}</Text>
+                      <Text style={styles.accountMeta}>Criada {formatDate(item.created_at)} • expira {formatDate(item.expires_at)}</Text>
+                      <Text style={styles.accountMeta}>Último sinal {formatDate(item.last_seen_at)}</Text>
+                    </View>
+                    {item.active ? (
+                      <Pressable style={styles.revokeButton} onPress={() => {
+                        Alert.alert("Encerrar acesso", `Revogar a sessão de ${item.client_label || "cliente sem identificação"}?`, [
+                          { text: "Cancelar", style: "cancel" },
+                          { text: "Encerrar", style: "destructive", onPress: () => revokeAccessSession(item) }
+                        ]);
+                      }}>
+                        <Text style={styles.revokeButtonText}>ENCERRAR</Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ))}
 
                 <View style={styles.detailSectionRow}>
                   <Text style={styles.sectionInline}>CHAVES FREE/VIP</Text>

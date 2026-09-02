@@ -346,6 +346,132 @@ export function registerMenuRoutes(app) {
     }
   });
 
+  app.get("/v1/keymaster/menus/:id/access-sessions", requireKeymaster, async (req, res, next) => {
+    try {
+      const menu = await getManagedMenu(req.params.id);
+      if (!menu) return sendError(res, 404, "NOT_FOUND", "Menu não encontrado.");
+
+      const { rows } = await pool.query(
+        `SELECT
+           s.id,
+           s.menu_key_id,
+           s.client_label,
+           s.created_at,
+           s.expires_at,
+           s.last_seen_at,
+           s.revoked_at,
+           k.kind AS key_kind,
+           k.key_hint,
+           k.note AS key_note,
+           k.expires_at AS key_expires_at,
+           CASE
+             WHEN s.revoked_at IS NULL
+              AND s.expires_at > NOW()
+              AND m.status = 'ACTIVE'
+              AND k.status = 'ACTIVE'
+              AND (k.kind = 'VIP' OR k.expires_at IS NULL OR k.expires_at > NOW())
+             THEN true
+             ELSE false
+           END AS active
+         FROM menu_access_sessions s
+         JOIN managed_menus m ON m.id = s.menu_id
+         JOIN menu_access_keys k ON k.id = s.menu_key_id
+         WHERE s.menu_id = $1
+         ORDER BY s.created_at DESC
+         LIMIT 200`,
+        [menu.id]
+      );
+
+      res.json({ ok: true, sessions: rows });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/v1/keymaster/menus/:id/access-sessions/revoke-all", requireKeymaster, async (req, res, next) => {
+    try {
+      const menu = await getManagedMenu(req.params.id);
+      if (!menu) return sendError(res, 404, "NOT_FOUND", "Menu não encontrado.");
+
+      const revokedCount = await withTransaction(async (client) => {
+        const revoked = await client.query(
+          `UPDATE menu_access_sessions
+              SET revoked_at = NOW()
+            WHERE menu_id = $1
+              AND revoked_at IS NULL
+              AND expires_at > NOW()
+            RETURNING id`,
+          [menu.id]
+        );
+        await audit(client, {
+          actorKind: "KEYMASTER_SESSION",
+          actorId: req.keymasterSession.id,
+          action: "MENU_ACCESS_SESSIONS_REVOKED_ALL",
+          targetKind: "MENU",
+          targetId: menu.id,
+          metadata: { publicId: menu.public_id, count: revoked.rowCount }
+        });
+        return revoked.rowCount;
+      });
+
+      res.json({ ok: true, revokedCount });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/v1/keymaster/menu-access-sessions/:sessionId/revoke", requireKeymaster, async (req, res, next) => {
+    try {
+      const sessionId = String(req.params.sessionId || "");
+      const result = await withTransaction(async (client) => {
+        const current = (await client.query(
+          `SELECT
+             s.id,
+             s.menu_id,
+             s.menu_key_id,
+             s.client_label,
+             s.expires_at,
+             s.revoked_at,
+             m.public_id
+           FROM menu_access_sessions s
+           JOIN managed_menus m ON m.id = s.menu_id
+           WHERE s.id = $1
+             AND m.status <> 'DELETED'
+           FOR UPDATE OF s`,
+          [sessionId]
+        )).rows[0];
+        if (!current) return null;
+        if (current.revoked_at || new Date(current.expires_at).getTime() <= Date.now()) {
+          return { revoked: false };
+        }
+
+        await client.query(
+          `UPDATE menu_access_sessions SET revoked_at = NOW() WHERE id = $1`,
+          [sessionId]
+        );
+        await audit(client, {
+          actorKind: "KEYMASTER_SESSION",
+          actorId: req.keymasterSession.id,
+          action: "MENU_ACCESS_SESSION_REVOKED",
+          targetKind: "MENU_ACCESS_SESSION",
+          targetId: sessionId,
+          metadata: {
+            menuId: current.menu_id,
+            publicId: current.public_id,
+            keyId: current.menu_key_id,
+            clientLabel: current.client_label
+          }
+        });
+        return { revoked: true };
+      });
+
+      if (!result) return sendError(res, 404, "NOT_FOUND", "Sessão de acesso não encontrada.");
+      res.json({ ok: true, revoked: result.revoked });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/v1/keymaster/menus/:id/keys", requireKeymaster, async (req, res, next) => {
     try {
       const menu = await getManagedMenu(req.params.id);
