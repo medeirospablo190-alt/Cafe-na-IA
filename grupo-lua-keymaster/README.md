@@ -1,4 +1,4 @@
-# GRUPO LUA KEYMASTER — V0.2
+# GRUPO LUA KEYMASTER — V0.2.1
 
 Aplicativo 2 de maior privilégio do ecossistema GRUPO LUA, com um cliente mínimo do Aplicativo 1 para validar compatibilidade desde o início.
 
@@ -34,7 +34,7 @@ packages/contracts    Constantes compartilhadas
 - exclusão individual exige **reautenticação DEV** e autorização server-side de uso único;
 - App 1 probe autentica as mesmas contas criadas pelo Keymaster.
 
-## V0.2 — ações críticas
+## V0.2+ — ações críticas
 
 A V0.2 adiciona uma camada de *step-up authentication* para ações críticas:
 
@@ -106,7 +106,7 @@ Defina `EXPO_PUBLIC_GRUPO_LUA_API_URL` para a URL da API, ou altere `extra.apiUr
 
 ## Integridade de dispositivo
 
-Em produção, configure Play Integrity e App Attest e mantenha:
+O `.env.example` usa `report` para o primeiro boot não ficar bloqueado antes da configuração do verificador. Em produção, depois de configurar Play Integrity/App Attest e o verificador server-side, altere para:
 
 ```text
 APP_INTEGRITY_MODE=enforce
