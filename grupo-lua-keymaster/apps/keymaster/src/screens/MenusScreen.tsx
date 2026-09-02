@@ -19,7 +19,6 @@ import {
   type MenuKeyKind,
   createManagedMenu,
   createMenuAccessKey,
-  deleteManagedMenu,
   listManagedMenus,
   listMenuAccessKeys,
   setManagedMenuState,
@@ -40,8 +39,8 @@ function formatDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
 }
 
-function loaderText(menu: ManagedMenu) {
-  return menu.loadstring || `loadstring(game:HttpGet("${menu.loader_url}"))()`;
+function accessUrl(menu: ManagedMenu) {
+  return menu.access_url || menu.loader_url;
 }
 
 export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }: {
@@ -154,18 +153,6 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     }
   }
 
-  async function deleteMenu(menu: ManagedMenu) {
-    try {
-      await deleteManagedMenu(session, menu.id);
-      setSelected(null);
-      setKeys([]);
-      await refresh();
-      Alert.alert("Menu excluído", "O cadastro foi removido e os acessos associados foram invalidados.");
-    } catch (error) {
-      Alert.alert("Falha ao excluir", error instanceof Error ? error.message : "Erro desconhecido");
-    }
-  }
-
   async function generateKey() {
     if (!selected) return;
     try {
@@ -271,15 +258,15 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   <View style={styles.detailGrid}>
                     <View style={styles.detailCell}><Text style={styles.detailLabel}>FREE</Text><Text style={styles.detailValue}>{item.free_keys}</Text></View>
                     <View style={styles.detailCell}><Text style={styles.detailLabel}>VIP</Text><Text style={styles.detailValue}>{item.vip_keys}</Text></View>
-                    <View style={styles.detailCell}><Text style={styles.detailLabel}>EXECUÇÕES</Text><Text style={styles.detailValue}>{item.accesses_month}</Text></View>
+                    <View style={styles.detailCell}><Text style={styles.detailLabel}>ACESSOS</Text><Text style={styles.detailValue}>{item.accesses_month}</Text></View>
                   </View>
 
                   <View style={styles.credentialBox}>
-                    <Text style={styles.credentialText} numberOfLines={3}>{loaderText(item)}</Text>
+                    <Text style={styles.credentialText} numberOfLines={2}>{accessUrl(item)}</Text>
                   </View>
                   <View style={styles.rowGap}>
-                    <Pressable style={styles.smallAction} onPress={() => Clipboard.setStringAsync(loaderText(item))}>
-                      <Text style={styles.smallActionText}>COPIAR LOADSTRING</Text>
+                    <Pressable style={styles.smallAction} onPress={() => Clipboard.setStringAsync(accessUrl(item))}>
+                      <Text style={styles.smallActionText}>COPIAR URL</Text>
                     </Pressable>
                     <Pressable style={styles.smallAction} onPress={() => openMenu(item)}>
                       <Text style={styles.smallActionText}>CHAVES</Text>
@@ -322,11 +309,11 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   <Pressable onPress={() => setSelected(null)}><Text style={styles.closeText}>✕</Text></Pressable>
                 </View>
 
-                <Text style={styles.sectionInline}>LOADSTRING DE ACESSO</Text>
+                <Text style={styles.sectionInline}>URL DE ACESSO</Text>
                 <View style={styles.credentialBox}>
-                  <Text style={styles.credentialText}>{loaderText(selected)}</Text>
+                  <Text style={styles.credentialText}>{accessUrl(selected)}</Text>
                 </View>
-                <Button title="COPIAR LOADSTRING" onPress={() => Clipboard.setStringAsync(loaderText(selected))} secondary />
+                <Button title="COPIAR URL DE ACESSO" onPress={() => Clipboard.setStringAsync(accessUrl(selected))} secondary />
 
                 <Text style={styles.section}>CONFIGURAÇÃO</Text>
                 <TextInput value={editName} onChangeText={setEditName} style={styles.input} placeholder="Nome" placeholderTextColor="#666" />
@@ -352,8 +339,8 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                       <Text style={styles.sessionTitle}>{item.key_hint}</Text>
                       <Text style={styles.accountMeta}>
                         {item.kind === "FREE" ? `Expira ${formatDate(item.expires_at)}` : "Permanente"}
-                        {typeof item.use_count === "number" ? ` • ${item.use_count} uso(s)` : ""}
                         {item.note ? ` • ${item.note}` : ""}
+                        {typeof item.use_count === "number" ? ` • ${item.use_count} usos` : ""}
                       </Text>
                     </View>
                     {item.status !== "REVOKED" ? (
@@ -363,10 +350,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                         </Pressable>
                         {item.kind === "FREE" ? (
                           <>
-                            <Pressable style={styles.revokeButton} onPress={() => {
-                              setDurationTarget(item);
-                              setNewDurationHours("24");
-                            }}>
+                            <Pressable style={styles.revokeButton} onPress={() => { setDurationTarget(item); setNewDurationHours("24"); }}>
                               <Text style={styles.revokeButtonText}>DURAÇÃO</Text>
                             </Pressable>
                             <Pressable style={styles.revokeButton} onPress={() => keyAction(item, "permanent")}>
@@ -386,16 +370,6 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                 ))}
 
                 <Button title={selected.status === "ACTIVE" ? "SUSPENDER MENU" : "LIBERAR MENU"} danger={selected.status === "ACTIVE"} secondary={selected.status !== "ACTIVE"} onPress={() => toggleMenu(selected)} />
-                <Button title="EXCLUIR MENU" danger onPress={() => {
-                  Alert.alert(
-                    "Excluir menu",
-                    `Excluir ${selected.name}? O loader deixará de funcionar e as chaves/sessões associadas serão invalidadas. O arquivo original no GitHub não será apagado.`,
-                    [
-                      { text: "Cancelar", style: "cancel" },
-                      { text: "Excluir", style: "destructive", onPress: () => deleteMenu(selected) }
-                    ]
-                  );
-                }} />
               </ScrollView>
             ) : null}
           </View>
@@ -424,16 +398,9 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>
             <Text style={styles.cardTitle}>Alterar duração FREE</Text>
-            <Text style={styles.muted}>A nova expiração é calculada pelo relógio do servidor a partir de agora. Sessões antigas desta chave serão encerradas.</Text>
-            <TextInput
-              value={newDurationHours}
-              onChangeText={setNewDurationHours}
-              style={styles.input}
-              keyboardType="numeric"
-              placeholder="Horas"
-              placeholderTextColor="#666"
-            />
-            <Button title="SALVAR NOVA DURAÇÃO" onPress={changeDuration} />
+            <Text style={styles.muted}>A nova validade é recalculada pelo relógio do servidor a partir de agora.</Text>
+            <TextInput value={newDurationHours} onChangeText={setNewDurationHours} style={styles.input} keyboardType="numeric" placeholder="Horas" placeholderTextColor="#666" />
+            <Button title="ATUALIZAR DURAÇÃO" onPress={changeDuration} />
             <Button title="CANCELAR" onPress={() => setDurationTarget(null)} secondary />
           </View>
         </View>
