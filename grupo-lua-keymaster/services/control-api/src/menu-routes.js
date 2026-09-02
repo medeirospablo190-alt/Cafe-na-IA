@@ -157,7 +157,7 @@ function publicDescriptor(req, menu) {
   };
 }
 
-export function registerMenuRoutes(app) {
+export function registerMenuRoutes(app, { consumeCriticalAuthorization } = {}) {
   app.get("/v1/keymaster/menus", requireKeymaster, async (req, res, next) => {
     try {
       const q = cleanText(req.query?.q, 100).replace(/[%_]/g, "");
@@ -299,6 +299,97 @@ export function registerMenuRoutes(app) {
       });
 
       res.json({ ok: true, menu: mapMenu(updated, req) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/v1/keymaster/menus/:id", requireKeymaster, async (req, res, next) => {
+    try {
+      if (typeof consumeCriticalAuthorization !== "function") {
+        return sendError(res, 503, "CRITICAL_AUTH_NOT_CONFIGURED", "Autorização crítica de menu não está configurada.");
+      }
+
+      const current = await getManagedMenu(req.params.id);
+      if (!current) return sendError(res, 404, "NOT_FOUND", "Menu não encontrado.");
+
+      const authToken = String(req.headers["x-critical-authorization"] || "");
+      const auth = await consumeCriticalAuthorization({
+        sessionId: req.keymasterSession.id,
+        token: authToken,
+        action: "DELETE_MANAGED_MENU",
+        targetId: current.id
+      });
+      if (!auth) {
+        return sendError(
+          res,
+          403,
+          "DEV_REAUTH_REQUIRED",
+          "Excluir definitivamente um menu exige reautenticação DEV de uso único."
+        );
+      }
+
+      const deleted = await withTransaction(async (client) => {
+        const menu = (await client.query(
+          `SELECT id, public_id, name, status
+             FROM managed_menus
+            WHERE id = $1 AND status <> 'DELETED'
+            FOR UPDATE`,
+          [current.id]
+        )).rows[0];
+        if (!menu) return null;
+
+        const sessions = await client.query(
+          `UPDATE menu_access_sessions
+              SET revoked_at = COALESCE(revoked_at, NOW())
+            WHERE menu_id = $1
+              AND revoked_at IS NULL
+            RETURNING id`,
+          [menu.id]
+        );
+
+        const keys = await client.query(
+          `UPDATE menu_access_keys
+              SET status = 'REVOKED',
+                  revoked_at = COALESCE(revoked_at, NOW()),
+                  suspended_at = NULL,
+                  updated_at = NOW()
+            WHERE menu_id = $1
+              AND status <> 'REVOKED'
+            RETURNING id`,
+          [menu.id]
+        );
+
+        await client.query(
+          `UPDATE managed_menus
+              SET status = 'DELETED', updated_at = NOW()
+            WHERE id = $1`,
+          [menu.id]
+        );
+
+        await audit(client, {
+          actorKind: "DEV",
+          actorId: auth.dev_account_id,
+          action: "MENU_DELETED",
+          targetKind: "MENU",
+          targetId: menu.id,
+          metadata: {
+            publicId: menu.public_id,
+            name: menu.name,
+            revokedKeys: keys.rowCount,
+            revokedSessions: sessions.rowCount,
+            keymasterSessionId: req.keymasterSession.id
+          }
+        });
+
+        return {
+          revokedKeys: keys.rowCount,
+          revokedSessions: sessions.rowCount
+        };
+      });
+
+      if (!deleted) return sendError(res, 404, "NOT_FOUND", "Menu não encontrado.");
+      res.json({ ok: true, ...deleted });
     } catch (error) {
       next(error);
     }
