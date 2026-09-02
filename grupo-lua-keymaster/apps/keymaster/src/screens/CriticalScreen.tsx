@@ -9,10 +9,11 @@ import { styles } from "../styles";
 
 type ExecutableCriticalAction = Exclude<CriticalAction, "DELETE_APP1_ACCOUNT">;
 
-export function CriticalScreen({ session, onHome, onAccounts, onAudit }: {
+export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }: {
   session: string;
   onHome: () => void;
   onAccounts: () => void;
+  onMenus: () => void;
   onAudit: () => void;
 }) {
   const [maintenance, setMaintenance] = useState<boolean | null>(null);
@@ -92,11 +93,11 @@ export function CriticalScreen({ session, onHome, onAccounts, onAudit }: {
           <Text style={styles.section}>PRÓXIMAS CAMADAS</Text>
           <View style={[styles.card, styles.lockedCard]}>
             <Text style={styles.cardTitle}>Exclusão global e recuperação crítica</Text>
-            <Text style={styles.muted}>A autorização de uso único já está preparada. A execução global ficará habilitada quando as tabelas de Social, Chats, Arquivos e FREE/VIP existirem para que o escopo seja preciso e auditável.</Text>
-            <Text style={styles.locked}>BLOQUEADA ATÉ O MODELO DE DADOS DO APP 1</Text>
+            <Text style={styles.muted}>A autorização de uso único já está preparada. A execução global ficará habilitada quando as tabelas de Social, Chats e Arquivos existirem para que o escopo seja preciso e auditável.</Text>
+            <Text style={styles.locked}>BLOQUEADA ATÉ O MODELO COMPLETO DO APP 1</Text>
           </View>
         </ScrollView>
-        <BottomNav current="critical" onHome={onHome} onAccounts={onAccounts} onAudit={onAudit} onCritical={() => {}} />
+        <BottomNav current="critical" onHome={onHome} onAccounts={onAccounts} onMenus={onMenus} onAudit={onAudit} onCritical={() => {}} />
       </View>
 
       <DevAuthorizationModal
