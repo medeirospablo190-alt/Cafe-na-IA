@@ -20,11 +20,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - workspace: "@grupo-lua/app1"
+          - id: "app1"
+            workspace: "@grupo-lua/app1"
             app_dir: "grupo-lua-keymaster/apps/app1"
             artifact: "GRUPO-LUA-APP1-v0.1.0-ios-unsigned"
             ipa: "GRUPO-LUA-APP1-v0.1.0-unsigned.ipa"
-          - workspace: "@grupo-lua/keymaster"
+          - id: "keymaster"
+            workspace: "@grupo-lua/keymaster"
             app_dir: "grupo-lua-keymaster/apps/keymaster"
             artifact: "GRUPO-LUA-KEYMASTER-v0.9.0-ios-unsigned"
             ipa: "GRUPO-LUA-KEYMASTER-v0.9.0-unsigned.ipa"
@@ -68,7 +70,7 @@ jobs:
         working-directory: ${{ matrix.app_dir }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           WORKSPACE="$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)"
           test -n "$WORKSPACE"
 
@@ -78,17 +80,31 @@ jobs:
           echo "Workspace: $WORKSPACE"
           echo "Scheme: $SCHEME"
 
+          LOG="$GITHUB_WORKSPACE/xcode-${{ matrix.id }}.log"
+          set +e
           xcodebuild \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath "$PWD/ios-build" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" \
-            clean build
+            clean build 2>&1 | tee "$LOG"
+          STATUS=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$STATUS" -ne 0 ]; then
+            {
+              echo "=== Xcode errors ==="
+              grep -E "error:|fatal error|BUILD FAILED|Command .* failed|Signing for|requires a development team|Provisioning profile" "$LOG" | tail -300 || true
+            } > "$GITHUB_WORKSPACE/xcode-${{ matrix.id }}-errors.txt"
+            cat "$GITHUB_WORKSPACE/xcode-${{ matrix.id }}-errors.txt"
+            exit "$STATUS"
+          fi
 
           APP_PATH="$(find "$PWD/ios-build/Build/Products/Release-iphoneos" -maxdepth 1 -type d -name '*.app' -print -quit)"
           test -d "$APP_PATH"
@@ -103,7 +119,19 @@ jobs:
             rm -rf Payload
           )
 
+      - name: Upload Xcode diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-diagnostics-${{ matrix.id }}
+          path: |
+            xcode-${{ matrix.id }}.log
+            xcode-${{ matrix.id }}-errors.txt
+          if-no-files-found: warn
+          retention-days: 2
+
       - name: Upload unsigned IPA artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
