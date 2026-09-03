@@ -15,6 +15,7 @@ import {
 } from "./security.js";
 import { verifyAppIntegrity } from "./integrity.js";
 import { registerMenuRoutes } from "./menu-routes.js";
+import { registerApp1Routes } from "./app1-routes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT || 3100);
@@ -29,7 +30,10 @@ const CRITICAL_ACTIONS = new Set([
   "APP1_MAINTENANCE_ON",
   "APP1_MAINTENANCE_OFF",
   "DELETE_APP1_ACCOUNT",
-  "DELETE_MANAGED_MENU"
+  "DELETE_MANAGED_MENU",
+  "UNLOCK_APP1_ACCOUNT",
+  "AUTHORIZE_APP1_DEVICE",
+  "REVOKE_APP1_DEVICE"
 ]);
 
 app.disable("x-powered-by");
@@ -92,7 +96,13 @@ function deviceInput(req) {
 function criticalScope(action, targetId = "") {
   const normalized = String(action || "").toUpperCase();
   if (!CRITICAL_ACTIONS.has(normalized)) return "";
-  if (["DELETE_APP1_ACCOUNT", "DELETE_MANAGED_MENU"].includes(normalized)) {
+  if ([
+    "DELETE_APP1_ACCOUNT",
+    "DELETE_MANAGED_MENU",
+    "UNLOCK_APP1_ACCOUNT",
+    "AUTHORIZE_APP1_DEVICE",
+    "REVOKE_APP1_DEVICE"
+  ].includes(normalized)) {
     const target = String(targetId || "").trim();
     return target ? `${normalized}:${target}` : "";
   }
@@ -205,6 +215,13 @@ app.get("/v1/health", async (_req, res) => {
       maxKeyChars: KEYMASTER_MAX_CHARS,
       maxFailedAttempts: KEYMASTER_MAX_FAILED,
       lockHours: 24
+    },
+    app1: {
+      sessionHours: 24,
+      provisionalMinutes: 15,
+      maxFailedAttempts: 3,
+      maxActiveDevices: 2,
+      deviceEnrollmentMinutes: 10
     }
   });
 });
@@ -527,7 +544,7 @@ app.get("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
     const role = String(req.query?.role || "").toUpperCase();
     const status = String(req.query?.status || "").toUpperCase();
     if (role && !["ADM", "DEV"].includes(role)) return sendError(res, 400, "INVALID_ROLE", "Filtro de role inválido.");
-    if (status && !["ACTIVE", "SUSPENDED"].includes(status)) return sendError(res, 400, "INVALID_STATUS", "Filtro de status inválido.");
+    if (status && !["ACTIVE", "SUSPENDED", "LOCKED_SECURITY"].includes(status)) return sendError(res, 400, "INVALID_STATUS", "Filtro de status inválido.");
 
     const params = [];
     const clauses = ["a.status <> 'DELETED'"];
@@ -800,6 +817,17 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
   } catch (error) { next(error); }
 });
 
+// As rotas V1 são registradas antes das rotas legadas abaixo. Isso mantém
+// compatibilidade durante a migração sem permitir que a implementação antiga
+// intercepte login/sessão antes das novas regras de segurança.
+registerApp1Routes(app, {
+  requireKeymaster,
+  consumeCriticalAuthorization,
+  getApp1Maintenance
+});
+
+// Rotas legadas temporárias; permanecem durante a transição e serão removidas
+// quando o App 1 Probe estiver totalmente migrado para o contrato V1.
 app.post("/v1/app1/login", async (req, res, next) => {
   try {
     const login = normalizeLogin(req.body?.login);

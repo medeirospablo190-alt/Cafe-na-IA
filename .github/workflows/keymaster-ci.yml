@@ -13,6 +13,25 @@ on:
 jobs:
   control-api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: grupolua_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d grupolua_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/grupolua_test
+      DATABASE_SSL: "false"
+      SESSION_PEPPER: ci-session-pepper-0123456789-abcdefghijklmnopqrstuvwxyz
+      DEVICE_FINGERPRINT_PEPPER: ci-device-pepper-0123456789-abcdefghijklmnopqrstuvwxyz
     defaults:
       run:
         working-directory: grupo-lua-keymaster/services/control-api
@@ -26,11 +45,14 @@ jobs:
       - name: Syntax check
         run: |
           node --check src/server.js
+          node --check src/app1-routes.js
           node --check src/menu-routes.js
           node --check src/security.js
           node --check src/integrity.js
           node --check src/db.js
           node --check scripts/migrate.mjs
+      - name: Apply database migrations
+        run: npm run migrate
       - name: Security and menu unit tests
         run: node --test test/*.test.mjs
 

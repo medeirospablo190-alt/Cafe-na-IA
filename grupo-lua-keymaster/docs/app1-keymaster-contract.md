@@ -1,82 +1,141 @@
 # GRUPO LUA — CONTRATO APP 1 ↔ KEYMASTER
 
-Status: **IMPLEMENTAÇÃO MÍNIMA ATIVA / APP 1 COMPLETO AINDA ADIADO**
+Status: **IMPLEMENTAÇÃO COMPLETA AUTORIZADA / FASE 1 EM PREPARAÇÃO**
 
-Este documento define somente a parte do Aplicativo 1 que precisa existir enquanto o desenvolvimento principal continua focado no Aplicativo 2 — Keymaster.
+A especificação consolidada atual está em `docs/app1-v1-master-spec.md`. Este arquivo mantém somente o contrato entre App 1, Keymaster e Control API.
 
-## Regra de escopo
+## Autoridade
 
-O App 1 só deve receber implementação antecipada quando uma função já existente do Keymaster precisar de uma contraparte para funcionar ou ser validada.
+A Control API é a autoridade para:
 
-Exemplos permitidos nesta fase:
+- autenticação;
+- role e permissões;
+- status da conta;
+- bloqueios de segurança;
+- dispositivos autorizados;
+- sessões;
+- onboarding;
+- retenção;
+- ownership de menus/chaves;
+- ações críticas.
 
-- autenticar contas ADM/DEV criadas pelo Keymaster;
-- validar sessão emitida pelo servidor;
-- reconhecer role e status retornados pelo servidor;
-- respeitar suspensão, exclusão, manutenção e revogação de sessão;
-- compartilhar contratos de role/permissão necessários para evitar incompatibilidade;
-- reservar permissões já aprovadas para recursos futuros, sem construir o recurso completo.
+O cliente pode esconder/mostrar controles por UX, mas nunca concede permissão sozinho.
 
-Não iniciar ainda:
+## Roles
 
-- Feed Social completo;
-- Chats;
-- Arquivos;
-- perfis completos;
-- fotos/vídeos;
-- notificações completas;
-- demais telas finais do App 1.
+### ADM
 
-## Credenciais emitidas pelo Keymaster
+- usa App 1;
+- não recebe acesso ao Keymaster;
+- administra recursos próprios conforme ownership server-side.
 
-O contrato atual é:
+### DEV
+
+- usa App 1 e Keymaster;
+- possui funções privilegiadas aprovadas;
+- ações críticas são reautenticadas e auditadas.
+
+## Credenciais
+
+Convenções atuais de emissão:
 
 ```text
 ADM -> 256 caracteres
 DEV -> 600 caracteres
 ```
 
-A credencial completa é criada pelo servidor e exibida uma única vez pelo Keymaster. O App 1 envia a credencial para validação, mas não decide se ela é válida.
+O servidor gera a credencial e mantém hash para autenticação. Segredos reais não entram no repositório.
 
-Os testes da Control API verificam automaticamente se o gerador continua respeitando os tamanhos definidos no pacote compartilhado `@grupo-lua/contracts`.
+O App 1 deve enviar login + credencial apenas durante autenticação e descartá-los da memória da interface depois do login. O App 1 não deve persistir login ou credencial para conveniência.
 
-## Sessão do App 1
+## Primeiro acesso
 
-Depois de um login válido, o servidor emite uma sessão. O cliente pode persistir o token em armazenamento seguro e deve revalidar a sessão pelo endpoint `/v1/app1/me`.
+Um primeiro login válido não libera diretamente o aplicativo final.
 
-O App 1 não deve considerar um token local como prova suficiente de autorização. Uma sessão pode deixar de ser válida porque:
-
-- expirou;
-- foi revogada pelo Keymaster;
-- a conta foi suspensa;
-- a conta foi excluída;
-- o sistema entrou em manutenção.
-
-## Roles
-
-Roles atuais:
+Fluxo obrigatório:
 
 ```text
-ADM
-DEV
+login válido
+ -> sessão provisória curta
+ -> aceite dos termos no servidor
+ -> pseudônimo validado no servidor
+ -> onboarding concluído
+ -> sessão completa de 24h
 ```
 
-O pacote compartilhado define permissões de interface/compatibilidade para evitar que os dois aplicativos usem regras diferentes.
+Enquanto `onboardingCompleted = false`, endpoints normais de Feed, Social, Chats, Chaves e outras áreas devem permanecer indisponíveis.
 
-### ADM
+## Sessão App 1
 
-Permissões de contrato atuais:
+A sessão completa planejada é fixa por **24 horas** a partir da conclusão do onboarding ou de um novo login completo.
 
-```text
-app1.session.use
-app1.admin
-```
+A reabertura do aplicativo não reinicia o prazo.
 
-ADM não recebe permissão privilegiada de DEV.
+O cliente persiste somente o token em armazenamento seguro e revalida com o servidor.
 
-### DEV
+Sessões são revogadas quando aplicável em casos como:
 
-Permissões de contrato atuais:
+- suspensão;
+- `LOCKED_SECURITY`;
+- exclusão;
+- rotação de credencial;
+- revogação de dispositivo;
+- revogação administrativa;
+- manutenção que bloqueie acesso.
+
+## Dispositivos
+
+A conta é vinculada a dispositivo autorizado.
+
+- primeiro dispositivo: vinculado no primeiro login válido;
+- dispositivo diferente: acesso negado, salvo autorização válida;
+- terceiro evento aplicável de credencial válida em dispositivo não autorizado: conta entra em `LOCKED_SECURITY` e sessões são revogadas;
+- segundo/novo dispositivo: exige janela server-side criada por DEV, válida por no máximo 10 minutos;
+- ao cadastrar com sucesso, a janela é consumida imediatamente e não pode ser reutilizada.
+
+A implementação de produção deve usar fingerprint protegido, identificadores nativos disponíveis, chave criptográfica do dispositivo e App Integrity/attestation quando configurados.
+
+## Bloqueio de credencial
+
+Três tentativas inválidas consecutivas aplicáveis podem colocar a conta em `LOCKED_SECURITY`.
+
+A liberação é feita por DEV e deve ser auditada. A liberação pode manter a credencial existente; rotação é uma ação separada.
+
+## Privacidade da API do App 1
+
+Respostas normais do App 1 não devem retornar:
+
+- login privado;
+- credencial;
+- hash da credencial;
+- IP bruto;
+- identificador nativo bruto do dispositivo;
+- tokens de outras sessões.
+
+O Social trabalha com `publicName`/identidade pública, não com login.
+
+## Keymaster — segurança da conta
+
+O Keymaster deve disponibilizar, por conta:
+
+- status;
+- motivo de bloqueio;
+- contadores de tentativas;
+- histórico protegido de login;
+- dispositivos autorizados;
+- janela pendente de novo dispositivo;
+- sessões;
+- desbloqueio;
+- revogação de dispositivo;
+- autorização de novo dispositivo;
+- revogação de sessões;
+- exclusão crítica do acesso.
+
+Logs nunca guardam credenciais completas.
+
+## Permissões compartilhadas
+
+Permissões existentes continuam como contrato mínimo:
 
 ```text
 app1.session.use
@@ -85,26 +144,8 @@ app1.dev.privileged
 app1.social.pin-post
 ```
 
-`app1.social.pin-post` apenas reserva no contrato a decisão já aprovada para o futuro Feed Social. Isso **não significa que o Social já foi implementado**.
-
-## Autoridade server-side
-
-As permissões compartilhadas podem ser usadas pelo cliente para decidir quais controles mostrar, mas não substituem verificação no backend.
-
-Exemplo futuro: quando o endpoint de fixar publicação Social existir, o servidor deverá consultar a role atual da conta e aceitar somente `DEV`, mesmo que um cliente ADM tente chamar a API manualmente.
+Novas permissões devem ser adicionadas conforme as fases forem implementadas, sempre com enforcement server-side.
 
 ## App 1 Probe
 
-`apps/app1-probe` continua sendo uma sonda de compatibilidade, não o Aplicativo 1 final.
-
-Na V0.6 ela testa:
-
-1. login com ADM/DEV criado pelo Keymaster;
-2. recebimento de token de sessão;
-3. armazenamento seguro local do token de teste;
-4. revalidação em `/v1/app1/me`;
-5. leitura de role/status;
-6. aplicação do contrato compartilhado de permissões;
-7. limpeza da sessão local de teste.
-
-A revogação server-side continua sendo controlada pelo Keymaster/API.
+`apps/app1-probe` continua temporariamente como sonda de compatibilidade. Ele será migrado/substituído progressivamente pelo App 1 real durante a implementação das fases definidas em `app1-v1-master-spec.md`.
