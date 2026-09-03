@@ -83,16 +83,26 @@ jobs:
             echo "::error::Production guard accepted the download portal as Control API"
             exit 1
           fi
-          if grep -q "plan: free" ../../../render-control-api.yaml; then
-            echo "::error::Production Blueprint must not use Render free plans"
+          grep -q "plan: free" ../../../render-control-api.yaml
+          if grep -q "preDeployCommand:" ../../../render-control-api.yaml; then
+            echo "::error::Render Free Blueprint must not use preDeployCommand"
             exit 1
           fi
+          if grep -q '^databases:' ../../../render-control-api.yaml; then
+            echo "::error::Free deployment must use the external persistent Postgres URL, not expiring Render Free Postgres"
+            exit 1
+          fi
+          grep -q 'startCommand: npm run start:free' ../../../render-control-api.yaml
+          grep -q 'key: DATABASE_URL' ../../../render-control-api.yaml
+          grep -q 'value: "true"' ../../../render-control-api.yaml
           if grep -q "cafe-na-ia.onrender.com" ../../../render-control-api.yaml; then
-            echo "::error::Production Blueprint must not point at the download portal"
+            echo "::error::Control API Blueprint must not point at the download portal"
             exit 1
           fi
-      - name: Apply database migrations
-        run: npm run migrate
+      - name: Apply database migrations twice
+        run: |
+          npm run migrate
+          npm run migrate
       - name: Security and menu unit tests
         run: node --test test/*.test.mjs
 

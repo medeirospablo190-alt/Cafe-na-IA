@@ -5,12 +5,13 @@ services:
     name: grupo-lua-control-api
     runtime: node
     region: virginia
-    # Produção: mantém o serviço ativo e habilita preDeployCommand.
-    plan: 0.5c-512mb
+    # Fase inicial: plano gratuito. O serviço pode dormir após inatividade.
+    plan: free
     rootDir: grupo-lua-keymaster/services/control-api
     buildCommand: npm install --omit=dev
-    preDeployCommand: npm run production:check && npm run migrate
-    startCommand: npm run start:production
+    # No plano Free não usamos preDeployCommand. O start:free executa
+    # readiness + migrations versionadas antes de iniciar a API.
+    startCommand: npm run start:free
     healthCheckPath: /v1/health
     autoDeploy: false
     maxShutdownDelaySeconds: 20
@@ -24,13 +25,12 @@ services:
           type: web
           name: grupo-lua-control-api
           envVarKey: RENDER_EXTERNAL_URL
+      # Banco externo persistente (Neon Free). Cole apenas a connection string
+      # privada no painel do Render; nunca coloque DATABASE_URL no GitHub.
       - key: DATABASE_URL
-        fromDatabase:
-          name: grupo-lua-control-db
-          property: connectionString
-      # O connectionString acima é a URL privada interna do Render.
+        sync: false
       - key: DATABASE_SSL
-        value: "false"
+        value: "true"
       - key: KEYMASTER_ACCESS_HASH
         sync: false
       - key: SESSION_PEPPER
@@ -45,13 +45,3 @@ services:
         value: "1.0"
       - key: APP1_PRIVACY_VERSION
         value: "1.0"
-
-databases:
-  - name: grupo-lua-control-db
-    region: virginia
-    # Menor plano persistente pago; o plano free expira e não é adequado à produção.
-    plan: 0.1c-256mb
-    postgresMajorVersion: "16"
-    connectionPool: none
-    # Sem acesso público ao banco; a Control API usa a rede privada do Render.
-    ipAllowList: []
