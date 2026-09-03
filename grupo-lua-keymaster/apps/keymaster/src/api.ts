@@ -11,13 +11,16 @@ export type CriticalAction =
   | "DELETE_MANAGED_MENU"
   | "UNLOCK_APP1_ACCOUNT"
   | "AUTHORIZE_APP1_DEVICE"
-  | "REVOKE_APP1_DEVICE";
+  | "REVOKE_APP1_DEVICE"
+  | "ROTATE_APP1_CREDENTIAL"
+  | "REVEAL_APP1_CREDENTIAL";
 
 export type Account = {
   id: string;
-  login: string;
+  name: string;
   role: AccountRole;
   status: AccountStatus;
+  credential_recoverable?: boolean;
   created_at?: string;
   updated_at?: string;
   active_sessions?: number;
@@ -70,7 +73,7 @@ export type DeviceEnrollment = {
 export type AccountSecurity = {
   account: {
     id: string;
-    login: string;
+    name: string;
     role: AccountRole;
     status: AccountStatus;
     failed_login_attempts: number;
@@ -102,11 +105,11 @@ export type AuditEvent = {
   id: string;
   actor_kind: string;
   actor_id: string | null;
-  actor_login: string | null;
+  actor_name: string | null;
   action: string;
   target_kind: string | null;
   target_id: string | null;
-  target_login: string | null;
+  target_name: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
 };
@@ -240,16 +243,21 @@ export async function listAccounts(
   return request<{ ok: true; accounts: Account[] }>(`/v1/keymaster/accounts${qs}`, {}, session);
 }
 
-export async function createAccount(session: string, login: string, role: AccountRole) {
+export async function createAccount(
+  session: string,
+  displayName: string,
+  login: string,
+  role: AccountRole
+) {
   return request<{
     ok: true;
     account: Account;
+    privateLogin: string;
     credential: string;
     credentialLength: number;
-    revealOnce: true;
   }>("/v1/keymaster/accounts", {
     method: "POST",
-    body: JSON.stringify({ login, role })
+    body: JSON.stringify({ displayName, login, role })
   }, session);
 }
 
@@ -260,10 +268,34 @@ export async function setAccountState(session: string, accountId: string, action
   }, session);
 }
 
-export async function rotateCredential(session: string, accountId: string) {
-  return request<{ ok: true; credential: string; credentialLength: number; revealOnce: true }>(
+export async function rotateCredential(
+  session: string,
+  accountId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; privateLogin: string; credential: string; credentialLength: number }>(
     `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/rotate`,
-    { method: "POST", body: "{}" },
+    {
+      method: "POST",
+      headers: { "x-critical-authorization": authorizationToken },
+      body: "{}"
+    },
+    session
+  );
+}
+
+export async function revealAccountCredential(
+  session: string,
+  accountId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; privateLogin: string; credential: string }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/credential/reveal`,
+    {
+      method: "POST",
+      headers: { "x-critical-authorization": authorizationToken },
+      body: "{}"
+    },
     session
   );
 }
@@ -493,7 +525,7 @@ export async function authorizeCriticalAction(
     authorizationToken: string;
     expiresAt: string;
     scope: string;
-    dev: { id: string; login: string };
+    dev: { id: string; name: string };
   }>("/v1/keymaster/critical/authorize", {
     method: "POST",
     body: JSON.stringify({ action, devLogin, devCredential, ...(targetId ? { targetId } : {}) })
