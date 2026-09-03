@@ -18,15 +18,30 @@ import { BottomNav } from "../components/BottomNav";
 import { Button, Header } from "../components/Common";
 import { CredentialModal } from "../components/CredentialModal";
 import { DevAuthorizationModal } from "../components/DevAuthorizationModal";
+import { AccountSecurityModal } from "../components/AccountSecurityModal";
 import { styles } from "../styles";
 
 type RoleFilter = "ALL" | AccountRole;
-type StatusFilter = "ALL" | "ACTIVE" | "SUSPENDED";
+type StatusFilter = "ALL" | "ACTIVE" | "LOCKED_SECURITY" | "SUSPENDED";
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
+}
+
+function statusLabel(status: Account["status"]) {
+  if (status === "ACTIVE") return "ATIVA";
+  if (status === "LOCKED_SECURITY") return "BLOQUEADA";
+  if (status === "SUSPENDED") return "SUSPENSA";
+  return status;
+}
+
+function filterLabel(status: StatusFilter) {
+  if (status === "ALL") return "STATUS";
+  if (status === "ACTIVE") return "ATIVAS";
+  if (status === "LOCKED_SECURITY") return "BLOQUEADAS";
+  return "SUSPENSAS";
 }
 
 export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }: {
@@ -47,6 +62,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
   const [revealedCredential, setRevealedCredential] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [detailTarget, setDetailTarget] = useState<Account | null>(null);
+  const [securityTarget, setSecurityTarget] = useState<Account | null>(null);
   const [sessions, setSessions] = useState<AccountSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
@@ -59,6 +75,14 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         status: statusFilter === "ALL" ? undefined : statusFilter
       });
       setAccounts(result.accounts);
+      if (detailTarget) {
+        const updated = result.accounts.find((item) => item.id === detailTarget.id);
+        if (updated) setDetailTarget(updated);
+      }
+      if (securityTarget) {
+        const updated = result.accounts.find((item) => item.id === securityTarget.id);
+        if (updated) setSecurityTarget(updated);
+      }
     } catch (error) {
       Alert.alert("Falha ao carregar", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
@@ -97,6 +121,14 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
     }
   }
 
+  function stateAction(account: Account) {
+    if (account.status === "LOCKED_SECURITY") {
+      setSecurityTarget(account);
+      return;
+    }
+    action(account, account.status === "ACTIVE" ? "suspend" : "restore").catch(() => {});
+  }
+
   async function openDetails(account: Account) {
     setDetailTarget(account);
     setSessionsLoading(true);
@@ -120,6 +152,11 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
     }
   }
 
+  async function securityChanged() {
+    await refresh();
+    if (detailTarget) await reloadSessions(detailTarget);
+  }
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="light" />
@@ -129,7 +166,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
               <Text style={styles.screenTitle}>Acessos do App 1</Text>
-              <Text style={styles.muted}>ADM e DEV. Toque em uma conta para visualizar sessões e detalhes.</Text>
+              <Text style={styles.muted}>Contas, bloqueios, dispositivos e sessões. O servidor continua sendo a autoridade final.</Text>
             </View>
             <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
@@ -138,7 +175,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
             value={query}
             onChangeText={setQuery}
             style={styles.searchInput}
-            placeholder="Buscar login..."
+            placeholder="Buscar login interno..."
             placeholderTextColor="#6D6D73"
             autoCapitalize="none"
             autoCorrect={false}
@@ -151,9 +188,9 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               </Pressable>
             ))}
             <View style={styles.filterDivider} />
-            {(["ALL", "ACTIVE", "SUSPENDED"] as StatusFilter[]).map((item) => (
+            {(["ALL", "ACTIVE", "LOCKED_SECURITY", "SUSPENDED"] as StatusFilter[]).map((item) => (
               <Pressable key={`status-${item}`} style={[styles.filterChip, statusFilter === item && styles.filterChipActive]} onPress={() => setStatusFilter(item)}>
-                <Text style={[styles.filterChipText, statusFilter === item && styles.filterChipTextActive]}>{item === "ALL" ? "STATUS" : item === "ACTIVE" ? "ATIVAS" : "SUSPENSAS"}</Text>
+                <Text style={[styles.filterChipText, statusFilter === item && styles.filterChipTextActive]}>{filterLabel(item)}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -165,7 +202,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               contentContainerStyle={styles.accountList}
               ListEmptyComponent={<Text style={styles.empty}>Nenhuma conta encontrada.</Text>}
               renderItem={({ item }) => (
-                <View style={styles.accountCard}>
+                <View style={[styles.accountCard, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#100708" }]}>
                   <Pressable style={styles.accountTop} onPress={() => openDetails(item)}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.accountTitleRow}>
@@ -174,22 +211,31 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                       </View>
                       <Text style={styles.accountMeta}>{item.active_sessions || 0} sessão(ões) ativa(s) • atualizado {formatDate(item.updated_at)}</Text>
                     </View>
-                    <Text style={item.status === "ACTIVE" ? styles.active : styles.suspended}>{item.status === "ACTIVE" ? "ATIVA" : "SUSPENSA"}</Text>
+                    <Text style={item.status === "ACTIVE" ? styles.active : item.status === "LOCKED_SECURITY" ? { color: "#FF5148", fontSize: 10, fontWeight: "900" } : styles.suspended}>
+                      {statusLabel(item.status)}
+                    </Text>
                   </Pressable>
+
                   <View style={styles.rowGap}>
-                    <Pressable style={styles.smallAction} onPress={() => action(item, item.status === "ACTIVE" ? "suspend" : "restore")}>
-                      <Text style={styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"}</Text>
+                    <Pressable style={[styles.smallAction, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#150809" }]} onPress={() => setSecurityTarget(item)}>
+                      <Text style={[styles.smallActionText, item.status === "LOCKED_SECURITY" && { color: "#FF5A52" }]}>SEGURANÇA</Text>
+                    </Pressable>
+                    <Pressable style={styles.smallAction} onPress={() => stateAction(item)}>
+                      <Text style={styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : item.status === "SUSPENDED" ? "LIBERAR" : "DESBLOQUEAR"}</Text>
                     </Pressable>
                     <Pressable style={styles.smallAction} onPress={() => action(item, "rotate")}>
                       <Text style={styles.smallActionText}>NOVA CHAVE</Text>
                     </Pressable>
+                  </View>
+
+                  <View style={styles.rowGap}>
                     <Pressable style={[styles.smallAction, styles.smallDanger]} onPress={() => {
                       Alert.alert("Excluir conta", `Excluir ${item.login}? A confirmação final exigirá uma credencial DEV ativa.`, [
                         { text: "Cancelar", style: "cancel" },
                         { text: "Continuar", style: "destructive", onPress: () => setDeleteTarget(item) }
                       ]);
                     }}>
-                      <Text style={styles.smallDangerText}>EXCLUIR</Text>
+                      <Text style={styles.smallDangerText}>EXCLUIR LOGIN / ACESSO DEFINITIVAMENTE</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -223,7 +269,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                 <View style={styles.detailHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.cardTitle}>{detailTarget.login}</Text>
-                    <Text style={[styles.badge, detailTarget.role === "DEV" && styles.badgeDev]}>{detailTarget.role} • {detailTarget.status}</Text>
+                    <Text style={[styles.badge, detailTarget.role === "DEV" && styles.badgeDev]}>{detailTarget.role} • {statusLabel(detailTarget.status)}</Text>
                   </View>
                   <Pressable onPress={() => setDetailTarget(null)}><Text style={styles.closeText}>✕</Text></Pressable>
                 </View>
@@ -231,6 +277,9 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>CRIADA</Text><Text style={styles.detailValue}>{formatDate(detailTarget.created_at)}</Text></View>
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>ATUALIZADA</Text><Text style={styles.detailValue}>{formatDate(detailTarget.updated_at)}</Text></View>
                 </View>
+
+                <Button title="SEGURANÇA • DISPOSITIVOS • TENTATIVAS" onPress={() => setSecurityTarget(detailTarget)} danger={detailTarget.status === "LOCKED_SECURITY"} />
+
                 <View style={styles.detailSectionRow}>
                   <Text style={styles.sectionInline}>SESSÕES DO APP 1</Text>
                   <Pressable onPress={() => reloadSessions(detailTarget)}><Text style={styles.refreshLink}>ATUALIZAR</Text></Pressable>
@@ -266,6 +315,15 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
       </Modal>
 
       <CredentialModal credential={revealedCredential} onClose={() => setRevealedCredential(null)} />
+
+      <AccountSecurityModal
+        visible={Boolean(securityTarget)}
+        session={session}
+        account={securityTarget}
+        onClose={() => setSecurityTarget(null)}
+        onChanged={securityChanged}
+      />
+
       <DevAuthorizationModal
         visible={Boolean(deleteTarget)}
         session={session}
@@ -277,6 +335,8 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
           if (!deleteTarget) return;
           await deleteAccount(session, deleteTarget.id, authorizationToken);
           setDeleteTarget(null);
+          if (detailTarget?.id === deleteTarget.id) setDetailTarget(null);
+          if (securityTarget?.id === deleteTarget.id) setSecurityTarget(null);
           await refresh();
         }}
       />
