@@ -3,110 +3,136 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#05070a" />
-  <title>CAFEÍNA • Darkside</title>
+  <meta name="theme-color" content="#050505" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>GRUPO LUA — Portal Oficial</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="noise"></div>
   <main class="shell">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">CAFEÍNA / CONTROL CENTER</div>
-        <h1>Darkside Console</h1>
-        <p class="hero-copy">Scans e diagnósticos isolados, organizados e prontos para mobile.</p>
+    <header class="hero">
+      <div class="brand-row">
+        <span class="moon" aria-hidden="true"><span></span></span>
+        <div>
+          <p class="eyebrow">PORTAL OFICIAL</p>
+          <h1>GRUPO LUA</h1>
+          <p class="creator">by <strong>CAFEÍNA</strong></p>
+        </div>
       </div>
-      <div id="serverStatus" class="status"><span></span> verificando</div>
+      <p class="hero-copy">Instale somente as versões oficiais dos aplicativos do projeto.</p>
+      <div class="secure-note"><span class="secure-dot"></span> Downloads protegidos pelo servidor</div>
     </header>
 
-    <nav class="tabs" aria-label="Áreas do site">
-      <button class="tab active" data-tab="diagnostics">Diagnósticos</button>
-      <button class="tab" data-tab="scans">Arquivos do Scam</button>
-      <button class="tab" data-tab="analyzer">Analisar Lua</button>
-    </nav>
-
-    <section id="diagnostics" class="panel active">
-      <div class="section-head inline">
-        <div>
-          <p class="kicker">RUNTIME DIAGNOSTICS</p>
-          <h2>Execuções monitoradas</h2>
-          <p>Cada execução gera ou atualiza seu próprio arquivo JSON. Os arquivos do Scam ficam fora desta área.</p>
-        </div>
-        <button id="refreshDiagnostics" class="secondary compact">Atualizar</button>
-      </div>
-
-      <div id="scriptFilters" class="script-filters" aria-label="Filtro de scripts"></div>
-      <div class="stat-grid">
-        <div class="stat-card"><span>Total</span><strong id="diagTotal">0</strong></div>
-        <div class="stat-card"><span>Sucesso</span><strong id="diagSuccess">0</strong></div>
-        <div class="stat-card"><span>Erros</span><strong id="diagErrors">0</strong></div>
-        <div class="stat-card"><span>Rodando</span><strong id="diagRunning">0</strong></div>
-      </div>
-
-      <div id="diagnosticEmpty" class="empty hidden">
-        <strong>Nenhum diagnóstico recebido</strong>
-        <span>Quando um dos scripts monitorados enviar um relatório, ele aparecerá aqui.</span>
-      </div>
-      <div id="diagnosticList" class="file-list"></div>
-
-      <article id="diagnosticViewer" class="viewer hidden">
-        <div class="result-head">
-          <div><span class="badge">JSON COMPLETO</span><h3 id="diagnosticViewerTitle">Diagnóstico</h3></div>
-          <a id="downloadRuntimeDiagnostic" class="secondary" href="#">Baixar JSON</a>
-        </div>
-        <p id="diagnosticViewerMeta" class="viewer-meta"></p>
-        <pre id="diagnosticViewerText"></pre>
-      </article>
-    </section>
-
-    <section id="scans" class="panel">
-      <div class="section-head inline">
-        <div>
-          <p class="kicker">SCAM STORAGE</p>
-          <h2>Arquivos recebidos</h2>
-          <p>Área exclusiva dos arquivos enviados pelo Scam. O fluxo de upload permanece independente dos diagnósticos.</p>
-        </div>
-        <button id="refreshScans" class="secondary compact">Atualizar</button>
-      </div>
-
-      <div id="scanEmpty" class="empty hidden">
-        <strong>Nenhum arquivo recebido</strong>
-        <span>Quando o Scam finalizar um envio, o JSON aparecerá aqui.</span>
-      </div>
-      <div id="scanList" class="file-list"></div>
-
-      <article id="scanViewer" class="viewer hidden">
-        <div class="result-head">
-          <div><span class="badge">SCAM FILE</span><h3 id="viewerTitle">Arquivo</h3></div>
-          <a id="downloadScan" class="secondary" href="#">Baixar arquivo</a>
-        </div>
-        <p id="viewerMeta" class="viewer-meta"></p>
-        <pre id="viewerText"></pre>
-      </article>
-    </section>
-
-    <section id="analyzer" class="panel">
+    <section class="section" aria-labelledby="adm-title">
       <div class="section-head">
-        <p class="kicker">STATIC ANALYZER</p>
-        <h2>Analisar um script Lua</h2>
-        <p>Ferramenta separada dos relatórios de execução. Ela não altera nem os diagnósticos runtime nem os arquivos do Scam.</p>
+        <div>
+          <p class="section-kicker">ADMINISTRADORES</p>
+          <h2 id="adm-title">Aplicativo 1 — GRUPO LUA</h2>
+        </div>
+        <span class="pill">ADM</span>
       </div>
 
-      <label class="dropzone" id="dropzone">
-        <input id="scriptFile" type="file" accept=".lua,.luau,.txt,text/plain" />
-        <span class="drop-icon">＋</span>
-        <strong id="fileLabel">Escolher script</strong>
-        <small>Lua, Luau ou TXT • até 2 MB</small>
-      </label>
-      <button id="diagnoseBtn" class="primary" disabled>Gerar diagnóstico</button>
-      <div id="diagProgress" class="progress-card hidden"><div class="spinner"></div><div><strong>Analisando script</strong><small>O resultado aparecerá aqui.</small></div></div>
-      <article id="diagResult" class="result hidden">
-        <div class="result-head"><div><span class="badge">PRONTO</span><h3 id="diagTitle">Diagnóstico</h3></div><a id="downloadDiagnostic" class="secondary" href="#">Baixar diagnóstico</a></div>
-        <pre id="diagText"></pre>
-      </article>
+      <div class="grid">
+        <article class="download-card" data-artifact-card="APP1_ANDROID">
+          <div class="card-top">
+            <div>
+              <p class="platform">ANDROID</p>
+              <h3>APK oficial</h3>
+              <p class="version" data-version>Verificando versão...</p>
+            </div>
+            <span class="device-icon" aria-hidden="true">A</span>
+          </div>
+          <p class="card-copy">Arquivo instalável para celulares Android autorizados.</p>
+          <form data-download-form data-artifact="APP1_ANDROID" novalidate>
+            <label for="app1-android-password">Senha de download</label>
+            <input id="app1-android-password" type="password" inputmode="text" maxlength="512" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Digite a senha deste download" required />
+            <button type="submit">LIBERAR E BAIXAR</button>
+            <p class="status" data-status aria-live="polite"></p>
+          </form>
+        </article>
+
+        <article class="download-card" data-artifact-card="APP1_IOS">
+          <div class="card-top">
+            <div>
+              <p class="platform">IPHONE / IOS</p>
+              <h3>Instalação iOS</h3>
+              <p class="version" data-version>Verificando versão...</p>
+            </div>
+            <span class="device-icon" aria-hidden="true">i</span>
+          </div>
+          <p class="card-copy">IPA, TestFlight, Ad Hoc ou outro método definido para a build disponível.</p>
+          <form data-download-form data-artifact="APP1_IOS" novalidate>
+            <label for="app1-ios-password">Senha de download</label>
+            <input id="app1-ios-password" type="password" inputmode="text" maxlength="512" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Digite a senha deste download" required />
+            <button type="submit">LIBERAR E BAIXAR</button>
+            <p class="status" data-status aria-live="polite"></p>
+          </form>
+        </article>
+      </div>
     </section>
+
+    <section class="section dev-section" aria-labelledby="dev-title">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker red">ÁREA DEV</p>
+          <h2 id="dev-title">Aplicativo 2 — GRUPO LUA KEYMASTER</h2>
+        </div>
+        <span class="pill dev-pill">DEV</span>
+      </div>
+
+      <div class="dev-warning">Acesso reservado. Use somente a senha correspondente ao arquivo e à plataforma.</div>
+
+      <div class="grid">
+        <article class="download-card dev-card" data-artifact-card="KEYMASTER_ANDROID">
+          <div class="card-top">
+            <div>
+              <p class="platform red">ANDROID</p>
+              <h3>KEYMASTER APK</h3>
+              <p class="version" data-version>Verificando versão...</p>
+            </div>
+            <span class="device-icon dev-icon" aria-hidden="true">K</span>
+          </div>
+          <p class="card-copy">Build oficial Android do Aplicativo 2.</p>
+          <form data-download-form data-artifact="KEYMASTER_ANDROID" novalidate>
+            <label for="keymaster-android-password">Senha DEV de download</label>
+            <input id="keymaster-android-password" type="password" inputmode="text" maxlength="512" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Digite a senha deste download" required />
+            <button class="dev-button" type="submit">LIBERAR E BAIXAR</button>
+            <p class="status" data-status aria-live="polite"></p>
+          </form>
+        </article>
+
+        <article class="download-card dev-card" data-artifact-card="KEYMASTER_IOS">
+          <div class="card-top">
+            <div>
+              <p class="platform red">IPHONE / IOS</p>
+              <h3>KEYMASTER iOS</h3>
+              <p class="version" data-version>Verificando versão...</p>
+            </div>
+            <span class="device-icon dev-icon" aria-hidden="true">K</span>
+          </div>
+          <p class="card-copy">IPA, TestFlight, Ad Hoc ou outro método definido para a build disponível.</p>
+          <form data-download-form data-artifact="KEYMASTER_IOS" novalidate>
+            <label for="keymaster-ios-password">Senha DEV de download</label>
+            <input id="keymaster-ios-password" type="password" inputmode="text" maxlength="512" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Digite a senha deste download" required />
+            <button class="dev-button" type="submit">LIBERAR E BAIXAR</button>
+            <p class="status" data-status aria-live="polite"></p>
+          </form>
+        </article>
+      </div>
+    </section>
+
+    <section class="privacy-card">
+      <p class="privacy-title">SEGURANÇA</p>
+      <p>As senhas são enviadas somente ao servidor por HTTPS para validação. O portal não salva senhas no navegador e cada autorização libera somente um download específico por tempo curto.</p>
+    </section>
+
+    <footer>
+      <span>GRUPO LUA</span>
+      <span>•</span>
+      <span>Criado por CAFEÍNA</span>
+    </footer>
   </main>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/app.js" defer></script>
 </body>
 </html>

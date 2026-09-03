@@ -1,90 +1,123 @@
-CAFEÍNA DARKSIDE CONTROL CENTER
-===============================
+GRUPO LUA — PORTAL OFICIAL DE DOWNLOAD
+======================================
 
-ESTRUTURA
+OBJETIVO
+--------
+O serviço raiz deste repositório é somente o portal oficial de instalação dos aplicativos GRUPO LUA.
+
+Ele NÃO oferece Social, Chats, Chaves FREE/VIP, gerenciamento ADM/DEV, scanner, recebimento de arquivos, diagnósticos runtime, análise Lua ou painel administrativo.
+
+A API administrativa do Keymaster/App 1 continua isolada em:
+`grupo-lua-keymaster/services/control-api`.
+
+DOWNLOADS
 ---------
-server.js
-package.json
-public/index.html
-public/app.js
-public/styles.css
-DiagnosticReporter.lua
+O portal expõe quatro alvos independentes:
 
-ABAS DO SITE
-------------
-1. Diagnósticos runtime em JSON
-2. Arquivos do Scam
-3. Analisar Lua
+1. APP1_ANDROID — Aplicativo 1 / Administradores / Android
+2. APP1_IOS — Aplicativo 1 / Administradores / iPhone
+3. KEYMASTER_ANDROID — Aplicativo 2 / DEV / Android
+4. KEYMASTER_IOS — Aplicativo 2 / DEV / iPhone
 
-SCRIPTS AUTORIZADOS PARA DIAGNÓSTICO
-------------------------------------
-Scamtest.lua
-Menutest.lua
-Samme.lua
-CafeinaV1.lua
-Cafeinav2.lua
-Cafeinav3.lua
-Cafeinav4.lua
-Explorador de Bots V4.lua
-Explorador de Bots V3.lua
-Psico test.lua
-Psico scam.lua
-Psicov1.lua
-Psicov2.lua
-Psicov3.lua
+Cada alvo usa um verificador de senha diferente no servidor. Acertar uma senha não autoriza nenhum outro arquivo.
 
-IMPORTANTE
-----------
-"Explorador de Bots V4.lua" foi informado duas vezes e foi cadastrado uma vez.
+A KEYMASTER ACCESS KEY usada dentro do Aplicativo 2 NÃO é uma senha de download e não deve ser reutilizada pelo portal.
 
-O fluxo do Scam continua independente:
-POST /upload/start
-POST /upload/chunk
-POST /upload/finish
-POST /upload/cancel
+FLUXO DE SEGURANÇA
+------------------
+1. o navegador envia a senha por POST/HTTPS;
+2. o servidor valida um verificador `scrypt` específico daquele download;
+3. a senha não é persistida no navegador nem registrada pelo servidor;
+4. em sucesso, o servidor emite uma autorização aleatória curta;
+5. a autorização é vinculada à sessão de navegador, expira em poucos minutos e é de uso único;
+6. somente então o servidor entrega aquele arquivo ou executa o redirecionamento iOS configurado;
+7. o mesmo token não funciona novamente.
 
-Os diagnósticos usam outra rota:
-POST /api/runtime-diagnostics
-GET  /api/runtime-diagnostics
-GET  /api/runtime-diagnostics/scripts
+Não existe rota pública fixa como `/keymaster.apk`.
 
-VARIÁVEIS DO RENDER
+O diretório dos binários fica fora de `public/` e os padrões `.apk`, `.ipa` e `.aab` estão ignorados pelo Git.
+
+ANTI-BRUTEFORCE
+---------------
+Tentativas inválidas são limitadas por IP + artefato. Os padrões podem ser ajustados por variáveis de ambiente:
+
+- DOWNLOAD_MAX_FAILED_ATTEMPTS (padrão 6)
+- DOWNLOAD_ATTEMPT_WINDOW_SECONDS (padrão 900)
+- DOWNLOAD_BLOCK_SECONDS (padrão 1800)
+
+O limite máximo aceito no campo de senha é 512 caracteres.
+
+GERAR VERIFICADOR DAS QUATRO SENHAS
+-----------------------------------
+Nunca coloque a senha real no GitHub.
+
+Em uma máquina confiável:
+
+```bash
+npm install
+npm run hash:download
+```
+
+O comando pede a senha sem exibi-la no terminal e retorna uma string semelhante a:
+
+```text
+scrypt$16384$8$1$<salt>$<verificador>
+```
+
+Copie SOMENTE essa string para a variável de ambiente correspondente no servidor.
+
+VARIÁVEIS PRINCIPAIS
+--------------------
+Consulte `.env.example`.
+
+Verificadores:
+
+- DOWNLOAD_APP1_ANDROID_HASH
+- DOWNLOAD_APP1_IOS_HASH
+- DOWNLOAD_KEYMASTER_ANDROID_HASH
+- DOWNLOAD_KEYMASTER_IOS_HASH
+
+Arquivos privados:
+
+- DOWNLOAD_APP1_ANDROID_FILE
+- DOWNLOAD_APP1_IOS_FILE
+- DOWNLOAD_KEYMASTER_ANDROID_FILE
+- DOWNLOAD_KEYMASTER_IOS_FILE
+
+Diretório privado:
+
+- DOWNLOAD_DIR
+
+Para iOS também é possível configurar uma URL HTTPS pós-autorização:
+
+- DOWNLOAD_APP1_IOS_REDIRECT_URL
+- DOWNLOAD_KEYMASTER_IOS_REDIRECT_URL
+
+Se um redirect estiver configurado, ele tem prioridade sobre o arquivo IPA local.
+
+IMPORTANTE SOBRE IOS
+--------------------
+O portal consegue proteger o acesso inicial a uma URL de TestFlight/Ad Hoc, mas depois que o navegador é redirecionado o destino passa a ser controlado pelo provedor da Apple/distribuição. Se a exigência for impedir compartilhamento após a autorização, use também os controles nativos do método de distribuição escolhido (por exemplo dispositivos autorizados/convites), não apenas a senha do portal.
+
+RENDER / HOSPEDAGEM
 -------------------
-OPENAI_API_KEY        opcional para a aba Analisar Lua
-OPENAI_MODEL          opcional
-UPLOAD_TOKEN          token do upload do Scam
-DIAGNOSTIC_TOKEN      recomendado para diagnósticos; se ausente o servidor usa UPLOAD_TOKEN
-PUBLIC_BASE_URL       recomendado: https://cafe-na-ia.onrender.com
-DATA_DIR              use armazenamento persistente se disponível
+Não armazene os APK/IPA dentro de `public/` nem em um repositório GitHub público.
 
-COMO USAR O DiagnosticReporter.lua
-----------------------------------
-Copie o módulo para cada script ou incorpore o código no começo do script.
-Altere:
-Diagnostic.SCRIPT_NAME
-Diagnostic.VERSION
-Diagnostic.TOKEN
+Para um deploy simples no Render, use um diretório privado persistente, por exemplo:
 
-Exemplos:
-Diagnostic.start()
-Diagnostic.step("scanner_workspace", "Workspace concluído", { objects = 12000 })
-Diagnostic.error("upload", err)
-Diagnostic.interrupted("scan", "Parado pelo usuário", { objects = 21000 })
-Diagnostic.success("Finalizado", { objects = 34815, chunks = 18 })
+```text
+/var/data/grupo-lua-downloads
+```
 
-Para capturar uma função inteira:
-local ok, result = Diagnostic.runStep("nome_da_etapa", function()
-    -- seu código
-end)
+e configure `DOWNLOAD_DIR` para esse caminho.
 
-SEGURANÇA / CONFIABILIDADE
---------------------------
-O reporter envia em task.spawn + pcall. Se o site estiver fora do ar, o script principal continua.
-O servidor remove campos com nomes como token, password, secret, cookie, authorization e api-key do JSON salvo.
-Não envie chaves da OpenAI, cookies ou senhas nos campos extra/metrics.
+As quatro senhas reais nunca devem ser adicionadas a arquivos do repositório. Somente os verificadores `scrypt` entram nas variáveis privadas do serviço.
 
-ARQUIVOS DO SCAM
-----------------
-Continuam salvos em data/uploads e listados por /api/scans.
-Diagnósticos runtime ficam em data/diagnostics/runtime/<script>/.
-As duas áreas não compartilham arquivos.
+VALIDAÇÃO
+---------
+
+```bash
+npm run check
+```
+
+O portal é mobile-first, fundo preto, textos brancos, identidade GRUPO LUA e destaque vermelho para a área DEV/Keymaster.
