@@ -104,6 +104,41 @@ jobs:
           node-version: 22
       - name: Install workspace dependencies
         run: npm install --ignore-scripts
+      - name: Mobile Control API build guard
+        run: |
+          EXPO_PUBLIC_GRUPO_LUA_API_URL=https://grupo-lua-control-api.example.com node scripts/check-mobile-api-url.mjs
+          if EXPO_PUBLIC_GRUPO_LUA_API_URL=https://cafe-na-ia.onrender.com node scripts/check-mobile-api-url.mjs; then
+            echo "::error::Mobile guard accepted the download portal"
+            exit 1
+          fi
+          if EXPO_PUBLIC_GRUPO_LUA_API_URL=http://grupo-lua-control-api.example.com node scripts/check-mobile-api-url.mjs; then
+            echo "::error::Mobile guard accepted a non-HTTPS API"
+            exit 1
+          fi
+          if EXPO_PUBLIC_GRUPO_LUA_API_URL=https://control-api.invalid node scripts/check-mobile-api-url.mjs; then
+            echo "::error::Mobile guard accepted a reserved domain"
+            exit 1
+          fi
+          if env -u EXPO_PUBLIC_GRUPO_LUA_API_URL node scripts/check-mobile-api-url.mjs; then
+            echo "::error::Mobile guard accepted a missing API URL"
+            exit 1
+          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          for (const app of ['app1', 'keymaster']) {
+            const pkg = JSON.parse(fs.readFileSync(`apps/${app}/package.json`, 'utf8'));
+            if (!pkg.scripts?.['eas-build-pre-install']) throw new Error(`${app}: missing EAS pre-install guard`);
+            const eas = JSON.parse(fs.readFileSync(`apps/${app}/eas.json`, 'utf8'));
+            for (const profile of ['production-apk', 'production-ios-internal', 'production-store']) {
+              if (eas.build?.[profile]?.environment !== 'production') {
+                throw new Error(`${app}: ${profile} is not bound to EAS production environment`);
+              }
+            }
+            if (eas.build?.preview?.environment !== 'preview') {
+              throw new Error(`${app}: preview is not bound to EAS preview environment`);
+            }
+          }
+          NODE
       - name: Keymaster TypeScript check
         run: npm --workspace @grupo-lua/keymaster run typecheck
       - name: App 1 mobile TypeScript check
