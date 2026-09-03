@@ -1,0 +1,114 @@
+name: iOS Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "grupo-lua-keymaster/apps/app1/**"
+      - "grupo-lua-keymaster/apps/keymaster/**"
+      - "grupo-lua-keymaster/packages/contracts/**"
+      - ".github/workflows/ios-unsigned-ipa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - workspace: "@grupo-lua/app1"
+            app_dir: "grupo-lua-keymaster/apps/app1"
+            artifact: "GRUPO-LUA-APP1-v0.1.0-ios-unsigned"
+            ipa: "GRUPO-LUA-APP1-v0.1.0-unsigned.ipa"
+          - workspace: "@grupo-lua/keymaster"
+            app_dir: "grupo-lua-keymaster/apps/keymaster"
+            artifact: "GRUPO-LUA-KEYMASTER-v0.9.0-ios-unsigned"
+            ipa: "GRUPO-LUA-KEYMASTER-v0.9.0-unsigned.ipa"
+
+    env:
+      CI: "1"
+      EXPO_PUBLIC_GRUPO_LUA_API_URL: https://grupo-lua-control-api.onrender.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: grupo-lua-keymaster/package.json
+
+      - name: Install workspace dependencies
+        working-directory: grupo-lua-keymaster
+        run: npm install --ignore-scripts
+
+      - name: TypeScript check
+        working-directory: grupo-lua-keymaster
+        run: npm --workspace "${{ matrix.workspace }}" run typecheck
+
+      - name: Validate Control API target
+        working-directory: ${{ matrix.app_dir }}
+        run: npm run build:check-api
+
+      - name: Generate iOS project
+        working-directory: ${{ matrix.app_dir }}
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install CocoaPods
+        working-directory: ${{ matrix.app_dir }}
+        run: npx pod-install ios
+
+      - name: Build unsigned iPhone app
+        working-directory: ${{ matrix.app_dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORKSPACE="$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)"
+          test -n "$WORKSPACE"
+
+          SCHEME="$(xcodebuild -list -json -workspace "$WORKSPACE" | python3 -c 'import json,sys; d=json.load(sys.stdin); o=d.get("workspace") or d.get("project") or {}; s=o.get("schemes") or []; print(s[0] if s else "")')"
+          test -n "$SCHEME"
+
+          echo "Workspace: $WORKSPACE"
+          echo "Scheme: $SCHEME"
+
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath "$PWD/ios-build" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            clean build
+
+          APP_PATH="$(find "$PWD/ios-build/Build/Products/Release-iphoneos" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -d "$APP_PATH"
+
+          OUT="$GITHUB_WORKSPACE/dist/${{ matrix.artifact }}"
+          mkdir -p "$OUT/Payload"
+          cp -R "$APP_PATH" "$OUT/Payload/"
+          (
+            cd "$OUT"
+            zip -qry "${{ matrix.ipa }}" Payload
+            shasum -a 256 "${{ matrix.ipa }}" > "${{ matrix.ipa }}.sha256"
+            rm -rf Payload
+          )
+
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            dist/${{ matrix.artifact }}/${{ matrix.ipa }}
+            dist/${{ matrix.artifact }}/${{ matrix.ipa }}.sha256
+          if-no-files-found: error
+          retention-days: 14
