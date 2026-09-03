@@ -70,14 +70,14 @@ jobs:
           test -f "$ENTRY"
           echo "Generated Android project resolves the Expo entry."
 
-      - name: Build installable debug APK
+      - name: Build standalone test APK
         working-directory: grupo-lua-keymaster/apps/keymaster/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Stage APK
         run: |
           mkdir -p dist
-          cp grupo-lua-keymaster/apps/keymaster/android/app/build/outputs/apk/debug/app-debug.apk dist/GRUPO-LUA-KEYMASTER-v0.9.0.apk
+          cp grupo-lua-keymaster/apps/keymaster/android/app/build/outputs/apk/release/app-release.apk dist/GRUPO-LUA-KEYMASTER-v0.9.0.apk
           sha256sum dist/GRUPO-LUA-KEYMASTER-v0.9.0.apk | tee dist/GRUPO-LUA-KEYMASTER-v0.9.0.apk.sha256
 
       - name: Upload APK artifact
