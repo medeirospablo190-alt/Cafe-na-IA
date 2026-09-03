@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      CI: "1"
       EXPO_PUBLIC_GRUPO_LUA_API_URL: https://grupo-lua-control-api.onrender.com
 
     steps:
@@ -41,13 +42,33 @@ jobs:
         working-directory: grupo-lua-keymaster
         run: npm install --ignore-scripts
 
+      - name: TypeScript check
+        working-directory: grupo-lua-keymaster
+        run: npm --workspace @grupo-lua/keymaster run typecheck
+
       - name: Validate Control API target
         working-directory: grupo-lua-keymaster/apps/keymaster
         run: npm run build:check-api
 
+      - name: Resolve Expo app entry
+        working-directory: grupo-lua-keymaster/apps/keymaster
+        run: |
+          ENTRY="$(node -e "require('expo/scripts/resolveAppEntry')" "$PWD" android absolute)"
+          test -n "$ENTRY"
+          test -f "$ENTRY"
+          echo "Expo entry resolved successfully."
+
       - name: Generate Android project
         working-directory: grupo-lua-keymaster/apps/keymaster
-        run: npx expo prebuild --platform android --clean --non-interactive
+        run: npx expo prebuild --platform android --clean
+
+      - name: Verify generated Gradle entry
+        working-directory: grupo-lua-keymaster/apps/keymaster/android
+        run: |
+          ENTRY="$(node -e "require('expo/scripts/resolveAppEntry')" "$(cd .. && pwd)" android absolute)"
+          test -n "$ENTRY"
+          test -f "$ENTRY"
+          echo "Generated Android project resolves the Expo entry."
 
       - name: Build installable debug APK
         working-directory: grupo-lua-keymaster/apps/keymaster/android
