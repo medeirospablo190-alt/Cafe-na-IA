@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: grupo-lua-control-api
+    runtime: node
+    region: virginia
+    plan: free
+    rootDir: grupo-lua-keymaster/services/control-api
+    buildCommand: npm install --omit=dev
+    preDeployCommand: npm run migrate
+    startCommand: npm start
+    healthCheckPath: /v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: grupo-lua-control-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "true"
+      - key: KEYMASTER_ACCESS_HASH
+        sync: false
+      - key: SESSION_PEPPER
+        generateValue: true
+      - key: DEVICE_FINGERPRINT_PEPPER
+        generateValue: true
+      - key: APP_INTEGRITY_MODE
+        value: report
+      - key: CRITICAL_ACTIONS_ENABLED
+        value: "false"
+      - key: APP1_TERMS_VERSION
+        value: "1.0"
+      - key: APP1_PRIVACY_VERSION
+        value: "1.0"
+
+databases:
+  - name: grupo-lua-control-db
+    region: virginia
+    plan: free
+    postgresMajorVersion: "16"
+    ipAllowList: []
