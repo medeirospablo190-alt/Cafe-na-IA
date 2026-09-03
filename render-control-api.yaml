@@ -1,25 +1,36 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+
 services:
   - type: web
     name: grupo-lua-control-api
     runtime: node
     region: virginia
-    plan: free
+    # Produção: mantém o serviço ativo e habilita preDeployCommand.
+    plan: 0.5c-512mb
     rootDir: grupo-lua-keymaster/services/control-api
     buildCommand: npm install --omit=dev
-    preDeployCommand: npm run migrate
-    startCommand: npm start
+    preDeployCommand: npm run production:check && npm run migrate
+    startCommand: npm run start:production
     healthCheckPath: /v1/health
+    autoDeploy: false
+    maxShutdownDelaySeconds: 20
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: "22"
+      - key: PUBLIC_BASE_URL
+        fromService:
+          type: web
+          name: grupo-lua-control-api
+          envVarKey: RENDER_EXTERNAL_URL
       - key: DATABASE_URL
         fromDatabase:
           name: grupo-lua-control-db
           property: connectionString
+      # O connectionString acima é a URL privada interna do Render.
       - key: DATABASE_SSL
-        value: "true"
+        value: "false"
       - key: KEYMASTER_ACCESS_HASH
         sync: false
       - key: SESSION_PEPPER
@@ -38,6 +49,9 @@ services:
 databases:
   - name: grupo-lua-control-db
     region: virginia
-    plan: free
+    # Menor plano persistente pago; o plano free expira e não é adequado à produção.
+    plan: 0.1c-256mb
     postgresMajorVersion: "16"
+    connectionPool: none
+    # Sem acesso público ao banco; a Control API usa a rede privada do Render.
     ipAllowList: []
