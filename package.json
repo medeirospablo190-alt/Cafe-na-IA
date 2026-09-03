@@ -1,14 +1,14 @@
 {
-  "name": "cafeina-darkside-control-center",
-  "version": "4.0.0",
+  "name": "grupo-lua-download-portal",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js"
+    "check": "node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs",
+    "hash:download": "node scripts/hash-download-password.mjs"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "openai": "^5.0.0"
+    "express": "^5.1.0"
   }
 }
