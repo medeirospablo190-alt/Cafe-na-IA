@@ -6,6 +6,7 @@ on:
     paths:
       - "grupo-lua-keymaster/apps/app1/**"
       - "grupo-lua-keymaster/packages/contracts/**"
+      - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
       - ".github/workflows/app1-android-apk.yml"
 
 permissions:
@@ -41,7 +42,7 @@ jobs:
 
       - name: Install workspace dependencies
         working-directory: grupo-lua-keymaster
-        run: npm install --ignore-scripts
+        run: bash scripts/npm-install-retry.sh
 
       - name: TypeScript check
         working-directory: grupo-lua-keymaster
