@@ -1,0 +1,68 @@
+name: Temporary App1 legacy route cleanup
+
+on:
+  push:
+    branches:
+      - control-api-remove-legacy-app1-routes
+    paths:
+      - ".github/workflows/tmp-remove-legacy-app1-routes.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: control-api-remove-legacy-app1-routes
+      - name: Remove unreachable legacy App1 routes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("grupo-lua-keymaster/services/control-api/src/server.js")
+          text = path.read_text()
+
+          legacy_const = "const APP1_SESSION_MS = 12 * 60 * 60 * 1000;\n"
+          if legacy_const not in text:
+              raise SystemExit("legacy APP1_SESSION_MS constant not found")
+          text = text.replace(legacy_const, "", 1)
+
+          start_marker = "// Rotas legadas temporárias; permanecem durante a transição e serão removidas"
+          end_marker = "registerMenuRoutes(app, { consumeCriticalAuthorization });"
+          start = text.find(start_marker)
+          end = text.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit("legacy App1 route block markers not found")
+
+          replacement = (
+              "// O contrato App 1 V1 acima é a única implementação de login/sessão.\n"
+              "// Não mantenha rotas paralelas sem device binding e onboarding.\n"
+          )
+          text = text[:start] + replacement + text[end:]
+
+          if 'app.post("/v1/app1/login"' in text:
+              raise SystemExit("legacy /v1/app1/login still present in server.js")
+          if 'app.get("/v1/app1/me"' in text:
+              raise SystemExit("legacy /v1/app1/me still present in server.js")
+          if "APP1_SESSION_MS" in text:
+              raise SystemExit("legacy APP1_SESSION_MS still present in server.js")
+          if "registerApp1Routes(app" not in text:
+              raise SystemExit("secure App1 V1 route registration was removed unexpectedly")
+
+          path.write_text(text)
+          PY
+          node --check grupo-lua-keymaster/services/control-api/src/server.js
+      - name: Commit cleanup
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add grupo-lua-keymaster/services/control-api/src/server.js
+          git commit -m "security(control-api): remove legacy App1 auth routes"
+          git push origin HEAD:control-api-remove-legacy-app1-routes
