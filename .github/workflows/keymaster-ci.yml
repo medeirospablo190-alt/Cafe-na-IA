@@ -26,6 +26,7 @@ jobs:
       - name: Syntax check
         run: |
           node --check src/server.js
+          node --check src/app1-routes.js
           node --check src/menu-routes.js
           node --check src/security.js
           node --check src/integrity.js
