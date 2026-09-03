@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "grupo-lua-keymaster/**"
+      - "render-control-api.yaml"
       - ".github/workflows/keymaster-ci.yml"
   pull_request:
     paths:
       - "grupo-lua-keymaster/**"
+      - "render-control-api.yaml"
       - ".github/workflows/keymaster-ci.yml"
 
 jobs:
@@ -51,6 +53,27 @@ jobs:
           node --check src/integrity.js
           node --check src/db.js
           node --check scripts/migrate.mjs
+          node --check scripts/production-readiness.mjs
+      - name: Production readiness guard
+        env:
+          KEYMASTER_ACCESS_HASH: 'scrypt$32768$8$1$Y2ktc2FsdA$Y2ktaGFzaA'
+          PUBLIC_BASE_URL: https://grupo-lua-control-api.example.com
+          APP_INTEGRITY_MODE: report
+          CRITICAL_ACTIONS_ENABLED: "false"
+        run: |
+          npm run production:check
+          if PUBLIC_BASE_URL=https://cafe-na-ia.onrender.com npm run production:check; then
+            echo "::error::Production guard accepted the download portal as Control API"
+            exit 1
+          fi
+          if grep -q "plan: free" ../../../render-control-api.yaml; then
+            echo "::error::Production Blueprint must not use Render free plans"
+            exit 1
+          fi
+          if grep -q "cafe-na-ia.onrender.com" ../../../render-control-api.yaml; then
+            echo "::error::Production Blueprint must not point at the download portal"
+            exit 1
+          fi
       - name: Apply database migrations
         run: npm run migrate
       - name: Security and menu unit tests
