@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs",
+    "check": "node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "hash:download": "node scripts/hash-download-password.mjs"
   },
   "dependencies": {
