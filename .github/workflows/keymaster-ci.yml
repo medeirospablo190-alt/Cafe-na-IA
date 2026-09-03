@@ -54,6 +54,23 @@ jobs:
           node --check src/db.js
           node --check scripts/migrate.mjs
           node --check scripts/production-readiness.mjs
+      - name: App 1 route architecture guard
+        run: |
+          if grep -Fq 'app.post("/v1/app1/login"' src/server.js; then
+            echo "::error::Legacy App1 login route must not exist in server.js"
+            exit 1
+          fi
+          if grep -Fq 'app.get("/v1/app1/me"' src/server.js; then
+            echo "::error::Legacy App1 session route must not exist in server.js"
+            exit 1
+          fi
+          if grep -Fq 'APP1_SESSION_MS' src/server.js; then
+            echo "::error::Legacy App1 session lifetime must not exist in server.js"
+            exit 1
+          fi
+          grep -Fq 'registerApp1Routes(app' src/server.js
+          grep -Fq 'app.post("/v1/app1/login"' src/app1-routes.js
+          grep -Fq 'app.get("/v1/app1/me"' src/app1-routes.js
       - name: Production readiness guard
         env:
           KEYMASTER_ACCESS_HASH: 'scrypt$32768$8$1$Y2ktc2FsdA$Y2ktaGFzaA'
