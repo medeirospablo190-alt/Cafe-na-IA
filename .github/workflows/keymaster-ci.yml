@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: 22
       - name: Install API dependencies
-        run: npm install --ignore-scripts
+        run: bash ../../scripts/npm-install-retry.sh
       - name: Syntax check
         run: |
           node --check src/server.js
@@ -130,7 +130,7 @@ jobs:
         with:
           node-version: 22
       - name: Install workspace dependencies
-        run: npm install --ignore-scripts
+        run: bash scripts/npm-install-retry.sh
       - name: Mobile Control API build guard
         run: |
           EXPO_PUBLIC_GRUPO_LUA_API_URL=https://grupo-lua-control-api.example.com node scripts/check-mobile-api-url.mjs
