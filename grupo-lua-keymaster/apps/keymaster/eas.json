@@ -6,6 +6,9 @@
     "preview": {
       "environment": "preview",
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GRUPO_LUA_API_URL": "https://grupo-lua-control-api.onrender.com"
+      },
       "android": {
         "buildType": "apk"
       }
@@ -13,16 +16,25 @@
     "production-apk": {
       "environment": "production",
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GRUPO_LUA_API_URL": "https://grupo-lua-control-api.onrender.com"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production-ios-internal": {
       "environment": "production",
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GRUPO_LUA_API_URL": "https://grupo-lua-control-api.onrender.com"
+      }
     },
     "production-store": {
       "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_GRUPO_LUA_API_URL": "https://grupo-lua-control-api.onrender.com"
+      },
       "android": {
         "buildType": "app-bundle"
       }
