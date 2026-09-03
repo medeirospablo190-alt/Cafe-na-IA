@@ -1,0 +1,92 @@
+name: App 1 Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "grupo-lua-keymaster/apps/app1/**"
+      - "grupo-lua-keymaster/packages/contracts/**"
+      - ".github/workflows/app1-android-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      EXPO_PUBLIC_GRUPO_LUA_API_URL: https://grupo-lua-control-api.onrender.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: grupo-lua-keymaster/package.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install workspace dependencies
+        working-directory: grupo-lua-keymaster
+        run: npm install --ignore-scripts
+
+      - name: TypeScript check
+        working-directory: grupo-lua-keymaster
+        run: npm --workspace @grupo-lua/app1 run typecheck
+
+      - name: Validate Control API target
+        working-directory: grupo-lua-keymaster/apps/app1
+        run: npm run build:check-api
+
+      - name: Resolve Expo app entry
+        working-directory: grupo-lua-keymaster/apps/app1
+        run: |
+          ENTRY="$(node -e "require('expo/scripts/resolveAppEntry')" "$PWD" android absolute)"
+          test -n "$ENTRY"
+          test -f "$ENTRY"
+          echo "App 1 Expo entry resolved successfully: $ENTRY"
+
+      - name: Generate Android project
+        working-directory: grupo-lua-keymaster/apps/app1
+        run: npx expo prebuild --platform android --clean
+
+      - name: Verify generated Gradle entry
+        working-directory: grupo-lua-keymaster/apps/app1/android
+        run: |
+          ENTRY="$(node -e "require('expo/scripts/resolveAppEntry')" "$(cd .. && pwd)" android absolute)"
+          test -n "$ENTRY"
+          test -f "$ENTRY"
+          echo "Generated Android project resolves the App 1 entry."
+
+      - name: Build standalone App 1 APK
+        working-directory: grupo-lua-keymaster/apps/app1/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Stage APK
+        run: |
+          mkdir -p dist
+          cp grupo-lua-keymaster/apps/app1/android/app/build/outputs/apk/release/app-release.apk dist/GRUPO-LUA-APP1-v0.1.0.apk
+          sha256sum dist/GRUPO-LUA-APP1-v0.1.0.apk | tee dist/GRUPO-LUA-APP1-v0.1.0.apk.sha256
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GRUPO-LUA-APP1-v0.1.0-android
+          path: |
+            dist/GRUPO-LUA-APP1-v0.1.0.apk
+            dist/GRUPO-LUA-APP1-v0.1.0.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
