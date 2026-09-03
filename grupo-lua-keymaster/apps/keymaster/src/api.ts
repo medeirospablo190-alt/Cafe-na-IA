@@ -2,13 +2,16 @@ import { API_URL } from "./config";
 import type { DeviceIdentity } from "./device";
 
 export type AccountRole = "ADM" | "DEV";
-export type AccountStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
+export type AccountStatus = "ACTIVE" | "LOCKED_SECURITY" | "SUSPENDED" | "DELETED";
 export type CriticalAction =
   | "APP1_RESTART"
   | "APP1_MAINTENANCE_ON"
   | "APP1_MAINTENANCE_OFF"
   | "DELETE_APP1_ACCOUNT"
-  | "DELETE_MANAGED_MENU";
+  | "DELETE_MANAGED_MENU"
+  | "UNLOCK_APP1_ACCOUNT"
+  | "AUTHORIZE_APP1_DEVICE"
+  | "REVOKE_APP1_DEVICE";
 
 export type Account = {
   id: string;
@@ -28,6 +31,58 @@ export type AccountSession = {
   expires_at: string;
   revoked_at: string | null;
   active: boolean;
+};
+
+export type AccountSecurityDevice = {
+  id: string;
+  platform: string;
+  deviceLabel: string | null;
+  deviceHint: string | null;
+  isPrimary: boolean;
+  status: "ACTIVE" | "REVOKED";
+  authorizedAt: string;
+  lastSeenAt: string;
+  revokedAt: string | null;
+  networkHint: string | null;
+};
+
+export type AccountLoginAttempt = {
+  id: string;
+  credentialHint: string | null;
+  deviceHint: string | null;
+  networkHint: string | null;
+  platform: string | null;
+  result: string;
+  integrityVerified: boolean;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type DeviceEnrollment = {
+  id: string;
+  status: "PENDING" | "CONSUMED" | "EXPIRED" | "CANCELLED";
+  created_at: string;
+  expires_at: string;
+  consumed_at: string | null;
+  cancelled_at: string | null;
+};
+
+export type AccountSecurity = {
+  account: {
+    id: string;
+    login: string;
+    role: AccountRole;
+    status: AccountStatus;
+    failed_login_attempts: number;
+    failed_device_attempts: number;
+    security_locked_at: string | null;
+    security_lock_reason: string | null;
+    created_at: string;
+    updated_at: string;
+  };
+  devices: AccountSecurityDevice[];
+  attempts: AccountLoginAttempt[];
+  enrollments: DeviceEnrollment[];
 };
 
 export type Dashboard = {
@@ -237,6 +292,71 @@ export async function revokeAllAccountSessions(session: string, accountId: strin
   );
 }
 
+export async function getAccountSecurity(session: string, accountId: string) {
+  return request<{ ok: true } & AccountSecurity>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/security`,
+    {},
+    session
+  );
+}
+
+export async function unlockAccountSecurity(
+  session: string,
+  accountId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; account: Account }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/security/unlock`,
+    {
+      method: "POST",
+      headers: { "x-critical-authorization": authorizationToken },
+      body: "{}"
+    },
+    session
+  );
+}
+
+export async function openDeviceEnrollment(
+  session: string,
+  accountId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; enrollment: DeviceEnrollment }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/device-enrollment`,
+    {
+      method: "POST",
+      headers: { "x-critical-authorization": authorizationToken },
+      body: "{}"
+    },
+    session
+  );
+}
+
+export async function cancelDeviceEnrollment(session: string, accountId: string) {
+  return request<{ ok: true; cancelledCount: number }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/device-enrollment/cancel`,
+    { method: "POST", body: "{}" },
+    session
+  );
+}
+
+export async function revokeApp1Device(
+  session: string,
+  accountId: string,
+  deviceId: string,
+  authorizationToken: string
+) {
+  return request<{ ok: true; device: { id: string; platform: string; device_label: string | null } }>(
+    `/v1/keymaster/accounts/${encodeURIComponent(accountId)}/devices/${encodeURIComponent(deviceId)}/revoke`,
+    {
+      method: "POST",
+      headers: { "x-critical-authorization": authorizationToken },
+      body: "{}"
+    },
+    session
+  );
+}
+
 export async function listAudit(session: string, before?: string) {
   const qs = queryString({ limit: "40", before });
   return request<{ ok: true; events: AuditEvent[]; nextBefore: string | null }>(
@@ -380,9 +500,14 @@ export async function authorizeCriticalAction(
   }, session);
 }
 
+type SystemCriticalAction =
+  | "APP1_RESTART"
+  | "APP1_MAINTENANCE_ON"
+  | "APP1_MAINTENANCE_OFF";
+
 export async function executeCriticalAction(
   session: string,
-  action: Exclude<CriticalAction, "DELETE_APP1_ACCOUNT" | "DELETE_MANAGED_MENU">,
+  action: SystemCriticalAction,
   authorizationToken: string
 ) {
   return request<{ ok: true; action: string; app1Maintenance?: boolean }>("/v1/keymaster/critical/execute", {
