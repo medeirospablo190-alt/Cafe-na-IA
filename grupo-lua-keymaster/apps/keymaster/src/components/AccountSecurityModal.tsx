@@ -226,7 +226,7 @@ export function AccountSecurityModal({
             <View style={local.header}>
               <View style={{ flex: 1 }}>
                 <Text style={local.eyebrow}>SEGURANÇA DA CONTA</Text>
-                <Text style={local.title}>{account?.login || "Conta"}</Text>
+                <Text style={local.title}>{account?.name || "Conta"}</Text>
               </View>
               <Pressable onPress={onClose} style={local.closeButton}><Text style={local.closeText}>✕</Text></Pressable>
             </View>
@@ -248,7 +248,7 @@ export function AccountSecurityModal({
                         style={local.primaryDangerButton}
                         onPress={() => setCritical({
                           action: "UNLOCK_APP1_ACCOUNT",
-                          title: `Liberar ${security.account.login}`
+                          title: `Liberar ${security.account.name}`
                         })}
                       >
                         <Text style={local.primaryDangerText}>LIBERAR CONTA COM CONFIRMAÇÃO DEV</Text>
@@ -280,7 +280,7 @@ export function AccountSecurityModal({
                     disabled={activeDevices >= 2}
                     onPress={() => setCritical({
                       action: "AUTHORIZE_APP1_DEVICE",
-                      title: `Autorizar novo dispositivo para ${security.account.login}`
+                      title: `Autorizar novo dispositivo para ${security.account.name}`
                     })}
                   >
                     <Text style={local.authorizeText}>{activeDevices >= 2 ? "LIMITE DE 2 DISPOSITIVOS ATIVOS" : "AUTORIZAR NOVO DISPOSITIVO • 10 MIN"}</Text>
@@ -301,7 +301,7 @@ export function AccountSecurityModal({
                           style: "destructive",
                           onPress: () => setCritical({
                             action: "REVOKE_APP1_DEVICE",
-                            title: `Revogar dispositivo de ${security.account.login}`,
+                            title: `Revogar dispositivo de ${security.account.name}`,
                             deviceId: device.id
                           })
                         }
