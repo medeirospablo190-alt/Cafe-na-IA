@@ -40,6 +40,46 @@ export async function verifySecret(secret, encoded) {
   }
 }
 
+function storedSecretKey(purpose) {
+  const pepper = String(process.env.SESSION_PEPPER || "");
+  if (pepper.length < 32) throw new Error("SESSION_PEPPER precisa ter pelo menos 32 caracteres.");
+  return crypto
+    .createHmac("sha256", pepper)
+    .update(`stored-secret-v1\0${String(purpose || "generic")}`)
+    .digest();
+}
+
+export function encryptStoredSecret(secret, purpose = "generic") {
+  const value = String(secret || "");
+  if (!value) throw new Error("Segredo vazio não pode ser armazenado.");
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", storedSecretKey(purpose), iv);
+  cipher.setAAD(Buffer.from(`GRUPO_LUA\0${String(purpose)}`, "utf8"));
+  const ciphertext = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `v1.${b64url(iv)}.${b64url(tag)}.${b64url(ciphertext)}`;
+}
+
+export function decryptStoredSecret(encoded, purpose = "generic") {
+  try {
+    const [version, iv64, tag64, ciphertext64] = String(encoded || "").split(".");
+    if (version !== "v1" || !iv64 || !tag64 || !ciphertext64) return null;
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      storedSecretKey(purpose),
+      Buffer.from(iv64, "base64url")
+    );
+    decipher.setAAD(Buffer.from(`GRUPO_LUA\0${String(purpose)}`, "utf8"));
+    decipher.setAuthTag(Buffer.from(tag64, "base64url"));
+    return Buffer.concat([
+      decipher.update(Buffer.from(ciphertext64, "base64url")),
+      decipher.final()
+    ]).toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
 export function randomToken(bytes = 48) {
   return crypto.randomBytes(bytes).toString("base64url");
 }
@@ -91,16 +131,10 @@ function randomChars(count) {
   return out;
 }
 
-export function createApp1Credential(login, role) {
-  if (role === "DEV") {
-    const prefix = "DEV-";
-    return prefix + randomChars(600 - prefix.length);
-  }
-  const normalized = normalizeLogin(login)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^A-Za-z0-9]/g, "")
-    .slice(0, 24) || "ADM";
-  const prefix = `ADM1-${normalized}-`;
-  return prefix + randomChars(Math.max(1, 256 - prefix.length));
+export function createApp1Credential(_login, role) {
+  // A chave nunca inclui o login privado. O login continua separado e só é
+  // revelado após uma confirmação DEV específica no Keymaster.
+  const prefix = role === "DEV" ? "DEV-" : "ADM1-";
+  const totalLength = role === "DEV" ? 600 : 256;
+  return prefix + randomChars(Math.max(1, totalLength - prefix.length));
 }
