@@ -72,13 +72,19 @@ jobs:
         run: |
           set -uo pipefail
           WORKSPACE="$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)"
+          PROJECT="$(find ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
           test -n "$WORKSPACE"
+          test -n "$PROJECT"
 
-          SCHEME="$(xcodebuild -list -json -workspace "$WORKSPACE" | python3 -c 'import json,sys; d=json.load(sys.stdin); o=d.get("workspace") or d.get("project") or {}; s=o.get("schemes") or []; print(s[0] if s else "")')"
+          # Read the shared scheme from the application project, not from the
+          # workspace. The workspace also exposes CocoaPods schemes and the
+          # first one alphabetically may be a dependency rather than the app.
+          SCHEME="$(xcodebuild -list -json -project "$PROJECT" | python3 -c 'import json,sys; d=json.load(sys.stdin); o=d.get("project") or {}; s=o.get("schemes") or []; print(s[0] if s else "")')"
           test -n "$SCHEME"
 
           echo "Workspace: $WORKSPACE"
-          echo "Scheme: $SCHEME"
+          echo "Project: $PROJECT"
+          echo "Application scheme: $SCHEME"
 
           LOG="$GITHUB_WORKSPACE/xcode-${{ matrix.id }}.log"
           set +e
@@ -107,8 +113,13 @@ jobs:
           fi
 
           APP_PATH="$(find "$PWD/ios-build/Build/Products/Release-iphoneos" -maxdepth 1 -type d -name '*.app' -print -quit)"
-          test -d "$APP_PATH"
+          if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
+            echo "Application bundle was not found. Available build products:"
+            find "$PWD/ios-build/Build/Products" -maxdepth 3 -type d -name '*.app' -print || true
+            exit 1
+          fi
 
+          echo "Application bundle: $APP_PATH"
           OUT="$GITHUB_WORKSPACE/dist/${{ matrix.artifact }}"
           mkdir -p "$OUT/Payload"
           cp -R "$APP_PATH" "$OUT/Payload/"
