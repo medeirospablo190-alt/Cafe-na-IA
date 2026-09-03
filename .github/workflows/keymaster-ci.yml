@@ -83,5 +83,7 @@ jobs:
         run: npm install --ignore-scripts
       - name: Keymaster TypeScript check
         run: npm --workspace @grupo-lua/keymaster run typecheck
+      - name: App 1 mobile TypeScript check
+        run: npm --workspace @grupo-lua/app1 run typecheck
       - name: App 1 compatibility probe TypeScript check
         run: npm --workspace @grupo-lua/app1-probe run typecheck
