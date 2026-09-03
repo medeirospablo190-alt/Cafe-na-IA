@@ -7,6 +7,7 @@ on:
       - "grupo-lua-keymaster/apps/app1/**"
       - "grupo-lua-keymaster/apps/keymaster/**"
       - "grupo-lua-keymaster/packages/contracts/**"
+      - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
       - ".github/workflows/ios-unsigned-ipa.yml"
 
 permissions:
@@ -48,7 +49,7 @@ jobs:
 
       - name: Install workspace dependencies
         working-directory: grupo-lua-keymaster
-        run: npm install --ignore-scripts
+        run: bash scripts/npm-install-retry.sh
 
       - name: TypeScript check
         working-directory: grupo-lua-keymaster
