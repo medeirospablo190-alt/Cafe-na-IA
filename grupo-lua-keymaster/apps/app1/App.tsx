@@ -167,7 +167,6 @@ export default function App() {
       setSession({ kind: result.sessionKind, expiresAt: result.expiresAt });
       setAccount(result.account);
 
-      // Informações privadas de autenticação não permanecem na interface após o login.
       setLogin("");
       setCredential("");
       setTermsChecked(false);
@@ -269,7 +268,7 @@ export default function App() {
         />
       );
     }
-    if (appUnlocked) {
+    if (appUnlocked && account && session) {
       return (
         <HomeShell
           account={account}
