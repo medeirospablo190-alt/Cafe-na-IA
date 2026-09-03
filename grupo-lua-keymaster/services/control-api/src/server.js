@@ -23,7 +23,6 @@ const KEYMASTER_MAX_CHARS = 16_384;
 const KEYMASTER_MAX_FAILED = 3;
 const KEYMASTER_LOCK_MS = 24 * 60 * 60 * 1000;
 const KEYMASTER_SESSION_MS = 12 * 60 * 60 * 1000;
-const APP1_SESSION_MS = 12 * 60 * 60 * 1000;
 const CRITICAL_AUTH_MS = 2 * 60 * 1000;
 const CRITICAL_ACTIONS = new Set([
   "APP1_RESTART",
@@ -817,70 +816,16 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
   } catch (error) { next(error); }
 });
 
-// As rotas V1 são registradas antes das rotas legadas abaixo. Isso mantém
-// compatibilidade durante a migração sem permitir que a implementação antiga
-// intercepte login/sessão antes das novas regras de segurança.
+// App 1 usa exclusivamente o contrato V1 com device binding, onboarding
+// server-side e sessão de 24 horas. Não registre uma rota paralela aqui.
 registerApp1Routes(app, {
   requireKeymaster,
   consumeCriticalAuthorization,
   getApp1Maintenance
 });
 
-// Rotas legadas temporárias; permanecem durante a transição e serão removidas
-// quando o App 1 Probe estiver totalmente migrado para o contrato V1.
-app.post("/v1/app1/login", async (req, res, next) => {
-  try {
-    const login = normalizeLogin(req.body?.login);
-    const credential = String(req.body?.credential || "");
-    if (!login || !credential) return sendError(res, 400, "INVALID_REQUEST", "Login e credencial são obrigatórios.");
-    if (await getApp1Maintenance()) return sendError(res, 503, "APP1_MAINTENANCE", "Aplicativo 1 está em manutenção.");
-
-    const account = (await pool.query(`SELECT * FROM app1_accounts WHERE login = $1 LIMIT 1`, [login])).rows[0];
-    if (!account || !(await verifySecret(credential, account.credential_hash))) {
-      return sendError(res, 401, "INVALID_CREDENTIAL", "Login ou credencial inválidos.");
-    }
-    if (account.status === "SUSPENDED") return sendError(res, 403, "ACCOUNT_SUSPENDED", "Conta suspensa.");
-    if (account.status === "DELETED") return sendError(res, 403, "ACCOUNT_DELETED", "Conta removida.");
-
-    const token = randomToken(48);
-    const sessionId = randomId();
-    const expiresAt = new Date(Date.now() + APP1_SESSION_MS);
-    await pool.query(
-      `INSERT INTO app1_sessions (id, account_id, token_hash, device_label, expires_at)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, account.id, tokenHash(`app1:${token}`), String(req.body?.deviceLabel || "").slice(0, 120), expiresAt]
-    );
-    res.json({
-      ok: true,
-      token,
-      expiresAt,
-      account: { id: account.id, login: account.login, role: account.role, status: account.status }
-    });
-  } catch (error) { next(error); }
-});
-
-app.get("/v1/app1/me", async (req, res, next) => {
-  try {
-    if (await getApp1Maintenance()) return sendError(res, 503, "APP1_MAINTENANCE", "Aplicativo 1 está em manutenção.");
-    const auth = String(req.headers.authorization || "");
-    const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-    if (!token) return sendError(res, 401, "UNAUTHORIZED", "Token ausente.");
-    const hash = tokenHash(`app1:${token}`);
-    const { rows } = await pool.query(
-      `SELECT a.id, a.login, a.role, a.status, s.expires_at
-         FROM app1_sessions s
-         JOIN app1_accounts a ON a.id = s.account_id
-        WHERE s.token_hash = $1 AND s.revoked_at IS NULL AND s.expires_at > NOW()
-        LIMIT 1`,
-      [hash]
-    );
-    const row = rows[0];
-    if (!row) return sendError(res, 401, "UNAUTHORIZED", "Sessão inválida.");
-    if (row.status !== "ACTIVE") return sendError(res, 403, "ACCOUNT_SUSPENDED", "Conta não está ativa.");
-    res.json({ ok: true, account: row });
-  } catch (error) { next(error); }
-});
-
+// O contrato App 1 V1 acima é a única implementação de login/sessão.
+// Não mantenha rotas paralelas sem device binding e onboarding.
 registerMenuRoutes(app, { consumeCriticalAuthorization });
 
 app.use((error, _req, res, _next) => {
