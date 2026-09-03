@@ -816,9 +816,8 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
   } catch (error) { next(error); }
 });
 
-// As rotas V1 são registradas antes das rotas legadas abaixo. Isso mantém
-// compatibilidade durante a migração sem permitir que a implementação antiga
-// intercepte login/sessão antes das novas regras de segurança.
+// App 1 usa exclusivamente o contrato V1 com device binding, onboarding
+// server-side e sessão de 24 horas. Não registre uma rota paralela aqui.
 registerApp1Routes(app, {
   requireKeymaster,
   consumeCriticalAuthorization,
