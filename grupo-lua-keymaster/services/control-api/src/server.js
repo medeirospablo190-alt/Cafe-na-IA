@@ -4,7 +4,9 @@ import crypto from "crypto";
 import { pool, withTransaction, audit } from "./db.js";
 import {
   createApp1Credential,
+  decryptStoredSecret,
   deriveDeviceFingerprint,
+  encryptStoredSecret,
   hashSecret,
   normalizeLogin,
   privacyHash,
@@ -32,7 +34,9 @@ const CRITICAL_ACTIONS = new Set([
   "DELETE_MANAGED_MENU",
   "UNLOCK_APP1_ACCOUNT",
   "AUTHORIZE_APP1_DEVICE",
-  "REVOKE_APP1_DEVICE"
+  "REVOKE_APP1_DEVICE",
+  "ROTATE_APP1_CREDENTIAL",
+  "REVEAL_APP1_CREDENTIAL"
 ]);
 
 app.disable("x-powered-by");
@@ -100,7 +104,9 @@ function criticalScope(action, targetId = "") {
     "DELETE_MANAGED_MENU",
     "UNLOCK_APP1_ACCOUNT",
     "AUTHORIZE_APP1_DEVICE",
-    "REVOKE_APP1_DEVICE"
+    "REVOKE_APP1_DEVICE",
+    "ROTATE_APP1_CREDENTIAL",
+    "REVEAL_APP1_CREDENTIAL"
   ].includes(normalized)) {
     const target = String(targetId || "").trim();
     return target ? `${normalized}:${target}` : "";
@@ -133,7 +139,7 @@ async function createCriticalAuthorization({ sessionId, action, targetId, devLog
   if (!login || !devCredential) return { error: "DEV_REAUTH_REQUIRED" };
 
   const dev = (await pool.query(
-    `SELECT id, login, role, status, credential_hash FROM app1_accounts WHERE login = $1 LIMIT 1`,
+    `SELECT id, login, display_name, role, status, credential_hash FROM app1_accounts WHERE login = $1 LIMIT 1`,
     [login]
   )).rows[0];
   if (!dev || dev.role !== "DEV" || dev.status !== "ACTIVE" || !(await verifySecret(devCredential, dev.credential_hash))) {
@@ -159,7 +165,7 @@ async function createCriticalAuthorization({ sessionId, action, targetId, devLog
       metadata: { keymasterSessionId: sessionId, expiresAt }
     });
   });
-  return { token, expiresAt, scope, dev: { id: dev.id, login: dev.login } };
+  return { token, expiresAt, scope, dev: { id: dev.id, name: dev.display_name || "DEV" } };
 }
 
 async function consumeCriticalAuthorization({ sessionId, token, action, targetId = "" }) {
@@ -168,7 +174,7 @@ async function consumeCriticalAuthorization({ sessionId, token, action, targetId
   const hash = tokenHash(`critical:${token}`);
   return withTransaction(async (client) => {
     const row = (await client.query(
-      `SELECT ca.id, ca.dev_account_id, ca.action, ca.expires_at, a.login
+      `SELECT ca.id, ca.dev_account_id, ca.action, ca.expires_at, a.display_name AS dev_name
          FROM critical_authorizations ca
          JOIN app1_accounts a ON a.id = ca.dev_account_id
         WHERE ca.keymaster_session_id = $1
@@ -457,11 +463,11 @@ app.get("/v1/keymaster/audit", requireKeymaster, async (req, res, next) => {
          e.id::text AS id,
          e.actor_kind,
          e.actor_id,
-         actor.login AS actor_login,
+         actor.display_name AS actor_name,
          e.action,
          e.target_kind,
          e.target_id,
-         target.login AS target_login,
+         target.display_name AS target_name,
          e.metadata,
          e.created_at
        FROM audit_events e
@@ -514,7 +520,7 @@ app.post("/v1/keymaster/critical/execute", requireKeymaster, async (req, res, ne
     if (!auth) return sendError(res, 403, "CRITICAL_AUTH_INVALID", "Autorização crítica inválida, expirada ou já utilizada.");
 
     if (action === "APP1_RESTART") {
-      const restart = await callRestartWebhook({ devAccountId: auth.dev_account_id, devLogin: auth.login });
+      const restart = await callRestartWebhook({ devAccountId: auth.dev_account_id, devName: auth.dev_name || "DEV" });
       await withTransaction(async (client) => {
         await audit(client, {
           actorKind: "DEV", actorId: auth.dev_account_id, action: "APP1_RESTART_REQUESTED",
@@ -549,7 +555,7 @@ app.get("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
     const clauses = ["a.status <> 'DELETED'"];
     if (q) {
       params.push(q);
-      clauses.push(`LOWER(a.login) LIKE '%' || LOWER($${params.length}) || '%'`);
+      clauses.push(`LOWER(COALESCE(a.display_name, '')) LIKE '%' || LOWER($${params.length}) || '%'`);
     }
     if (role) {
       params.push(role);
@@ -563,18 +569,19 @@ app.get("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT
          a.id,
-         a.login,
+         COALESCE(a.display_name, CASE WHEN a.role = 'DEV' THEN 'Acesso DEV' ELSE 'Acesso ADM' END) AS name,
          a.role,
          a.status,
          a.created_at,
          a.updated_at,
+         (a.credential_ciphertext IS NOT NULL) AS credential_recoverable,
          COUNT(s.id) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW())::int AS active_sessions,
          MAX(s.created_at) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW()) AS last_session_at
        FROM app1_accounts a
        LEFT JOIN app1_sessions s ON s.account_id = a.id
        WHERE ${clauses.join(" AND ")}
        GROUP BY a.id
-       ORDER BY a.role DESC, a.login ASC
+       ORDER BY a.role DESC, LOWER(COALESCE(a.display_name, '')) ASC
        LIMIT 250`,
       params
     );
@@ -586,21 +593,24 @@ app.get("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
 
 app.post("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
   try {
+    const displayName = String(req.body?.displayName || "").normalize("NFKC").trim().replace(/\s+/g, " ").slice(0, 80);
     const login = normalizeLogin(req.body?.login);
     const role = String(req.body?.role || "ADM").toUpperCase();
-    if (!login || login.length < 2) return sendError(res, 400, "INVALID_LOGIN", "Informe um login válido.");
+    if (displayName.length < 2) return sendError(res, 400, "INVALID_DISPLAY_NAME", "Informe um nome para identificar este acesso no Keymaster.");
+    if (!login || login.length < 2) return sendError(res, 400, "INVALID_LOGIN", "Informe um login privado válido.");
     if (!["ADM", "DEV"].includes(role)) return sendError(res, 400, "INVALID_ROLE", "Role deve ser ADM ou DEV.");
 
+    const accountId = randomId();
     const credential = createApp1Credential(login, role);
     const credentialHash = await hashSecret(credential);
-    const accountId = randomId();
+    const credentialCiphertext = encryptStoredSecret(credential, `app1-account:${accountId}`);
 
     await withTransaction(async (client) => {
       await client.query(
         `INSERT INTO app1_accounts
-          (id, login, role, status, credential_hash, created_by_session)
-         VALUES ($1, $2, $3, 'ACTIVE', $4, $5)`,
-        [accountId, login, role, credentialHash, req.keymasterSession.id]
+          (id, login, display_name, role, status, credential_hash, credential_ciphertext, created_by_session)
+         VALUES ($1, $2, $3, $4, 'ACTIVE', $5, $6, $7)`,
+        [accountId, login, displayName, role, credentialHash, credentialCiphertext, req.keymasterSession.id]
       );
       await audit(client, {
         actorKind: "KEYMASTER_SESSION",
@@ -608,19 +618,19 @@ app.post("/v1/keymaster/accounts", requireKeymaster, async (req, res, next) => {
         action: "APP1_ACCOUNT_CREATED",
         targetKind: "APP1_ACCOUNT",
         targetId: accountId,
-        metadata: { role, login }
+        metadata: { role, displayName }
       });
     });
 
     res.status(201).json({
       ok: true,
-      account: { id: accountId, login, role, status: "ACTIVE" },
+      account: { id: accountId, name: displayName, role, status: "ACTIVE", credential_recoverable: true },
+      privateLogin: login,
       credential,
-      credentialLength: credential.length,
-      revealOnce: true
+      credentialLength: credential.length
     });
   } catch (error) {
-    if (error?.code === "23505") return sendError(res, 409, "LOGIN_EXISTS", "Esse login já existe.");
+    if (error?.code === "23505") return sendError(res, 409, "LOGIN_EXISTS", "Esse login privado já existe.");
     next(error);
   }
 });
@@ -631,7 +641,7 @@ app.post("/v1/keymaster/accounts/:id/suspend", requireKeymaster, async (req, res
     await withTransaction(async (client) => {
       const result = await client.query(
         `UPDATE app1_accounts SET status = 'SUSPENDED', updated_at = NOW()
-          WHERE id = $1 AND status <> 'DELETED' RETURNING id, login, role, status`,
+          WHERE id = $1 AND status <> 'DELETED' RETURNING id, display_name, role, status`,
         [id]
       );
       if (!result.rowCount) throw Object.assign(new Error("not found"), { statusCode: 404 });
@@ -654,7 +664,7 @@ app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res
     const restored = await withTransaction(async (client) => {
       const result = await client.query(
         `UPDATE app1_accounts SET status = 'ACTIVE', updated_at = NOW()
-          WHERE id = $1 AND status = 'SUSPENDED' RETURNING id, login, role`,
+          WHERE id = $1 AND status = 'SUSPENDED' RETURNING id, display_name, role`,
         [id]
       );
       if (!result.rowCount) return null;
@@ -664,7 +674,7 @@ app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res
         action: "APP1_ACCOUNT_RESTORED",
         targetKind: "APP1_ACCOUNT",
         targetId: id,
-        metadata: { login: result.rows[0].login, role: result.rows[0].role }
+        metadata: { role: result.rows[0].role }
       });
       return result.rows[0];
     });
@@ -676,22 +686,78 @@ app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res
 app.post("/v1/keymaster/accounts/:id/rotate", requireKeymaster, async (req, res, next) => {
   try {
     const id = String(req.params.id);
-    const account = (await pool.query(`SELECT id, login, role, status FROM app1_accounts WHERE id = $1`, [id])).rows[0];
+    const authToken = String(req.headers["x-critical-authorization"] || "");
+    const auth = await consumeCriticalAuthorization({
+      sessionId: req.keymasterSession.id,
+      token: authToken,
+      action: "ROTATE_APP1_CREDENTIAL",
+      targetId: id
+    });
+    if (!auth) return sendError(res, 403, "DEV_REAUTH_REQUIRED", "Gerar uma nova chave exige reautenticação DEV de uso único.");
+
+    const account = (await pool.query(`SELECT id, login, display_name, role, status FROM app1_accounts WHERE id = $1`, [id])).rows[0];
     if (!account || account.status === "DELETED") return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
     const credential = createApp1Credential(account.login, account.role);
     const credentialHash = await hashSecret(credential);
+    const credentialCiphertext = encryptStoredSecret(credential, `app1-account:${id}`);
     await withTransaction(async (client) => {
-      await client.query(`UPDATE app1_accounts SET credential_hash = $2, updated_at = NOW() WHERE id = $1`, [id, credentialHash]);
+      await client.query(
+        `UPDATE app1_accounts
+            SET credential_hash = $2, credential_ciphertext = $3, updated_at = NOW()
+          WHERE id = $1`,
+        [id, credentialHash, credentialCiphertext]
+      );
       await client.query(`UPDATE app1_sessions SET revoked_at = NOW() WHERE account_id = $1 AND revoked_at IS NULL`, [id]);
       await audit(client, {
-        actorKind: "KEYMASTER_SESSION",
-        actorId: req.keymasterSession.id,
+        actorKind: "DEV",
+        actorId: auth.dev_account_id,
         action: "APP1_CREDENTIAL_ROTATED",
         targetKind: "APP1_ACCOUNT",
-        targetId: id
+        targetId: id,
+        metadata: { keymasterSessionId: req.keymasterSession.id }
       });
     });
-    res.json({ ok: true, credential, credentialLength: credential.length, revealOnce: true });
+    res.json({ ok: true, privateLogin: account.login, credential, credentialLength: credential.length });
+  } catch (error) { next(error); }
+});
+
+app.post("/v1/keymaster/accounts/:id/credential/reveal", requireKeymaster, async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const authToken = String(req.headers["x-critical-authorization"] || "");
+    const auth = await consumeCriticalAuthorization({
+      sessionId: req.keymasterSession.id,
+      token: authToken,
+      action: "REVEAL_APP1_CREDENTIAL",
+      targetId: id
+    });
+    if (!auth) return sendError(res, 403, "DEV_REAUTH_REQUIRED", "Visualizar login e chave exige reautenticação DEV de uso único.");
+
+    const account = (await pool.query(
+      `SELECT id, login, display_name, role, status, credential_ciphertext
+         FROM app1_accounts
+        WHERE id = $1 AND status <> 'DELETED'
+        LIMIT 1`,
+      [id]
+    )).rows[0];
+    if (!account) return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
+    if (!account.credential_ciphertext) {
+      return sendError(res, 409, "CREDENTIAL_NOT_RECOVERABLE", "Esta chave antiga foi armazenada somente como hash. Gere uma nova chave uma vez para habilitar a visualização protegida.");
+    }
+    const credential = decryptStoredSecret(account.credential_ciphertext, `app1-account:${id}`);
+    if (!credential) return sendError(res, 500, "CREDENTIAL_DECRYPT_FAILED", "A chave protegida não pôde ser aberta.");
+
+    await withTransaction(async (client) => {
+      await audit(client, {
+        actorKind: "DEV",
+        actorId: auth.dev_account_id,
+        action: "APP1_CREDENTIAL_REVEALED",
+        targetKind: "APP1_ACCOUNT",
+        targetId: id,
+        metadata: { keymasterSessionId: req.keymasterSession.id }
+      });
+    });
+    res.json({ ok: true, privateLogin: account.login, credential });
   } catch (error) { next(error); }
 });
 
@@ -796,9 +862,12 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
     await withTransaction(async (client) => {
       const result = await client.query(
         `UPDATE app1_accounts
-            SET status = 'DELETED', deleted_at = NOW(), updated_at = NOW()
+            SET status = 'DELETED',
+                credential_ciphertext = NULL,
+                deleted_at = NOW(),
+                updated_at = NOW()
           WHERE id = $1 AND status <> 'DELETED'
-          RETURNING id, login, role`,
+          RETURNING id, display_name, role`,
         [id]
       );
       if (!result.rowCount) throw Object.assign(new Error("not found"), { statusCode: 404 });
@@ -809,7 +878,7 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
         action: "APP1_ACCOUNT_DELETED",
         targetKind: "APP1_ACCOUNT",
         targetId: id,
-        metadata: { deletedLogin: result.rows[0].login, deletedRole: result.rows[0].role, keymasterSessionId: req.keymasterSession.id }
+        metadata: { deletedRole: result.rows[0].role, keymasterSessionId: req.keymasterSession.id }
       });
     });
     res.json({ ok: true });
