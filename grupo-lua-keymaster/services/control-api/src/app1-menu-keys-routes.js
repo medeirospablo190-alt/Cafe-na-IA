@@ -281,6 +281,9 @@ export function registerApp1MenuKeyRoutes(app) {
       });
 
       const row = await getBinding(accountId, stored.bindingId);
+      if (!row) {
+        return sendError(res, 409, "KEY_BINDING_UNAVAILABLE", "A chave foi alterada durante a operação. Atualize e tente novamente.");
+      }
       return res.status(stored.created ? 201 : 200).json({
         ok: true,
         created: stored.created,
@@ -298,6 +301,8 @@ export function registerApp1MenuKeyRoutes(app) {
       const result = await withTransaction(async (client) => {
         const row = await getBinding(accountId, bindingId, client);
         if (!row) return null;
+        const status = effectiveStatus(row);
+        if (status !== "ACTIVE") return { unavailable: true, status };
         const key = decryptStoredSecret(row.key_ciphertext, `app1-menu-key-binding:${row.binding_id}`);
         if (!key) return { decryptFailed: true };
         await client.query(
@@ -314,12 +319,15 @@ export function registerApp1MenuKeyRoutes(app) {
             menuId: row.menu_id,
             publicId: row.public_id,
             menuKeyId: row.key_id,
-            status: effectiveStatus(row)
+            status
           }
         });
         return { key, keyHint: row.key_hint };
       });
       if (!result) return sendError(res, 404, "NOT_FOUND", "Chave não encontrada nesta conta.");
+      if (result.unavailable) {
+        return sendError(res, 409, "KEY_NOT_USABLE", "Esta chave não está ativa e não pode ser revelada agora.", { status: result.status });
+      }
       if (result.decryptFailed) return sendError(res, 500, "KEY_DECRYPT_FAILED", "A chave protegida não pôde ser aberta.");
       return res.json({ ok: true, key: result.key, keyHint: result.keyHint });
     } catch (error) {
