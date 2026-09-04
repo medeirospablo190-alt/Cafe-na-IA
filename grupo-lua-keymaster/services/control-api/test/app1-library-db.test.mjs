@@ -49,10 +49,41 @@ test("App 1 library survives credential/status changes and is purged only on def
     );
 
     await client.query(
-      `INSERT INTO app1_feed_posts (id, account_id, post_kind, library_item_id)
-       VALUES ($1, $2, 'CODE', $3)`,
+      `INSERT INTO app1_feed_posts
+        (id, account_id, post_kind, library_item_id, snapshot_title, snapshot_text_content)
+       VALUES ($1, $2, 'CODE', $3, 'Código principal', 'print("codigo")')`,
       [postId, accountId, codeId]
     );
+
+    const feedPost = (await client.query(
+      `SELECT snapshot_title, snapshot_text_content,
+              expires_at > created_at AS has_future_expiry,
+              expires_at <= created_at + INTERVAL '24 hours 1 minute' AS expires_near_24h
+         FROM app1_feed_posts
+        WHERE id = $1`,
+      [postId]
+    )).rows[0];
+    assert.equal(feedPost.snapshot_title, "Código principal");
+    assert.equal(feedPost.snapshot_text_content, 'print("codigo")');
+    assert.equal(feedPost.has_future_expiry, true);
+    assert.equal(feedPost.expires_near_24h, true);
+
+    // Alterar o original depois de compartilhar não reescreve uma publicação
+    // já criada no feed.
+    await client.query(
+      `UPDATE app1_library_items
+          SET title = 'Código editado', text_content = 'print("editado")'
+        WHERE id = $1`,
+      [codeId]
+    );
+    const snapshotAfterEdit = (await client.query(
+      `SELECT snapshot_title, snapshot_text_content FROM app1_feed_posts WHERE id = $1`,
+      [postId]
+    )).rows[0];
+    assert.deepEqual(snapshotAfterEdit, {
+      snapshot_title: "Código principal",
+      snapshot_text_content: 'print("codigo")'
+    });
 
     // Trocar a credencial e encerrar/recriar sessões não pode alterar a
     // biblioteca, pois os arquivos pertencem ao ID permanente da conta.
