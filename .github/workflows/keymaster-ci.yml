@@ -64,9 +64,20 @@ jobs:
           grep -Fq 'app.post("/v1/app1/login"' src/app1-routes.js
           grep -Fq 'app.get("/v1/app1/me"' src/app1-routes.js
           grep -Fq 'app.post("/v1/app1/logout"' src/app1-session-control-routes.js
+          grep -Fq 'registerApp1SocialRoutes(app)' src/app1-library-routes.js
+          grep -Fq 'registerApp1ChatRoutes(app)' src/app1-library-routes.js
           grep -Fq 'registerApp1MenuKeyRoutes(app)' src/app1-library-routes.js
           grep -Fq 'registerMenuAccessV2Routes(app)' src/app1-library-routes.js
           grep -Fq 'registerKeymasterMenuKeyLockdown(app)' src/app1-library-routes.js
+          grep -Fq 'app.get("/v1/app1/social/feed"' src/app1-social-routes.js
+          grep -Fq 'app.post("/v1/app1/social/posts/:postId/like"' src/app1-social-routes.js
+          grep -Fq 'app.post("/v1/app1/social/posts/:postId/favorite"' src/app1-social-routes.js
+          grep -Fq 'app.get("/v1/app1/chats"' src/app1-chat-routes.js
+          grep -Fq 'app.post("/v1/app1/chats/:conversationId/messages"' src/app1-chat-routes.js
+          if grep -Eqi 'v1/keymaster/.+chat.+messages' src/app1-chat-routes.js; then
+            echo "::error::Private chat content must not have a normal Keymaster read route"
+            exit 1
+          fi
           grep -Fq 'app.post("/v1/app1/menu-admin/menus/:id/keys"' src/app1-menu-key-routes.js
           grep -Fq 'app.post("/v1/menu-access/validate"' src/menu-access-v2-routes.js
       - name: Production readiness guard
@@ -101,7 +112,7 @@ jobs:
         run: |
           npm run migrate
           npm run migrate
-      - name: Security and menu unit tests
+      - name: Security, Social, Chat and menu tests
         run: npm test
 
   shared-contracts:
@@ -154,6 +165,9 @@ jobs:
           fi
           grep -Fq 'style={styles.appScroll}' apps/app1/App.tsx
           grep -Fq 'logoutApp1(sessionToken, deviceToken)' apps/app1/App.tsx
+          grep -Fq '<ChatsScreen sessionToken={sessionToken} deviceToken={deviceToken} />' apps/app1/App.tsx
+          grep -Fq '<SettingsScreen' apps/app1/App.tsx
+          grep -Fq 'SocialFeedScreenV3' apps/app1/SocialFeedScreen.tsx
           node - <<'NODE'
           const fs = require('fs');
           for (const app of ['app1', 'keymaster']) {
