@@ -3,38 +3,25 @@ import { Alert, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } fro
 import { StatusBar } from "expo-status-bar";
 import * as Clipboard from "expo-clipboard";
 import { Header } from "../components/Common";
+import {
+  GRUPO_LUA_LOGIN_RAW_URL,
+  buildMenuLoader,
+  isValidPublicMenuId,
+  normalizePublicMenuId
+} from "../menuLoader";
 import { styles } from "../styles";
-
-const LOGIN_RAW_URL =
-  "https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/GrupoLuaLogin.lua";
 
 const LOGIN_IMAGE_ASSET = "rbxassetid://91124214069969";
 const LOGIN_LAYOUT = "520 × 260";
-
-function normalizeMenuId(value: string) {
-  return value.trim();
-}
-
-function validMenuId(value: string) {
-  return /^menu_[A-Za-z0-9_-]{6,80}$/.test(normalizeMenuId(value));
-}
-
-function buildLoader(menuId: string) {
-  const id = normalizeMenuId(menuId);
-  return [
-    `getgenv().GRUPO_LUA_MENU_ID = ${JSON.stringify(id)}`,
-    `loadstring(game:HttpGet(${JSON.stringify(LOGIN_RAW_URL)}))()`
-  ].join("\n");
-}
 
 export function MenuBaseScreen({ onBack, onMenus }: {
   onBack: () => void;
   onMenus: () => void;
 }) {
   const [menuId, setMenuId] = useState("");
-  const normalized = normalizeMenuId(menuId);
-  const isValid = validMenuId(normalized);
-  const loader = useMemo(() => isValid ? buildLoader(normalized) : "", [normalized, isValid]);
+  const normalized = normalizePublicMenuId(menuId);
+  const isValid = isValidPublicMenuId(normalized);
+  const loader = useMemo(() => buildMenuLoader(normalized), [normalized]);
 
   async function copyLoader() {
     if (!isValid || !loader) {
@@ -46,7 +33,7 @@ export function MenuBaseScreen({ onBack, onMenus }: {
   }
 
   async function copyBaseUrl() {
-    await Clipboard.setStringAsync(LOGIN_RAW_URL);
+    await Clipboard.setStringAsync(GRUPO_LUA_LOGIN_RAW_URL);
     Alert.alert("URL copiada", "A URL do login-base foi copiada.");
   }
 
@@ -60,7 +47,7 @@ export function MenuBaseScreen({ onBack, onMenus }: {
           <Text style={styles.eyebrow}>GRUPO LUA • MODELO OFICIAL</Text>
           <Text style={[styles.cardTitle, { marginTop: 6 }]}>Login-base dos menus</Text>
           <Text style={styles.muted}>
-            Todo menu cadastrado pode usar este mesmo login. O Keymaster muda apenas o menuId e mantém a chave FREE/VIP no servidor.
+            Todo menu cadastrado pode usar este mesmo login. O Keymaster define o menuId; FREE e VIP continuam administradas somente no App 1.
           </Text>
         </View>
 
@@ -76,7 +63,7 @@ export function MenuBaseScreen({ onBack, onMenus }: {
           </View>
           <View style={styles.detailCell}>
             <Text style={styles.detailLabel}>CHAVES</Text>
-            <Text style={styles.detailValue}>FREE/VIP</Text>
+            <Text style={styles.detailValue}>APP 1</Text>
           </View>
         </View>
 
@@ -86,7 +73,7 @@ export function MenuBaseScreen({ onBack, onMenus }: {
 
         <Text style={styles.section}>GERAR LOADSTRING</Text>
         <Text style={styles.muted}>
-          Cole o ID público do menu criado em “Menus e chaves”. O aplicativo monta o loader final usando automaticamente o login-base oficial.
+          Cole o ID público de um menu cadastrado. O aplicativo monta o loader final usando automaticamente o login-base oficial.
         </Text>
 
         <TextInput
@@ -121,8 +108,8 @@ export function MenuBaseScreen({ onBack, onMenus }: {
         <Pressable style={styles.featureCard} onPress={onMenus}>
           <View style={styles.featureIcon}><Text style={styles.featureIconText}>＋</Text></View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>Abrir Menus e chaves</Text>
-            <Text style={styles.muted}>Cadastrar menu, gerar FREE/VIP e copiar o menuId.</Text>
+            <Text style={styles.cardTitle}>Abrir Menus</Text>
+            <Text style={styles.muted}>Cadastrar origem, copiar loadstring e suspender ou liberar o menu.</Text>
           </View>
           <Text style={styles.cardArrow}>›</Text>
         </Pressable>
