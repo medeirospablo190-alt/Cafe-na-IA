@@ -712,11 +712,11 @@ function HomeShell({
               <Feature title="Social" text="Feed com curtidas, comentários, favoritos, perfis, notificações e recursos oficiais DEV." />
               <Feature title="Chaves" text="FREE/VIP com vínculo ao aparelho, ciclos e validade controlados pelo servidor." />
               <Feature title="Chats" text="Conversas privadas, notificações separadas, favoritos e retenção de 24 horas." />
-              <Feature title="Arquivos" text="Códigos e loadstrings nomeados, editáveis, favoritos e compartilháveis no Social." />
+              <Feature title="Arquivos" text="Códigos e loadstrings no servidor, mais fotos e vídeos guardados somente neste aparelho." />
             </View>
           </>
         ) : tab === "files" ? (
-          <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+          <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} profileId={account.profileId} />
         ) : tab === "social" ? (
           <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} viewerRole={account.role} />
         ) : tab === "keys" ? (

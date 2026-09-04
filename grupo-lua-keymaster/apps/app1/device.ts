@@ -13,7 +13,7 @@ export type App1DeviceIdentity = {
   integrityProof: string | null;
 };
 
-async function getInstallationId() {
+export async function getApp1InstallationId() {
   let value = await SecureStore.getItemAsync(INSTALLATION_ID_KEY);
   if (!value) {
     value = Crypto.randomUUID();
@@ -37,7 +37,7 @@ export async function getApp1DeviceIdentity(): Promise<App1DeviceIdentity> {
   return {
     platform,
     nativeDeviceId,
-    installationId: await getInstallationId(),
+    installationId: await getApp1InstallationId(),
     integrityKeyId: "",
     integrityProof: null
   };

@@ -1,6 +1,6 @@
 # GRUPO LUA — App 1 Mobile
 
-Aplicativo 1 do ecossistema GRUPO LUA. A versão atual é `0.3.1`.
+Aplicativo 1 do ecossistema GRUPO LUA. A versão atual é `0.3.2`.
 
 ## Fluxo de acesso do App 1
 
@@ -30,7 +30,11 @@ Início | Arquivos | Social | Chaves | Chats | Configurações
 - criação, leitura, edição e exclusão;
 - favoritos;
 - ações em lote;
-- compartilhamento no Social.
+- compartilhamento no Social;
+- cofre privado local de fotos e vídeos, separado por instalação e perfil;
+- importação pelo seletor nativo, busca, visualização de fotos e reprodução de vídeos;
+- limite total de 1 GB, limites por arquivo e reserva de espaço livre;
+- índice transacional com cópia de segurança e recuperação de arquivos locais.
 
 ### Social
 
@@ -118,15 +122,15 @@ O workflow `.github/workflows/app1-android-apk.yml` compila um APK standalone e 
 A versão Android atual é:
 
 ```text
-App: 0.3.1
-versionCode: 5
+App: 0.3.2
+versionCode: 6
 ```
 
 O artefato esperado é:
 
 ```text
-GRUPO-LUA-APP1-v0.3.1-android
-└── GRUPO-LUA-APP1-v0.3.1.apk
+GRUPO-LUA-APP1-v0.3.2-android
+└── GRUPO-LUA-APP1-v0.3.2.apk
 ```
 
 ## Cobertura de testes relevante

@@ -22,15 +22,13 @@ jobs:
       matrix:
         include:
           - id: "app1"
+            product: "APP1"
             workspace: "@grupo-lua/app1"
             app_dir: "grupo-lua-keymaster/apps/app1"
-            artifact: "GRUPO-LUA-APP1-v0.1.0-ios-unsigned"
-            ipa: "GRUPO-LUA-APP1-v0.1.0-unsigned.ipa"
           - id: "keymaster"
+            product: "KEYMASTER"
             workspace: "@grupo-lua/keymaster"
             app_dir: "grupo-lua-keymaster/apps/keymaster"
-            artifact: "GRUPO-LUA-KEYMASTER-v0.9.0-ios-unsigned"
-            ipa: "GRUPO-LUA-KEYMASTER-v0.9.0-unsigned.ipa"
 
     env:
       CI: "1"
@@ -45,7 +43,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: grupo-lua-keymaster/package.json
+          cache-dependency-path: grupo-lua-keymaster/package-lock.json
+
+      - name: Resolve app version
+        id: app-version
+        working-directory: ${{ matrix.app_dir }}
+        run: |
+          VERSION="$(node -p "require('./app.json').expo.version")"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building GRUPO LUA ${{ matrix.product }} v$VERSION"
 
       - name: Install workspace dependencies
         working-directory: grupo-lua-keymaster
@@ -121,13 +128,15 @@ jobs:
           fi
 
           echo "Application bundle: $APP_PATH"
-          OUT="$GITHUB_WORKSPACE/dist/${{ matrix.artifact }}"
+          ARTIFACT="GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-ios-unsigned"
+          IPA="GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-unsigned.ipa"
+          OUT="$GITHUB_WORKSPACE/dist/$ARTIFACT"
           mkdir -p "$OUT/Payload"
           cp -R "$APP_PATH" "$OUT/Payload/"
           (
             cd "$OUT"
-            zip -qry "${{ matrix.ipa }}" Payload
-            shasum -a 256 "${{ matrix.ipa }}" > "${{ matrix.ipa }}.sha256"
+            zip -qry "$IPA" Payload
+            shasum -a 256 "$IPA" > "$IPA.sha256"
             rm -rf Payload
           )
 
@@ -146,9 +155,9 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
+          name: GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-ios-unsigned
           path: |
-            dist/${{ matrix.artifact }}/${{ matrix.ipa }}
-            dist/${{ matrix.artifact }}/${{ matrix.ipa }}.sha256
+            dist/GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-ios-unsigned/GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-unsigned.ipa
+            dist/GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-ios-unsigned/GRUPO-LUA-${{ matrix.product }}-v${{ steps.app-version.outputs.version }}-unsigned.ipa.sha256
           if-no-files-found: error
           retention-days: 14

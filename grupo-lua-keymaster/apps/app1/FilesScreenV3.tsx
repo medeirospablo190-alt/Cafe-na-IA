@@ -25,6 +25,7 @@ import {
   type LibraryKind
 } from "./api";
 import { shareLibraryItemWithComment } from "./library-social-api";
+import { LocalMediaVault } from "./LocalMediaVault";
 
 type LibraryTab = LibraryKind | "PHOTO" | "VIDEO";
 type EditorState = LibraryItem | { id: null; kind: LibraryKind; title: string; content: string };
@@ -79,9 +80,10 @@ function kindSingular(kind: LibraryKind) {
   return kind === "CODE" ? "código" : "loadstring";
 }
 
-export function FilesScreen({ sessionToken, deviceToken }: {
+export function FilesScreen({ sessionToken, deviceToken, profileId }: {
   sessionToken: string;
   deviceToken: string;
+  profileId: string | null;
 }) {
   const [tab, setTab] = useState<LibraryTab>("CODE");
   const [items, setItems] = useState<LibraryItemSummary[]>([]);
@@ -596,11 +598,10 @@ export function FilesScreen({ sessionToken, deviceToken }: {
           ) : null}
         </>
       ) : (
-        <View style={local.mediaPlaceholder}>
-          <View style={local.mediaPlus}><Text style={local.mediaPlusText}>＋</Text></View>
-          <Text style={local.emptyTitle}>{tabLabel(tab)}</Text>
-          <Text style={local.emptyText}>Esta aba está reservada para a próxima etapa de mídia.</Text>
-        </View>
+        <LocalMediaVault
+          kind={tab === "PHOTO" ? "PHOTO" : "VIDEO"}
+          ownerId={profileId || `device:${deviceToken}`}
+        />
       )}
 
       <Modal visible={Boolean(editor)} transparent animationType="slide" onRequestClose={() => !editorBusy && setEditor(null)}>
@@ -789,9 +790,6 @@ const local = StyleSheet.create({
   shareActionIcon: { color: "#D7B5F6", fontSize: 18, fontWeight: "900" },
   loadMoreButton: { minHeight: 48, marginTop: 14, borderRadius: 13, borderWidth: 1, borderColor: "#34343A", backgroundColor: "#0D0D11", alignItems: "center", justifyContent: "center" },
   loadMoreText: { color: "#D7D7DC", fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
-  mediaPlaceholder: { marginTop: 22, minHeight: 260, borderWidth: 1, borderColor: "#25252B", borderRadius: 20, backgroundColor: "#09090C", alignItems: "center", justifyContent: "center", padding: 28 },
-  mediaPlus: { width: 96, height: 96, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", borderColor: "#76509A", backgroundColor: "#110B17", alignItems: "center", justifyContent: "center" },
-  mediaPlusText: { color: "#C792FF", fontSize: 40 },
   modalKeyboard: { flex: 1 },
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.92)", justifyContent: "flex-end" },
   editorModal: { height: "92%", backgroundColor: "#070709", borderTopLeftRadius: 22, borderTopRightRadius: 22, borderWidth: 1, borderColor: "#2B2B30", padding: 16 },
