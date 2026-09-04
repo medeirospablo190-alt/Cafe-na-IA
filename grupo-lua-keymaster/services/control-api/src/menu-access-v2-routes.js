@@ -150,11 +150,10 @@ export function registerMenuAccessV2Routes(app) {
         }
 
         let accessUntil = normalized.access_until ? new Date(normalized.access_until) : null;
-        let accessState = normalized.access_state || "READY";
+        const accessState = normalized.access_state || "READY";
 
         if (accessState === "READY") {
           accessUntil = durationUntil(normalized, now);
-          accessState = "ACTIVE";
           await client.query(
             `UPDATE menu_access_keys
                 SET access_state = 'ACTIVE',
@@ -171,13 +170,18 @@ export function registerMenuAccessV2Routes(app) {
             [normalized.id, now, accessUntil, dHash, dHint]
           );
         } else {
+          // Se um ADM desvinculou o aparelho durante um ciclo ainda ativo,
+          // o próximo uso vincula o novo aparelho sem reiniciar o relógio.
           await client.query(
             `UPDATE menu_access_keys
-                SET use_count = use_count + 1,
+                SET bound_device_hash = COALESCE(bound_device_hash, $2),
+                    bound_device_hint = COALESCE(bound_device_hint, $3),
+                    bound_at = COALESCE(bound_at, $4),
+                    use_count = use_count + 1,
                     last_used_at = NOW(),
                     updated_at = NOW()
               WHERE id = $1`,
-            [normalized.id]
+            [normalized.id, dHash, dHint, now]
           );
         }
 
