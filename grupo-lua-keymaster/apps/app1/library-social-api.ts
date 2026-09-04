@@ -68,10 +68,12 @@ export async function shareLibraryItemWithComment(
   sessionToken: string,
   deviceToken: string,
   id: string,
-  comment: string
+  comment: string,
+  favorite?: boolean
 ) {
   return request<{
     ok: true;
+    favorite: boolean;
     post: {
       id: string;
       post_kind: LibraryKind;
@@ -79,13 +81,13 @@ export async function shareLibraryItemWithComment(
       created_at: string;
       expires_at: string;
     };
-  }>(`/v1/app1/library/${encodeURIComponent(id)}/share`, {
+  }>(`/v1/app1/library/${encodeURIComponent(id)}/share/options`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       ...authHeaders(sessionToken, deviceToken)
     },
-    body: JSON.stringify({ comment })
+    body: JSON.stringify({ comment, ...(favorite === undefined ? {} : { favorite }) })
   });
 }
 

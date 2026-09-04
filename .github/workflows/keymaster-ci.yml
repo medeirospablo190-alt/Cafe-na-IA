@@ -49,7 +49,11 @@ jobs:
           node --check src/server.js
           node --check src/app1-routes.js
           node --check src/app1-library-routes.js
+          node --check src/app1-library-routes-v2.js
+          node --check src/app1-library-hardening-routes.js
+          node --check src/app1-feed-comment.js
           node --check src/menu-routes.js
+          node --check src/keymaster-audit-clear.js
           node --check src/security.js
           node --check src/integrity.js
           node --check src/db.js
