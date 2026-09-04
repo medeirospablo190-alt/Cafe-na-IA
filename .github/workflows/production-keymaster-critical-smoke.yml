@@ -1,0 +1,53 @@
+name: Production Keymaster Critical Smoke
+
+on:
+  push:
+    branches:
+      - production-keymaster-critical-smoke
+    paths:
+      - ".github/workflows/production-keymaster-critical-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      API_BASE: https://grupo-lua-control-api.onrender.com
+
+    steps:
+      - name: Wait for new audit-clear route in production
+        shell: bash
+        run: |
+          set -euo pipefail
+          ok=0
+          for attempt in $(seq 1 60); do
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --max-time 20 \
+              --output "$body" \
+              --write-out '%{http_code}' \
+              --request DELETE \
+              "$API_BASE/v1/keymaster/audit" || true)"
+            echo "Attempt $attempt: HTTP ${status:-curl-error}"
+            cat "$body" || true
+            if [ "$status" = "401" ] && jq -e '.code == "UNAUTHORIZED"' "$body" >/dev/null 2>&1; then
+              rm -f "$body"
+              ok=1
+              break
+            fi
+            rm -f "$body"
+            sleep 10
+          done
+          test "$ok" = "1"
+
+      - name: Confirm public health
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 30 "$API_BASE/v1/health" | jq -e '.ok == true and .service == "GRUPO_LUA_CONTROL_API"' >/dev/null
+
+      - name: Confirm probe used no private credentials
+        run: echo "Only unauthenticated public probes were used."
