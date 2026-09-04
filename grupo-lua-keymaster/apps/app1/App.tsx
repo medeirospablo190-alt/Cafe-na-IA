@@ -90,6 +90,10 @@ function readableError(error: unknown) {
   return "Não foi possível concluir esta operação.";
 }
 
+function sessionIsDefinitelyInvalid(error: unknown) {
+  return error instanceof App1ApiError && (error.status === 401 || error.status === 403);
+}
+
 export default function App() {
   const [booting, setBooting] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -103,7 +107,9 @@ export default function App() {
   const [publicName, setPublicName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
+  const [sessionRecoveryPending, setSessionRecoveryPending] = useState(false);
   const signOutLock = useRef(false);
+  const recoveryLock = useRef(false);
 
   const onboarding = account?.onboarding;
   const authenticated = Boolean(sessionToken && deviceToken && account);
@@ -124,7 +130,7 @@ export default function App() {
         }
       })
       .catch(() => {
-        if (active) setMessage("Não foi possível restaurar a sessão segura deste aparelho.");
+        if (active) setMessage("Não foi possível ler a sessão segura deste aparelho.");
       })
       .finally(() => {
         if (active) setBooting(false);
@@ -139,17 +145,54 @@ export default function App() {
       if (!active) return true;
       setAccount(result.account);
       setSession(result.session);
+      setSessionRecoveryPending(false);
       setMessage(null);
       return true;
     } catch (error) {
-      await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => {});
-      if (active) {
-        setSessionToken(null);
+      if (sessionIsDefinitelyInvalid(error)) {
+        await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => {});
+        if (active) {
+          setSessionToken(null);
+          setSession(null);
+          setAccount(null);
+          setSessionRecoveryPending(false);
+          setMessage("A sessão salva expirou ou foi revogada. Entre novamente para continuar.");
+        }
+      } else if (active) {
+        // Falha de rede/5xx não prova que a sessão de 24 h deixou de existir.
+        // Mantemos o token seguro e oferecemos nova tentativa para evitar deslogar
+        // o usuário apenas porque o Render estava acordando ou a rede oscilou.
         setSession(null);
         setAccount(null);
-        setMessage(readableError(error));
+        setSessionRecoveryPending(true);
+        setMessage(`A sessão continua salva neste aparelho, mas o servidor não pôde confirmá-la agora. ${readableError(error)}`);
       }
       return false;
+    }
+  }
+
+  async function retryStoredSession() {
+    if (!sessionToken || !deviceToken || recoveryLock.current) return;
+    recoveryLock.current = true;
+    setBusy(true);
+    setMessage("Confirmando a sessão salva...");
+    try {
+      await restoreSession(sessionToken, deviceToken, true);
+    } finally {
+      recoveryLock.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function discardStoredSession() {
+    if (recoveryLock.current) return;
+    recoveryLock.current = true;
+    setBusy(true);
+    try {
+      await clearLocalSession("Sessão salva descartada neste aparelho. Faça login novamente para continuar.");
+    } finally {
+      recoveryLock.current = false;
+      setBusy(false);
     }
   }
 
@@ -170,6 +213,7 @@ export default function App() {
       setDeviceToken(issuedDeviceToken);
       setSession({ kind: result.sessionKind, expiresAt: result.expiresAt });
       setAccount(result.account);
+      setSessionRecoveryPending(false);
 
       setLogin("");
       setCredential("");
@@ -212,6 +256,7 @@ export default function App() {
       const result = await confirmPublicName(sessionToken, deviceToken, name);
       setAccount(result.account);
       setSession(result.session);
+      setSessionRecoveryPending(false);
       setPublicName("");
       setTab("home");
     } catch (error) {
@@ -226,6 +271,7 @@ export default function App() {
     setSessionToken(null);
     setSession(null);
     setAccount(null);
+    setSessionRecoveryPending(false);
     setLogin("");
     setCredential("");
     setTermsChecked(false);
@@ -244,7 +290,7 @@ export default function App() {
         "Sessão encerrada no servidor e removida deste aparelho. A autorização do dispositivo foi preservada."
       );
     } catch (error) {
-      if (error instanceof App1ApiError && error.status === 401) {
+      if (sessionIsDefinitelyInvalid(error)) {
         await clearLocalSession("A sessão já não era válida no servidor e foi removida deste aparelho.");
       } else {
         setMessage(
@@ -259,6 +305,16 @@ export default function App() {
   const body = useMemo(() => {
     if (booting) return <BootScreen />;
     if (!API_URL) return <ConfigurationScreen />;
+    if (sessionRecoveryPending && sessionToken && deviceToken) {
+      return (
+        <SessionRecoveryScreen
+          busy={busy}
+          message={message}
+          onRetry={retryStoredSession}
+          onDiscard={discardStoredSession}
+        />
+      );
+    }
     if (!authenticated) {
       return (
         <LoginScreen
@@ -315,6 +371,7 @@ export default function App() {
     onboarding?.publicNameVerified,
     onboarding?.completed,
     appUnlocked,
+    sessionRecoveryPending,
     login,
     credential,
     busy,
@@ -367,6 +424,36 @@ function ConfigurationScreen() {
         <Text style={styles.paragraph}>
           Esta build do App 1 ainda não recebeu o endereço privado da Control API. O aplicativo permanece bloqueado para evitar enviar credenciais ao endereço errado.
         </Text>
+      </View>
+    </View>
+  );
+}
+
+function SessionRecoveryScreen({
+  busy,
+  message,
+  onRetry,
+  onDiscard
+}: {
+  busy: boolean;
+  message: string | null;
+  onRetry: () => void;
+  onDiscard: () => void;
+}) {
+  return (
+    <View style={styles.center}>
+      <Brand />
+      <View style={styles.recoveryCard}>
+        <Text style={styles.eyebrow}>SESSÃO PRESERVADA</Text>
+        <Text style={styles.recoveryTitle}>Não conseguimos confirmar o servidor</Text>
+        <Text style={styles.paragraph}>
+          Sua sessão segura continua salva no aparelho. Ela não foi apagada por causa de uma falha temporária de rede, timeout ou indisponibilidade do servidor.
+        </Text>
+        {message ? <Text style={styles.recoveryMessage}>{message}</Text> : null}
+        <PrimaryButton title={busy ? "CONFIRMANDO..." : "TENTAR NOVAMENTE"} onPress={onRetry} disabled={busy} />
+        <Pressable disabled={busy} style={[styles.discardButton, busy && styles.disabled]} onPress={onDiscard}>
+          <Text style={styles.discardButtonText}>DESCARTAR SESSÃO E FAZER NOVO LOGIN</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -696,6 +783,11 @@ const styles = StyleSheet.create({
   onboardingScroll: { padding: 18, paddingBottom: 36 },
   nameScroll: { flexGrow: 1, justifyContent: "center", padding: 18 },
   loginCard: { borderRadius: 22, padding: 20, backgroundColor: "#09090B", borderWidth: 1, borderColor: "#27272C" },
+  recoveryCard: { width: "100%", maxWidth: 520, borderRadius: 20, padding: 20, backgroundColor: "#0A0A0D", borderWidth: 1, borderColor: "#39303F" },
+  recoveryTitle: { color: "#FFFFFF", fontSize: 22, lineHeight: 28, fontWeight: "900", marginTop: 7, marginBottom: 8 },
+  recoveryMessage: { color: "#C7B5D5", fontSize: 11, lineHeight: 17, marginTop: 12 },
+  discardButton: { minHeight: 48, marginTop: 10, borderRadius: 14, borderWidth: 1, borderColor: "#4A2529", backgroundColor: "#120809", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
+  discardButtonText: { color: "#FF777D", fontSize: 9, fontWeight: "900", textAlign: "center" },
   warningCard: { borderRadius: 18, padding: 18, backgroundColor: "#130708", borderWidth: 1, borderColor: "#542126", marginBottom: 12 },
   warningEyebrow: { color: "#FF5A61", fontSize: 13, fontWeight: "900", letterSpacing: 0.7, lineHeight: 20 },
   termsIntro: { color: "#D0D0D5", fontSize: 13, lineHeight: 20, marginTop: 10 },
