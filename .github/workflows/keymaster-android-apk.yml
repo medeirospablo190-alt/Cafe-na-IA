@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "grupo-lua-keymaster/apps/keymaster/**"
+      - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
       - ".github/workflows/keymaster-android-apk.yml"
 
 permissions:
@@ -40,7 +41,7 @@ jobs:
 
       - name: Install workspace dependencies
         working-directory: grupo-lua-keymaster
-        run: npm install --ignore-scripts
+        run: bash scripts/npm-install-retry.sh
 
       - name: TypeScript check
         working-directory: grupo-lua-keymaster

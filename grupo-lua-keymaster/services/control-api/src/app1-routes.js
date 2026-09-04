@@ -529,10 +529,61 @@ export function registerApp1Routes(app, {
         let boundDevice = activeDevices.find((row) => row.fingerprint === fingerprint) || null;
         let issuedDeviceToken = null;
         let deviceEvent = "EXISTING_DEVICE";
+        const suppliedDeviceTokenHash = device.deviceToken
+          ? tokenHash(`app1-device:${device.deviceToken}`)
+          : "";
+
+        // O token guardado no SecureStore é uma prova mais forte de continuidade
+        // da instalação do que o fingerprint nativo isolado. Em algumas atualizações,
+        // Android ID/IDFV pode mudar mesmo no mesmo aparelho. Se o token do aparelho
+        // continua válido, recuperamos o vínculo ao invés de acusar um "novo celular".
+        if (!boundDevice && suppliedDeviceTokenHash) {
+          const tokenBoundDevice = activeDevices.find((row) =>
+            safeEqualText(suppliedDeviceTokenHash, row.device_token_hash)
+          ) || null;
+          if (tokenBoundDevice) {
+            boundDevice = tokenBoundDevice;
+            deviceEvent = "EXISTING_DEVICE_TOKEN_RECOVERED";
+            const conflicting = allDevices.find((row) => row.id !== boundDevice.id && row.fingerprint === fingerprint);
+            const meta = deviceMetadata(device);
+            if (!conflicting) {
+              boundDevice = (await client.query(
+                `UPDATE app1_devices
+                    SET fingerprint = $2,
+                        platform = $3,
+                        native_device_id_hash = $4,
+                        installation_id_hash = $5,
+                        integrity_key_id = $6,
+                        device_label = COALESCE(NULLIF($7, ''), device_label),
+                        last_seen_at = NOW(),
+                        last_ip_hash = $8
+                  WHERE id = $1
+                  RETURNING *`,
+                [
+                  boundDevice.id,
+                  fingerprint,
+                  device.platform,
+                  meta.nativeDeviceIdHash,
+                  meta.installationIdHash,
+                  device.integrityKeyId || null,
+                  device.deviceLabel || "",
+                  requestIpHash
+                ]
+              )).rows[0];
+            }
+            await audit(client, {
+              actorKind: "APP1_ACCOUNT",
+              actorId: account.id,
+              action: "APP1_DEVICE_IDENTITY_RECOVERED",
+              targetKind: "APP1_DEVICE",
+              targetId: boundDevice.id,
+              metadata: { platform: device.platform, deviceHint: maskHash(fingerprint) }
+            });
+          }
+        }
 
         if (boundDevice) {
-          const suppliedHash = device.deviceToken ? tokenHash(`app1-device:${device.deviceToken}`) : "";
-          if (!suppliedHash || !safeEqualText(suppliedHash, boundDevice.device_token_hash)) {
+          if (!suppliedDeviceTokenHash || !safeEqualText(suppliedDeviceTokenHash, boundDevice.device_token_hash)) {
             const failures = Number(account.failed_device_attempts || 0) + 1;
             const shouldLock = failures >= APP1_MAX_FAILED;
             await client.query(
@@ -866,7 +917,9 @@ export function registerApp1Routes(app, {
 
       const [accountResult, devicesResult, attemptsResult, enrollmentResult] = await Promise.all([
         pool.query(
-          `SELECT id, login, role, status, failed_login_attempts, failed_device_attempts,
+          `SELECT id,
+                  COALESCE(display_name, CASE WHEN role = 'DEV' THEN 'Acesso DEV' ELSE 'Acesso ADM' END) AS name,
+                  role, status, failed_login_attempts, failed_device_attempts,
                   security_locked_at, security_lock_reason, created_at, updated_at
              FROM app1_accounts
             WHERE id = $1 AND status <> 'DELETED'
@@ -957,7 +1010,9 @@ export function registerApp1Routes(app, {
                   security_lock_reason = NULL,
                   updated_at = NOW()
             WHERE id = $1 AND status = 'LOCKED_SECURITY'
-            RETURNING id, login, role, status`,
+            RETURNING id,
+                      COALESCE(display_name, CASE WHEN role = 'DEV' THEN 'Acesso DEV' ELSE 'Acesso ADM' END) AS name,
+                      role, status`,
           [accountId]
         )).rows[0];
         if (!row) return null;

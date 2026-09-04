@@ -14,10 +14,12 @@ const ACTION_LABELS: Record<string, string> = {
   APP1_ACCOUNT_CREATED: "Conta criada",
   APP1_ACCOUNT_SUSPENDED: "Conta suspensa",
   APP1_ACCOUNT_RESTORED: "Conta restabelecida",
-  APP1_CREDENTIAL_ROTATED: "Credencial rotacionada",
+  APP1_CREDENTIAL_ROTATED: "Chave da conta alterada",
+  APP1_CREDENTIAL_REVEALED: "Login e chave visualizados",
   APP1_ACCOUNT_DELETED: "Conta excluída",
   APP1_SESSION_REVOKED: "Sessão revogada",
   APP1_SESSIONS_REVOKED_ALL: "Sessões revogadas",
+  APP1_DEVICE_IDENTITY_RECOVERED: "Identidade do mesmo dispositivo recuperada",
   MENU_CREATED: "Menu cadastrado",
   MENU_UPDATED: "Menu atualizado",
   MENU_SUSPENDED: "Menu suspenso",
@@ -82,7 +84,7 @@ export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
               <Text style={styles.screenTitle}>Histórico protegido</Text>
-              <Text style={styles.muted}>Eventos administrativos registrados pelo servidor, do mais recente para o mais antigo.</Text>
+              <Text style={styles.muted}>Eventos administrativos registrados pelo servidor. Logins privados não aparecem nesta tela.</Text>
             </View>
             <Pressable style={styles.iconAction} onPress={() => load(true)}>
               <Text style={styles.iconActionText}>↻</Text>
@@ -103,8 +105,8 @@ export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }
                     <Text style={styles.auditTime}>{formatDate(item.created_at)}</Text>
                   </View>
                   <Text style={styles.auditMeta}>
-                    Autor: {item.actor_login || item.actor_kind}
-                    {item.target_login ? ` • Alvo: ${item.target_login}` : item.target_kind ? ` • Alvo: ${item.target_kind}` : ""}
+                    Autor: {item.actor_name || item.actor_kind}
+                    {item.target_name ? ` • Alvo: ${item.target_name}` : item.target_kind ? ` • Alvo: ${item.target_kind}` : ""}
                   </Text>
                   {item.action === "KEYMASTER_DEVICE_LOCKED_24H" ? (
                     <Text style={styles.auditDanger}>Bloqueio de segurança aplicado pelo servidor.</Text>

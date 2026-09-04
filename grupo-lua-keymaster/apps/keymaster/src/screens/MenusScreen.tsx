@@ -347,8 +347,8 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
           <Header title="MENUS & CHAVES" onBack={onHome} />
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.screenTitle}>Chaves</Text>
-              <Text style={styles.muted}>Cadastre menus e administre acessos FREE/VIP sem colocar a lista de chaves no código cliente.</Text>
+              <Text style={styles.screenTitle}>Menus e chaves</Text>
+              <Text style={styles.muted}>Cadastre menus e controle acessos FREE/VIP.</Text>
             </View>
             <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
@@ -363,7 +363,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
             autoCorrect={false}
           />
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          <ScrollView style={styles.filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
             {(["ALL", "ACTIVE", "SUSPENDED"] as StatusFilter[]).map((item) => (
               <Pressable key={item} style={[styles.filterChip, statusFilter === item && styles.filterChipActive]} onPress={() => setStatusFilter(item)}>
                 <Text style={[styles.filterChipText, statusFilter === item && styles.filterChipTextActive]}>
@@ -438,7 +438,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalBox, styles.detailModal]}>
             {selected ? (
-              <ScrollView>
+              <ScrollView keyboardShouldPersistTaps="handled">
                 <View style={styles.detailHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.cardTitle}>{selected.name}</Text>
@@ -490,7 +490,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   autoCorrect={false}
                 />
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                <ScrollView style={styles.filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
                   {(["ALL", "ACTIVE", "ENDED"] as SessionFilter[]).map((item) => (
                     <Pressable key={item} style={[styles.filterChip, sessionFilter === item && styles.filterChipActive]} onPress={() => setSessionFilter(item)}>
                       <Text style={[styles.filterChipText, sessionFilter === item && styles.filterChipTextActive]}>
@@ -542,7 +542,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   autoCorrect={false}
                 />
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+                <ScrollView style={styles.filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
                   {(["ALL", "FREE", "VIP", "ACTIVE", "SUSPENDED", "EXPIRED", "REVOKED"] as KeyFilter[]).map((item) => (
                     <Pressable key={item} style={[styles.filterChip, keyFilter === item && styles.filterChipActive]} onPress={() => setKeyFilter(item)}>
                       <Text style={[styles.filterChipText, keyFilter === item && styles.filterChipTextActive]}>

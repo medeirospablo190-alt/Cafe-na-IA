@@ -9,6 +9,7 @@ import {
   deleteAccount,
   listAccounts,
   listAccountSessions,
+  revealAccountCredential,
   revokeAccountSession,
   revokeAllAccountSessions,
   rotateCredential,
@@ -16,13 +17,14 @@ import {
 } from "../api";
 import { BottomNav } from "../components/BottomNav";
 import { Button, Header } from "../components/Common";
-import { CredentialModal } from "../components/CredentialModal";
+import { AccountCredentialModal } from "../components/AccountCredentialModal";
 import { DevAuthorizationModal } from "../components/DevAuthorizationModal";
 import { AccountSecurityModal } from "../components/AccountSecurityModal";
 import { styles } from "../styles";
 
 type RoleFilter = "ALL" | AccountRole;
 type StatusFilter = "ALL" | "ACTIVE" | "LOCKED_SECURITY" | "SUSPENDED";
+type ProtectedCredential = { privateLogin: string; credential: string };
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -44,6 +46,14 @@ function filterLabel(status: StatusFilter) {
   return "SUSPENSAS";
 }
 
+function accountLabel(account?: Account | null) {
+  const name = String(account?.name || "").trim();
+  if (name) return name;
+  const shortId = String(account?.id || "").replace(/-/g, "").slice(0, 4).toUpperCase();
+  const role = account?.role || "ACESSO";
+  return `Acesso ${role}${shortId ? ` ${shortId}` : ""}`;
+}
+
 export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }: {
   session: string;
   onHome: () => void;
@@ -54,13 +64,16 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [createModal, setCreateModal] = useState(false);
+  const [displayName, setDisplayName] = useState("");
   const [login, setLogin] = useState("");
   const [role, setRole] = useState<AccountRole>("ADM");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [revealedCredential, setRevealedCredential] = useState<string | null>(null);
+  const [protectedCredential, setProtectedCredential] = useState<ProtectedCredential | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
+  const [rotateTarget, setRotateTarget] = useState<Account | null>(null);
+  const [revealTarget, setRevealTarget] = useState<Account | null>(null);
   const [detailTarget, setDetailTarget] = useState<Account | null>(null);
   const [securityTarget, setSecurityTarget] = useState<Account | null>(null);
   const [sessions, setSessions] = useState<AccountSession[]>([]);
@@ -97,8 +110,9 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
 
   async function create() {
     try {
-      const result = await createAccount(session, login, role);
-      setRevealedCredential(result.credential);
+      const result = await createAccount(session, displayName.trim(), login.trim(), role);
+      setProtectedCredential({ privateLogin: result.privateLogin, credential: result.credential });
+      setDisplayName("");
       setLogin("");
       setCreateModal(false);
       await refresh();
@@ -107,14 +121,9 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
     }
   }
 
-  async function action(account: Account, kind: "suspend" | "restore" | "rotate") {
+  async function stateActionRequest(account: Account, kind: "suspend" | "restore") {
     try {
-      if (kind === "rotate") {
-        const result = await rotateCredential(session, account.id);
-        setRevealedCredential(result.credential);
-      } else {
-        await setAccountState(session, account.id, kind);
-      }
+      await setAccountState(session, account.id, kind);
       await refresh();
     } catch (error) {
       Alert.alert("Falha", error instanceof Error ? error.message : "Erro desconhecido");
@@ -126,7 +135,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
       setSecurityTarget(account);
       return;
     }
-    action(account, account.status === "ACTIVE" ? "suspend" : "restore").catch(() => {});
+    stateActionRequest(account, account.status === "ACTIVE" ? "suspend" : "restore").catch(() => {});
   }
 
   async function openDetails(account: Account) {
@@ -166,7 +175,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
               <Text style={styles.screenTitle}>Acessos do App 1</Text>
-              <Text style={styles.muted}>Contas, bloqueios, dispositivos e sessões. O servidor continua sendo a autoridade final.</Text>
+              <Text style={styles.muted}>Cada acesso mostra apenas o nome escolhido. Login privado e chave ficam ocultos e exigem confirmação DEV.</Text>
             </View>
             <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
@@ -175,13 +184,13 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
             value={query}
             onChangeText={setQuery}
             style={styles.searchInput}
-            placeholder="Buscar login interno..."
+            placeholder="Buscar nome do acesso..."
             placeholderTextColor="#6D6D73"
             autoCapitalize="none"
             autoCorrect={false}
           />
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          <ScrollView style={styles.filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
             {(["ALL", "ADM", "DEV"] as RoleFilter[]).map((item) => (
               <Pressable key={item} style={[styles.filterChip, roleFilter === item && styles.filterChipActive, item === "DEV" && roleFilter === item && styles.filterChipDev]} onPress={() => setRoleFilter(item)}>
                 <Text style={[styles.filterChipText, roleFilter === item && styles.filterChipTextActive]}>{item === "ALL" ? "TODOS" : item}</Text>
@@ -206,7 +215,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                   <Pressable style={styles.accountTop} onPress={() => openDetails(item)}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.accountTitleRow}>
-                        <Text style={styles.cardTitle}>{item.login}</Text>
+                        <Text style={styles.cardTitle}>{accountLabel(item)}</Text>
                         <Text style={[styles.badge, item.role === "DEV" && styles.badgeDev]}>{item.role}</Text>
                       </View>
                       <Text style={styles.accountMeta}>{item.active_sessions || 0} sessão(ões) ativa(s) • atualizado {formatDate(item.updated_at)}</Text>
@@ -223,19 +232,22 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                     <Pressable style={styles.smallAction} onPress={() => stateAction(item)}>
                       <Text style={styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : item.status === "SUSPENDED" ? "LIBERAR" : "DESBLOQUEAR"}</Text>
                     </Pressable>
-                    <Pressable style={styles.smallAction} onPress={() => action(item, "rotate")}>
+                    <Pressable style={styles.smallAction} onPress={() => setRevealTarget(item)}>
+                      <Text style={styles.smallActionText}>VER / COPIAR</Text>
+                    </Pressable>
+                    <Pressable style={styles.smallAction} onPress={() => setRotateTarget(item)}>
                       <Text style={styles.smallActionText}>NOVA CHAVE</Text>
                     </Pressable>
                   </View>
 
                   <View style={styles.rowGap}>
                     <Pressable style={[styles.smallAction, styles.smallDanger]} onPress={() => {
-                      Alert.alert("Excluir conta", `Excluir ${item.login}? A confirmação final exigirá uma credencial DEV ativa.`, [
+                      Alert.alert("Excluir conta", `Excluir ${accountLabel(item)}? A confirmação final exigirá uma credencial DEV ativa.`, [
                         { text: "Cancelar", style: "cancel" },
                         { text: "Continuar", style: "destructive", onPress: () => setDeleteTarget(item) }
                       ]);
                     }}>
-                      <Text style={styles.smallDangerText}>EXCLUIR LOGIN / ACESSO DEFINITIVAMENTE</Text>
+                      <Text style={styles.smallDangerText}>EXCLUIR ACESSO DEFINITIVAMENTE</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -250,12 +262,29 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>
             <Text style={styles.cardTitle}>Criar acesso do App 1</Text>
-            <TextInput value={login} onChangeText={setLogin} style={styles.input} placeholder="Login administrativo" placeholderTextColor="#666" />
+            <Text style={styles.muted}>Primeiro escolha o nome que ficará visível no Keymaster. O login real fica privado depois da criação.</Text>
+            <TextInput
+              value={displayName}
+              onChangeText={setDisplayName}
+              style={styles.input}
+              placeholder="Nome do acesso (visível no Keymaster)"
+              placeholderTextColor="#666"
+              autoCorrect={false}
+            />
+            <TextInput
+              value={login}
+              onChangeText={setLogin}
+              style={styles.input}
+              placeholder="Login privado"
+              placeholderTextColor="#666"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
             <View style={styles.rowGap}>
               <Pressable style={[styles.halfButton, role === "ADM" && styles.selected]} onPress={() => setRole("ADM")}><Text style={styles.halfButtonText}>ADM</Text></Pressable>
               <Pressable style={[styles.halfButton, role === "DEV" && styles.selectedDev]} onPress={() => setRole("DEV")}><Text style={styles.halfButtonText}>DEV</Text></Pressable>
             </View>
-            <Button title="CRIAR E GERAR CHAVE" onPress={create} disabled={login.trim().length < 2} />
+            <Button title="CRIAR E GERAR CHAVE" onPress={create} disabled={displayName.trim().length < 2 || login.trim().length < 2} />
             <Button title="FECHAR" onPress={() => setCreateModal(false)} secondary />
           </View>
         </View>
@@ -268,7 +297,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               <>
                 <View style={styles.detailHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{detailTarget.login}</Text>
+                    <Text style={styles.cardTitle}>{accountLabel(detailTarget)}</Text>
                     <Text style={[styles.badge, detailTarget.role === "DEV" && styles.badgeDev]}>{detailTarget.role} • {statusLabel(detailTarget.status)}</Text>
                   </View>
                   <Pressable onPress={() => setDetailTarget(null)}><Text style={styles.closeText}>✕</Text></Pressable>
@@ -278,6 +307,8 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>ATUALIZADA</Text><Text style={styles.detailValue}>{formatDate(detailTarget.updated_at)}</Text></View>
                 </View>
 
+                <Button title="VER / COPIAR LOGIN E CHAVE" onPress={() => setRevealTarget(detailTarget)} />
+                <Button title="GERAR NOVA CHAVE • CONFIRMAÇÃO DEV" onPress={() => setRotateTarget(detailTarget)} secondary />
                 <Button title="SEGURANÇA • DISPOSITIVOS • TENTATIVAS" onPress={() => setSecurityTarget(detailTarget)} danger={detailTarget.status === "LOCKED_SECURITY"} />
 
                 <View style={styles.detailSectionRow}>
@@ -314,7 +345,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         </View>
       </Modal>
 
-      <CredentialModal credential={revealedCredential} onClose={() => setRevealedCredential(null)} />
+      <AccountCredentialModal value={protectedCredential} onClose={() => setProtectedCredential(null)} />
 
       <AccountSecurityModal
         visible={Boolean(securityTarget)}
@@ -325,11 +356,53 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
       />
 
       <DevAuthorizationModal
+        visible={Boolean(revealTarget)}
+        session={session}
+        action="REVEAL_APP1_CREDENTIAL"
+        targetId={revealTarget?.id}
+        title={revealTarget ? `Visualizar ${accountLabel(revealTarget)}` : "Visualizar acesso"}
+        onCancel={() => setRevealTarget(null)}
+        onAuthorized={async (authorizationToken) => {
+          if (!revealTarget) return;
+          try {
+            const result = await revealAccountCredential(session, revealTarget.id, authorizationToken);
+            setProtectedCredential({ privateLogin: result.privateLogin, credential: result.credential });
+          } catch (error) {
+            Alert.alert("Chave indisponível", error instanceof Error ? error.message : "Não foi possível visualizar esta chave.");
+          } finally {
+            setRevealTarget(null);
+          }
+        }}
+      />
+
+      <DevAuthorizationModal
+        visible={Boolean(rotateTarget)}
+        session={session}
+        action="ROTATE_APP1_CREDENTIAL"
+        targetId={rotateTarget?.id}
+        title={rotateTarget ? `Gerar nova chave para ${accountLabel(rotateTarget)}` : "Gerar nova chave"}
+        onCancel={() => setRotateTarget(null)}
+        onAuthorized={async (authorizationToken) => {
+          if (!rotateTarget) return;
+          try {
+            const result = await rotateCredential(session, rotateTarget.id, authorizationToken);
+            setProtectedCredential({ privateLogin: result.privateLogin, credential: result.credential });
+            await refresh();
+            if (detailTarget?.id === rotateTarget.id) await reloadSessions(detailTarget);
+          } catch (error) {
+            Alert.alert("Não foi possível gerar", error instanceof Error ? error.message : "O servidor recusou a operação.");
+          } finally {
+            setRotateTarget(null);
+          }
+        }}
+      />
+
+      <DevAuthorizationModal
         visible={Boolean(deleteTarget)}
         session={session}
         action="DELETE_APP1_ACCOUNT"
         targetId={deleteTarget?.id}
-        title={deleteTarget ? `Excluir ${deleteTarget.login}` : "Excluir conta"}
+        title={deleteTarget ? `Excluir ${accountLabel(deleteTarget)}` : "Excluir conta"}
         onCancel={() => setDeleteTarget(null)}
         onAuthorized={async (authorizationToken) => {
           if (!deleteTarget) return;
