@@ -28,6 +28,9 @@ import {
 
 type LibraryTab = LibraryKind | "PHOTO" | "VIDEO";
 
+const PAGE_SIZE = 60;
+const MAX_SELECTION = 500;
+
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
@@ -57,7 +60,10 @@ export function FilesScreen({ sessionToken, deviceToken }: {
 }) {
   const [tab, setTab] = useState<LibraryTab>("CODE");
   const [items, setItems] = useState<LibraryItemSummary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [query, setQuery] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -76,40 +82,68 @@ export function FilesScreen({ sessionToken, deviceToken }: {
   const anySelectedFavorite = selectedItems.some((item) => item.favorite);
   const anySelectedUnfavorite = selectedItems.some((item) => !item.favorite);
 
-  async function reload() {
+  async function reload({ append = false }: { append?: boolean } = {}) {
     const version = ++reloadVersion.current;
     if (!textTab) {
       if (version === reloadVersion.current) {
         setItems([]);
+        setTotal(0);
+        setHasMore(false);
         setLoading(false);
+        setLoadingMore(false);
       }
       return;
     }
 
-    setLoading(true);
-    setMessage(null);
+    const offset = append ? items.length : 0;
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setLoadingMore(false);
+      setMessage(null);
+    }
+
     try {
       const result = await listLibraryItems(sessionToken, deviceToken, {
         kind: tab,
         q: query.trim() || undefined,
-        favorite: favoritesOnly ? true : undefined
+        favorite: favoritesOnly ? true : undefined,
+        limit: PAGE_SIZE,
+        offset
       });
       if (version !== reloadVersion.current) return;
-      setItems(result.items);
-      setSelectedIds((current) => current.filter((id) => result.items.some((item) => item.id === id)));
+
+      if (append) {
+        setItems((current) => {
+          const known = new Set(current.map((item) => item.id));
+          return [...current, ...result.items.filter((item) => !known.has(item.id))];
+        });
+      } else {
+        setItems(result.items);
+        setSelectedIds((current) => current.filter((id) => result.items.some((item) => item.id === id)));
+      }
+      setTotal(result.total);
+      setHasMore(result.hasMore);
     } catch (error) {
       if (version !== reloadVersion.current) return;
       setMessage(error instanceof Error ? error.message : "Não foi possível carregar os arquivos.");
     } finally {
-      if (version === reloadVersion.current) setLoading(false);
+      if (version === reloadVersion.current) {
+        if (append) setLoadingMore(false);
+        else setLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     reloadVersion.current += 1;
     setSelectedIds([]);
+    setLoadingMore(false);
     if (!textTab) {
       setItems([]);
+      setTotal(0);
+      setHasMore(false);
       setLoading(false);
       return;
     }
@@ -123,6 +157,10 @@ export function FilesScreen({ sessionToken, deviceToken }: {
 
   function toggleSelection(id: string) {
     if (mutationBusy) return;
+    if (!selectedIds.includes(id) && selectedIds.length >= MAX_SELECTION) {
+      setMessage(`Você pode selecionar no máximo ${MAX_SELECTION} itens por vez.`);
+      return;
+    }
     setSelectedIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   }
 
@@ -264,7 +302,7 @@ export function FilesScreen({ sessionToken, deviceToken }: {
           <View style={local.summaryRow}>
             <View style={{ flex: 1 }}>
               <Text style={local.title}>{tabLabel(tab)}</Text>
-              <Text style={local.subtitle}>{items.length} salvo(s) no servidor</Text>
+              <Text style={local.subtitle}>{total} salvo(s) no servidor • {items.length} exibido(s)</Text>
             </View>
             <Pressable
               style={[local.addButton, (editorBusy || mutationBusy) && local.disabled]}
@@ -414,6 +452,16 @@ export function FilesScreen({ sessionToken, deviceToken }: {
               </Pressable>
             );
           }) : null}
+
+          {!loading && !editorBusy && hasMore ? (
+            <Pressable
+              style={[local.loadMoreButton, (loadingMore || mutationBusy) && local.disabled]}
+              disabled={loadingMore || mutationBusy}
+              onPress={() => reload({ append: true })}
+            >
+              {loadingMore ? <ActivityIndicator size="small" /> : <Text style={local.loadMoreText}>CARREGAR MAIS</Text>}
+            </Pressable>
+          ) : null}
         </>
       ) : (
         <View style={local.mediaPlaceholder}>
@@ -534,6 +582,8 @@ const local = StyleSheet.create({
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12 },
   action: { flexGrow: 1, minWidth: 65, borderRadius: 9, borderWidth: 1, borderColor: "#2A2A30", paddingVertical: 8, alignItems: "center" },
   actionText: { color: "#CFCFD3", fontWeight: "900", fontSize: 8 },
+  loadMoreButton: { minHeight: 48, marginTop: 14, borderRadius: 13, borderWidth: 1, borderColor: "#34343A", backgroundColor: "#0D0D11", alignItems: "center", justifyContent: "center" },
+  loadMoreText: { color: "#D7D7DC", fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
   mediaPlaceholder: { marginTop: 22, minHeight: 260, borderWidth: 1, borderColor: "#25252B", borderRadius: 20, backgroundColor: "#09090C", alignItems: "center", justifyContent: "center", padding: 28 },
   mediaPlus: { width: 96, height: 96, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", borderColor: "#76509A", backgroundColor: "#110B17", alignItems: "center", justifyContent: "center" },
   mediaPlusText: { color: "#C792FF", fontSize: 40 },
