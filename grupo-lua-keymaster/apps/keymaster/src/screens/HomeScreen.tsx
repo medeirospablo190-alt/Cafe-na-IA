@@ -9,8 +9,6 @@ import { styles } from "../styles";
 type MenuSummary = {
   total: number;
   active: number;
-  free: number;
-  vip: number;
 };
 
 export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, onCritical, onLogout }: {
@@ -37,9 +35,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, 
         if (!mounted) return;
         setMenuSummary({
           total: result.menus.length,
-          active: result.menus.filter((menu) => menu.status === "ACTIVE").length,
-          free: result.menus.reduce((sum, menu) => sum + Number(menu.free_keys || 0), 0),
-          vip: result.menus.reduce((sum, menu) => sum + Number(menu.vip_keys || 0), 0)
+          active: result.menus.filter((menu) => menu.status === "ACTIVE").length
         });
       })
       .catch(() => { if (mounted) setMenuSummary(null); });
@@ -48,7 +44,6 @@ export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, 
   }, [session]);
 
   const maintenance = dashboard?.app1Maintenance;
-  const totalKeys = menuSummary ? menuSummary.free + menuSummary.vip : null;
   const systemLabel = dashboard == null
     ? "VERIFICANDO"
     : maintenance
@@ -94,18 +89,18 @@ export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, 
               <Text style={styles.metricHint}>{menuSummary ? `${menuSummary.active} ativos` : "carregando"}</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>CHAVES</Text>
-              <Text style={styles.metricValue}>{totalKeys ?? "—"}</Text>
-              <Text style={styles.metricHint}>{menuSummary ? `${menuSummary.free} FREE • ${menuSummary.vip} VIP` : "carregando"}</Text>
-            </View>
-            <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>SESSÕES</Text>
               <Text style={styles.metricValue}>{dashboard?.activeSessions ?? "—"}</Text>
               <Text style={styles.metricHint}>App 1 ativas</Text>
             </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>AUDITORIA</Text>
+              <Text style={styles.metricValue}>{dashboard?.auditEvents24h ?? "—"}</Text>
+              <Text style={styles.metricHint}>últimas 24h</Text>
+            </View>
           </View>
 
-          <Text style={styles.small}>{dashboard ? `${dashboard.auditEvents24h} eventos de auditoria nas últimas 24h` : "Carregando auditoria..."}</Text>
+          <Text style={styles.small}>FREE e VIP são administradas exclusivamente dentro do App 1.</Text>
 
           <Text style={styles.section}>ATALHOS</Text>
           <Pressable style={styles.featureCard} onPress={onAccounts}>
@@ -120,8 +115,8 @@ export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, 
           <Pressable style={styles.featureCard} onPress={onMenus}>
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>⌘</Text></View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Menus e chaves</Text>
-              <Text style={styles.muted}>Menus, URLs e autorizações FREE/VIP.</Text>
+              <Text style={styles.cardTitle}>Menus</Text>
+              <Text style={styles.muted}>Cadastro, origem, loadstring e suspensão. As chaves ficam no App 1.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
