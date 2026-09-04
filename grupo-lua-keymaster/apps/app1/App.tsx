@@ -24,6 +24,8 @@ import {
 } from "./api";
 import { API_URL } from "./config";
 import { getApp1DeviceIdentity } from "./device";
+import { FilesScreen } from "./FilesScreen";
+import { SocialFeedScreen } from "./SocialFeedScreen";
 
 const SESSION_KEY = "grupo-lua-app1-session-v1";
 const DEVICE_TOKEN_KEY = "grupo-lua-app1-device-token-v1";
@@ -268,11 +270,13 @@ export default function App() {
         />
       );
     }
-    if (appUnlocked && account && session) {
+    if (appUnlocked && account && session && sessionToken && deviceToken) {
       return (
         <HomeShell
           account={account}
           session={session}
+          sessionToken={sessionToken}
+          deviceToken={deviceToken}
           tab={tab}
           onTab={setTab}
           onSignOut={signOutLocal}
@@ -295,6 +299,8 @@ export default function App() {
     publicName,
     account,
     session,
+    sessionToken,
+    deviceToken,
     tab
   ]);
 
@@ -528,12 +534,16 @@ function NameScreen({
 function HomeShell({
   account,
   session,
+  sessionToken,
+  deviceToken,
   tab,
   onTab,
   onSignOut
 }: {
   account: PublicAccount;
   session: App1Session;
+  sessionToken: string;
+  deviceToken: string;
   tab: Tab;
   onTab: (tab: Tab) => void;
   onSignOut: () => void;
@@ -565,7 +575,7 @@ function HomeShell({
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.appContent}>
+      <ScrollView contentContainerStyle={styles.appContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>GRUPO LUA</Text>
         <Text style={styles.pageTitle}>{pageLabel[tab]}</Text>
 
@@ -579,12 +589,16 @@ function HomeShell({
               </Text>
             </View>
             <View style={styles.grid}>
-              <Feature title="Social" text="Feed, perfis, comentários, curtidas e favoritos." />
+              <Feature title="Social" text="Feed com códigos e loadstrings compartilhados; fotos e recursos sociais entram nas próximas fases." />
               <Feature title="Chaves" text="Menus e chaves da sua conta." />
               <Feature title="Chats" text="Conversas privadas e temporárias." />
-              <Feature title="Arquivos" text="Área de arquivos do aplicativo." />
+              <Feature title="Arquivos" text="Códigos e loadstrings nomeados, editáveis e salvos no servidor." />
             </View>
           </>
+        ) : tab === "files" ? (
+          <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+        ) : tab === "social" ? (
+          <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : (
           <View style={styles.comingCard}>
             <Text style={styles.cardTitle}>{pageLabel[tab]}</Text>
