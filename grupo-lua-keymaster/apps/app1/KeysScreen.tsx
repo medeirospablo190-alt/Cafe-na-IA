@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,6 +69,21 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   const [note, setNote] = useState("");
   const [revealed, setRevealed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const actionLock = useRef(false);
+
+  async function runLocked(action: () => Promise<void>, errorTitle: string) {
+    if (actionLock.current) return;
+    actionLock.current = true;
+    setBusy(true);
+    try {
+      await action();
+    } catch (error) {
+      Alert.alert(errorTitle, errorText(error));
+    } finally {
+      actionLock.current = false;
+      setBusy(false);
+    }
+  }
 
   async function loadMenus() {
     setLoading(true);
@@ -110,6 +125,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   }
 
   function openCreate() {
+    if (actionLock.current) return;
     setKind("FREE");
     setDurationValue("24");
     setVipUnit("DAYS");
@@ -118,14 +134,15 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   }
 
   async function createKey() {
-    if (!selected || busy) return;
-    const numeric = Math.max(1, Math.floor(Number(durationValue || 1)));
+    if (!selected || actionLock.current) return;
+    const parsed = Number(durationValue || 1);
+    const numeric = Number.isFinite(parsed) ? Math.max(1, Math.floor(parsed)) : 1;
     if (kind === "FREE" && numeric > 24) {
       Alert.alert("Limite FREE", "A chave FREE pode liberar no máximo 24 horas por ciclo.");
       return;
     }
-    setBusy(true);
-    try {
+
+    await runLocked(async () => {
       const result = await createApp1MenuKey(sessionToken, deviceToken, selected.id, {
         kind,
         durationValue: vipUnit === "PERMANENT" && kind === "VIP" ? undefined : numeric,
@@ -135,41 +152,52 @@ export function KeysScreen({ sessionToken, deviceToken }: {
       setRevealed(result.key.value);
       setCreateOpen(false);
       await Promise.all([loadKeys(selected), loadMenus()]);
-    } catch (error) {
-      Alert.alert("Não foi possível gerar", errorText(error));
-    } finally {
-      setBusy(false);
-    }
+    }, "Não foi possível gerar");
   }
 
   async function releaseFree(key: App1MenuKey) {
-    setBusy(true);
-    try {
-      await releaseApp1FreeKey(sessionToken, deviceToken, key.id, Math.min(24, Math.max(1, key.duration_value || 24)));
+    await runLocked(async () => {
+      await releaseApp1FreeKey(
+        sessionToken,
+        deviceToken,
+        key.id,
+        Math.min(24, Math.max(1, key.duration_value || 24))
+      );
       await loadKeys();
       Alert.alert("FREE liberada", "Um novo período será iniciado quando a chave for usada novamente no aparelho vinculado.");
-    } catch (error) {
-      Alert.alert("Falha ao liberar", errorText(error));
-    } finally {
-      setBusy(false);
-    }
+    }, "Falha ao liberar");
   }
 
   async function renewVip(key: App1MenuKey) {
-    setBusy(true);
-    try {
+    await runLocked(async () => {
       const unit = key.duration_unit === "MONTHS" || key.duration_unit === "PERMANENT" ? key.duration_unit : "DAYS";
       await configureApp1VipKey(sessionToken, deviceToken, key.id, unit, key.duration_value || 30);
       await loadKeys();
       Alert.alert("VIP renovada", "A validade configurada começará no próximo uso da chave.");
-    } catch (error) {
-      Alert.alert("Falha ao renovar", errorText(error));
-    } finally {
-      setBusy(false);
-    }
+    }, "Falha ao renovar");
   }
 
-  async function resetDevice(key: App1MenuKey) {
+  function requestVipRenewal(key: App1MenuKey) {
+    if (key.access_state === "EXPIRED") {
+      renewVip(key).catch(() => {});
+      return;
+    }
+
+    Alert.alert(
+      "Reiniciar VIP",
+      "As sessões atuais desta chave serão encerradas. A validade configurada recomeçará no próximo uso.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Reiniciar",
+          style: "destructive",
+          onPress: () => { renewVip(key).catch(() => {}); }
+        }
+      ]
+    );
+  }
+
+  function resetDevice(key: App1MenuKey) {
     Alert.alert(
       "Trocar aparelho",
       "As sessões atuais desta chave serão encerradas. O próximo aparelho que usar a chave ficará vinculado a ela.",
@@ -178,16 +206,11 @@ export function KeysScreen({ sessionToken, deviceToken }: {
         {
           text: "Desvincular",
           style: "destructive",
-          onPress: async () => {
-            setBusy(true);
-            try {
+          onPress: () => {
+            runLocked(async () => {
               await resetApp1MenuKeyDevice(sessionToken, deviceToken, key.id);
               await loadKeys();
-            } catch (error) {
-              Alert.alert("Falha", errorText(error));
-            } finally {
-              setBusy(false);
-            }
+            }, "Falha").catch(() => {});
           }
         }
       ]
@@ -195,16 +218,11 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   }
 
   async function toggleKey(key: App1MenuKey) {
-    const action = key.status === "ACTIVE" ? "suspend" : "restore";
-    setBusy(true);
-    try {
+    await runLocked(async () => {
+      const action = key.status === "ACTIVE" ? "suspend" : "restore";
       await setApp1MenuKeyState(sessionToken, deviceToken, key.id, action);
       await loadKeys();
-    } catch (error) {
-      Alert.alert("Falha", errorText(error));
-    } finally {
-      setBusy(false);
-    }
+    }, "Falha");
   }
 
   function revokeKey(key: App1MenuKey) {
@@ -213,16 +231,11 @@ export function KeysScreen({ sessionToken, deviceToken }: {
       {
         text: "Revogar",
         style: "destructive",
-        onPress: async () => {
-          setBusy(true);
-          try {
+        onPress: () => {
+          runLocked(async () => {
             await setApp1MenuKeyState(sessionToken, deviceToken, key.id, "revoke");
             await loadKeys();
-          } catch (error) {
-            Alert.alert("Falha", errorText(error));
-          } finally {
-            setBusy(false);
-          }
+          }, "Falha").catch(() => {});
         }
       }
     ]);
@@ -256,8 +269,8 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   return (
     <View>
       <View style={s.headerRow}>
-        <Pressable style={s.back} onPress={() => { setSelected(null); setKeys([]); }}><Text style={s.backText}>‹ MENUS</Text></Pressable>
-        <Pressable style={s.add} onPress={openCreate}><Text style={s.addText}>＋ CHAVE</Text></Pressable>
+        <Pressable style={s.back} disabled={busy} onPress={() => { setSelected(null); setKeys([]); }}><Text style={s.backText}>‹ MENUS</Text></Pressable>
+        <Pressable style={[s.add, busy && s.disabled]} disabled={busy} onPress={openCreate}><Text style={s.addText}>＋ CHAVE</Text></Pressable>
       </View>
 
       <View style={s.infoCard}>
@@ -285,48 +298,52 @@ export function KeysScreen({ sessionToken, deviceToken }: {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.actions}>
             {key.kind === "FREE" && key.access_state === "WAITING_ADMIN" && key.status !== "REVOKED" ? (
-              <Action label="LIBERAR FREE" onPress={() => releaseFree(key)} />
+              <Action label="LIBERAR FREE" disabled={busy} onPress={() => releaseFree(key)} />
             ) : null}
             {key.kind === "VIP" && key.status !== "REVOKED" ? (
-              <Action label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "REINICIAR VIP"} onPress={() => renewVip(key)} />
+              <Action
+                label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "REINICIAR VIP"}
+                disabled={busy}
+                onPress={() => requestVipRenewal(key)}
+              />
             ) : null}
-            {key.bound_device && key.status !== "REVOKED" ? <Action label="TROCAR CELULAR" onPress={() => resetDevice(key)} /> : null}
-            {key.status !== "REVOKED" ? <Action label={key.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"} onPress={() => toggleKey(key)} /> : null}
-            {key.status !== "REVOKED" ? <Action label="REVOGAR" danger onPress={() => revokeKey(key)} /> : null}
+            {key.bound_device && key.status !== "REVOKED" ? <Action label="TROCAR CELULAR" disabled={busy} onPress={() => resetDevice(key)} /> : null}
+            {key.status !== "REVOKED" ? <Action label={key.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"} disabled={busy} onPress={() => toggleKey(key)} /> : null}
+            {key.status !== "REVOKED" ? <Action label="REVOGAR" danger disabled={busy} onPress={() => revokeKey(key)} /> : null}
           </ScrollView>
         </View>
       ))}
 
-      <Modal visible={createOpen} transparent animationType="fade" onRequestClose={() => setCreateOpen(false)}>
+      <Modal visible={createOpen} transparent animationType="fade" onRequestClose={() => { if (!busy) setCreateOpen(false); }}>
         <View style={s.modalBackdrop}>
           <View style={s.modalBox}>
             <Text style={s.modalTitle}>Gerar chave</Text>
             <View style={s.choiceRow}>
-              <Choice label="FREE" active={kind === "FREE"} onPress={() => { setKind("FREE"); setDurationValue("24"); }} />
-              <Choice label="VIP" active={kind === "VIP"} onPress={() => { setKind("VIP"); setDurationValue("30"); setVipUnit("DAYS"); }} />
+              <Choice label="FREE" active={kind === "FREE"} disabled={busy} onPress={() => { setKind("FREE"); setDurationValue("24"); }} />
+              <Choice label="VIP" active={kind === "VIP"} disabled={busy} onPress={() => { setKind("VIP"); setDurationValue("30"); setVipUnit("DAYS"); }} />
             </View>
 
             {kind === "FREE" ? (
               <>
                 <Text style={s.label}>HORAS DE ACESSO • MÁXIMO 24H</Text>
-                <TextInput value={durationValue} onChangeText={setDurationValue} keyboardType="number-pad" style={s.input} placeholder="24" placeholderTextColor="#666" />
+                <TextInput value={durationValue} editable={!busy} onChangeText={setDurationValue} keyboardType="number-pad" style={s.input} placeholder="24" placeholderTextColor="#666" />
                 <Text style={s.help}>Depois do período, a chave entra em AGUARDA ADM. Somente um ADM/DEV do App 1 pode liberar outro ciclo.</Text>
               </>
             ) : (
               <>
                 <Text style={s.label}>VALIDADE VIP</Text>
                 <View style={s.choiceRow}>
-                  <Choice label="DIAS" active={vipUnit === "DAYS"} onPress={() => setVipUnit("DAYS")} />
-                  <Choice label="MESES" active={vipUnit === "MONTHS"} onPress={() => setVipUnit("MONTHS")} />
-                  <Choice label="PERMANENTE" active={vipUnit === "PERMANENT"} onPress={() => setVipUnit("PERMANENT")} />
+                  <Choice label="DIAS" active={vipUnit === "DAYS"} disabled={busy} onPress={() => setVipUnit("DAYS")} />
+                  <Choice label="MESES" active={vipUnit === "MONTHS"} disabled={busy} onPress={() => setVipUnit("MONTHS")} />
+                  <Choice label="PERMANENTE" active={vipUnit === "PERMANENT"} disabled={busy} onPress={() => setVipUnit("PERMANENT")} />
                 </View>
-                {vipUnit !== "PERMANENT" ? <TextInput value={durationValue} onChangeText={setDurationValue} keyboardType="number-pad" style={s.input} placeholder="30" placeholderTextColor="#666" /> : null}
+                {vipUnit !== "PERMANENT" ? <TextInput value={durationValue} editable={!busy} onChangeText={setDurationValue} keyboardType="number-pad" style={s.input} placeholder="30" placeholderTextColor="#666" /> : null}
               </>
             )}
 
-            <TextInput value={note} onChangeText={setNote} style={s.input} placeholder="Observação opcional" placeholderTextColor="#666" />
-            <Pressable style={[s.primary, busy && { opacity: 0.5 }]} disabled={busy} onPress={createKey}><Text style={s.primaryText}>{busy ? "GERANDO..." : "GERAR CHAVE"}</Text></Pressable>
-            <Pressable style={s.secondary} onPress={() => setCreateOpen(false)}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
+            <TextInput value={note} editable={!busy} onChangeText={setNote} style={s.input} placeholder="Observação opcional" placeholderTextColor="#666" />
+            <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={createKey}><Text style={s.primaryText}>{busy ? "GERANDO..." : "GERAR CHAVE"}</Text></Pressable>
+            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={() => setCreateOpen(false)}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
           </View>
         </View>
       </Modal>
@@ -346,12 +363,38 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   );
 }
 
-function Action({ label, onPress, danger = false }: { label: string; onPress: () => void; danger?: boolean }) {
-  return <Pressable style={[s.action, danger && s.actionDanger]} onPress={onPress}><Text style={[s.actionText, danger && s.dangerText]}>{label}</Text></Pressable>;
+function Action({ label, onPress, danger = false, disabled = false }: {
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      style={[s.action, danger && s.actionDanger, disabled && s.disabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text style={[s.actionText, danger && s.dangerText]}>{label}</Text>
+    </Pressable>
+  );
 }
 
-function Choice({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return <Pressable style={[s.choice, active && s.choiceActive]} onPress={onPress}><Text style={[s.choiceText, active && s.choiceTextActive]}>{label}</Text></Pressable>;
+function Choice({ label, active, onPress, disabled = false }: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      style={[s.choice, active && s.choiceActive, disabled && s.disabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text style={[s.choiceText, active && s.choiceTextActive]}>{label}</Text>
+    </Pressable>
+  );
 }
 
 const s = StyleSheet.create({
@@ -379,6 +422,7 @@ const s = StyleSheet.create({
   actionDanger: { borderColor: "#542126", backgroundColor: "#130708" },
   actionText: { color: "#C5C5CA", fontSize: 8, fontWeight: "900" },
   dangerText: { color: "#FF676E" },
+  disabled: { opacity: 0.45 },
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.82)", alignItems: "center", justifyContent: "center", padding: 18 },
   modalBox: { width: "100%", maxWidth: 520, borderRadius: 20, borderWidth: 1, borderColor: "#303036", backgroundColor: "#09090C", padding: 18 },
   modalTitle: { color: "#FFF", fontSize: 21, fontWeight: "900", marginBottom: 12 },
