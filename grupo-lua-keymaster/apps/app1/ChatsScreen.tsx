@@ -71,6 +71,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
   const mutationLock = useRef(false);
   const conversationVersion = useRef(0);
   const loadedMessageCount = useRef(0);
+  const loadingOlderRef = useRef(false);
 
   function beginMutation() {
     if (mutationLock.current) return false;
@@ -157,7 +158,8 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
   }
 
   async function loadOlderMessages() {
-    if (!selected || loadingOlder || !hasOlderMessages) return;
+    if (!selected || loadingOlderRef.current || !hasOlderMessages) return;
+    loadingOlderRef.current = true;
     setLoadingOlder(true);
     const version = conversationVersion.current;
     const offset = loadedMessageCount.current || messages.length;
@@ -184,6 +186,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
         Alert.alert("Histórico indisponível", error instanceof Error ? error.message : "Não foi possível carregar mensagens mais antigas.");
       }
     } finally {
+      loadingOlderRef.current = false;
       if (mounted.current && version === conversationVersion.current) setLoadingOlder(false);
     }
   }
@@ -286,7 +289,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     mounted.current = true;
     reloadConversations(true).catch(() => {});
     const timer = setInterval(() => {
-      if (!mounted.current || mutationLock.current || loadingOlder) return;
+      if (!mounted.current || mutationLock.current || loadingOlderRef.current) return;
       reloadConversations(false).catch(() => {});
       const current = selected;
       if (current) reloadMessages(current, false, true).catch(() => {});
@@ -296,7 +299,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
       conversationVersion.current += 1;
       clearInterval(timer);
     };
-  }, [sessionToken, deviceToken, selected?.id, loadingOlder]);
+  }, [sessionToken, deviceToken, selected?.id]);
 
   useEffect(() => {
     const q = search.trim();
@@ -330,6 +333,8 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           <Pressable style={s.backButton} onPress={() => {
             conversationVersion.current += 1;
             loadedMessageCount.current = 0;
+            loadingOlderRef.current = false;
+            setLoadingOlder(false);
             setSelected(null);
             setMessages([]);
             setHasOlderMessages(false);
