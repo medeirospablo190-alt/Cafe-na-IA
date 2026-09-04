@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Text, TextInput, View } from "react-native";
 import { authorizeCriticalAction, type CriticalAction } from "../api";
 import { Button } from "./Common";
@@ -24,6 +24,7 @@ export function DevAuthorizationModal({
   const [devLogin, setDevLogin] = useState("");
   const [devCredential, setDevCredential] = useState("");
   const [loading, setLoading] = useState(false);
+  const requestLock = useRef(false);
 
   const safeTitle = useMemo(() => {
     const value = String(title || "").trim();
@@ -33,6 +34,7 @@ export function DevAuthorizationModal({
 
   useEffect(() => {
     if (!visible) {
+      requestLock.current = false;
       setDevLogin("");
       setDevCredential("");
       setLoading(false);
@@ -40,9 +42,10 @@ export function DevAuthorizationModal({
   }, [visible]);
 
   async function confirm() {
-    if (!devLogin.trim() || !devCredential || loading) return;
+    if (!devLogin.trim() || !devCredential || requestLock.current) return;
     const credentialForRequest = devCredential;
     const identityForRequest = devLogin.trim();
+    requestLock.current = true;
     setLoading(true);
 
     let authorizationToken = "";
@@ -51,6 +54,7 @@ export function DevAuthorizationModal({
       authorizationToken = auth.authorizationToken;
     } catch (error) {
       setDevCredential("");
+      requestLock.current = false;
       setLoading(false);
       Alert.alert("Autorização DEV negada", error instanceof Error ? error.message : "Login privado/chave DEV não foram aceitos pelo servidor.");
       return;
@@ -66,13 +70,17 @@ export function DevAuthorizationModal({
         error instanceof Error ? error.message : "A autenticação DEV foi aceita, mas a operação protegida não foi concluída."
       );
     } finally {
+      requestLock.current = false;
       setLoading(false);
     }
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={() => { if (!requestLock.current) onCancel(); }}>
+      <KeyboardAvoidingView
+        style={styles.modalBackdrop}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={[styles.modalBox, styles.devModal]}>
           <Text style={styles.devTag}>DEV • CONFIRMAÇÃO SERVER-SIDE</Text>
           <Text style={styles.cardTitle}>{safeTitle}</Text>
@@ -88,6 +96,8 @@ export function DevAuthorizationModal({
             autoCapitalize="none"
             autoCorrect={false}
             spellCheck={false}
+            editable={!loading}
+            returnKeyType="next"
           />
           <TextInput
             value={devCredential}
@@ -99,6 +109,9 @@ export function DevAuthorizationModal({
             autoCapitalize="none"
             autoCorrect={false}
             spellCheck={false}
+            editable={!loading}
+            returnKeyType="done"
+            onSubmitEditing={() => { confirm().catch(() => {}); }}
           />
           <Button title={loading ? "CONFIRMANDO..." : "AUTORIZAR UMA VEZ"} onPress={confirm} disabled={loading || !devLogin.trim() || !devCredential} danger />
           <Button title="CANCELAR" onPress={onCancel} secondary disabled={loading} />

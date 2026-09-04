@@ -51,7 +51,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
   const systemLabel = dashboard == null
     ? "VERIFICANDO"
     : maintenance
-      ? "MANUTENÇÃO"
+      ? "SUSPENSO"
       : "ONLINE";
 
   return (
@@ -73,7 +73,11 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
               </View>
             </View>
             <Text style={styles.small}>
-              {dashboard == null ? "Confirmando o estado do servidor..." : maintenance ? "Novos acessos do App 1 estão temporariamente bloqueados." : "Servidor disponível e sessão administrativa protegida."}
+              {dashboard == null
+                ? "Confirmando o estado do servidor..."
+                : maintenance
+                  ? "O App 1 está suspenso: novos logins estão bloqueados e as sessões anteriores foram revogadas."
+                  : "Servidor disponível e sessão administrativa protegida."}
             </Text>
           </View>
 
@@ -134,7 +138,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={[styles.featureIcon, styles.featureIconDanger]}><Text style={[styles.featureIconText, styles.redText]}>!</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Área DEV protegida</Text>
-              <Text style={styles.muted}>Manutenção e reinício com reautenticação DEV.</Text>
+              <Text style={styles.muted}>Suspensão global e reinício com reautenticação DEV.</Text>
             </View>
             <Text style={[styles.cardArrow, styles.redText]}>›</Text>
           </Pressable>
