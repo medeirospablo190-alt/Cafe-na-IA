@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Text, TextInput, View } from "react-native";
 import { authorizeCriticalAction, type CriticalAction } from "../api";
 import { Button } from "./Common";
@@ -25,6 +25,12 @@ export function DevAuthorizationModal({
   const [devCredential, setDevCredential] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const safeTitle = useMemo(() => {
+    const value = String(title || "").trim();
+    if (!value || /\b(undefined|null)\b/i.test(value)) return "Confirmar ação protegida";
+    return value;
+  }, [title]);
+
   useEffect(() => {
     if (!visible) {
       setDevLogin("");
@@ -36,9 +42,10 @@ export function DevAuthorizationModal({
   async function confirm() {
     if (!devLogin.trim() || !devCredential || loading) return;
     const credentialForRequest = devCredential;
+    const identityForRequest = devLogin.trim();
     setLoading(true);
     try {
-      const auth = await authorizeCriticalAction(session, action, devLogin, credentialForRequest, targetId);
+      const auth = await authorizeCriticalAction(session, action, identityForRequest, credentialForRequest, targetId);
       setDevCredential("");
       await onAuthorized(auth.authorizationToken);
     } catch (error) {
@@ -54,13 +61,15 @@ export function DevAuthorizationModal({
       <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={[styles.modalBox, styles.devModal]}>
           <Text style={styles.devTag}>DEV • CONFIRMAÇÃO SERVER-SIDE</Text>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.muted}>A credencial abaixo é usada apenas nesta confirmação e é removida do estado local depois da tentativa.</Text>
+          <Text style={styles.cardTitle}>{safeTitle}</Text>
+          <Text style={styles.muted}>
+            Use o nome visível do acesso DEV e a chave DEV. O login privado também é aceito. A chave é removida do estado local depois da tentativa.
+          </Text>
           <TextInput
             value={devLogin}
             onChangeText={setDevLogin}
             style={styles.input}
-            placeholder="Login DEV"
+            placeholder="Nome do acesso DEV"
             placeholderTextColor="#666"
             autoCapitalize="none"
             autoCorrect={false}
@@ -69,7 +78,7 @@ export function DevAuthorizationModal({
             value={devCredential}
             onChangeText={setDevCredential}
             style={styles.input}
-            placeholder="DEV KEY"
+            placeholder="CHAVE DEV"
             placeholderTextColor="#666"
             secureTextEntry
             autoCapitalize="none"
