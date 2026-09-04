@@ -54,7 +54,7 @@ async function jsonRequest(baseUrl, path, { method = "GET", keymasterToken, body
   return { response, data };
 }
 
-test("Keymaster critical DEV flow uses visible label, hides private logins and protects credential reveal/rotation", { skip: !enabled, timeout: 30_000 }, async () => {
+test("Keymaster critical DEV flow hides private logins and requires private DEV login plus credential", { skip: !enabled, timeout: 30_000 }, async () => {
   const db = new pg.Client({
     connectionString: process.env.DATABASE_URL,
     ssl: String(process.env.DATABASE_SSL || "true").toLowerCase() === "true"
@@ -131,13 +131,26 @@ test("Keymaster critical DEV flow uses visible label, hides private logins and p
     assert.equal(Object.hasOwn(listedTarget, "login"), false);
     assert.equal(Object.hasOwn(listedTarget, "privateLogin"), false);
 
-    const wrong = await jsonRequest(baseUrl, "/v1/keymaster/critical/authorize", {
+    const labelOnly = await jsonRequest(baseUrl, "/v1/keymaster/critical/authorize", {
       method: "POST",
       keymasterToken,
       body: {
         action: "REVEAL_APP1_CREDENTIAL",
         targetId: createdAccountId,
         devLogin: devLabel,
+        devCredential: devKey
+      }
+    });
+    assert.equal(labelOnly.response.status, 403);
+    assert.equal(labelOnly.data.code, "INVALID_DEV_CREDENTIAL");
+
+    const wrong = await jsonRequest(baseUrl, "/v1/keymaster/critical/authorize", {
+      method: "POST",
+      keymasterToken,
+      body: {
+        action: "REVEAL_APP1_CREDENTIAL",
+        targetId: createdAccountId,
+        devLogin,
         devCredential: `${devKey}-wrong`
       }
     });
@@ -150,7 +163,7 @@ test("Keymaster critical DEV flow uses visible label, hides private logins and p
       body: {
         action: "REVEAL_APP1_CREDENTIAL",
         targetId: createdAccountId,
-        devLogin: devLabel,
+        devLogin,
         devCredential: devKey
       }
     });
@@ -182,7 +195,7 @@ test("Keymaster critical DEV flow uses visible label, hides private logins and p
       body: {
         action: "ROTATE_APP1_CREDENTIAL",
         targetId: createdAccountId,
-        devLogin: devLabel,
+        devLogin,
         devCredential: devKey
       }
     });
