@@ -60,21 +60,11 @@ jobs:
               text = text.replace(anchor, replacement, 1)
 
           server.write_text(text)
-
-          ci = Path('.github/workflows/keymaster-ci.yml')
-          ci_text = ci.read_text()
-          if 'node --check src/app1-library-routes.js' not in ci_text:
-              ci_text = ci_text.replace(
-                  'node --check src/app1-routes.js\n',
-                  'node --check src/app1-routes.js\n          node --check src/app1-library-routes.js\n',
-                  1
-              )
-          ci.write_text(ci_text)
           PY
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add grupo-lua-keymaster/services/control-api/src/server.js .github/workflows/keymaster-ci.yml
+          git add grupo-lua-keymaster/services/control-api/src/server.js
           if git diff --cached --quiet; then
             echo "Integration already applied."
             exit 0
