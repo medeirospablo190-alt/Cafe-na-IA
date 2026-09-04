@@ -46,6 +46,14 @@ function filterLabel(status: StatusFilter) {
   return "SUSPENSAS";
 }
 
+function accountLabel(account?: Account | null) {
+  const name = String(account?.name || "").trim();
+  if (name) return name;
+  const shortId = String(account?.id || "").replace(/-/g, "").slice(0, 4).toUpperCase();
+  const role = account?.role || "ACESSO";
+  return `Acesso ${role}${shortId ? ` ${shortId}` : ""}`;
+}
+
 export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }: {
   session: string;
   onHome: () => void;
@@ -167,7 +175,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
               <Text style={styles.screenTitle}>Acessos do App 1</Text>
-              <Text style={styles.muted}>Os nomes abaixo são apenas rótulos. Login privado e chave ficam ocultos e exigem confirmação DEV.</Text>
+              <Text style={styles.muted}>Cada acesso mostra apenas o nome escolhido. Login privado e chave ficam ocultos e exigem confirmação DEV.</Text>
             </View>
             <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
@@ -207,7 +215,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                   <Pressable style={styles.accountTop} onPress={() => openDetails(item)}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.accountTitleRow}>
-                        <Text style={styles.cardTitle}>{item.name}</Text>
+                        <Text style={styles.cardTitle}>{accountLabel(item)}</Text>
                         <Text style={[styles.badge, item.role === "DEV" && styles.badgeDev]}>{item.role}</Text>
                       </View>
                       <Text style={styles.accountMeta}>{item.active_sessions || 0} sessão(ões) ativa(s) • atualizado {formatDate(item.updated_at)}</Text>
@@ -234,7 +242,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
 
                   <View style={styles.rowGap}>
                     <Pressable style={[styles.smallAction, styles.smallDanger]} onPress={() => {
-                      Alert.alert("Excluir conta", `Excluir ${item.name}? A confirmação final exigirá uma credencial DEV ativa.`, [
+                      Alert.alert("Excluir conta", `Excluir ${accountLabel(item)}? A confirmação final exigirá uma credencial DEV ativa.`, [
                         { text: "Cancelar", style: "cancel" },
                         { text: "Continuar", style: "destructive", onPress: () => setDeleteTarget(item) }
                       ]);
@@ -289,7 +297,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               <>
                 <View style={styles.detailHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{detailTarget.name}</Text>
+                    <Text style={styles.cardTitle}>{accountLabel(detailTarget)}</Text>
                     <Text style={[styles.badge, detailTarget.role === "DEV" && styles.badgeDev]}>{detailTarget.role} • {statusLabel(detailTarget.status)}</Text>
                   </View>
                   <Pressable onPress={() => setDetailTarget(null)}><Text style={styles.closeText}>✕</Text></Pressable>
@@ -352,7 +360,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         session={session}
         action="REVEAL_APP1_CREDENTIAL"
         targetId={revealTarget?.id}
-        title={revealTarget ? `Visualizar ${revealTarget.name}` : "Visualizar acesso"}
+        title={revealTarget ? `Visualizar ${accountLabel(revealTarget)}` : "Visualizar acesso"}
         onCancel={() => setRevealTarget(null)}
         onAuthorized={async (authorizationToken) => {
           if (!revealTarget) return;
@@ -372,7 +380,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         session={session}
         action="ROTATE_APP1_CREDENTIAL"
         targetId={rotateTarget?.id}
-        title={rotateTarget ? `Gerar nova chave para ${rotateTarget.name}` : "Gerar nova chave"}
+        title={rotateTarget ? `Gerar nova chave para ${accountLabel(rotateTarget)}` : "Gerar nova chave"}
         onCancel={() => setRotateTarget(null)}
         onAuthorized={async (authorizationToken) => {
           if (!rotateTarget) return;
@@ -394,7 +402,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         session={session}
         action="DELETE_APP1_ACCOUNT"
         targetId={deleteTarget?.id}
-        title={deleteTarget ? `Excluir ${deleteTarget.name}` : "Excluir conta"}
+        title={deleteTarget ? `Excluir ${accountLabel(deleteTarget)}` : "Excluir conta"}
         onCancel={() => setDeleteTarget(null)}
         onAuthorized={async (authorizationToken) => {
           if (!deleteTarget) return;
