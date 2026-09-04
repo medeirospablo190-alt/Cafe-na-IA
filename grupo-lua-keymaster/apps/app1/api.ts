@@ -44,6 +44,7 @@ export type FeedPost = {
   id: string;
   kind: LibraryKind;
   createdAt: string;
+  expiresAt: string;
   author: {
     profileId: string | null;
     publicName: string;
@@ -52,6 +53,8 @@ export type FeedPost = {
     id: string;
     title: string;
     content: string;
+    contentBytes: number;
+    truncated: boolean;
   };
 };
 
@@ -239,7 +242,7 @@ export async function shareLibraryItem(sessionToken: string, deviceToken: string
     method: "POST",
     headers: authHeaders(sessionToken, deviceToken)
   });
-  return parseResponse<{ ok: true; post: { id: string; post_kind: LibraryKind; created_at: string } }>(response);
+  return parseResponse<{ ok: true; post: { id: string; post_kind: LibraryKind; created_at: string; expires_at: string } }>(response);
 }
 
 export async function listFeedPosts(sessionToken: string, deviceToken: string) {
@@ -247,4 +250,11 @@ export async function listFeedPosts(sessionToken: string, deviceToken: string) {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{ ok: true; posts: FeedPost[] }>(response);
+}
+
+export async function getFeedPost(sessionToken: string, deviceToken: string, id: string) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/feed/${encodeURIComponent(id)}`, {
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; post: FeedPost }>(response);
 }
