@@ -137,36 +137,24 @@ async function createCriticalAuthorization({ sessionId, action, targetId, devLog
   const scope = criticalScope(action, targetId);
   if (!scope) return { error: "INVALID_CRITICAL_ACTION" };
 
-  const identity = normalizeLogin(devLogin);
-  if (!identity || !devCredential) return { error: "DEV_REAUTH_REQUIRED" };
+  const privateLogin = normalizeLogin(devLogin);
+  if (!privateLogin || !devCredential) return { error: "DEV_REAUTH_REQUIRED" };
 
-  // O Keymaster mostra somente o nome/rótulo administrativo da conta. Para
-  // evitar obrigar o operador a revelar ou memorizar o login privado, a
-  // reautenticação aceita tanto o nome visível quanto o login privado.
-  // Se houver nomes repetidos, a própria chave DEV seleciona a conta correta.
-  const candidates = (await pool.query(
+  // Ações críticas exigem os dois dados privados da conta DEV: login e chave.
+  // O nome/rótulo visível é apenas administrativo e nunca substitui o login.
+  const dev = (await pool.query(
     `SELECT id, login, display_name, role, status, credential_hash
        FROM app1_accounts
       WHERE role = 'DEV'
         AND status = 'ACTIVE'
-        AND (
-          login = $1
-          OR LOWER(COALESCE(display_name, '')) = LOWER($1)
-        )
-      ORDER BY CASE WHEN login = $1 THEN 0 ELSE 1 END, id
-      LIMIT 10`,
-    [identity]
-  )).rows;
+        AND login = $1
+      LIMIT 1`,
+    [privateLogin]
+  )).rows[0];
 
-  let dev = null;
-  for (const candidate of candidates) {
-    if (await verifySecret(devCredential, candidate.credential_hash)) {
-      dev = candidate;
-      break;
-    }
+  if (!dev || !(await verifySecret(devCredential, dev.credential_hash))) {
+    return { error: "INVALID_DEV_CREDENTIAL" };
   }
-
-  if (!dev) return { error: "INVALID_DEV_CREDENTIAL" };
 
   const token = randomToken(48);
   const id = randomId();
@@ -522,7 +510,7 @@ app.post("/v1/keymaster/critical/authorize", requireKeymaster, async (req, res, 
       devCredential
     });
     if (result.error === "INVALID_CRITICAL_ACTION") return sendError(res, 400, result.error, "Ação crítica inválida.");
-    if (result.error === "DEV_REAUTH_REQUIRED") return sendError(res, 400, result.error, "Nome/login DEV e credencial DEV são obrigatórios.");
+    if (result.error === "DEV_REAUTH_REQUIRED") return sendError(res, 400, result.error, "Login privado DEV e credencial DEV são obrigatórios.");
     if (result.error === "INVALID_DEV_CREDENTIAL") return sendError(res, 403, result.error, "Reautenticação DEV inválida ou conta DEV indisponível.");
     res.json({ ok: true, authorizationToken: result.token, expiresAt: result.expiresAt, scope: result.scope, dev: result.dev });
   } catch (error) { next(error); }
