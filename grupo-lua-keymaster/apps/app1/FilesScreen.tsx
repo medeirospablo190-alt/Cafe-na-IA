@@ -72,6 +72,7 @@ export function FilesScreen({ sessionToken, deviceToken }: {
   const [mutationBusy, setMutationBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const reloadVersion = useRef(0);
+  const suppressPressUntil = useRef(0);
 
   const textTab = tab === "CODE" || tab === "LOADSTRING";
   const selectedItems = useMemo(
@@ -148,7 +149,7 @@ export function FilesScreen({ sessionToken, deviceToken }: {
       return;
     }
     setLoading(true);
-    const timer = setTimeout(() => reload().catch(() => {}), 180);
+    const timer = setTimeout(() => reload().catch(() => {}), 280);
     return () => {
       clearTimeout(timer);
       reloadVersion.current += 1;
@@ -162,6 +163,16 @@ export function FilesScreen({ sessionToken, deviceToken }: {
       return;
     }
     setSelectedIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
+
+  function handleLongPress(id: string) {
+    suppressPressUntil.current = Date.now() + 650;
+    toggleSelection(id);
+  }
+
+  function handleItemPress(item: LibraryItemSummary) {
+    if (Date.now() < suppressPressUntil.current) return;
+    openItem(item).catch(() => {});
   }
 
   async function openItem(item: LibraryItemSummary) {
@@ -401,8 +412,8 @@ export function FilesScreen({ sessionToken, deviceToken }: {
                 key={item.id}
                 style={[local.itemCard, selected && local.itemSelected, mutationBusy && local.disabled]}
                 disabled={mutationBusy}
-                onPress={() => openItem(item)}
-                onLongPress={() => toggleSelection(item.id)}
+                onPress={() => handleItemPress(item)}
+                onLongPress={() => handleLongPress(item.id)}
                 delayLongPress={320}
               >
                 <View style={local.itemHeader}>
