@@ -3,6 +3,7 @@ import type { App1DeviceIdentity } from "./device";
 
 export type App1Role = "ADM" | "DEV";
 export type SessionKind = "PROVISIONAL" | "FULL";
+export type LibraryKind = "CODE" | "LOADSTRING";
 
 export type OnboardingState = {
   completed: boolean;
@@ -21,6 +22,37 @@ export type PublicAccount = {
 export type App1Session = {
   kind: SessionKind;
   expiresAt: string;
+};
+
+export type LibraryItemSummary = {
+  id: string;
+  kind: LibraryKind;
+  title: string;
+  favorite: boolean;
+  preview: string;
+  contentBytes: number;
+  createdAt: string;
+  updatedAt: string;
+  sharedCount: number;
+};
+
+export type LibraryItem = LibraryItemSummary & {
+  content: string;
+};
+
+export type FeedPost = {
+  id: string;
+  kind: LibraryKind;
+  createdAt: string;
+  author: {
+    profileId: string | null;
+    publicName: string;
+  };
+  item: {
+    id: string;
+    title: string;
+    content: string;
+  };
 };
 
 export class App1ApiError extends Error {
@@ -127,4 +159,92 @@ export async function confirmPublicName(
     account: PublicAccount;
     session: App1Session;
   }>(response);
+}
+
+export async function listLibraryItems(
+  sessionToken: string,
+  deviceToken: string,
+  options: { kind?: LibraryKind; q?: string; favorite?: boolean } = {}
+) {
+  const params = new URLSearchParams();
+  if (options.kind) params.set("kind", options.kind);
+  if (options.q) params.set("q", options.q);
+  if (options.favorite !== undefined) params.set("favorite", String(options.favorite));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library${suffix}`, {
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; items: LibraryItemSummary[] }>(response);
+}
+
+export async function getLibraryItem(sessionToken: string, deviceToken: string, id: string) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; item: LibraryItem }>(response);
+}
+
+export async function createLibraryItem(
+  sessionToken: string,
+  deviceToken: string,
+  input: { kind: LibraryKind; title: string; content: string }
+) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+    body: JSON.stringify(input)
+  });
+  return parseResponse<{ ok: true; item: LibraryItem }>(response);
+}
+
+export async function updateLibraryItem(
+  sessionToken: string,
+  deviceToken: string,
+  id: string,
+  input: { title?: string; content?: string }
+) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+    body: JSON.stringify(input)
+  });
+  return parseResponse<{ ok: true; item: LibraryItem }>(response);
+}
+
+export async function setLibraryFavorite(
+  sessionToken: string,
+  deviceToken: string,
+  ids: string[],
+  favorite: boolean
+) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library/bulk/favorite`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+    body: JSON.stringify({ ids, favorite })
+  });
+  return parseResponse<{ ok: true; updatedCount: number }>(response);
+}
+
+export async function deleteLibraryItems(sessionToken: string, deviceToken: string, ids: string[]) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library/bulk/delete`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+    body: JSON.stringify({ ids })
+  });
+  return parseResponse<{ ok: true; deletedCount: number }>(response);
+}
+
+export async function shareLibraryItem(sessionToken: string, deviceToken: string, id: string) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}/share`, {
+    method: "POST",
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; post: { id: string; post_kind: LibraryKind; created_at: string } }>(response);
+}
+
+export async function listFeedPosts(sessionToken: string, deviceToken: string) {
+  const response = await fetch(`${requireApiUrl()}/v1/app1/feed`, {
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; posts: FeedPost[] }>(response);
 }
