@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -96,30 +96,59 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionQuery, setSessionQuery] = useState("");
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>("ALL");
+  const refreshVersion = useRef(0);
+  const keysVersion = useRef(0);
+  const sessionsVersion = useRef(0);
+  const mounted = useRef(true);
 
   async function refresh() {
+    const version = ++refreshVersion.current;
     setLoading(true);
     try {
       const result = await listManagedMenus(session, {
         q: query || undefined,
         status: statusFilter === "ALL" ? undefined : statusFilter
       });
+      if (!mounted.current || version !== refreshVersion.current) return;
       setMenus(result.menus);
       if (selected) {
         const updated = result.menus.find((item) => item.id === selected.id);
         if (updated) setSelected(updated);
       }
     } catch (error) {
-      Alert.alert("Falha ao carregar menus", error instanceof Error ? error.message : "Erro desconhecido");
+      if (mounted.current && version === refreshVersion.current) {
+        Alert.alert("Falha ao carregar menus", error instanceof Error ? error.message : "Erro desconhecido");
+      }
     } finally {
-      setLoading(false);
+      if (mounted.current && version === refreshVersion.current) setLoading(false);
     }
   }
 
   useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      refreshVersion.current += 1;
+      keysVersion.current += 1;
+      sessionsVersion.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => refresh().catch(() => {}), 250);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      refreshVersion.current += 1;
+    };
   }, [session, query, statusFilter]);
+
+  function closeMenu() {
+    keysVersion.current += 1;
+    sessionsVersion.current += 1;
+    setKeysLoading(false);
+    setSessionsLoading(false);
+    setSelected(null);
+  }
 
   async function create() {
     try {
@@ -145,26 +174,34 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
   }
 
   async function reloadKeys(menu: ManagedMenu) {
+    const version = ++keysVersion.current;
     setKeysLoading(true);
     try {
-      setKeys((await listMenuAccessKeys(session, menu.id)).keys);
+      const result = await listMenuAccessKeys(session, menu.id);
+      if (!mounted.current || version !== keysVersion.current) return;
+      setKeys(result.keys);
     } catch (error) {
+      if (!mounted.current || version !== keysVersion.current) return;
       setKeys([]);
       Alert.alert("Chaves indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
-      setKeysLoading(false);
+      if (mounted.current && version === keysVersion.current) setKeysLoading(false);
     }
   }
 
   async function reloadAccessSessions(menu: ManagedMenu) {
+    const version = ++sessionsVersion.current;
     setSessionsLoading(true);
     try {
-      setAccessSessions((await listMenuAccessSessions(session, menu.id)).sessions);
+      const result = await listMenuAccessSessions(session, menu.id);
+      if (!mounted.current || version !== sessionsVersion.current) return;
+      setAccessSessions(result.sessions);
     } catch (error) {
+      if (!mounted.current || version !== sessionsVersion.current) return;
       setAccessSessions([]);
       Alert.alert("Acessos indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
-      setSessionsLoading(false);
+      if (mounted.current && version === sessionsVersion.current) setSessionsLoading(false);
     }
   }
 
@@ -188,7 +225,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
       const result = await setManagedMenuState(session, menu.id, action);
       if (selected?.id === menu.id) {
         setSelected(result.menu);
-        await Promise.all([reloadKeys(menu), reloadAccessSessions(menu)]);
+        await Promise.all([reloadKeys(result.menu), reloadAccessSessions(result.menu)]);
       }
       await refresh();
     } catch (error) {
@@ -434,7 +471,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
         </View>
       </Modal>
 
-      <Modal visible={Boolean(selected)} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
+      <Modal visible={Boolean(selected)} transparent animationType="slide" onRequestClose={closeMenu}>
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalBox, styles.detailModal]}>
             {selected ? (
@@ -444,7 +481,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                     <Text style={styles.cardTitle}>{selected.name}</Text>
                     <Text style={styles.accountMeta}>{selected.public_id} • {selected.status}</Text>
                   </View>
-                  <Pressable onPress={() => setSelected(null)}><Text style={styles.closeText}>✕</Text></Pressable>
+                  <Pressable onPress={closeMenu}><Text style={styles.closeText}>✕</Text></Pressable>
                 </View>
 
                 <View style={styles.detailGrid}>
@@ -650,7 +687,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
           const targetName = deleteTarget.name;
           const result = await deleteManagedMenu(session, deleteTarget.id, authorizationToken);
           setDeleteTarget(null);
-          setSelected(null);
+          closeMenu();
           setKeys([]);
           setAccessSessions([]);
           await refresh();
