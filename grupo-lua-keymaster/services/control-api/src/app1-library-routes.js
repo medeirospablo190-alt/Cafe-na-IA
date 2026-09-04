@@ -5,7 +5,11 @@ import { randomId, tokenHash } from "./security.js";
 const ALLOWED_KINDS = new Set(["CODE", "LOADSTRING"]);
 const TITLE_MAX = 120;
 const CONTENT_MAX_BYTES = 1_000_000;
-const BULK_MAX = 100;
+const BULK_MAX = 500;
+const LIBRARY_LIST_MAX = 500;
+const LIBRARY_PREVIEW_CHARS = 220;
+const FEED_LIST_MAX = 50;
+const FEED_PREVIEW_CHARS = 4_000;
 
 function sendError(res, status, code, message, extra = {}) {
   return res.status(status).json({ ok: false, code, message, ...extra });
@@ -73,21 +77,26 @@ function validateContent(value) {
 
 function parseIds(value) {
   if (!Array.isArray(value)) return [];
-  return [...new Set(value.map((item) => String(item || "").trim()).filter(Boolean))].slice(0, BULK_MAX);
+  return [...new Set(value.map((item) => String(item || "").trim()).filter(Boolean))];
 }
 
 function summaryRow(row) {
+  const source = row.preview_text ?? row.text_content ?? "";
   return {
     id: row.id,
     kind: row.kind,
     title: row.title,
     favorite: Boolean(row.favorite),
-    preview: String(row.text_content || "").slice(0, 220),
+    preview: String(source).slice(0, LIBRARY_PREVIEW_CHARS),
     contentBytes: Number(row.content_bytes || Buffer.byteLength(String(row.text_content || ""), "utf8")),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     sharedCount: Number(row.shared_count || 0)
   };
+}
+
+async function purgeExpiredFeedPosts(client = pool) {
+  await client.query(`DELETE FROM app1_feed_posts WHERE expires_at <= NOW()`);
 }
 
 export function registerApp1LibraryRoutes(app) {
@@ -114,7 +123,9 @@ export function registerApp1LibraryRoutes(app) {
       }
 
       const { rows } = await pool.query(
-        `SELECT i.id, i.kind, i.title, i.favorite, i.text_content, i.created_at, i.updated_at,
+        `SELECT i.id, i.kind, i.title, i.favorite,
+                LEFT(i.text_content, ${LIBRARY_PREVIEW_CHARS}) AS preview_text,
+                i.created_at, i.updated_at,
                 OCTET_LENGTH(i.text_content)::int AS content_bytes,
                 COUNT(p.id) FILTER (WHERE p.expires_at > NOW())::int AS shared_count
            FROM app1_library_items i
@@ -122,7 +133,7 @@ export function registerApp1LibraryRoutes(app) {
           WHERE ${clauses.join(" AND ")}
           GROUP BY i.id
           ORDER BY i.favorite DESC, i.updated_at DESC
-          LIMIT 500`,
+          LIMIT ${LIBRARY_LIST_MAX}`,
         values
       );
       res.json({ ok: true, items: rows.map(summaryRow) });
@@ -155,7 +166,7 @@ export function registerApp1LibraryRoutes(app) {
           action: "APP1_LIBRARY_ITEM_CREATED",
           targetKind: "APP1_LIBRARY_ITEM",
           targetId: id,
-          metadata: { kind, title }
+          metadata: { kind }
         });
         return created;
       });
@@ -169,8 +180,10 @@ export function registerApp1LibraryRoutes(app) {
     try {
       const accountId = req.app1LibrarySession.account_id;
       const ids = parseIds(req.body?.ids);
-      const favorite = Boolean(req.body?.favorite);
       if (!ids.length) return sendError(res, 400, "IDS_REQUIRED", "Selecione pelo menos um item.");
+      if (ids.length > BULK_MAX) return sendError(res, 400, "TOO_MANY_IDS", `Selecione no máximo ${BULK_MAX} itens por vez.`);
+      if (typeof req.body?.favorite !== "boolean") return sendError(res, 400, "INVALID_FAVORITE", "Informe favorite como true ou false.");
+      const favorite = req.body.favorite;
       const result = await withTransaction(async (client) => {
         const updated = await client.query(
           `UPDATE app1_library_items
@@ -200,6 +213,7 @@ export function registerApp1LibraryRoutes(app) {
       const accountId = req.app1LibrarySession.account_id;
       const ids = parseIds(req.body?.ids);
       if (!ids.length) return sendError(res, 400, "IDS_REQUIRED", "Selecione pelo menos um item.");
+      if (ids.length > BULK_MAX) return sendError(res, 400, "TOO_MANY_IDS", `Selecione no máximo ${BULK_MAX} itens por vez.`);
       const result = await withTransaction(async (client) => {
         const deleted = await client.query(
           `DELETE FROM app1_library_items
@@ -284,6 +298,7 @@ export function registerApp1LibraryRoutes(app) {
       const accountId = req.app1LibrarySession.account_id;
       const id = String(req.params.id);
       const result = await withTransaction(async (client) => {
+        await purgeExpiredFeedPosts(client);
         const item = (await client.query(
           `SELECT id, kind, title, text_content FROM app1_library_items
             WHERE id = $1 AND account_id = $2
@@ -305,7 +320,7 @@ export function registerApp1LibraryRoutes(app) {
           action: "APP1_LIBRARY_ITEM_SHARED_TO_FEED",
           targetKind: "APP1_FEED_POST",
           targetId: postId,
-          metadata: { itemId: item.id, kind: item.kind, title: item.title, expiresAt: post.expires_at }
+          metadata: { itemId: item.id, kind: item.kind, expiresAt: post.expires_at }
         });
         return post;
       });
@@ -318,15 +333,18 @@ export function registerApp1LibraryRoutes(app) {
 
   app.get("/v1/app1/feed", requireFullSession, async (_req, res, next) => {
     try {
+      await purgeExpiredFeedPosts();
       const { rows } = await pool.query(
         `SELECT p.id, p.post_kind, p.created_at, p.expires_at,
-                p.library_item_id, p.snapshot_title, p.snapshot_text_content,
+                p.library_item_id, p.snapshot_title,
+                LEFT(p.snapshot_text_content, ${FEED_PREVIEW_CHARS}) AS preview_content,
+                OCTET_LENGTH(p.snapshot_text_content)::int AS content_bytes,
                 a.public_profile_id, a.public_name
            FROM app1_feed_posts p
            JOIN app1_accounts a ON a.id = p.account_id AND a.status <> 'DELETED'
           WHERE p.expires_at > NOW()
           ORDER BY p.created_at DESC
-          LIMIT 100`
+          LIMIT ${FEED_LIST_MAX}`
       );
       res.json({
         ok: true,
@@ -336,8 +354,49 @@ export function registerApp1LibraryRoutes(app) {
           createdAt: row.created_at,
           expiresAt: row.expires_at,
           author: { profileId: row.public_profile_id, publicName: row.public_name || "Perfil" },
-          item: { id: row.library_item_id, title: row.snapshot_title, content: row.snapshot_text_content }
+          item: {
+            id: row.library_item_id,
+            title: row.snapshot_title,
+            content: row.preview_content,
+            contentBytes: Number(row.content_bytes || 0),
+            truncated: Number(row.content_bytes || 0) > Buffer.byteLength(String(row.preview_content || ""), "utf8")
+          }
         }))
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/v1/app1/feed/:id", requireFullSession, async (req, res, next) => {
+    try {
+      const row = (await pool.query(
+        `SELECT p.id, p.post_kind, p.created_at, p.expires_at,
+                p.library_item_id, p.snapshot_title, p.snapshot_text_content,
+                a.public_profile_id, a.public_name
+           FROM app1_feed_posts p
+           JOIN app1_accounts a ON a.id = p.account_id AND a.status <> 'DELETED'
+          WHERE p.id = $1 AND p.expires_at > NOW()
+          LIMIT 1`,
+        [String(req.params.id)]
+      )).rows[0];
+      if (!row) return sendError(res, 404, "NOT_FOUND", "Publicação não encontrada ou já expirada.");
+      res.json({
+        ok: true,
+        post: {
+          id: row.id,
+          kind: row.post_kind,
+          createdAt: row.created_at,
+          expiresAt: row.expires_at,
+          author: { profileId: row.public_profile_id, publicName: row.public_name || "Perfil" },
+          item: {
+            id: row.library_item_id,
+            title: row.snapshot_title,
+            content: row.snapshot_text_content,
+            contentBytes: Buffer.byteLength(String(row.snapshot_text_content || ""), "utf8"),
+            truncated: false
+          }
+        }
       });
     } catch (error) {
       next(error);
