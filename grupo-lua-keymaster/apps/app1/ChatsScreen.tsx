@@ -23,6 +23,8 @@ import {
 } from "./chat-api";
 import { type PublicProfileView, searchPublicProfiles } from "./social-api";
 
+const MESSAGE_PAGE_SIZE = 100;
+
 function dateText(value?: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -40,6 +42,12 @@ function expiryText(value?: string | null) {
   return hours <= 24 ? `${hours}h restantes` : date.toLocaleDateString("pt-BR");
 }
 
+function timeValue(value?: string | null) {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function ChatsScreen({ sessionToken, deviceToken }: {
   sessionToken: string;
   deviceToken: string;
@@ -49,6 +57,8 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
@@ -60,6 +70,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
   const mounted = useRef(true);
   const mutationLock = useRef(false);
   const conversationVersion = useRef(0);
+  const loadedMessageCount = useRef(0);
 
   function beginMutation() {
     if (mutationLock.current) return false;
@@ -93,13 +104,44 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     }
   }
 
-  async function reloadMessages(conversation: ChatConversation, showSpinner = false) {
+  async function reloadMessages(
+    conversation: ChatConversation,
+    showSpinner = false,
+    preserveOlder = false
+  ) {
     const version = ++conversationVersion.current;
     if (showSpinner) setMessagesLoading(true);
     try {
-      const result = await listChatMessages(sessionToken, deviceToken, conversation.id, 100, 0);
+      const result = await listChatMessages(
+        sessionToken,
+        deviceToken,
+        conversation.id,
+        MESSAGE_PAGE_SIZE,
+        0
+      );
       if (!mounted.current || version !== conversationVersion.current) return;
-      setMessages(result.messages);
+
+      setMessages((current) => {
+        if (!preserveOlder || current.length <= MESSAGE_PAGE_SIZE) {
+          loadedMessageCount.current = result.messages.length;
+          return result.messages;
+        }
+
+        const firstRecentTime = timeValue(result.messages[0]?.createdAt);
+        const recentIds = new Set(result.messages.map((item) => item.id));
+        const older = current.filter((item) => {
+          if (recentIds.has(item.id)) return false;
+          return firstRecentTime > 0 && timeValue(item.createdAt) < firstRecentTime;
+        });
+        const merged = [...older, ...result.messages];
+        loadedMessageCount.current = merged.length;
+        return merged;
+      });
+
+      if (!preserveOlder || loadedMessageCount.current <= MESSAGE_PAGE_SIZE) {
+        setHasOlderMessages(result.hasMore);
+      }
+
       await markChatRead(sessionToken, deviceToken, conversation.id).catch(() => {});
       if (!mounted.current || version !== conversationVersion.current) return;
       setUnreadTotal((current) => Math.max(0, current - conversation.unreadCount));
@@ -114,11 +156,45 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     }
   }
 
+  async function loadOlderMessages() {
+    if (!selected || loadingOlder || !hasOlderMessages) return;
+    setLoadingOlder(true);
+    const version = conversationVersion.current;
+    const offset = loadedMessageCount.current || messages.length;
+    try {
+      const result = await listChatMessages(
+        sessionToken,
+        deviceToken,
+        selected.id,
+        MESSAGE_PAGE_SIZE,
+        offset
+      );
+      if (!mounted.current || version !== conversationVersion.current) return;
+
+      setMessages((current) => {
+        const currentIds = new Set(current.map((item) => item.id));
+        const olderUnique = result.messages.filter((item) => !currentIds.has(item.id));
+        const merged = [...olderUnique, ...current];
+        loadedMessageCount.current = merged.length;
+        return merged;
+      });
+      setHasOlderMessages(result.hasMore);
+    } catch (error) {
+      if (mounted.current) {
+        Alert.alert("Histórico indisponível", error instanceof Error ? error.message : "Não foi possível carregar mensagens mais antigas.");
+      }
+    } finally {
+      if (mounted.current && version === conversationVersion.current) setLoadingOlder(false);
+    }
+  }
+
   async function openConversation(conversation: ChatConversation) {
     setSelected(conversation);
     setMessages([]);
+    loadedMessageCount.current = 0;
+    setHasOlderMessages(false);
     setDraft("");
-    await reloadMessages(conversation, true);
+    await reloadMessages(conversation, true, false);
   }
 
   async function startWithProfile(profile: PublicProfileView) {
@@ -144,7 +220,12 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     try {
       const result = await sendChatMessage(sessionToken, deviceToken, selected.id, text);
       if (!mounted.current) return;
-      setMessages((current) => [...current, result.message]);
+      setMessages((current) => {
+        if (current.some((item) => item.id === result.message.id)) return current;
+        const next = [...current, result.message];
+        loadedMessageCount.current = next.length;
+        return next;
+      });
       await reloadConversations(false);
     } catch (error) {
       if (mounted.current) {
@@ -205,17 +286,17 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     mounted.current = true;
     reloadConversations(true).catch(() => {});
     const timer = setInterval(() => {
-      if (!mounted.current || mutationLock.current) return;
+      if (!mounted.current || mutationLock.current || loadingOlder) return;
       reloadConversations(false).catch(() => {});
       const current = selected;
-      if (current) reloadMessages(current, false).catch(() => {});
+      if (current) reloadMessages(current, false, true).catch(() => {});
     }, 8_000);
     return () => {
       mounted.current = false;
       conversationVersion.current += 1;
       clearInterval(timer);
     };
-  }, [sessionToken, deviceToken, selected?.id]);
+  }, [sessionToken, deviceToken, selected?.id, loadingOlder]);
 
   useEffect(() => {
     const q = search.trim();
@@ -246,7 +327,13 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
     return (
       <View style={s.root}>
         <View style={s.chatHeader}>
-          <Pressable style={s.backButton} onPress={() => { conversationVersion.current += 1; setSelected(null); setMessages([]); }}>
+          <Pressable style={s.backButton} onPress={() => {
+            conversationVersion.current += 1;
+            loadedMessageCount.current = 0;
+            setSelected(null);
+            setMessages([]);
+            setHasOlderMessages(false);
+          }}>
             <Text style={s.backText}>‹ CHATS</Text>
           </Pressable>
           <View style={[s.avatar, selected.other.role === "DEV" && s.avatarDev]}>
@@ -279,17 +366,29 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           </Text>
         </View>
 
-        {messagesLoading ? <ActivityIndicator style={{ marginVertical: 24 }} /> : messages.length === 0 ? (
-          <Text style={s.empty}>Nenhuma mensagem ainda. Envie a primeira.</Text>
-        ) : messages.map((message) => (
-          <View key={message.id} style={[s.messageRow, message.mine && s.messageRowMine]}>
-            <View style={[s.bubble, message.mine && s.bubbleMine]}>
-              {!message.mine ? <Text style={s.sender}>{message.sender.publicName}{message.sender.role === "DEV" ? " • DEV" : ""}</Text> : null}
-              <Text style={s.messageText}>{message.text}</Text>
-              <Text style={s.messageMeta}>{dateText(message.createdAt)} • {expiryText(message.expiresAt)}</Text>
-            </View>
-          </View>
-        ))}
+        {messagesLoading ? <ActivityIndicator style={{ marginVertical: 24 }} /> : (
+          <>
+            {hasOlderMessages ? (
+              <Pressable style={[s.loadOlder, loadingOlder && s.disabled]} disabled={loadingOlder} onPress={() => { loadOlderMessages().catch(() => {}); }}>
+                <Text style={s.loadOlderText}>{loadingOlder ? "CARREGANDO..." : "↑ CARREGAR MENSAGENS MAIS ANTIGAS"}</Text>
+              </Pressable>
+            ) : messages.length > MESSAGE_PAGE_SIZE ? (
+              <Text style={s.historyEnd}>Início do histórico disponível</Text>
+            ) : null}
+
+            {messages.length === 0 ? (
+              <Text style={s.empty}>Nenhuma mensagem ainda. Envie a primeira.</Text>
+            ) : messages.map((message) => (
+              <View key={message.id} style={[s.messageRow, message.mine && s.messageRowMine]}>
+                <View style={[s.bubble, message.mine && s.bubbleMine]}>
+                  {!message.mine ? <Text style={s.sender}>{message.sender.publicName}{message.sender.role === "DEV" ? " • DEV" : ""}</Text> : null}
+                  <Text style={s.messageText}>{message.text}</Text>
+                  <Text style={s.messageMeta}>{dateText(message.createdAt)} • {expiryText(message.expiresAt)}</Text>
+                </View>
+              </View>
+            ))}
+          </>
+        )}
 
         <View style={s.composer}>
           <TextInput
@@ -445,6 +544,9 @@ const s = StyleSheet.create({
   reportText: { color: "#E56D73" },
   retentionNote: { borderRadius: 11, borderWidth: 1, borderColor: "#27272D", backgroundColor: "#08080A", padding: 10, marginTop: 9, marginBottom: 4 },
   retentionText: { color: "#6E6E76", fontSize: 8, lineHeight: 13 },
+  loadOlder: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#37313D", backgroundColor: "#0E0A11", alignItems: "center", justifyContent: "center", marginTop: 9, marginBottom: 3 },
+  loadOlderText: { color: "#CDB6DE", fontSize: 8, fontWeight: "900" },
+  historyEnd: { color: "#55555D", fontSize: 8, textAlign: "center", marginTop: 10, marginBottom: 3 },
   messageRow: { alignItems: "flex-start", marginTop: 8 },
   messageRowMine: { alignItems: "flex-end" },
   bubble: { maxWidth: "84%", borderRadius: 15, borderWidth: 1, borderColor: "#2A2A30", backgroundColor: "#0A0A0D", paddingHorizontal: 12, paddingVertical: 9 },
