@@ -19,15 +19,16 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
   onMenus: () => void;
   onAudit: () => void;
 }) {
-  const [maintenance, setMaintenance] = useState<boolean | null>(null);
+  const [suspended, setSuspended] = useState<boolean | null>(null);
   const [pendingAction, setPendingAction] = useState<ExecutableCriticalAction | null>(null);
   const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<ExecutableCriticalAction | null>(null);
 
   async function refresh() {
     try {
-      setMaintenance((await getSystemStatus(session)).app1Maintenance);
+      setSuspended((await getSystemStatus(session)).app1Maintenance);
     } catch {
-      setMaintenance(null);
+      setSuspended(null);
     }
   }
 
@@ -35,15 +36,31 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
 
   function requestAction(action: ExecutableCriticalAction) {
     const label = action === "APP1_RESTART"
-      ? "reiniciar o Aplicativo 1"
+      ? "reiniciar o servidor do Aplicativo 1"
       : action === "APP1_MAINTENANCE_ON"
-        ? "colocar o Aplicativo 1 em manutenção"
-        : "retirar o Aplicativo 1 da manutenção";
-    Alert.alert("Ação crítica", `Você está prestes a ${label}. A próxima etapa exige o nome de um acesso DEV e a chave DEV.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Continuar", style: action === "APP1_MAINTENANCE_OFF" ? "default" : "destructive", onPress: () => setPendingAction(action) }
-    ]);
+        ? "suspender o acesso de todos ao Aplicativo 1"
+        : "reativar o acesso ao Aplicativo 1";
+
+    const consequence = action === "APP1_MAINTENANCE_ON"
+      ? " Novos logins serão bloqueados e as sessões atuais do App 1 serão encerradas. Nenhum arquivo ou conta será apagado."
+      : "";
+
+    Alert.alert(
+      "Ação crítica",
+      `Você está prestes a ${label}.${consequence} A próxima etapa exige LOGIN PRIVADO DEV e CHAVE DEV.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Continuar",
+          style: action === "APP1_MAINTENANCE_OFF" ? "default" : "destructive",
+          onPress: () => setPendingAction(action)
+        }
+      ]
+    );
   }
+
+  const suspensionAction: ExecutableCriticalAction = suspended ? "APP1_MAINTENANCE_OFF" : "APP1_MAINTENANCE_ON";
+  const suspensionBusy = busy && busyAction === suspensionAction;
 
   return (
     <SafeAreaView style={styles.root}>
@@ -53,51 +70,82 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
           <Header title="ÁREA CRÍTICA" onBack={onHome} />
 
           <View style={[styles.securityCard, styles.criticalSecurity]}>
-            <Text style={styles.securityTitle}>Proteção em duas etapas</Text>
-            <Text style={styles.muted}>A sessão Keymaster sozinha não executa estas ações. O servidor exige uma conta DEV ativa e gera um token de uso único com validade curta.</Text>
+            <Text style={styles.securityTitle}>Autorização DEV obrigatória</Text>
+            <Text style={styles.muted}>
+              A sessão do Keymaster não basta para estas ações. Cada execução exige LOGIN PRIVADO DEV + CHAVE DEV e recebe uma autorização de uso único no servidor.
+            </Text>
           </View>
 
           <Text style={styles.section}>ESTADO DO APLICATIVO 1</Text>
-          <View style={styles.card}>
+          <View style={[styles.card, suspended && styles.criticalCard]}>
             <View style={styles.statusLine}>
-              <View style={maintenance ? styles.redDot : styles.greenDot} />
-              <Text style={styles.cardTitle}>{maintenance == null ? "Status indisponível" : maintenance ? "Em manutenção" : "Online"}</Text>
+              <View style={suspended ? styles.redDot : styles.greenDot} />
+              <Text style={styles.cardTitle}>
+                {suspended == null ? "Status indisponível" : suspended ? "App 1: SUSPENSO" : "App 1: ATIVO"}
+              </Text>
             </View>
-            <Text style={styles.muted}>O estado é lido do servidor; alterar relógio ou interface do celular não muda esta condição.</Text>
+            <Text style={styles.muted}>
+              {suspended == null
+                ? "Não foi possível confirmar o estado atual no servidor."
+                : suspended
+                  ? "Ninguém consegue iniciar sessão no App 1. O bloqueio permanece mesmo se o Keymaster ou o servidor reiniciarem."
+                  : "Logins e sessões do App 1 estão liberados normalmente."}
+            </Text>
           </View>
 
-          <Text style={styles.section}>CONTROLES</Text>
+          <Text style={styles.section}>ACESSO GLOBAL</Text>
+          <View style={styles.cardStack}>
+            <View style={[styles.actionCard, suspended && { borderColor: "#1F5A2C" }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{suspended ? "Reativar Aplicativo 1" : "Suspender Aplicativo 1"}</Text>
+                <Text style={styles.muted}>
+                  {suspended
+                    ? "Volta a permitir login. Usuários precisarão autenticar novamente porque as sessões anteriores foram revogadas."
+                    : "Bloqueia novos logins e encerra imediatamente as sessões atuais, sem apagar contas ou arquivos."}
+                </Text>
+              </View>
+              <Pressable
+                disabled={busy || suspended == null}
+                style={[
+                  styles.actionPill,
+                  suspended ? styles.actionPillSafe : styles.actionPillDanger,
+                  (busy || suspended == null) && styles.buttonMuted
+                ]}
+                onPress={() => requestAction(suspensionAction)}
+              >
+                <Text style={styles.actionPillText}>
+                  {suspensionBusy
+                    ? suspended ? "REATIVANDO..." : "SUSPENDENDO..."
+                    : suspended ? "REATIVAR" : "SUSPENDER"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <Text style={styles.section}>SERVIDOR</Text>
           <View style={styles.cardStack}>
             <View style={styles.actionCard}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{maintenance ? "Encerrar manutenção" : "Ativar manutenção"}</Text>
-                <Text style={styles.muted}>{maintenance ? "Libera novamente login e sessões do App 1." : "Bloqueia login e uso de sessões do App 1 no servidor."}</Text>
+                <Text style={styles.cardTitle}>Reiniciar servidor do App 1</Text>
+                <Text style={styles.muted}>Envia a solicitação ao provedor configurado. Também exige uma nova autorização DEV de uso único.</Text>
               </View>
               <Pressable
-                disabled={busy || maintenance == null}
-                style={[styles.actionPill, maintenance ? styles.actionPillSafe : styles.actionPillDanger]}
-                onPress={() => requestAction(maintenance ? "APP1_MAINTENANCE_OFF" : "APP1_MAINTENANCE_ON")}
+                disabled={busy}
+                style={[styles.actionPill, styles.actionPillDanger, busy && styles.buttonMuted]}
+                onPress={() => requestAction("APP1_RESTART")}
               >
-                <Text style={styles.actionPillText}>{maintenance ? "LIBERAR" : "ATIVAR"}</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.actionCard}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>Reiniciar servidor do App 1</Text>
-                <Text style={styles.muted}>Usa webhook privado do provedor quando configurado no servidor. Se o provedor não estiver configurado, o aplicativo informa isso separadamente da autenticação DEV.</Text>
-              </View>
-              <Pressable disabled={busy} style={[styles.actionPill, styles.actionPillDanger]} onPress={() => requestAction("APP1_RESTART")}>
-                <Text style={styles.actionPillText}>REINICIAR</Text>
+                <Text style={styles.actionPillText}>{busy && busyAction === "APP1_RESTART" ? "AGUARDE..." : "REINICIAR"}</Text>
               </Pressable>
             </View>
           </View>
 
-          <Text style={styles.section}>PRÓXIMAS CAMADAS</Text>
-          <View style={[styles.card, styles.lockedCard]}>
-            <Text style={styles.cardTitle}>Exclusão global e recuperação crítica</Text>
-            <Text style={styles.muted}>A autorização de uso único já está preparada. A execução global ficará habilitada quando as tabelas de Social, Chats e Arquivos existirem para que o escopo seja preciso e auditável.</Text>
-            <Text style={styles.locked}>BLOQUEADA ATÉ O MODELO COMPLETO DO APP 1</Text>
+          <Text style={styles.section}>PROTEÇÕES CRÍTICAS</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Contas, credenciais e dispositivos</Text>
+            <Text style={styles.muted}>
+              Exclusão definitiva de conta, visualização/troca de credencial, desbloqueio de segurança, autorização de novo dispositivo e revogação de dispositivo usam confirmação DEV protegida na área de Contas.
+            </Text>
+            <Text style={styles.small}>Suspender uma conta não apaga seus dados. Excluir definitivamente remove o conteúdo pertencente àquela conta no servidor.</Text>
           </View>
         </ScrollView>
         <BottomNav current="critical" onHome={onHome} onAccounts={onAccounts} onMenus={onMenus} onAudit={onAudit} onCritical={() => {}} />
@@ -113,11 +161,19 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
           const action = pendingAction;
           if (!action) return;
           setBusy(true);
+          setBusyAction(action);
           try {
             const result = await executeCriticalAction(session, action, authorizationToken);
             setPendingAction(null);
             await refresh();
-            Alert.alert("Concluído", result.action === "APP1_RESTART" ? "Solicitação de reinício enviada." : "Estado de manutenção atualizado pelo servidor.");
+            Alert.alert(
+              "Concluído",
+              result.action === "APP1_RESTART"
+                ? "Solicitação de reinício enviada."
+                : action === "APP1_MAINTENANCE_ON"
+                  ? "O App 1 foi suspenso. Novos logins estão bloqueados e as sessões anteriores foram encerradas."
+                  : "O App 1 foi reativado. Novos logins estão liberados novamente."
+            );
           } catch (error) {
             setPendingAction(null);
             Alert.alert(
@@ -126,6 +182,7 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
             );
           } finally {
             setBusy(false);
+            setBusyAction(null);
           }
         }}
       />
