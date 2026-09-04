@@ -60,6 +60,7 @@ export type SocialComment = {
     role: App1Role;
     avatarStyle: string;
     frameStyle: string;
+    statusText: string;
   };
 };
 
