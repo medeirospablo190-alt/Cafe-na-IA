@@ -4,6 +4,9 @@ import type { App1DeviceIdentity } from "./device";
 export type App1Role = "ADM" | "DEV";
 export type SessionKind = "PROVISIONAL" | "FULL";
 export type LibraryKind = "CODE" | "LOADSTRING";
+export type MenuKeyKind = "FREE" | "VIP";
+export type MenuKeyDurationUnit = "HOURS" | "DAYS" | "MONTHS" | "PERMANENT";
+export type MenuKeyAccessState = "READY" | "ACTIVE" | "WAITING_ADMIN" | "EXPIRED";
 
 export type OnboardingState = {
   completed: boolean;
@@ -22,6 +25,39 @@ export type PublicAccount = {
 export type App1Session = {
   kind: SessionKind;
   expiresAt: string;
+};
+
+export type App1ManagedMenu = {
+  id: string;
+  public_id: string;
+  name: string;
+  source_url: string;
+  status: "ACTIVE" | "SUSPENDED";
+  key_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type App1MenuKey = {
+  id: string;
+  menu_id: string;
+  kind: MenuKeyKind;
+  status: "ACTIVE" | "SUSPENDED" | "REVOKED";
+  key_hint: string;
+  note: string | null;
+  access_state: MenuKeyAccessState;
+  duration_value: number | null;
+  duration_unit: MenuKeyDurationUnit | null;
+  access_started_at: string | null;
+  access_until: string | null;
+  bound_device: boolean;
+  bound_device_hint: string | null;
+  use_count: number;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+  revoked_at: string | null;
+  usable: boolean;
 };
 
 export type LibraryItemSummary = {
@@ -301,4 +337,105 @@ export async function getFeedPost(sessionToken: string, deviceToken: string, id:
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{ ok: true; post: FeedPost }>(response);
+}
+
+export async function listApp1ManagedMenus(sessionToken: string, deviceToken: string) {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/menu-admin/menus`, {
+    headers: authHeaders(sessionToken, deviceToken)
+  });
+  return parseResponse<{ ok: true; menus: App1ManagedMenu[] }>(response);
+}
+
+export async function listApp1MenuKeys(sessionToken: string, deviceToken: string, menuId: string) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/menus/${encodeURIComponent(menuId)}/keys`,
+    { headers: authHeaders(sessionToken, deviceToken) }
+  );
+  return parseResponse<{ ok: true; keys: App1MenuKey[] }>(response);
+}
+
+export async function createApp1MenuKey(
+  sessionToken: string,
+  deviceToken: string,
+  menuId: string,
+  input: {
+    kind: MenuKeyKind;
+    durationValue?: number;
+    durationUnit?: Exclude<MenuKeyDurationUnit, "HOURS">;
+    note?: string;
+  }
+) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/menus/${encodeURIComponent(menuId)}/keys`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+      body: JSON.stringify(input)
+    }
+  );
+  return parseResponse<{ ok: true; key: App1MenuKey & { value: string; revealOnce: true } }>(response);
+}
+
+export async function releaseApp1FreeKey(
+  sessionToken: string,
+  deviceToken: string,
+  keyId: string,
+  durationHours = 24
+) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/keys/${encodeURIComponent(keyId)}/release-free`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+      body: JSON.stringify({ durationHours })
+    }
+  );
+  return parseResponse<{ ok: true; key: App1MenuKey }>(response);
+}
+
+export async function configureApp1VipKey(
+  sessionToken: string,
+  deviceToken: string,
+  keyId: string,
+  durationUnit: "DAYS" | "MONTHS" | "PERMANENT",
+  durationValue?: number
+) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/keys/${encodeURIComponent(keyId)}/configure-vip`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+      body: JSON.stringify({ durationUnit, durationValue })
+    }
+  );
+  return parseResponse<{ ok: true; key: App1MenuKey }>(response);
+}
+
+export async function resetApp1MenuKeyDevice(sessionToken: string, deviceToken: string, keyId: string) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/keys/${encodeURIComponent(keyId)}/reset-device`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+      body: "{}"
+    }
+  );
+  return parseResponse<{ ok: true; key: App1MenuKey }>(response);
+}
+
+export async function setApp1MenuKeyState(
+  sessionToken: string,
+  deviceToken: string,
+  keyId: string,
+  action: "suspend" | "restore" | "revoke"
+) {
+  const response = await apiFetch(
+    `${requireApiUrl()}/v1/app1/menu-admin/keys/${encodeURIComponent(keyId)}/state/${action}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
+      body: "{}"
+    }
+  );
+  return parseResponse<{ ok: true; key: App1MenuKey }>(response);
 }
