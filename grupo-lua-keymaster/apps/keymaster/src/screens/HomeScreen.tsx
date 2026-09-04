@@ -13,10 +13,11 @@ type MenuSummary = {
   vip: number;
 };
 
-export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, onLogout }: {
+export function HomeScreen({ session, onAccounts, onMenus, onMenuBase, onAudit, onCritical, onLogout }: {
   session: string;
   onAccounts: () => void;
   onMenus: () => void;
+  onMenuBase: () => void;
   onAudit: () => void;
   onCritical: () => void;
   onLogout: () => void;
@@ -121,6 +122,15 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Menus e chaves</Text>
               <Text style={styles.muted}>Menus, URLs e autorizações FREE/VIP.</Text>
+            </View>
+            <Text style={styles.cardArrow}>›</Text>
+          </Pressable>
+
+          <Pressable style={styles.featureCard} onPress={onMenuBase}>
+            <View style={styles.featureIcon}><Text style={styles.featureIconText}>☾</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Login-base dos menus</Text>
+              <Text style={styles.muted}>Gere o loadstring final usando o modelo oficial do GRUPO LUA.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
