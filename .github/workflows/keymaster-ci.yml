@@ -52,6 +52,7 @@ jobs:
           node --check src/app1-library-routes-v2.js
           node --check src/app1-library-hardening-routes.js
           node --check src/app1-session-control-routes.js
+          node --check src/app1-menu-keys-routes.js
           node --check src/app1-feed-comment.js
           node --check src/menu-routes.js
           node --check src/keymaster-audit-clear.js
@@ -78,6 +79,8 @@ jobs:
           grep -Fq 'app.post("/v1/app1/login"' src/app1-routes.js
           grep -Fq 'app.get("/v1/app1/me"' src/app1-routes.js
           grep -Fq 'app.post("/v1/app1/logout"' src/app1-session-control-routes.js
+          grep -Fq 'app.get("/v1/app1/keys"' src/app1-menu-keys-routes.js
+          grep -Fq 'app.post("/v1/app1/keys/claim"' src/app1-menu-keys-routes.js
       - name: Production readiness guard
         env:
           KEYMASTER_ACCESS_HASH: 'scrypt$32768$8$1$Y2ktc2FsdA$Y2ktaGFzaA'
@@ -163,6 +166,7 @@ jobs:
           fi
           grep -Fq 'style={styles.appScroll}' apps/app1/App.tsx
           grep -Fq 'logoutApp1(sessionToken, deviceToken)' apps/app1/App.tsx
+          grep -Fq '<KeysScreen sessionToken={sessionToken} deviceToken={deviceToken} />' apps/app1/App.tsx
           node - <<'NODE'
           const fs = require('fs');
           for (const app of ['app1', 'keymaster']) {

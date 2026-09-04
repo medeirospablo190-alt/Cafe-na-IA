@@ -25,6 +25,7 @@ import {
 import { API_URL } from "./config";
 import { getApp1DeviceIdentity } from "./device";
 import { FilesScreen } from "./FilesScreen";
+import { KeysScreen } from "./KeysScreen";
 import { logoutApp1 } from "./session-api";
 import { SocialFeedScreen } from "./SocialFeedScreen";
 
@@ -715,6 +716,8 @@ function HomeShell({
           <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : tab === "social" ? (
           <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+        ) : tab === "keys" ? (
+          <KeysScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : (
           <View style={styles.comingCard}>
             <Text style={styles.cardTitle}>{pageLabel[tab]}</Text>
