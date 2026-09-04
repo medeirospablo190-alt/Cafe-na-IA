@@ -199,8 +199,17 @@ test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a 
 
     const secondFree = await publicValidate(baseUrl, publicId, freeValue, deviceA, "Phone A");
     assert.equal(secondFree.response.status, 200, JSON.stringify(secondFree.data));
-    const secondFreeHours = (new Date(secondFree.data.keyExpiresAt).getTime() - Date.now()) / (60 * 60 * 1000);
+    const secondFreeUntil = new Date(secondFree.data.keyExpiresAt).getTime();
+    const secondFreeHours = (secondFreeUntil - Date.now()) / (60 * 60 * 1000);
     assert.ok(secondFreeHours > 23.8 && secondFreeHours <= 24.05, `unexpected second FREE duration ${secondFreeHours}`);
+
+    const beforeResetRow = (await db.query(
+      `SELECT access_started_at, access_until FROM menu_access_keys WHERE id = $1`,
+      [freeId]
+    )).rows[0];
+    const beforeResetStartedAt = new Date(beforeResetRow.access_started_at).getTime();
+    const beforeResetUntil = new Date(beforeResetRow.access_until).getTime();
+    assert.equal(beforeResetUntil, secondFreeUntil);
 
     const resetFreeDevice = await jsonRequest(baseUrl, `/v1/app1/menu-admin/keys/${freeId}/reset-device`, {
       method: "POST",
@@ -210,16 +219,19 @@ test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a 
     });
     assert.equal(resetFreeDevice.response.status, 200, JSON.stringify(resetFreeDevice.data));
     assert.equal(resetFreeDevice.data.key.bound_device, false);
+    assert.equal(new Date(resetFreeDevice.data.key.access_started_at).getTime(), beforeResetStartedAt);
+    assert.equal(new Date(resetFreeDevice.data.key.access_until).getTime(), beforeResetUntil);
 
     const movedFree = await publicValidate(baseUrl, publicId, freeValue, deviceB, "Phone B");
     assert.equal(movedFree.response.status, 200, JSON.stringify(movedFree.data));
+    assert.equal(new Date(movedFree.data.keyExpiresAt).getTime(), beforeResetUntil);
     const movedRow = (await db.query(
       `SELECT bound_device_hint, access_started_at, access_until FROM menu_access_keys WHERE id = $1`,
       [freeId]
     )).rows[0];
     assert.equal(movedRow.bound_device_hint, "Phone B");
-    assert.ok(movedRow.access_started_at);
-    assert.ok(movedRow.access_until);
+    assert.equal(new Date(movedRow.access_started_at).getTime(), beforeResetStartedAt);
+    assert.equal(new Date(movedRow.access_until).getTime(), beforeResetUntil);
 
     const createVip = await jsonRequest(baseUrl, `/v1/app1/menu-admin/menus/${menuId}/keys`, {
       method: "POST",
