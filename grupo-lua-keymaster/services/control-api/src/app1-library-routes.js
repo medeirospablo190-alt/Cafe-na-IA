@@ -3,14 +3,18 @@ import { registerApp1LibraryHardeningRoutes } from "./app1-library-hardening-rou
 import { registerApp1SessionControlRoutes } from "./app1-session-control-routes.js";
 import { registerApp1MenuKeyRoutes } from "./app1-menu-key-routes.js";
 import { registerMenuAccessV2Routes } from "./menu-access-v2-routes.js";
+import { registerKeymasterMenuKeyLockdown } from "./keymaster-menu-key-lockdown.js";
 
 export function registerApp1LibraryRoutes(app) {
   // Registrado aqui para manter o server.js pequeno sem criar rotas paralelas
-  // no bootstrap principal. As rotas V2 de menu sao registradas antes do
-  // menu-routes legado, portanto validacao e manifest usam device binding.
+  // no bootstrap principal. As rotas novas entram antes do menu-routes legado.
   registerApp1SessionControlRoutes(app);
   registerApp1LibraryHardeningRoutes(app);
   registerApp1LibraryRoutesV2(app);
   registerApp1MenuKeyRoutes(app);
   registerMenuAccessV2Routes(app);
+
+  // FREE/VIP pertencem exclusivamente ao App 1. Intercepta as rotas antigas
+  // do Keymaster antes de registerMenuRoutes registrar a implementação legada.
+  registerKeymasterMenuKeyLockdown(app);
 }
