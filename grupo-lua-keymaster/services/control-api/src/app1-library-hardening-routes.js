@@ -80,7 +80,14 @@ function parseIds(value) {
 }
 
 async function purgeExpiredFeedPosts(client) {
-  await client.query(`DELETE FROM app1_feed_posts WHERE expires_at <= NOW()`);
+  await client.query(
+    `DELETE FROM app1_feed_posts p
+      WHERE p.expires_at <= NOW()
+        AND p.pinned_at IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM app1_social_favorites f WHERE f.post_id = p.id
+        )`
+  );
 }
 
 export function registerApp1LibraryHardeningRoutes(app) {
