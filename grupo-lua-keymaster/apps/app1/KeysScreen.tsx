@@ -121,6 +121,10 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   }
 
   async function copyKey(item: App1MenuKey) {
+    if (!item.usable) {
+      setMessage("Esta chave está inativa. Ela continuará visível para consulta, mas não pode ser copiada enquanto não voltar a ficar ativa.");
+      return;
+    }
     if (mutationLock.current) return;
     mutationLock.current = true;
     setBusy(true);
@@ -252,7 +256,11 @@ export function KeysScreen({ sessionToken, deviceToken }: {
             {item.note ? <Text style={styles.note}>{item.note}</Text> : null}
 
             <View style={styles.actions}>
-              <Pressable style={styles.actionButton} onPress={() => copyKey(item)} disabled={busy}>
+              <Pressable
+                style={[styles.actionButton, (!item.usable || busy) && styles.disabled]}
+                onPress={() => copyKey(item)}
+                disabled={busy || !item.usable}
+              >
                 <Text style={styles.actionText}>COPIAR CHAVE</Text>
               </Pressable>
               <Pressable style={styles.actionButton} onPress={() => copyLink(item)} disabled={busy}>
