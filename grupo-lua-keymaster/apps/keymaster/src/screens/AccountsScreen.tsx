@@ -63,6 +63,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
 }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mutationBusy, setMutationBusy] = useState(false);
   const [createModal, setCreateModal] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [login, setLogin] = useState("");
@@ -74,12 +75,26 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [rotateTarget, setRotateTarget] = useState<Account | null>(null);
   const [revealTarget, setRevealTarget] = useState<Account | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<Account | null>(null);
   const [detailTarget, setDetailTarget] = useState<Account | null>(null);
   const [securityTarget, setSecurityTarget] = useState<Account | null>(null);
   const [sessions, setSessions] = useState<AccountSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const refreshVersion = useRef(0);
   const mounted = useRef(true);
+  const mutationLock = useRef(false);
+
+  function beginMutation() {
+    if (mutationLock.current) return false;
+    mutationLock.current = true;
+    setMutationBusy(true);
+    return true;
+  }
+
+  function endMutation() {
+    mutationLock.current = false;
+    if (mounted.current) setMutationBusy(false);
+  }
 
   async function refresh() {
     const version = ++refreshVersion.current;
@@ -113,6 +128,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
     mounted.current = true;
     return () => {
       mounted.current = false;
+      mutationLock.current = true;
       refreshVersion.current += 1;
     };
   }, []);
@@ -126,36 +142,60 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
   }, [session, query, roleFilter, statusFilter]);
 
   async function create() {
+    if (!beginMutation()) return;
     try {
       const result = await createAccount(session, displayName.trim(), login.trim(), role);
+      if (!mounted.current) return;
       setProtectedCredential({ privateLogin: result.privateLogin, credential: result.credential });
       setDisplayName("");
       setLogin("");
       setCreateModal(false);
       await refresh();
     } catch (error) {
-      Alert.alert("Não foi possível criar", error instanceof Error ? error.message : "Erro desconhecido");
+      if (mounted.current) {
+        Alert.alert("Não foi possível criar", error instanceof Error ? error.message : "Erro desconhecido");
+      }
+    } finally {
+      endMutation();
     }
   }
 
-  async function stateActionRequest(account: Account, kind: "suspend" | "restore") {
+  async function suspendAccount(account: Account) {
+    if (!beginMutation()) return;
     try {
-      await setAccountState(session, account.id, kind);
+      await setAccountState(session, account.id, "suspend");
       await refresh();
+      if (detailTarget?.id === account.id) await reloadSessions(account, { useMutationLock: false });
     } catch (error) {
-      Alert.alert("Falha", error instanceof Error ? error.message : "Erro desconhecido");
+      if (mounted.current) Alert.alert("Falha", error instanceof Error ? error.message : "Erro desconhecido");
+    } finally {
+      endMutation();
     }
   }
 
   function stateAction(account: Account) {
+    if (mutationLock.current) return;
     if (account.status === "LOCKED_SECURITY") {
       setSecurityTarget(account);
       return;
     }
-    stateActionRequest(account, account.status === "ACTIVE" ? "suspend" : "restore").catch(() => {});
+    if (account.status === "SUSPENDED") {
+      setRestoreTarget(account);
+      return;
+    }
+
+    Alert.alert(
+      "Suspender acesso?",
+      `Suspender ${accountLabel(account)} bloqueará novos logins e encerrará as sessões atuais dessa conta. Os arquivos e dados salvos não serão apagados.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Suspender", style: "destructive", onPress: () => suspendAccount(account).catch(() => {}) }
+      ]
+    );
   }
 
   async function openDetails(account: Account) {
+    if (mutationLock.current) return;
     setDetailTarget(account);
     setSessionsLoading(true);
     try {
@@ -164,18 +204,78 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
       setSessions([]);
       Alert.alert("Sessões indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
-      setSessionsLoading(false);
+      if (mounted.current) setSessionsLoading(false);
     }
   }
 
-  async function reloadSessions(account: Account) {
+  async function reloadSessions(account: Account, { useMutationLock = false }: { useMutationLock?: boolean } = {}) {
+    if (useMutationLock && !beginMutation()) return;
     setSessionsLoading(true);
     try {
       setSessions((await listAccountSessions(session, account.id)).sessions);
       await refresh();
+    } catch (error) {
+      if (mounted.current) Alert.alert("Sessões indisponíveis", error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
-      setSessionsLoading(false);
+      if (mounted.current) setSessionsLoading(false);
+      if (useMutationLock) endMutation();
     }
+  }
+
+  function confirmRevokeSession(account: Account, app1Session: AccountSession) {
+    if (mutationLock.current) return;
+    Alert.alert(
+      "Revogar esta sessão?",
+      `A sessão de ${app1Session.device_label || "este dispositivo"} será encerrada imediatamente. Isso não apaga a conta nem os arquivos.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Revogar",
+          style: "destructive",
+          onPress: async () => {
+            if (!beginMutation()) return;
+            try {
+              await revokeAccountSession(session, account.id, app1Session.id);
+              await reloadSessions(account, { useMutationLock: false });
+            } catch (error) {
+              if (mounted.current) Alert.alert("Não foi possível revogar", error instanceof Error ? error.message : "Erro desconhecido");
+            } finally {
+              endMutation();
+            }
+          }
+        }
+      ]
+    );
+  }
+
+  function confirmRevokeAllSessions(account: Account) {
+    if (mutationLock.current) return;
+    const activeCount = sessions.filter((item) => item.active).length;
+    Alert.alert(
+      "Revogar todas as sessões?",
+      activeCount > 0
+        ? `${activeCount} sessão(ões) ativa(s) de ${accountLabel(account)} serão encerradas. A conta continuará liberada para um novo login autorizado.`
+        : `Não há sessões ativas visíveis para ${accountLabel(account)}. O servidor fará uma verificação final antes de concluir.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Revogar todas",
+          style: "destructive",
+          onPress: async () => {
+            if (!beginMutation()) return;
+            try {
+              const result = await revokeAllAccountSessions(session, account.id);
+              await reloadSessions(account, { useMutationLock: false });
+              if (mounted.current) Alert.alert("Sessões revogadas", `${result.revokedCount} sessão(ões) encerrada(s).`);
+            } catch (error) {
+              if (mounted.current) Alert.alert("Não foi possível revogar", error instanceof Error ? error.message : "Erro desconhecido");
+            } finally {
+              endMutation();
+            }
+          }
+        }
+      ]
+    );
   }
 
   async function securityChanged() {
@@ -194,12 +294,13 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               <Text style={styles.screenTitle}>Acessos do App 1</Text>
               <Text style={styles.muted}>Cada acesso mostra apenas o nome escolhido. Login privado e chave ficam ocultos e exigem confirmação DEV.</Text>
             </View>
-            <Pressable style={styles.addButton} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
+            <Pressable disabled={mutationBusy} style={[styles.addButton, mutationBusy && styles.buttonMuted]} onPress={() => setCreateModal(true)}><Text style={styles.add}>＋</Text></Pressable>
           </View>
 
           <TextInput
             value={query}
             onChangeText={setQuery}
+            editable={!mutationBusy}
             style={styles.searchInput}
             placeholder="Buscar nome do acesso..."
             placeholderTextColor="#6D6D73"
@@ -209,13 +310,13 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
 
           <ScrollView style={styles.filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
             {(["ALL", "ADM", "DEV"] as RoleFilter[]).map((item) => (
-              <Pressable key={item} style={[styles.filterChip, roleFilter === item && styles.filterChipActive, item === "DEV" && roleFilter === item && styles.filterChipDev]} onPress={() => setRoleFilter(item)}>
+              <Pressable disabled={mutationBusy} key={item} style={[styles.filterChip, roleFilter === item && styles.filterChipActive, item === "DEV" && roleFilter === item && styles.filterChipDev]} onPress={() => setRoleFilter(item)}>
                 <Text style={[styles.filterChipText, roleFilter === item && styles.filterChipTextActive]}>{item === "ALL" ? "TODOS" : item}</Text>
               </Pressable>
             ))}
             <View style={styles.filterDivider} />
             {(["ALL", "ACTIVE", "LOCKED_SECURITY", "SUSPENDED"] as StatusFilter[]).map((item) => (
-              <Pressable key={`status-${item}`} style={[styles.filterChip, statusFilter === item && styles.filterChipActive]} onPress={() => setStatusFilter(item)}>
+              <Pressable disabled={mutationBusy} key={`status-${item}`} style={[styles.filterChip, statusFilter === item && styles.filterChipActive]} onPress={() => setStatusFilter(item)}>
                 <Text style={[styles.filterChipText, statusFilter === item && styles.filterChipTextActive]}>{filterLabel(item)}</Text>
               </Pressable>
             ))}
@@ -228,8 +329,8 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               contentContainerStyle={styles.accountList}
               ListEmptyComponent={<Text style={styles.empty}>Nenhuma conta encontrada.</Text>}
               renderItem={({ item }) => (
-                <View style={[styles.accountCard, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#100708" }]}>
-                  <Pressable style={styles.accountTop} onPress={() => openDetails(item)}>
+                <View style={[styles.accountCard, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#100708" }, mutationBusy && styles.buttonMuted]}>
+                  <Pressable disabled={mutationBusy} style={styles.accountTop} onPress={() => openDetails(item)}>
                     <View style={{ flex: 1 }}>
                       <View style={styles.accountTitleRow}>
                         <Text style={styles.cardTitle}>{accountLabel(item)}</Text>
@@ -243,22 +344,22 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                   </Pressable>
 
                   <View style={styles.rowGap}>
-                    <Pressable style={[styles.smallAction, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#150809" }]} onPress={() => setSecurityTarget(item)}>
+                    <Pressable disabled={mutationBusy} style={[styles.smallAction, item.status === "LOCKED_SECURITY" && { borderColor: "#5A2025", backgroundColor: "#150809" }]} onPress={() => setSecurityTarget(item)}>
                       <Text style={[styles.smallActionText, item.status === "LOCKED_SECURITY" && { color: "#FF5A52" }]}>SEGURANÇA</Text>
                     </Pressable>
-                    <Pressable style={styles.smallAction} onPress={() => stateAction(item)}>
-                      <Text style={styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : item.status === "SUSPENDED" ? "LIBERAR" : "DESBLOQUEAR"}</Text>
+                    <Pressable disabled={mutationBusy} style={styles.smallAction} onPress={() => stateAction(item)}>
+                      <Text style={styles.smallActionText}>{item.status === "ACTIVE" ? "SUSPENDER" : item.status === "SUSPENDED" ? "LIBERAR • DEV" : "DESBLOQUEAR"}</Text>
                     </Pressable>
-                    <Pressable style={styles.smallAction} onPress={() => setRevealTarget(item)}>
+                    <Pressable disabled={mutationBusy} style={styles.smallAction} onPress={() => setRevealTarget(item)}>
                       <Text style={styles.smallActionText}>VER / COPIAR</Text>
                     </Pressable>
-                    <Pressable style={styles.smallAction} onPress={() => setRotateTarget(item)}>
+                    <Pressable disabled={mutationBusy} style={styles.smallAction} onPress={() => setRotateTarget(item)}>
                       <Text style={styles.smallActionText}>NOVA CHAVE</Text>
                     </Pressable>
                   </View>
 
                   <View style={styles.rowGap}>
-                    <Pressable style={[styles.smallAction, styles.smallDanger]} onPress={() => {
+                    <Pressable disabled={mutationBusy} style={[styles.smallAction, styles.smallDanger]} onPress={() => {
                       Alert.alert("Excluir conta", `Excluir ${accountLabel(item)}? A confirmação final exigirá uma credencial DEV ativa.`, [
                         { text: "Cancelar", style: "cancel" },
                         { text: "Continuar", style: "destructive", onPress: () => setDeleteTarget(item) }
@@ -275,7 +376,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         <BottomNav current="accounts" onHome={onHome} onAccounts={() => {}} onMenus={onMenus} onAudit={onAudit} onCritical={onCritical} />
       </View>
 
-      <Modal visible={createModal} transparent animationType="fade" onRequestClose={() => setCreateModal(false)}>
+      <Modal visible={createModal} transparent animationType="fade" onRequestClose={() => !mutationBusy && setCreateModal(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>
             <Text style={styles.cardTitle}>Criar acesso do App 1</Text>
@@ -283,6 +384,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
             <TextInput
               value={displayName}
               onChangeText={setDisplayName}
+              editable={!mutationBusy}
               style={styles.input}
               placeholder="Nome do acesso (visível no Keymaster)"
               placeholderTextColor="#666"
@@ -291,6 +393,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
             <TextInput
               value={login}
               onChangeText={setLogin}
+              editable={!mutationBusy}
               style={styles.input}
               placeholder="Login privado"
               placeholderTextColor="#666"
@@ -298,16 +401,16 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
               autoCorrect={false}
             />
             <View style={styles.rowGap}>
-              <Pressable style={[styles.halfButton, role === "ADM" && styles.selected]} onPress={() => setRole("ADM")}><Text style={styles.halfButtonText}>ADM</Text></Pressable>
-              <Pressable style={[styles.halfButton, role === "DEV" && styles.selectedDev]} onPress={() => setRole("DEV")}><Text style={styles.halfButtonText}>DEV</Text></Pressable>
+              <Pressable disabled={mutationBusy} style={[styles.halfButton, role === "ADM" && styles.selected]} onPress={() => setRole("ADM")}><Text style={styles.halfButtonText}>ADM</Text></Pressable>
+              <Pressable disabled={mutationBusy} style={[styles.halfButton, role === "DEV" && styles.selectedDev]} onPress={() => setRole("DEV")}><Text style={styles.halfButtonText}>DEV</Text></Pressable>
             </View>
-            <Button title="CRIAR E GERAR CHAVE" onPress={create} disabled={displayName.trim().length < 2 || login.trim().length < 2} />
-            <Button title="FECHAR" onPress={() => setCreateModal(false)} secondary />
+            <Button title={mutationBusy ? "CRIANDO..." : "CRIAR E GERAR CHAVE"} onPress={create} disabled={mutationBusy || displayName.trim().length < 2 || login.trim().length < 2} />
+            <Button title="FECHAR" onPress={() => setCreateModal(false)} secondary disabled={mutationBusy} />
           </View>
         </View>
       </Modal>
 
-      <Modal visible={Boolean(detailTarget)} transparent animationType="slide" onRequestClose={() => setDetailTarget(null)}>
+      <Modal visible={Boolean(detailTarget)} transparent animationType="slide" onRequestClose={() => !mutationBusy && setDetailTarget(null)}>
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalBox, styles.detailModal]}>
             {detailTarget ? (
@@ -317,20 +420,20 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                     <Text style={styles.cardTitle}>{accountLabel(detailTarget)}</Text>
                     <Text style={[styles.badge, detailTarget.role === "DEV" && styles.badgeDev]}>{detailTarget.role} • {statusLabel(detailTarget.status)}</Text>
                   </View>
-                  <Pressable onPress={() => setDetailTarget(null)}><Text style={styles.closeText}>✕</Text></Pressable>
+                  <Pressable disabled={mutationBusy} onPress={() => setDetailTarget(null)}><Text style={styles.closeText}>✕</Text></Pressable>
                 </View>
                 <View style={styles.detailGrid}>
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>CRIADA</Text><Text style={styles.detailValue}>{formatDate(detailTarget.created_at)}</Text></View>
                   <View style={styles.detailCell}><Text style={styles.detailLabel}>ATUALIZADA</Text><Text style={styles.detailValue}>{formatDate(detailTarget.updated_at)}</Text></View>
                 </View>
 
-                <Button title="VER / COPIAR LOGIN E CHAVE" onPress={() => setRevealTarget(detailTarget)} />
-                <Button title="GERAR NOVA CHAVE • CONFIRMAÇÃO DEV" onPress={() => setRotateTarget(detailTarget)} secondary />
-                <Button title="SEGURANÇA • DISPOSITIVOS • TENTATIVAS" onPress={() => setSecurityTarget(detailTarget)} danger={detailTarget.status === "LOCKED_SECURITY"} />
+                <Button title="VER / COPIAR LOGIN E CHAVE" disabled={mutationBusy} onPress={() => setRevealTarget(detailTarget)} />
+                <Button title="GERAR NOVA CHAVE • CONFIRMAÇÃO DEV" disabled={mutationBusy} onPress={() => setRotateTarget(detailTarget)} secondary />
+                <Button title="SEGURANÇA • DISPOSITIVOS • TENTATIVAS" disabled={mutationBusy} onPress={() => setSecurityTarget(detailTarget)} danger={detailTarget.status === "LOCKED_SECURITY"} />
 
                 <View style={styles.detailSectionRow}>
                   <Text style={styles.sectionInline}>SESSÕES DO APP 1</Text>
-                  <Pressable onPress={() => reloadSessions(detailTarget)}><Text style={styles.refreshLink}>ATUALIZAR</Text></Pressable>
+                  <Pressable disabled={sessionsLoading || mutationBusy} onPress={() => reloadSessions(detailTarget, { useMutationLock: true })}><Text style={styles.refreshLink}>ATUALIZAR</Text></Pressable>
                 </View>
                 {sessionsLoading ? <ActivityIndicator style={{ marginVertical: 22 }} /> : (
                   <ScrollView style={styles.sessionsList}>
@@ -342,20 +445,15 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
                         </View>
                         <Text style={item.active ? styles.active : styles.sessionOff}>{item.active ? "ATIVA" : item.revoked_at ? "REVOGADA" : "EXPIRADA"}</Text>
                         {item.active ? (
-                          <Pressable style={styles.revokeButton} onPress={async () => {
-                            await revokeAccountSession(session, detailTarget.id, item.id);
-                            await reloadSessions(detailTarget);
-                          }}><Text style={styles.revokeButtonText}>REVOGAR</Text></Pressable>
+                          <Pressable disabled={mutationBusy} style={[styles.revokeButton, mutationBusy && styles.buttonMuted]} onPress={() => confirmRevokeSession(detailTarget, item)}>
+                            <Text style={styles.revokeButtonText}>REVOGAR</Text>
+                          </Pressable>
                         ) : null}
                       </View>
                     ))}
                   </ScrollView>
                 )}
-                <Button title="REVOGAR TODAS AS SESSÕES" danger onPress={async () => {
-                  const result = await revokeAllAccountSessions(session, detailTarget.id);
-                  await reloadSessions(detailTarget);
-                  Alert.alert("Sessões revogadas", `${result.revokedCount} sessão(ões) encerrada(s).`);
-                }} />
+                <Button title={mutationBusy ? "AGUARDE..." : "REVOGAR TODAS AS SESSÕES"} danger disabled={mutationBusy} onPress={() => confirmRevokeAllSessions(detailTarget)} />
               </>
             ) : null}
           </View>
@@ -370,6 +468,28 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         account={securityTarget}
         onClose={() => setSecurityTarget(null)}
         onChanged={securityChanged}
+      />
+
+      <DevAuthorizationModal
+        visible={Boolean(restoreTarget)}
+        session={session}
+        action="RESTORE_APP1_ACCOUNT"
+        targetId={restoreTarget?.id}
+        title={restoreTarget ? `Liberar novamente ${accountLabel(restoreTarget)}` : "Liberar conta"}
+        onCancel={() => setRestoreTarget(null)}
+        onAuthorized={async (authorizationToken) => {
+          const target = restoreTarget;
+          if (!target || !beginMutation()) return;
+          try {
+            await setAccountState(session, target.id, "restore", authorizationToken);
+            setRestoreTarget(null);
+            await refresh();
+            if (detailTarget?.id === target.id) await reloadSessions(target, { useMutationLock: false });
+            if (mounted.current) Alert.alert("Acesso liberado", `${accountLabel(target)} pode autenticar novamente em um dispositivo autorizado.`);
+          } finally {
+            endMutation();
+          }
+        }}
       />
 
       <DevAuthorizationModal

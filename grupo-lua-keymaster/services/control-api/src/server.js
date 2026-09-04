@@ -36,6 +36,7 @@ const CRITICAL_ACTIONS = new Set([
   "UNLOCK_APP1_ACCOUNT",
   "AUTHORIZE_APP1_DEVICE",
   "REVOKE_APP1_DEVICE",
+  "RESTORE_APP1_ACCOUNT",
   "ROTATE_APP1_CREDENTIAL",
   "REVEAL_APP1_CREDENTIAL"
 ]);
@@ -106,6 +107,7 @@ function criticalScope(action, targetId = "") {
     "UNLOCK_APP1_ACCOUNT",
     "AUTHORIZE_APP1_DEVICE",
     "REVOKE_APP1_DEVICE",
+    "RESTORE_APP1_ACCOUNT",
     "ROTATE_APP1_CREDENTIAL",
     "REVEAL_APP1_CREDENTIAL"
   ].includes(normalized)) {
@@ -542,14 +544,26 @@ app.post("/v1/keymaster/critical/execute", requireKeymaster, async (req, res, ne
     }
 
     const enabled = action === "APP1_MAINTENANCE_ON";
-    await withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       await setApp1Maintenance(client, enabled, req.keymasterSession.id);
+      let revokedSessions = 0;
+      if (enabled) {
+        const revoked = await client.query(
+          `UPDATE app1_sessions
+              SET revoked_at = NOW()
+            WHERE revoked_at IS NULL
+              AND expires_at > NOW()
+            RETURNING id`
+        );
+        revokedSessions = revoked.rowCount;
+      }
       await audit(client, {
         actorKind: "DEV", actorId: auth.dev_account_id, action,
-        targetKind: "SYSTEM", targetId: "APP1", metadata: { enabled }
+        targetKind: "SYSTEM", targetId: "APP1", metadata: { enabled, revokedSessions }
       });
+      return { revokedSessions };
     });
-    return res.json({ ok: true, action, app1Maintenance: enabled });
+    return res.json({ ok: true, action, app1Maintenance: enabled, revokedSessions: result.revokedSessions });
   } catch (error) { next(error); }
 });
 
@@ -671,6 +685,17 @@ app.post("/v1/keymaster/accounts/:id/suspend", requireKeymaster, async (req, res
 app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res, next) => {
   try {
     const id = String(req.params.id);
+    const authToken = String(req.headers["x-critical-authorization"] || "");
+    const auth = await consumeCriticalAuthorization({
+      sessionId: req.keymasterSession.id,
+      token: authToken,
+      action: "RESTORE_APP1_ACCOUNT",
+      targetId: id
+    });
+    if (!auth) {
+      return sendError(res, 403, "DEV_REAUTH_REQUIRED", "Liberar novamente uma conta suspensa exige reautenticação DEV de uso único.");
+    }
+
     const restored = await withTransaction(async (client) => {
       const result = await client.query(
         `UPDATE app1_accounts SET status = 'ACTIVE', updated_at = NOW()
@@ -679,12 +704,12 @@ app.post("/v1/keymaster/accounts/:id/restore", requireKeymaster, async (req, res
       );
       if (!result.rowCount) return null;
       await audit(client, {
-        actorKind: "KEYMASTER_SESSION",
-        actorId: req.keymasterSession.id,
+        actorKind: "DEV",
+        actorId: auth.dev_account_id,
         action: "APP1_ACCOUNT_RESTORED",
         targetKind: "APP1_ACCOUNT",
         targetId: id,
-        metadata: { role: result.rows[0].role }
+        metadata: { role: result.rows[0].role, keymasterSessionId: req.keymasterSession.id }
       });
       return result.rows[0];
     });
