@@ -575,7 +575,12 @@ function HomeShell({
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.appContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.appScroll}
+        contentContainerStyle={styles.appContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <Text style={styles.eyebrow}>GRUPO LUA</Text>
         <Text style={styles.pageTitle}>{pageLabel[tab]}</Text>
 
@@ -702,7 +707,8 @@ const styles = StyleSheet.create({
   sessionLine: { color: "#66666D", fontSize: 9, marginTop: 4 },
   signOutButton: { borderRadius: 9, borderWidth: 1, borderColor: "#303035", paddingHorizontal: 10, paddingVertical: 8 },
   signOutText: { color: "#A2A2A8", fontSize: 8, fontWeight: "900" },
-  appContent: { padding: 18, paddingBottom: 100 },
+  appScroll: { flex: 1 },
+  appContent: { padding: 18, paddingBottom: 24 },
   pageTitle: { color: "#FFFFFF", fontSize: 30, fontWeight: "900", marginTop: 5, marginBottom: 14 },
   hero: { borderRadius: 20, borderWidth: 1, borderColor: "#2A2A31", backgroundColor: "#0B0B0E", padding: 18 },
   heroDev: { borderColor: "#4A1B20", backgroundColor: "#100708" },
@@ -713,7 +719,7 @@ const styles = StyleSheet.create({
   featureTitle: { color: "#FFFFFF", fontSize: 14, fontWeight: "900" },
   featureText: { color: "#77777E", fontSize: 11, lineHeight: 16, marginTop: 6 },
   comingCard: { borderRadius: 18, borderWidth: 1, borderColor: "#24242A", backgroundColor: "#09090B", padding: 18 },
-  bottomNav: { position: "absolute", left: 0, right: 0, bottom: 0, minHeight: 64, flexDirection: "row", alignItems: "center", backgroundColor: "#070709", borderTopWidth: 1, borderTopColor: "#202024", paddingHorizontal: 5 },
+  bottomNav: { flexShrink: 0, minHeight: 64, flexDirection: "row", alignItems: "center", backgroundColor: "#070709", borderTopWidth: 1, borderTopColor: "#202024", paddingHorizontal: 5 },
   navItem: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 58, gap: 5 },
   navDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "transparent" },
   navDotActive: { backgroundColor: "#FFFFFF" },
