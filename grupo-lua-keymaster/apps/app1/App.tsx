@@ -25,6 +25,7 @@ import {
 import { API_URL } from "./config";
 import { getApp1DeviceIdentity } from "./device";
 import { FilesScreen } from "./FilesScreen";
+import { KeysScreen } from "./KeysScreen";
 import { logoutApp1 } from "./session-api";
 import { SocialFeedScreen } from "./SocialFeedScreen";
 
@@ -159,9 +160,6 @@ export default function App() {
           setMessage("A sessão salva expirou ou foi revogada. Entre novamente para continuar.");
         }
       } else if (active) {
-        // Falha de rede/5xx não prova que a sessão de 24 h deixou de existir.
-        // Mantemos o token seguro e oferecemos nova tentativa para evitar deslogar
-        // o usuário apenas porque o Render estava acordando ou a rede oscilou.
         setSession(null);
         setAccount(null);
         setSessionRecoveryPending(true);
@@ -706,7 +704,7 @@ function HomeShell({
             </View>
             <View style={styles.grid}>
               <Feature title="Social" text="Feed com códigos e loadstrings compartilhados; fotos e recursos sociais entram nas próximas fases." />
-              <Feature title="Chaves" text="Menus e chaves da sua conta." />
+              <Feature title="Chaves" text="FREE/VIP com vínculo ao aparelho e validade controlada pelo servidor." />
               <Feature title="Chats" text="Conversas privadas e temporárias." />
               <Feature title="Arquivos" text="Códigos e loadstrings nomeados, editáveis e salvos no servidor." />
             </View>
@@ -715,6 +713,8 @@ function HomeShell({
           <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : tab === "social" ? (
           <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+        ) : tab === "keys" ? (
+          <KeysScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : (
           <View style={styles.comingCard}>
             <Text style={styles.cardTitle}>{pageLabel[tab]}</Text>
