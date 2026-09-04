@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as LocalAuthentication from "expo-local-authentication";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { clearSession, readSession, saveSession } from "./src/storage";
 import { logoutKeymaster, validateKeymasterSession } from "./src/api";
 import { LoginScreen } from "./src/screens/LoginScreen";
@@ -14,7 +15,7 @@ import { styles } from "./src/styles";
 
 type Screen = "login" | "home" | "accounts" | "menus" | "audit" | "critical";
 
-export default function App() {
+function KeymasterApp() {
   const [screen, setScreen] = useState<Screen>("login");
   const [session, setSession] = useState<string | null>(null);
   const [booting, setBooting] = useState(true);
@@ -94,5 +95,13 @@ export default function App() {
       onCritical={goCritical}
       onLogout={doLogout}
     />
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <KeymasterApp />
+    </SafeAreaProvider>
   );
 }

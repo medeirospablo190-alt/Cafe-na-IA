@@ -1,4 +1,5 @@
 import http from "node:http";
+import { installKeymasterAuditClearRoute } from "./keymaster-audit-clear.js";
 
 const ALLOWED_BROWSER_ORIGINS = new Set([
   "https://hoppscotch.io"
@@ -24,7 +25,10 @@ function applyCors(req, res) {
 
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Critical-Authorization, X-App1-Device-Token"
+  );
   res.setHeader("Access-Control-Max-Age", "600");
   appendVary(res, "Origin");
   return true;
@@ -48,4 +52,5 @@ http.createServer = function patchedCreateServer(...args) {
   return originalCreateServer.apply(this, args);
 };
 
+installKeymasterAuditClearRoute();
 await import("./server.js");

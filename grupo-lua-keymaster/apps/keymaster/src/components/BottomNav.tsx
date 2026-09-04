@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../styles";
 
 export type NavKey = "home" | "accounts" | "menus" | "audit" | "critical";
@@ -11,6 +12,8 @@ export function BottomNav({ current, onHome, onAccounts, onMenus, onAudit, onCri
   onAudit: () => void;
   onCritical: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+  const safeBottom = Math.max(7, insets.bottom);
   const items: Array<{ key: NavKey; icon: string; label: string; onPress: () => void }> = [
     { key: "home", icon: "⌂", label: "Início", onPress: onHome },
     { key: "accounts", icon: "♙", label: "Contas", onPress: onAccounts },
@@ -20,7 +23,13 @@ export function BottomNav({ current, onHome, onAccounts, onMenus, onAudit, onCri
   ];
 
   return (
-    <View style={styles.bottomNav}>
+    <View style={[
+      styles.bottomNav,
+      {
+        paddingBottom: safeBottom,
+        minHeight: 72 + Math.max(0, safeBottom - 7)
+      }
+    ]}>
       {items.map((item) => {
         const active = current === item.key;
         return (
