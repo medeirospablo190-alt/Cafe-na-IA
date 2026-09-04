@@ -40,6 +40,10 @@ const CRITICAL_ACTIONS = new Set([
   "ROTATE_APP1_CREDENTIAL",
   "REVEAL_APP1_CREDENTIAL"
 ]);
+const DEV_SELF_RECOVERY_STATUS = new Map([
+  ["RESTORE_APP1_ACCOUNT", "SUSPENDED"],
+  ["UNLOCK_APP1_ACCOUNT", "LOCKED_SECURITY"]
+]);
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -136,15 +140,17 @@ async function setApp1Maintenance(client, enabled, actorSessionId) {
 }
 
 async function createCriticalAuthorization({ sessionId, action, targetId, devLogin, devCredential }) {
-  const scope = criticalScope(action, targetId);
+  const normalizedAction = String(action || "").toUpperCase();
+  const scope = criticalScope(normalizedAction, targetId);
   if (!scope) return { error: "INVALID_CRITICAL_ACTION" };
 
   const privateLogin = normalizeLogin(devLogin);
   if (!privateLogin || !devCredential) return { error: "DEV_REAUTH_REQUIRED" };
 
-  // Ações críticas exigem os dois dados privados da conta DEV: login e chave.
-  // O nome/rótulo visível é apenas administrativo e nunca substitui o login.
-  const dev = (await pool.query(
+  // Fluxo normal: somente uma conta DEV ativa pode autorizar ações críticas.
+  // Exceção de recuperação: se NÃO existir nenhum DEV ativo, uma conta DEV
+  // suspensa/bloqueada pode autorizar apenas a própria restauração/desbloqueio.
+  let dev = (await pool.query(
     `SELECT id, login, display_name, role, status, credential_hash
        FROM app1_accounts
       WHERE role = 'DEV'
@@ -152,7 +158,35 @@ async function createCriticalAuthorization({ sessionId, action, targetId, devLog
         AND login = $1
       LIMIT 1`,
     [privateLogin]
-  )).rows[0];
+  )).rows[0] || null;
+  let selfRecovery = false;
+
+  if (!dev) {
+    const expectedStatus = DEV_SELF_RECOVERY_STATUS.get(normalizedAction);
+    const target = String(targetId || "").trim();
+    if (expectedStatus && target) {
+      const candidate = (await pool.query(
+        `SELECT id, login, display_name, role, status, credential_hash
+           FROM app1_accounts
+          WHERE id::text = $1
+            AND role = 'DEV'
+            AND status = $2
+            AND login = $3
+          LIMIT 1`,
+        [target, expectedStatus, privateLogin]
+      )).rows[0] || null;
+      if (candidate) {
+        const activeDev = (await pool.query(
+          `SELECT id FROM app1_accounts
+            WHERE role = 'DEV' AND status = 'ACTIVE'
+            LIMIT 1`
+        )).rows[0];
+        if (activeDev) return { error: "DEV_RECOVERY_NOT_ALLOWED" };
+        dev = candidate;
+        selfRecovery = true;
+      }
+    }
+  }
 
   if (!dev || !(await verifySecret(devCredential, dev.credential_hash))) {
     return { error: "INVALID_DEV_CREDENTIAL" };
@@ -174,19 +208,22 @@ async function createCriticalAuthorization({ sessionId, action, targetId, devLog
       action: "CRITICAL_AUTHORIZATION_CREATED",
       targetKind: "CRITICAL_ACTION",
       targetId: scope,
-      metadata: { keymasterSessionId: sessionId, expiresAt }
+      metadata: { keymasterSessionId: sessionId, expiresAt, selfRecovery }
     });
   });
-  return { token, expiresAt, scope, dev: { id: dev.id, name: dev.display_name || "DEV" } };
+  return { token, expiresAt, scope, dev: { id: dev.id, name: dev.display_name || "DEV" }, selfRecovery };
 }
 
 async function consumeCriticalAuthorization({ sessionId, token, action, targetId = "" }) {
-  const scope = criticalScope(action, targetId);
+  const normalizedAction = String(action || "").toUpperCase();
+  const target = String(targetId || "").trim();
+  const scope = criticalScope(normalizedAction, target);
   if (!scope || !token) return null;
   const hash = tokenHash(`critical:${token}`);
   return withTransaction(async (client) => {
     const row = (await client.query(
-      `SELECT ca.id, ca.dev_account_id, ca.action, ca.expires_at, a.display_name AS dev_name
+      `SELECT ca.id, ca.dev_account_id, ca.action, ca.expires_at,
+              a.display_name AS dev_name, a.status AS dev_status
          FROM critical_authorizations ca
          JOIN app1_accounts a ON a.id = ca.dev_account_id
         WHERE ca.keymaster_session_id = $1
@@ -195,11 +232,28 @@ async function consumeCriticalAuthorization({ sessionId, token, action, targetId
           AND ca.used_at IS NULL
           AND ca.expires_at > NOW()
           AND a.role = 'DEV'
-          AND a.status = 'ACTIVE'
         FOR UPDATE OF ca`,
       [sessionId, hash, scope]
     )).rows[0];
     if (!row) return null;
+
+    if (row.dev_status !== "ACTIVE") {
+      const expectedStatus = DEV_SELF_RECOVERY_STATUS.get(normalizedAction);
+      const isOwnRecovery = Boolean(
+        expectedStatus &&
+        target &&
+        String(row.dev_account_id) === target &&
+        row.dev_status === expectedStatus
+      );
+      if (!isOwnRecovery) return null;
+      const activeDev = (await client.query(
+        `SELECT id FROM app1_accounts
+          WHERE role = 'DEV' AND status = 'ACTIVE'
+          LIMIT 1`
+      )).rows[0];
+      if (activeDev) return null;
+    }
+
     await client.query(`UPDATE critical_authorizations SET used_at = NOW() WHERE id = $1`, [row.id]);
     return row;
   });
@@ -344,7 +398,7 @@ app.post("/v1/keymaster/login", async (req, res, next) => {
       const expiresAt = new Date(Date.now() + KEYMASTER_SESSION_MS);
       await client.query(
         `INSERT INTO keymaster_sessions (id, device_id, token_hash, expires_at)
-         VALUES ($1, $2, $3, $4)`,
+         VALUES ($1, $2, $3, $4, $5)`,
         [sessionId, row.id, tokenHash(token), expiresAt]
       );
       await audit(client, {
@@ -513,6 +567,9 @@ app.post("/v1/keymaster/critical/authorize", requireKeymaster, async (req, res, 
     });
     if (result.error === "INVALID_CRITICAL_ACTION") return sendError(res, 400, result.error, "Ação crítica inválida.");
     if (result.error === "DEV_REAUTH_REQUIRED") return sendError(res, 400, result.error, "Login privado DEV e credencial DEV são obrigatórios.");
+    if (result.error === "DEV_RECOVERY_NOT_ALLOWED") {
+      return sendError(res, 409, result.error, "Este DEV não pode se recuperar enquanto existir outro DEV ativo.");
+    }
     if (result.error === "INVALID_DEV_CREDENTIAL") return sendError(res, 403, result.error, "Reautenticação DEV inválida ou conta DEV indisponível.");
     res.json({ ok: true, authorizationToken: result.token, expiresAt: result.expiresAt, scope: result.scope, dev: result.dev });
   } catch (error) { next(error); }
@@ -885,6 +942,23 @@ app.post("/v1/keymaster/accounts/:id/sessions/revoke-all", requireKeymaster, asy
 app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next) => {
   try {
     const id = String(req.params.id);
+    const target = (await pool.query(
+      `SELECT id, role, status FROM app1_accounts
+        WHERE id = $1 AND status <> 'DELETED'
+        LIMIT 1`,
+      [id]
+    )).rows[0];
+    if (!target) return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
+    if (target.role === "DEV") {
+      const devCount = Number((await pool.query(
+        `SELECT COUNT(*)::int AS total FROM app1_accounts
+          WHERE role = 'DEV' AND status <> 'DELETED'`
+      )).rows[0]?.total || 0);
+      if (devCount <= 1) {
+        return sendError(res, 409, "LAST_DEV_REQUIRED", "O último acesso DEV não pode ser excluído. Crie outro DEV antes de excluir este acesso.");
+      }
+    }
+
     const authToken = String(req.headers["x-critical-authorization"] || "");
     const auth = await consumeCriticalAuthorization({
       sessionId: req.keymasterSession.id,
@@ -894,7 +968,23 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
     });
     if (!auth) return sendError(res, 403, "DEV_REAUTH_REQUIRED", "Excluir uma conta exige reautenticação DEV de uso único.");
 
-    await withTransaction(async (client) => {
+    const deletion = await withTransaction(async (client) => {
+      const lockedTarget = (await client.query(
+        `SELECT id, role, status FROM app1_accounts
+          WHERE id = $1 AND status <> 'DELETED'
+          FOR UPDATE`,
+        [id]
+      )).rows[0];
+      if (!lockedTarget) return { notFound: true };
+      if (lockedTarget.role === "DEV") {
+        const devRows = (await client.query(
+          `SELECT id FROM app1_accounts
+            WHERE role = 'DEV' AND status <> 'DELETED'
+            FOR UPDATE`
+        )).rows;
+        if (devRows.length <= 1) return { lastDev: true };
+      }
+
       const result = await client.query(
         `UPDATE app1_accounts
             SET status = 'DELETED',
@@ -905,7 +995,7 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
           RETURNING id, display_name, role`,
         [id]
       );
-      if (!result.rowCount) throw Object.assign(new Error("not found"), { statusCode: 404 });
+      if (!result.rowCount) return { notFound: true };
       await client.query(`UPDATE app1_sessions SET revoked_at = NOW() WHERE account_id = $1 AND revoked_at IS NULL`, [id]);
       await audit(client, {
         actorKind: "DEV",
@@ -915,7 +1005,12 @@ app.delete("/v1/keymaster/accounts/:id", requireKeymaster, async (req, res, next
         targetId: id,
         metadata: { deletedRole: result.rows[0].role, keymasterSessionId: req.keymasterSession.id }
       });
+      return { ok: true };
     });
+    if (deletion.notFound) return sendError(res, 404, "NOT_FOUND", "Conta não encontrada.");
+    if (deletion.lastDev) {
+      return sendError(res, 409, "LAST_DEV_REQUIRED", "O último acesso DEV não pode ser excluído. Crie outro DEV antes de excluir este acesso.");
+    }
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
