@@ -18,6 +18,7 @@ import {
 import { verifyAppIntegrity } from "./integrity.js";
 import { registerMenuRoutes } from "./menu-routes.js";
 import { registerApp1Routes } from "./app1-routes.js";
+import { registerApp1LibraryRoutes } from "./app1-library-routes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT || 3100);
@@ -42,7 +43,7 @@ const CRITICAL_ACTIONS = new Set([
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(express.json({ limit: "64kb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use((_req, res, next) => {
   res.set("Cache-Control", "no-store, max-age=0");
   res.set("Pragma", "no-cache");
@@ -913,6 +914,10 @@ registerApp1Routes(app, {
   consumeCriticalAuthorization,
   getApp1Maintenance
 });
+
+// Biblioteca persistente do App 1. Usa apenas sessões FULL vinculadas
+// ao dispositivo e mantém os itens ligados ao ID permanente da conta.
+registerApp1LibraryRoutes(app);
 
 // O contrato App 1 V1 acima é a única implementação de login/sessão.
 // Não mantenha rotas paralelas sem device binding e onboarding.
