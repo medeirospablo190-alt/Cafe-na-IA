@@ -45,21 +45,7 @@ jobs:
       - name: Install API dependencies
         run: bash ../../scripts/npm-install-retry.sh
       - name: Syntax check
-        run: |
-          node --check src/server.js
-          node --check src/app1-routes.js
-          node --check src/app1-library-routes.js
-          node --check src/app1-library-routes-v2.js
-          node --check src/app1-library-hardening-routes.js
-          node --check src/app1-session-control-routes.js
-          node --check src/app1-feed-comment.js
-          node --check src/menu-routes.js
-          node --check src/keymaster-audit-clear.js
-          node --check src/security.js
-          node --check src/integrity.js
-          node --check src/db.js
-          node --check scripts/migrate.mjs
-          node --check scripts/production-readiness.mjs
+        run: npm run check
       - name: App 1 route architecture guard
         run: |
           if grep -Fq 'app.post("/v1/app1/login"' src/server.js; then
@@ -78,6 +64,11 @@ jobs:
           grep -Fq 'app.post("/v1/app1/login"' src/app1-routes.js
           grep -Fq 'app.get("/v1/app1/me"' src/app1-routes.js
           grep -Fq 'app.post("/v1/app1/logout"' src/app1-session-control-routes.js
+          grep -Fq 'registerApp1MenuKeyRoutes(app)' src/app1-library-routes.js
+          grep -Fq 'registerMenuAccessV2Routes(app)' src/app1-library-routes.js
+          grep -Fq 'registerKeymasterMenuKeyLockdown(app)' src/app1-library-routes.js
+          grep -Fq 'app.post("/v1/app1/menu-admin/menus/:id/keys"' src/app1-menu-key-routes.js
+          grep -Fq 'app.post("/v1/menu-access/validate"' src/menu-access-v2-routes.js
       - name: Production readiness guard
         env:
           KEYMASTER_ACCESS_HASH: 'scrypt$32768$8$1$Y2ktc2FsdA$Y2ktaGFzaA'
