@@ -1,1 +1,1 @@
-export { SocialFeedScreen } from "./SocialFeedScreenV2";
+export { SocialFeedScreen } from "./SocialFeedScreenV3";
