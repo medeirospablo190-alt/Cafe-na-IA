@@ -11,9 +11,10 @@ import { AccountsScreen } from "./src/screens/AccountsScreen";
 import { MenusScreen } from "./src/screens/MenusScreen";
 import { AuditScreen } from "./src/screens/AuditScreen";
 import { CriticalScreen } from "./src/screens/CriticalScreen";
+import { MenuBaseScreen } from "./src/screens/MenuBaseScreen";
 import { styles } from "./src/styles";
 
-type Screen = "login" | "home" | "accounts" | "menus" | "audit" | "critical";
+type Screen = "login" | "home" | "accounts" | "menus" | "audit" | "critical" | "menuBase";
 
 function KeymasterApp() {
   const [screen, setScreen] = useState<Screen>("login");
@@ -55,6 +56,7 @@ function KeymasterApp() {
   const goMenus = () => setScreen("menus");
   const goAudit = () => setScreen("audit");
   const goCritical = () => setScreen("critical");
+  const goMenuBase = () => setScreen("menuBase");
 
   if (booting) {
     return (
@@ -85,12 +87,16 @@ function KeymasterApp() {
   if (screen === "critical") {
     return <CriticalScreen session={session} onHome={goHome} onAccounts={goAccounts} onMenus={goMenus} onAudit={goAudit} />;
   }
+  if (screen === "menuBase") {
+    return <MenuBaseScreen onBack={goHome} onMenus={goMenus} />;
+  }
 
   return (
     <HomeScreen
       session={session}
       onAccounts={goAccounts}
       onMenus={goMenus}
+      onMenuBase={goMenuBase}
       onAudit={goAudit}
       onCritical={goCritical}
       onLogout={doLogout}
