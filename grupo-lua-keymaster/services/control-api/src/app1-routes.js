@@ -526,60 +526,58 @@ export function registerApp1Routes(app, {
           [account.id]
         )).rows;
         const activeDevices = allDevices.filter((row) => row.status === "ACTIVE");
-        let boundDevice = activeDevices.find((row) => row.fingerprint === fingerprint) || null;
-        let issuedDeviceToken = null;
-        let deviceEvent = "EXISTING_DEVICE";
         const suppliedDeviceTokenHash = device.deviceToken
           ? tokenHash(`app1-device:${device.deviceToken}`)
           : "";
+        const tokenBoundDevice = suppliedDeviceTokenHash
+          ? activeDevices.find((row) => safeEqualText(suppliedDeviceTokenHash, row.device_token_hash)) || null
+          : null;
+        const fingerprintBoundDevice = activeDevices.find((row) => row.fingerprint === fingerprint) || null;
+        let boundDevice = tokenBoundDevice || fingerprintBoundDevice;
+        let issuedDeviceToken = null;
+        let deviceEvent = tokenBoundDevice ? "EXISTING_DEVICE_TOKEN" : "EXISTING_DEVICE";
 
-        // O token guardado no SecureStore é uma prova mais forte de continuidade
-        // da instalação do que o fingerprint nativo isolado. Em algumas atualizações,
-        // Android ID/IDFV pode mudar mesmo no mesmo aparelho. Se o token do aparelho
-        // continua válido, recuperamos o vínculo ao invés de acusar um "novo celular".
-        if (!boundDevice && suppliedDeviceTokenHash) {
-          const tokenBoundDevice = activeDevices.find((row) =>
-            safeEqualText(suppliedDeviceTokenHash, row.device_token_hash)
-          ) || null;
-          if (tokenBoundDevice) {
-            boundDevice = tokenBoundDevice;
-            deviceEvent = "EXISTING_DEVICE_TOKEN_RECOVERED";
-            const conflicting = allDevices.find((row) => row.id !== boundDevice.id && row.fingerprint === fingerprint);
-            const meta = deviceMetadata(device);
-            if (!conflicting) {
-              boundDevice = (await client.query(
-                `UPDATE app1_devices
-                    SET fingerprint = $2,
-                        platform = $3,
-                        native_device_id_hash = $4,
-                        installation_id_hash = $5,
-                        integrity_key_id = $6,
-                        device_label = COALESCE(NULLIF($7, ''), device_label),
-                        last_seen_at = NOW(),
-                        last_ip_hash = $8
-                  WHERE id = $1
-                  RETURNING *`,
-                [
-                  boundDevice.id,
-                  fingerprint,
-                  device.platform,
-                  meta.nativeDeviceIdHash,
-                  meta.installationIdHash,
-                  device.integrityKeyId || null,
-                  device.deviceLabel || "",
-                  requestIpHash
-                ]
-              )).rows[0];
-            }
-            await audit(client, {
-              actorKind: "APP1_ACCOUNT",
-              actorId: account.id,
-              action: "APP1_DEVICE_IDENTITY_RECOVERED",
-              targetKind: "APP1_DEVICE",
-              targetId: boundDevice.id,
-              metadata: { platform: device.platform, deviceHint: maskHash(fingerprint) }
-            });
+        // O token guardado no SecureStore é a prova principal de continuidade da
+        // instalação. O fingerprint nativo é apenas o fallback. Assim, se uma
+        // atualização alterar o ID nativo, o mesmo aparelho não é confundido com
+        // outro — e um fingerprint coincidente não pode se sobrepor a um token válido.
+        if (tokenBoundDevice && tokenBoundDevice.fingerprint !== fingerprint) {
+          deviceEvent = "EXISTING_DEVICE_TOKEN_RECOVERED";
+          const conflicting = allDevices.find((row) => row.id !== tokenBoundDevice.id && row.fingerprint === fingerprint);
+          const meta = deviceMetadata(device);
+          if (!conflicting) {
+            boundDevice = (await client.query(
+              `UPDATE app1_devices
+                  SET fingerprint = $2,
+                      platform = $3,
+                      native_device_id_hash = $4,
+                      installation_id_hash = $5,
+                      integrity_key_id = $6,
+                      device_label = COALESCE(NULLIF($7, ''), device_label),
+                      last_seen_at = NOW(),
+                      last_ip_hash = $8
+                WHERE id = $1
+                RETURNING *`,
+              [
+                tokenBoundDevice.id,
+                fingerprint,
+                device.platform,
+                meta.nativeDeviceIdHash,
+                meta.installationIdHash,
+                device.integrityKeyId || null,
+                device.deviceLabel || "",
+                requestIpHash
+              ]
+            )).rows[0];
           }
+          await audit(client, {
+            actorKind: "APP1_ACCOUNT",
+            actorId: account.id,
+            action: "APP1_DEVICE_IDENTITY_RECOVERED",
+            targetKind: "APP1_DEVICE",
+            targetId: tokenBoundDevice.id,
+            metadata: { platform: device.platform, deviceHint: maskHash(fingerprint) }
+          });
         }
 
         if (boundDevice) {
