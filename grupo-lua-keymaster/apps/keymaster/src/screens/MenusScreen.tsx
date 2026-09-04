@@ -21,18 +21,10 @@ import {
 } from "../api";
 import { BottomNav } from "../components/BottomNav";
 import { Button, Header } from "../components/Common";
+import { buildMenuLoader } from "../menuLoader";
 import { styles } from "../styles";
 
-const LOGIN_RAW_URL = "https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/GrupoLuaLogin.lua";
-
 type StatusFilter = "ALL" | "ACTIVE" | "SUSPENDED";
-
-function buildLoader(menu: ManagedMenu) {
-  return [
-    `getgenv().GRUPO_LUA_MENU_ID = ${JSON.stringify(menu.public_id)}`,
-    `loadstring(game:HttpGet(${JSON.stringify(LOGIN_RAW_URL)}))()`
-  ].join("\n");
-}
 
 export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }: {
   session: string;
@@ -76,22 +68,42 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
     return () => clearTimeout(timer);
   }, [session, query, statusFilter]);
 
-  async function create() {
-    try {
-      await createManagedMenu(session, name, sourceUrl);
-      setName("");
-      setSourceUrl("");
-      setCreateOpen(false);
-      await refresh();
-    } catch (error) {
-      Alert.alert("Não foi possível cadastrar", error instanceof Error ? error.message : "Erro desconhecido");
-    }
-  }
-
   function open(menu: ManagedMenu) {
     setSelected(menu);
     setEditName(menu.name);
     setEditUrl(menu.source_url);
+  }
+
+  async function copyLoader(menu: ManagedMenu) {
+    const loader = buildMenuLoader(menu.public_id);
+    if (!loader) {
+      Alert.alert("Menu inválido", "O ID público deste menu não pôde ser convertido em loadstring.");
+      return;
+    }
+
+    try {
+      await Clipboard.setStringAsync(loader);
+      Alert.alert("Loadstring copiado", `O loader de ${menu.name} foi copiado.`);
+    } catch (error) {
+      Alert.alert("Falha ao copiar", error instanceof Error ? error.message : "Não foi possível copiar o loadstring.");
+    }
+  }
+
+  async function create() {
+    try {
+      const result = await createManagedMenu(session, name, sourceUrl);
+      setName("");
+      setSourceUrl("");
+      setCreateOpen(false);
+      await refresh();
+      open(result.menu);
+      Alert.alert(
+        "Menu cadastrado",
+        "O menu foi criado com o login-base oficial. Use “COPIAR LOADSTRING” para obter o loader final."
+      );
+    } catch (error) {
+      Alert.alert("Não foi possível cadastrar", error instanceof Error ? error.message : "Erro desconhecido");
+    }
   }
 
   async function save() {
@@ -173,7 +185,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                   </Pressable>
 
                   <View style={styles.rowGap}>
-                    <Pressable style={styles.smallAction} onPress={() => Clipboard.setStringAsync(buildLoader(item))}>
+                    <Pressable style={styles.smallAction} onPress={() => copyLoader(item)}>
                       <Text style={styles.smallActionText}>COPIAR LOADSTRING</Text>
                     </Pressable>
                     <Pressable style={styles.smallAction} onPress={() => open(item)}>
@@ -221,7 +233,7 @@ export function MenusScreen({ session, onHome, onAccounts, onAudit, onCritical }
                 <TextInput value={editName} onChangeText={setEditName} style={styles.input} placeholder="Nome" placeholderTextColor="#666" />
                 <TextInput value={editUrl} onChangeText={setEditUrl} style={styles.input} placeholder="URL GitHub" placeholderTextColor="#666" autoCapitalize="none" autoCorrect={false} />
                 <Button title="SALVAR ALTERAÇÕES" onPress={save} secondary />
-                <Button title="COPIAR LOADSTRING" onPress={() => Clipboard.setStringAsync(buildLoader(selected))} secondary />
+                <Button title="COPIAR LOADSTRING" onPress={() => copyLoader(selected)} secondary />
                 <Button title={selected.status === "ACTIVE" ? "SUSPENDER MENU" : "LIBERAR MENU"} onPress={() => toggle(selected)} secondary />
 
                 <Text style={styles.muted}>FREE, VIP, validade, liberação após 24h e vínculo de aparelho ficam exclusivamente no App 1.</Text>
