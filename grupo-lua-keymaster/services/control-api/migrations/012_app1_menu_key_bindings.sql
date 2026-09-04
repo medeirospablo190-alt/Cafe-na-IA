@@ -41,7 +41,38 @@ FOR EACH ROW
 WHEN (NEW.status = 'DELETED' AND OLD.status IS DISTINCT FROM 'DELETED')
 EXECUTE FUNCTION purge_app1_menu_key_bindings_on_deleted_status();
 
--- Limpa vínculos de contas que já estavam marcadas como DELETED antes da migration.
+-- Exclusão definitiva de um menu é soft-delete no painel. Apagamos os
+-- vínculos pessoais quando o menu passa a DELETED para não reter cópias
+-- cifradas de chaves que já não podem voltar a ser utilizadas.
+CREATE OR REPLACE FUNCTION purge_app1_menu_key_bindings_on_menu_deleted()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.status = 'DELETED' AND OLD.status IS DISTINCT FROM 'DELETED' THEN
+    DELETE FROM app1_menu_key_bindings b
+     USING menu_access_keys k
+     WHERE b.menu_key_id = k.id
+       AND k.menu_id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_purge_app1_menu_key_bindings_on_menu_deleted ON managed_menus;
+CREATE TRIGGER trg_purge_app1_menu_key_bindings_on_menu_deleted
+AFTER UPDATE OF status ON managed_menus
+FOR EACH ROW
+WHEN (NEW.status = 'DELETED' AND OLD.status IS DISTINCT FROM 'DELETED')
+EXECUTE FUNCTION purge_app1_menu_key_bindings_on_menu_deleted();
+
+-- Limpa vínculos de contas ou menus que já estavam DELETED antes da migration.
 DELETE FROM app1_menu_key_bindings b
 USING app1_accounts a
 WHERE b.account_id = a.id AND a.status = 'DELETED';
+
+DELETE FROM app1_menu_key_bindings b
+USING menu_access_keys k, managed_menus m
+WHERE b.menu_key_id = k.id
+  AND k.menu_id = m.id
+  AND m.status = 'DELETED';
