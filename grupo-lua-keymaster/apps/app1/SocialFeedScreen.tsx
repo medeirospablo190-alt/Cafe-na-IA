@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { getFeedPost, listFeedPosts, type FeedPost } from "./api";
@@ -17,18 +17,22 @@ export function SocialFeedScreen({ sessionToken, deviceToken }: {
   const [loading, setLoading] = useState(true);
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const requestVersion = useRef(0);
+  const mounted = useRef(true);
 
   async function reload() {
-    if (loading && posts.length > 0) return;
+    const version = ++requestVersion.current;
     setLoading(true);
     setMessage(null);
     try {
       const result = await listFeedPosts(sessionToken, deviceToken);
+      if (!mounted.current || version !== requestVersion.current) return;
       setPosts(result.posts);
     } catch (error) {
+      if (!mounted.current || version !== requestVersion.current) return;
       setMessage(error instanceof Error ? error.message : "Não foi possível carregar o feed.");
     } finally {
-      setLoading(false);
+      if (mounted.current && version === requestVersion.current) setLoading(false);
     }
   }
 
@@ -42,16 +46,23 @@ export function SocialFeedScreen({ sessionToken, deviceToken }: {
         content = result.post.item.content;
       }
       await Clipboard.setStringAsync(content);
-      setMessage(`${post.item.title} copiado por completo.`);
+      if (mounted.current) setMessage(`${post.item.title} copiado por completo.`);
     } catch (error) {
-      Alert.alert("Falha ao copiar", error instanceof Error ? error.message : "Não foi possível copiar a publicação.");
+      if (mounted.current) {
+        Alert.alert("Falha ao copiar", error instanceof Error ? error.message : "Não foi possível copiar a publicação.");
+      }
     } finally {
-      setCopyingId(null);
+      if (mounted.current) setCopyingId(null);
     }
   }
 
   useEffect(() => {
+    mounted.current = true;
     reload().catch(() => {});
+    return () => {
+      mounted.current = false;
+      requestVersion.current += 1;
+    };
   }, [sessionToken, deviceToken]);
 
   return (
