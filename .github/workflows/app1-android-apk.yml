@@ -31,6 +31,14 @@ jobs:
           cache: npm
           cache-dependency-path: grupo-lua-keymaster/package.json
 
+      - name: Resolve App version
+        id: app-version
+        run: |
+          VERSION="$(node -p "require('./grupo-lua-keymaster/apps/app1/app.json').expo.version")"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building GRUPO LUA App 1 v$VERSION"
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -79,15 +87,16 @@ jobs:
       - name: Stage APK
         run: |
           mkdir -p dist
-          cp grupo-lua-keymaster/apps/app1/android/app/build/outputs/apk/release/app-release.apk dist/GRUPO-LUA-APP1-v0.1.0.apk
-          sha256sum dist/GRUPO-LUA-APP1-v0.1.0.apk | tee dist/GRUPO-LUA-APP1-v0.1.0.apk.sha256
+          FILE="GRUPO-LUA-APP1-v${{ steps.app-version.outputs.version }}.apk"
+          cp grupo-lua-keymaster/apps/app1/android/app/build/outputs/apk/release/app-release.apk "dist/$FILE"
+          sha256sum "dist/$FILE" | tee "dist/$FILE.sha256"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GRUPO-LUA-APP1-v0.1.0-android
+          name: GRUPO-LUA-APP1-v${{ steps.app-version.outputs.version }}-android
           path: |
-            dist/GRUPO-LUA-APP1-v0.1.0.apk
-            dist/GRUPO-LUA-APP1-v0.1.0.apk.sha256
+            dist/GRUPO-LUA-APP1-v${{ steps.app-version.outputs.version }}.apk
+            dist/GRUPO-LUA-APP1-v${{ steps.app-version.outputs.version }}.apk.sha256
           if-no-files-found: error
           retention-days: 14
