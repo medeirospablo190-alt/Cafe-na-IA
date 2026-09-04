@@ -40,6 +40,16 @@ export type LibraryItem = LibraryItemSummary & {
   content: string;
 };
 
+export type LibraryPage = {
+  ok: true;
+  items: LibraryItemSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+};
+
 export type FeedPost = {
   id: string;
   kind: LibraryKind;
@@ -167,17 +177,25 @@ export async function confirmPublicName(
 export async function listLibraryItems(
   sessionToken: string,
   deviceToken: string,
-  options: { kind?: LibraryKind; q?: string; favorite?: boolean } = {}
+  options: {
+    kind?: LibraryKind;
+    q?: string;
+    favorite?: boolean;
+    limit?: number;
+    offset?: number;
+  } = {}
 ) {
   const params = new URLSearchParams();
   if (options.kind) params.set("kind", options.kind);
   if (options.q) params.set("q", options.q);
   if (options.favorite !== undefined) params.set("favorite", String(options.favorite));
+  if (options.limit !== undefined) params.set("limit", String(options.limit));
+  if (options.offset !== undefined) params.set("offset", String(options.offset));
   const suffix = params.toString() ? `?${params.toString()}` : "";
   const response = await fetch(`${requireApiUrl()}/v1/app1/library${suffix}`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
-  return parseResponse<{ ok: true; items: LibraryItemSummary[] }>(response);
+  return parseResponse<LibraryPage>(response);
 }
 
 export async function getLibraryItem(sessionToken: string, deviceToken: string, id: string) {
