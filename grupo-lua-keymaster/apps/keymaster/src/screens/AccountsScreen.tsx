@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -78,8 +78,11 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
   const [securityTarget, setSecurityTarget] = useState<Account | null>(null);
   const [sessions, setSessions] = useState<AccountSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const refreshVersion = useRef(0);
+  const mounted = useRef(true);
 
   async function refresh() {
+    const version = ++refreshVersion.current;
     setLoading(true);
     try {
       const result = await listAccounts(session, {
@@ -87,6 +90,7 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         role: roleFilter === "ALL" ? undefined : roleFilter,
         status: statusFilter === "ALL" ? undefined : statusFilter
       });
+      if (!mounted.current || version !== refreshVersion.current) return;
       setAccounts(result.accounts);
       if (detailTarget) {
         const updated = result.accounts.find((item) => item.id === detailTarget.id);
@@ -97,15 +101,28 @@ export function AccountsScreen({ session, onHome, onMenus, onAudit, onCritical }
         if (updated) setSecurityTarget(updated);
       }
     } catch (error) {
-      Alert.alert("Falha ao carregar", error instanceof Error ? error.message : "Erro desconhecido");
+      if (mounted.current && version === refreshVersion.current) {
+        Alert.alert("Falha ao carregar", error instanceof Error ? error.message : "Erro desconhecido");
+      }
     } finally {
-      setLoading(false);
+      if (mounted.current && version === refreshVersion.current) setLoading(false);
     }
   }
 
   useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      refreshVersion.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => refresh().catch(() => {}), 250);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      refreshVersion.current += 1;
+    };
   }, [session, query, roleFilter, statusFilter]);
 
   async function create() {

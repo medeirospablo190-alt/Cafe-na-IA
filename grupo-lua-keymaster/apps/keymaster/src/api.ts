@@ -176,15 +176,40 @@ export class ApiError extends Error {
   }
 }
 
+const API_TIMEOUT_MS = 45_000;
+
 async function request<T>(path: string, init: RequestInit = {}, session?: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(session ? { authorization: `Bearer ${session}` } : {}),
-      ...(init.headers || {})
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        "content-type": "application/json",
+        ...(session ? { authorization: `Bearer ${session}` } : {}),
+        ...(init.headers || {})
+      }
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ApiError(
+        "O servidor demorou demais para responder. Verifique sua conexão e tente novamente.",
+        0,
+        "NETWORK_TIMEOUT"
+      );
     }
-  });
+    throw new ApiError(
+      error instanceof Error ? error.message : "Não foi possível conectar ao servidor.",
+      0,
+      "NETWORK_ERROR"
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new ApiError(
