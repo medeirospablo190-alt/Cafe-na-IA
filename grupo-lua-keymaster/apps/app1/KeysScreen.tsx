@@ -24,6 +24,9 @@ import {
   resetApp1MenuKeyDevice,
   setApp1MenuKeyState
 } from "./api";
+import { buildMenuLoader } from "./menuLoader";
+
+type VipUnit = "DAYS" | "MONTHS" | "PERMANENT";
 
 function errorText(error: unknown) {
   if (error instanceof App1ApiError) return error.message;
@@ -53,6 +56,13 @@ function stateText(key: App1MenuKey) {
   return "PRONTA";
 }
 
+function positiveInteger(value: string) {
+  const parsed = Number(value.trim());
+  if (!Number.isFinite(parsed)) return null;
+  const numeric = Math.floor(parsed);
+  return numeric >= 1 ? numeric : null;
+}
+
 export function KeysScreen({ sessionToken, deviceToken }: {
   sessionToken: string;
   deviceToken: string;
@@ -65,9 +75,12 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   const [createOpen, setCreateOpen] = useState(false);
   const [kind, setKind] = useState<MenuKeyKind>("FREE");
   const [durationValue, setDurationValue] = useState("24");
-  const [vipUnit, setVipUnit] = useState<"DAYS" | "MONTHS" | "PERMANENT">("DAYS");
+  const [vipUnit, setVipUnit] = useState<VipUnit>("DAYS");
   const [note, setNote] = useState("");
   const [revealed, setRevealed] = useState<string | null>(null);
+  const [renewTarget, setRenewTarget] = useState<App1MenuKey | null>(null);
+  const [renewDurationValue, setRenewDurationValue] = useState("24");
+  const [renewVipUnit, setRenewVipUnit] = useState<VipUnit>("DAYS");
   const [busy, setBusy] = useState(false);
   const actionLock = useRef(false);
 
@@ -133,11 +146,25 @@ export function KeysScreen({ sessionToken, deviceToken }: {
     setCreateOpen(true);
   }
 
+  async function copySelectedLoader() {
+    if (!selected) return;
+    const loader = buildMenuLoader(selected.public_id);
+    if (!loader) {
+      Alert.alert("ID inválido", "O ID público deste menu não está no formato esperado para gerar o loadstring.");
+      return;
+    }
+    await Clipboard.setStringAsync(loader);
+    Alert.alert("Loadstring copiado", `O loader de ${selected.name} foi copiado.`);
+  }
+
   async function createKey() {
     if (!selected || actionLock.current) return;
-    const parsed = Number(durationValue || 1);
-    const numeric = Number.isFinite(parsed) ? Math.max(1, Math.floor(parsed)) : 1;
-    if (kind === "FREE" && numeric > 24) {
+    const numeric = positiveInteger(durationValue);
+    if (!(kind === "VIP" && vipUnit === "PERMANENT") && numeric === null) {
+      Alert.alert("Validade inválida", "Digite um número inteiro maior que zero.");
+      return;
+    }
+    if (kind === "FREE" && (numeric || 0) > 24) {
       Alert.alert("Limite FREE", "A chave FREE pode liberar no máximo 24 horas por ciclo.");
       return;
     }
@@ -145,7 +172,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
     await runLocked(async () => {
       const result = await createApp1MenuKey(sessionToken, deviceToken, selected.id, {
         kind,
-        durationValue: vipUnit === "PERMANENT" && kind === "VIP" ? undefined : numeric,
+        durationValue: vipUnit === "PERMANENT" && kind === "VIP" ? undefined : numeric || 1,
         durationUnit: kind === "VIP" ? vipUnit : undefined,
         note: note.trim() || undefined
       });
@@ -155,44 +182,78 @@ export function KeysScreen({ sessionToken, deviceToken }: {
     }, "Não foi possível gerar");
   }
 
-  async function releaseFree(key: App1MenuKey) {
+  function openRenewal(key: App1MenuKey) {
+    if (actionLock.current || key.status === "REVOKED") return;
+    setRenewTarget(key);
+    if (key.kind === "FREE") {
+      setRenewDurationValue(String(Math.min(24, Math.max(1, key.duration_value || 24))));
+      setRenewVipUnit("DAYS");
+      return;
+    }
+
+    const unit: VipUnit = key.duration_unit === "MONTHS" || key.duration_unit === "PERMANENT"
+      ? key.duration_unit
+      : "DAYS";
+    setRenewVipUnit(unit);
+    setRenewDurationValue(String(Math.max(1, key.duration_value || (unit === "MONTHS" ? 1 : 30))));
+  }
+
+  function closeRenewal() {
+    if (busy) return;
+    setRenewTarget(null);
+  }
+
+  async function performRenewal() {
+    if (!renewTarget || actionLock.current) return;
+
+    if (renewTarget.kind === "FREE") {
+      const hours = positiveInteger(renewDurationValue);
+      if (hours === null || hours > 24) {
+        Alert.alert("Duração inválida", "Escolha de 1 a 24 horas para o próximo ciclo FREE.");
+        return;
+      }
+      await runLocked(async () => {
+        await releaseApp1FreeKey(sessionToken, deviceToken, renewTarget.id, hours);
+        setRenewTarget(null);
+        await loadKeys();
+        Alert.alert("FREE liberada", `O próximo ciclo terá ${hours}h e começará no próximo uso da chave.`);
+      }, "Falha ao liberar");
+      return;
+    }
+
+    const value = renewVipUnit === "PERMANENT" ? undefined : positiveInteger(renewDurationValue);
+    if (renewVipUnit !== "PERMANENT" && value === null) {
+      Alert.alert("Validade inválida", "Digite um número inteiro maior que zero.");
+      return;
+    }
+
     await runLocked(async () => {
-      await releaseApp1FreeKey(
-        sessionToken,
-        deviceToken,
-        key.id,
-        Math.min(24, Math.max(1, key.duration_value || 24))
+      await configureApp1VipKey(sessionToken, deviceToken, renewTarget.id, renewVipUnit, value || undefined);
+      setRenewTarget(null);
+      await loadKeys();
+      Alert.alert(
+        "VIP configurada",
+        renewVipUnit === "PERMANENT"
+          ? "A chave foi configurada como permanente e a nova validade começa no próximo uso."
+          : `A nova validade começa no próximo uso da chave.`
       );
-      await loadKeys();
-      Alert.alert("FREE liberada", "Um novo período será iniciado quando a chave for usada novamente no aparelho vinculado.");
-    }, "Falha ao liberar");
+    }, "Falha ao configurar VIP");
   }
 
-  async function renewVip(key: App1MenuKey) {
-    await runLocked(async () => {
-      const unit = key.duration_unit === "MONTHS" || key.duration_unit === "PERMANENT" ? key.duration_unit : "DAYS";
-      await configureApp1VipKey(sessionToken, deviceToken, key.id, unit, key.duration_value || 30);
-      await loadKeys();
-      Alert.alert("VIP renovada", "A validade configurada começará no próximo uso da chave.");
-    }, "Falha ao renovar");
-  }
-
-  function requestVipRenewal(key: App1MenuKey) {
-    if (key.access_state === "EXPIRED") {
-      renewVip(key).catch(() => {});
+  function submitRenewal() {
+    if (!renewTarget || actionLock.current) return;
+    const isRestartingActiveVip = renewTarget.kind === "VIP" && renewTarget.access_state === "ACTIVE";
+    if (!isRestartingActiveVip) {
+      performRenewal().catch(() => {});
       return;
     }
 
     Alert.alert(
-      "Reiniciar VIP",
-      "As sessões atuais desta chave serão encerradas. A validade configurada recomeçará no próximo uso.",
+      "Reiniciar VIP ativa",
+      "As sessões atuais desta chave serão encerradas. A nova validade começará no próximo uso.",
       [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Reiniciar",
-          style: "destructive",
-          onPress: () => { renewVip(key).catch(() => {}); }
-        }
+        { text: "Reiniciar", style: "destructive", onPress: () => { performRenewal().catch(() => {}); } }
       ]
     );
   }
@@ -200,7 +261,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   function resetDevice(key: App1MenuKey) {
     Alert.alert(
       "Trocar aparelho",
-      "As sessões atuais desta chave serão encerradas. O próximo aparelho que usar a chave ficará vinculado a ela.",
+      "As sessões atuais desta chave serão encerradas. O próximo aparelho que usar a chave ficará vinculado a ela. O tempo de acesso já iniciado não é reiniciado por esta ação.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -253,7 +314,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
         {loading ? <ActivityIndicator style={{ marginTop: 24 }} /> : menus.length === 0 ? (
           <Text style={s.empty}>Nenhum menu cadastrado no servidor.</Text>
         ) : menus.map((menu) => (
-          <Pressable key={menu.id} style={s.menuCard} onPress={() => openMenu(menu)}>
+          <Pressable key={menu.id} style={s.menuCard} disabled={loading} onPress={() => openMenu(menu)}>
             <View style={{ flex: 1 }}>
               <Text style={s.title}>{menu.name}</Text>
               <Text style={s.meta}>{menu.public_id}</Text>
@@ -270,7 +331,12 @@ export function KeysScreen({ sessionToken, deviceToken }: {
     <View>
       <View style={s.headerRow}>
         <Pressable style={s.back} disabled={busy} onPress={() => { setSelected(null); setKeys([]); }}><Text style={s.backText}>‹ MENUS</Text></Pressable>
-        <Pressable style={[s.add, busy && s.disabled]} disabled={busy} onPress={openCreate}><Text style={s.addText}>＋ CHAVE</Text></Pressable>
+        <View style={s.headerActions}>
+          <Pressable style={[s.smallButton, busy && s.disabled]} disabled={busy} onPress={() => { copySelectedLoader().catch(() => {}); }}>
+            <Text style={s.smallButtonText}>COPIAR LOADSTRING</Text>
+          </Pressable>
+          <Pressable style={[s.add, busy && s.disabled]} disabled={busy} onPress={openCreate}><Text style={s.addText}>＋ CHAVE</Text></Pressable>
+        </View>
       </View>
 
       <View style={s.infoCard}>
@@ -298,13 +364,13 @@ export function KeysScreen({ sessionToken, deviceToken }: {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.actions}>
             {key.kind === "FREE" && key.access_state === "WAITING_ADMIN" && key.status !== "REVOKED" ? (
-              <Action label="LIBERAR FREE" disabled={busy} onPress={() => releaseFree(key)} />
+              <Action label="LIBERAR FREE" disabled={busy} onPress={() => openRenewal(key)} />
             ) : null}
             {key.kind === "VIP" && key.status !== "REVOKED" ? (
               <Action
-                label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "REINICIAR VIP"}
+                label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "RECONFIGURAR VIP"}
                 disabled={busy}
-                onPress={() => requestVipRenewal(key)}
+                onPress={() => openRenewal(key)}
               />
             ) : null}
             {key.bound_device && key.status !== "REVOKED" ? <Action label="TROCAR CELULAR" disabled={busy} onPress={() => resetDevice(key)} /> : null}
@@ -344,6 +410,39 @@ export function KeysScreen({ sessionToken, deviceToken }: {
             <TextInput value={note} editable={!busy} onChangeText={setNote} style={s.input} placeholder="Observação opcional" placeholderTextColor="#666" />
             <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={createKey}><Text style={s.primaryText}>{busy ? "GERANDO..." : "GERAR CHAVE"}</Text></Pressable>
             <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={() => setCreateOpen(false)}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={Boolean(renewTarget)} transparent animationType="fade" onRequestClose={closeRenewal}>
+        <View style={s.modalBackdrop}>
+          <View style={s.modalBox}>
+            <Text style={s.modalTitle}>{renewTarget?.kind === "FREE" ? "Liberar novo ciclo FREE" : "Configurar VIP"}</Text>
+            {renewTarget?.kind === "FREE" ? (
+              <>
+                <Text style={s.help}>Escolha a duração do próximo ciclo. Ele começa somente quando a chave for usada novamente.</Text>
+                <Text style={s.label}>HORAS • 1 A 24</Text>
+                <TextInput value={renewDurationValue} editable={!busy} onChangeText={setRenewDurationValue} keyboardType="number-pad" style={s.input} placeholder="24" placeholderTextColor="#666" />
+              </>
+            ) : (
+              <>
+                <Text style={s.help}>Você pode mudar a VIP para dias, meses ou permanente a cada renovação/reconfiguração.</Text>
+                {renewTarget?.access_state === "ACTIVE" ? <Text style={s.warning}>ATENÇÃO: esta chave está ativa. Salvar a nova configuração encerra as sessões atuais e reinicia a validade no próximo uso.</Text> : null}
+                <Text style={s.label}>NOVA VALIDADE VIP</Text>
+                <View style={s.choiceRow}>
+                  <Choice label="DIAS" active={renewVipUnit === "DAYS"} disabled={busy} onPress={() => setRenewVipUnit("DAYS")} />
+                  <Choice label="MESES" active={renewVipUnit === "MONTHS"} disabled={busy} onPress={() => setRenewVipUnit("MONTHS")} />
+                  <Choice label="PERMANENTE" active={renewVipUnit === "PERMANENT"} disabled={busy} onPress={() => setRenewVipUnit("PERMANENT")} />
+                </View>
+                {renewVipUnit !== "PERMANENT" ? (
+                  <TextInput value={renewDurationValue} editable={!busy} onChangeText={setRenewDurationValue} keyboardType="number-pad" style={s.input} placeholder={renewVipUnit === "MONTHS" ? "1" : "30"} placeholderTextColor="#666" />
+                ) : null}
+              </>
+            )}
+            <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={submitRenewal}>
+              <Text style={s.primaryText}>{busy ? "SALVANDO..." : renewTarget?.kind === "FREE" ? "LIBERAR CICLO" : "SALVAR VIP"}</Text>
+            </Pressable>
+            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={closeRenewal}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
           </View>
         </View>
       </Modal>
@@ -412,11 +511,14 @@ const s = StyleSheet.create({
   bad: { color: "#FF666C", fontSize: 9, fontWeight: "900" },
   title: { color: "#FFF", fontSize: 14, fontWeight: "900" },
   meta: { color: "#73737A", fontSize: 10, lineHeight: 16, marginTop: 3 },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", gap: 10, marginBottom: 10 },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 },
+  headerActions: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", gap: 7, flex: 1 },
   back: { paddingVertical: 8, paddingHorizontal: 10 },
   backText: { color: "#B4B4BA", fontSize: 10, fontWeight: "900" },
-  add: { borderRadius: 10, borderWidth: 1, borderColor: "#393940", paddingHorizontal: 12, justifyContent: "center" },
-  addText: { color: "#FFF", fontSize: 10, fontWeight: "900" },
+  add: { minHeight: 37, borderRadius: 10, borderWidth: 1, borderColor: "#393940", paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
+  addText: { color: "#FFF", fontSize: 9, fontWeight: "900" },
+  smallButton: { minHeight: 37, borderRadius: 10, borderWidth: 1, borderColor: "#41344D", backgroundColor: "#110C15", paddingHorizontal: 10, alignItems: "center", justifyContent: "center" },
+  smallButtonText: { color: "#D6BAEA", fontSize: 8, fontWeight: "900" },
   actions: { flexDirection: "row", gap: 7, marginTop: 12 },
   action: { borderRadius: 9, borderWidth: 1, borderColor: "#34343A", paddingHorizontal: 10, paddingVertical: 8 },
   actionDanger: { borderColor: "#542126", backgroundColor: "#130708" },
@@ -428,6 +530,7 @@ const s = StyleSheet.create({
   modalTitle: { color: "#FFF", fontSize: 21, fontWeight: "900", marginBottom: 12 },
   label: { color: "#77777E", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 12 },
   help: { color: "#85858C", fontSize: 10, lineHeight: 16, marginTop: 8 },
+  warning: { color: "#FF8A90", fontSize: 9, lineHeight: 15, marginTop: 10, borderRadius: 10, borderWidth: 1, borderColor: "#51242A", backgroundColor: "#16090B", padding: 10 },
   input: { minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#111114", color: "#FFF", paddingHorizontal: 12, marginTop: 10 },
   choiceRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   choice: { borderRadius: 10, borderWidth: 1, borderColor: "#303037", paddingHorizontal: 12, paddingVertical: 9 },
