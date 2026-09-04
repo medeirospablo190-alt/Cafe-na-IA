@@ -18,6 +18,7 @@ const ACTION_LABELS: Record<string, string> = {
   APP1_CREDENTIAL_ROTATED: "Chave da conta alterada",
   APP1_CREDENTIAL_REVEALED: "Login e chave visualizados",
   APP1_ACCOUNT_DELETED: "Conta excluída",
+  APP1_SESSION_LOGOUT: "Sessão encerrada pelo próprio usuário",
   APP1_SESSION_REVOKED: "Sessão revogada",
   APP1_SESSIONS_REVOKED_ALL: "Sessões revogadas",
   APP1_DEVICE_IDENTITY_RECOVERED: "Identidade do mesmo dispositivo recuperada",
