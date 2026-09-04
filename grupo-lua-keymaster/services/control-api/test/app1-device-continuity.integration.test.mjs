@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import net from "node:net";
 import { spawn } from "node:child_process";
 import pg from "pg";
-import { hashSecret } from "../src/security.js";
+import { deriveDeviceFingerprint, hashSecret, tokenHash } from "../src/security.js";
 
 const enabled = Boolean(process.env.DATABASE_URL);
 
@@ -135,6 +135,7 @@ test("same App 1 phone is recovered by its secure device token when native ident
     assert.equal(devicesAfter.length, 1);
     assert.equal(devicesAfter[0].id, originalDeviceId);
     assert.notEqual(devicesAfter[0].fingerprint, originalFingerprint);
+    const recoveredFingerprint = devicesAfter[0].fingerprint;
 
     const account = (await db.query(
       `SELECT failed_device_attempts, status FROM app1_accounts WHERE id = $1`,
@@ -149,6 +150,57 @@ test("same App 1 phone is recovered by its secure device token when native ident
       [accountId]
     )).rows[0];
     assert.equal(recoveredAudit.count, 1);
+
+    // A second active device is created with the same fingerprint the next
+    // request will present. The valid secure token still has to win over the
+    // fingerprint match; otherwise the same installation would be rejected as
+    // if it were the other phone.
+    const collisionNativeId = `native-collision-${suffix}`;
+    const collisionFingerprint = deriveDeviceFingerprint({
+      platform: "android",
+      nativeDeviceId: collisionNativeId,
+      integrityKeyId: "",
+      installationId: `other-install-${suffix}`
+    });
+    const otherDeviceId = uuid();
+    await db.query(
+      `INSERT INTO app1_devices
+        (id, account_id, fingerprint, device_token_hash, platform, device_label, is_primary, status)
+       VALUES ($1, $2, $3, $4, 'android', 'CI Other Android', FALSE, 'ACTIVE')`,
+      [
+        otherDeviceId,
+        accountId,
+        collisionFingerprint,
+        tokenHash(`app1-device:other-device-${suffix}`)
+      ]
+    );
+
+    const collision = await login(baseUrl, {
+      login: privateLogin,
+      credential,
+      nativeDeviceId: collisionNativeId,
+      installationId: `install-${suffix}`,
+      deviceToken: first.data.deviceToken
+    });
+    assert.equal(collision.response.status, 200, JSON.stringify(collision.data));
+    assert.equal(collision.data.deviceToken, undefined);
+
+    const collisionDevices = (await db.query(
+      `SELECT id, fingerprint FROM app1_devices
+        WHERE account_id = $1 AND status = 'ACTIVE'
+        ORDER BY id`,
+      [accountId]
+    )).rows;
+    assert.equal(collisionDevices.length, 2);
+    assert.equal(collisionDevices.find((row) => row.id === originalDeviceId)?.fingerprint, recoveredFingerprint);
+    assert.equal(collisionDevices.find((row) => row.id === otherDeviceId)?.fingerprint, collisionFingerprint);
+
+    const accountAfterCollision = (await db.query(
+      `SELECT failed_device_attempts, status FROM app1_accounts WHERE id = $1`,
+      [accountId]
+    )).rows[0];
+    assert.equal(accountAfterCollision.status, "ACTIVE");
+    assert.equal(Number(accountAfterCollision.failed_device_attempts), 0);
   } finally {
     if (child && child.exitCode === null) {
       child.kill("SIGTERM");
