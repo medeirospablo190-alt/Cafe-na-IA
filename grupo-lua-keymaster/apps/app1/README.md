@@ -1,6 +1,6 @@
 # GRUPO LUA — App 1 Mobile
 
-Aplicativo 1 do ecossistema GRUPO LUA. A versão atual é `0.2.0`.
+Aplicativo 1 do ecossistema GRUPO LUA. A versão atual é `0.3.1`.
 
 ## Fluxo de acesso do App 1
 
@@ -20,15 +20,53 @@ Depois do login bem-sucedido, o aplicativo não mantém a credencial digitada na
 
 ## Navegação atual
 
-A navegação-base é:
-
 ```text
-Início | Arquivos | Social | Chaves | Chats
+Início | Arquivos | Social | Chaves | Chats | Configurações
 ```
 
-A área `Chaves` já é funcional e é o único lugar do sistema em que FREE e VIP devem ser administradas.
+### Arquivos
 
-## Regras das chaves dos menus
+- biblioteca de códigos e loadstrings;
+- criação, leitura, edição e exclusão;
+- favoritos;
+- ações em lote;
+- compartilhamento no Social.
+
+### Social
+
+- feed;
+- perfis públicos por pseudônimo;
+- curtidas;
+- comentários e respostas;
+- favoritos;
+- lista de favoritos;
+- notificações sociais;
+- publicações fixadas;
+- mensagem global exclusiva para DEV.
+
+### Chats
+
+- conversas privadas 1:1;
+- busca por pseudônimo;
+- mensagens não lidas;
+- favorito e silenciar conversa;
+- denúncia auditada;
+- mensagens normais com retenção de 24 horas;
+- preservação da conversa enquanto estiver favoritada;
+- carregamento paginado de mensagens antigas sem perder o histórico já aberto durante a atualização automática.
+
+### Configurações
+
+- bio;
+- pensamento/status;
+- avatar;
+- moldura;
+- presença;
+- gerenciamento de perfil e sessão.
+
+## Chaves dos menus
+
+A área `Chaves` é funcional e é o único lugar do sistema em que FREE e VIP devem ser administradas.
 
 ### FREE
 
@@ -38,29 +76,30 @@ A área `Chaves` já é funcional e é o único lugar do sistema em que FREE e V
 - ao terminar o período, entra em `WAITING_ADMIN` / `AGUARDA ADM`;
 - não inicia outro ciclo sozinha;
 - um ADM/DEV do App 1 precisa liberar novamente a chave;
-- a nova liberação também pode escolher de 1 a 24 horas;
-- troca de aparelho é uma ação administrativa explícita.
+- a cada nova liberação o ADM/DEV escolhe novamente de 1 a 24 horas;
+- troca de aparelho é uma ação administrativa explícita e não reinicia automaticamente o tempo de acesso já iniciado.
 
 ### VIP
 
 - duração em dias, meses ou permanente;
 - o relógio começa no primeiro uso;
 - também fica vinculada ao primeiro aparelho;
-- VIP expirada precisa ser renovada/configurada novamente por ADM/DEV;
+- a cada renovação/reconfiguração o ADM/DEV pode escolher novamente dias, meses ou permanente;
+- reiniciar uma VIP ativa encerra as sessões atuais e a nova validade começa no próximo uso;
 - VIP permanente não recebe data final de acesso.
 
-## Login dos menus Roblox
+### Loadstring do menu
 
-O login-base dos menus usa `GrupoLuaLogin.lua` na raiz do repositório.
+Ao abrir um menu na área `Chaves`, o App 1 pode copiar o loadstring daquele menu diretamente usando o `public_id` cadastrado no servidor.
 
-O loader de cada menu deve definir o `menuId` antes de executar o login:
+O formato gerado é:
 
 ```lua
 getgenv().GRUPO_LUA_MENU_ID = "menu_xxxxx"
 loadstring(game:HttpGet("https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/GrupoLuaLogin.lua"))()
 ```
 
-O login salva somente o token de sessão do menu. A chave digitada não é gravada em arquivo. Enquanto a sessão continuar válida e o aparelho continuar autorizado, a próxima execução tenta abrir o menu automaticamente.
+O login-base salva somente o token de sessão do menu. A chave digitada não é gravada em arquivo. Enquanto a sessão continuar válida e o aparelho continuar autorizado, a próxima execução tenta abrir o menu automaticamente.
 
 ## Configuração obrigatória da Control API
 
@@ -79,15 +118,15 @@ O workflow `.github/workflows/app1-android-apk.yml` compila um APK standalone e 
 A versão Android atual é:
 
 ```text
-App: 0.2.0
-versionCode: 3
+App: 0.3.1
+versionCode: 5
 ```
 
 O artefato esperado é:
 
 ```text
-GRUPO-LUA-APP1-v0.2.0-android
-└── GRUPO-LUA-APP1-v0.2.0.apk
+GRUPO-LUA-APP1-v0.3.1-android
+└── GRUPO-LUA-APP1-v0.3.1.apk
 ```
 
 ## Cobertura de testes relevante
@@ -103,4 +142,7 @@ A Control API possui testes para:
 - expiração FREE e exigência de nova liberação;
 - administração FREE/VIP pelas rotas autenticadas do App 1;
 - troca/desvínculo de aparelho;
-- listagem sem revelar novamente o valor completo da chave.
+- listagem sem revelar novamente o valor completo da chave;
+- perfil, Social, curtidas, favoritos, comentários e notificações;
+- criação de chat, mensagem, não lidas, favorito e denúncia;
+- proteção por sessão FULL e dispositivo autorizado.
