@@ -193,7 +193,32 @@ export function registerApp1ChatRoutes(app) {
         }
         await ensurePreference(client, conversation.id, accountId);
         await ensurePreference(client, conversation.id, target.id);
-        return { conversation, target, created };
+
+        const preference = (await client.query(
+          `SELECT favorite, muted, last_read_at
+             FROM app1_conversation_preferences
+            WHERE conversation_id = $1 AND account_id = $2
+            LIMIT 1`,
+          [conversation.id, accountId]
+        )).rows[0] || { favorite: false, muted: false, last_read_at: null };
+        const latest = (await client.query(
+          `SELECT id, sender_account_id, text_content, created_at, expires_at
+             FROM app1_messages
+            WHERE conversation_id = $1
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1`,
+          [conversation.id]
+        )).rows[0] || null;
+        const unreadCount = Number((await client.query(
+          `SELECT COUNT(*)::int AS count
+             FROM app1_messages
+            WHERE conversation_id = $1
+              AND sender_account_id <> $2
+              AND created_at > COALESCE($3::timestamptz, TIMESTAMPTZ 'epoch')`,
+          [conversation.id, accountId, preference.last_read_at]
+        )).rows[0]?.count || 0);
+
+        return { conversation, target, created, preference, latest, unreadCount };
       });
 
       if (result.error === "PROFILE_NOT_FOUND") return sendApp1FeatureError(res, 404, result.error, "Perfil não encontrado.");
@@ -204,11 +229,17 @@ export function registerApp1ChatRoutes(app) {
           id: result.conversation.id,
           createdAt: result.conversation.created_at,
           updatedAt: result.conversation.updated_at,
-          favorite: false,
-          muted: false,
-          unreadCount: 0,
+          favorite: Boolean(result.preference.favorite),
+          muted: Boolean(result.preference.muted),
+          unreadCount: result.unreadCount,
           other: publicProfileFromRow(result.target),
-          latestMessage: null
+          latestMessage: result.latest ? {
+            id: result.latest.id,
+            text: result.latest.text_content || "",
+            mine: String(result.latest.sender_account_id) === String(accountId),
+            createdAt: result.latest.created_at,
+            expiresAt: result.latest.expires_at
+          } : null
         }
       });
     } catch (error) {
@@ -264,6 +295,13 @@ export function registerApp1ChatRoutes(app) {
 
         await ensurePreference(client, conversationId, accountId);
         await ensurePreference(client, conversationId, otherId);
+        const recipientPreference = (await client.query(
+          `SELECT muted
+             FROM app1_conversation_preferences
+            WHERE conversation_id = $1 AND account_id = $2
+            LIMIT 1`,
+          [conversationId, otherId]
+        )).rows[0];
         const row = (await client.query(
           `INSERT INTO app1_messages (id, conversation_id, sender_account_id, text_content)
            VALUES ($1, $2, $3, $4)
@@ -271,13 +309,15 @@ export function registerApp1ChatRoutes(app) {
           [id, conversationId, accountId, text]
         )).rows[0];
         await client.query(`UPDATE app1_conversations SET updated_at = NOW() WHERE id = $1`, [conversationId]);
-        await client.query(
-          `INSERT INTO app1_chat_notifications
-            (id, account_id, actor_account_id, conversation_id, message_id)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [randomId(), otherId, accountId, conversationId, id]
-        );
-        return { row };
+        if (!recipientPreference?.muted) {
+          await client.query(
+            `INSERT INTO app1_chat_notifications
+              (id, account_id, actor_account_id, conversation_id, message_id)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [randomId(), otherId, accountId, conversationId, id]
+          );
+        }
+        return { row, notificationSuppressed: Boolean(recipientPreference?.muted) };
       });
 
       if (!result) return sendApp1FeatureError(res, 404, "CHAT_NOT_FOUND", "Conversa não encontrada.");
@@ -286,6 +326,7 @@ export function registerApp1ChatRoutes(app) {
       }
       return res.status(201).json({
         ok: true,
+        notificationSuppressed: result.notificationSuppressed,
         message: {
           id: result.row.id,
           conversationId: result.row.conversation_id,
