@@ -48,6 +48,11 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
 
   const maintenance = dashboard?.app1Maintenance;
   const totalKeys = menuSummary ? menuSummary.free + menuSummary.vip : null;
+  const systemLabel = dashboard == null
+    ? "VERIFICANDO"
+    : maintenance
+      ? "MANUTENÇÃO"
+      : "ONLINE";
 
   return (
     <SafeAreaView style={styles.root}>
@@ -56,16 +61,20 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
         <ScrollView contentContainerStyle={styles.pageWithNav}>
           <Header title="KEYMASTER" onLogout={onLogout} />
 
-          <View style={styles.heroCard}>
-            <View style={styles.heroBadge}><Text style={styles.heroBadgeText}>ROOT ACCESS</Text></View>
-            <Text style={styles.heroTitle}>GRUPO LUA</Text>
-            <Text style={styles.heroSubtitle}>Controle central do App 1</Text>
-            <View style={styles.statusLine}>
-              <View style={maintenance ? styles.redDot : styles.greenDot} />
-              <Text style={styles.securityTitle}>
-                {dashboard == null ? "Confirmando estado do servidor" : maintenance ? "App 1 em manutenção" : "App 1 online • sessão protegida"}
-              </Text>
+          <View style={[styles.securityCard, maintenance && styles.criticalSecurity]}>
+            <View style={styles.accountTop}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.eyebrow}>GRUPO LUA • ROOT ACCESS</Text>
+                <Text style={[styles.cardTitle, { marginTop: 6 }]}>Controle central do App 1</Text>
+              </View>
+              <View style={styles.statusLine}>
+                <View style={maintenance ? styles.redDot : styles.greenDot} />
+                <Text style={maintenance ? styles.redText : styles.greenText}>{systemLabel}</Text>
+              </View>
             </View>
+            <Text style={styles.small}>
+              {dashboard == null ? "Confirmando o estado do servidor..." : maintenance ? "Novos acessos do App 1 estão temporariamente bloqueados." : "Servidor disponível e sessão administrativa protegida."}
+            </Text>
           </View>
 
           <View style={styles.metricGrid}>
@@ -90,14 +99,15 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
               <Text style={styles.metricHint}>App 1 ativas</Text>
             </View>
           </View>
+
           <Text style={styles.small}>{dashboard ? `${dashboard.auditEvents24h} eventos de auditoria nas últimas 24h` : "Carregando auditoria..."}</Text>
 
-          <Text style={styles.section}>CONTROLE</Text>
+          <Text style={styles.section}>ATALHOS</Text>
           <Pressable style={styles.featureCard} onPress={onAccounts}>
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>♙</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Contas e dispositivos</Text>
-              <Text style={styles.muted}>Criar acessos, controlar sessões, segurança e dispositivos autorizados.</Text>
+              <Text style={styles.muted}>Acessos, sessões e segurança.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
@@ -106,7 +116,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>⌘</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Menus e chaves</Text>
-              <Text style={styles.muted}>Gerenciar menus, URLs de acesso e autorizações FREE/VIP.</Text>
+              <Text style={styles.muted}>Menus, URLs e autorizações FREE/VIP.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
@@ -115,7 +125,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={styles.featureIcon}><Text style={styles.featureIconText}>≣</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Auditoria</Text>
-              <Text style={styles.muted}>Ver eventos administrativos registrados pelo servidor.</Text>
+              <Text style={styles.muted}>Eventos administrativos do servidor.</Text>
             </View>
             <Text style={styles.cardArrow}>›</Text>
           </Pressable>
@@ -124,7 +134,7 @@ export function HomeScreen({ session, onAccounts, onMenus, onAudit, onCritical, 
             <View style={[styles.featureIcon, styles.featureIconDanger]}><Text style={[styles.featureIconText, styles.redText]}>!</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Área DEV protegida</Text>
-              <Text style={styles.muted}>Manutenção e reinício exigem reautenticação DEV de uso único.</Text>
+              <Text style={styles.muted}>Manutenção e reinício com reautenticação DEV.</Text>
             </View>
             <Text style={[styles.cardArrow, styles.redText]}>›</Text>
           </Pressable>
