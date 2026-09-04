@@ -1,18 +1,20 @@
 --[[
-    GRUPO LUA — LOGIN BOOTSTRAP V4 / DELTA PNG
+    GRUPO LUA — LOGIN BOOTSTRAP V5 / DELTA EXTENSIONLESS
 
-    O diagnóstico confirmou:
-      • request funciona;
-      • GitHub retorna HTTP 200;
-      • writefile/readfile funcionam;
-      • getcustomasset existe;
-      • a execução trava exatamente ao tentar abrir o JPEG.
+    O diagnóstico V2 confirmou no Delta Android:
+      • request = OK
+      • HTTP 200 = OK
+      • writefile = OK
+      • getcustomasset = OK
+      • Drawing = FALHOU
+      • getcustomasset FUNCIONA quando o arquivo é salvo SEM EXTENSÃO
 
-    Esta versão evita o JPEG no asset loader do Delta:
-      1. baixa a imagem compacta em Base64;
-      2. decodifica em Luau puro;
-      3. grava como PNG local;
-      4. faz o core usar esse PNG quando pedir a imagem antiga.
+    Esta versão usa exatamente a rota que passou no teste:
+      1. baixa o JPG do GitHub;
+      2. salva os bytes em um arquivo local SEM extensão;
+      3. chama getcustomasset nesse arquivo;
+      4. guarda o rbxasset:// retornado;
+      5. faz o login usar diretamente esse asset.
 ]]
 
 local ENV = _G
@@ -22,13 +24,14 @@ pcall(function()
     end
 end)
 
-local BASE64_URL =
-    "https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/assets/grupo-lua-login-mobile.png.b64.txt"
+local IMAGE_URL =
+    "https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/assets/grupo-lua-login.jpg"
 
-local PNG_FILE = "grupo_lua_login_delta_v4.png"
+-- IMPORTANTE: sem .jpg / .png.
+local EXTENSIONLESS_FILE = "grupo_lua_login_delta_asset"
 
 --==============================================================--
--- REQUEST NORMALIZADO PARA DELTA
+-- REQUEST DELTA
 --==============================================================--
 
 local originalRequest
@@ -53,34 +56,31 @@ local function normalizedRequest(options)
     local response = originalRequest(options)
 
     if type(response) == "table" then
-        if response.Body == nil then
-            response.Body = response.body
-                or response.ResponseBody
-                or response.responseBody
-                or response.response_body
-                or response.data
-        end
+        response.Body = response.Body
+            or response.body
+            or response.ResponseBody
+            or response.responseBody
+            or response.response_body
+            or response.data
 
-        if response.StatusCode == nil then
-            response.StatusCode = tonumber(
-                response.status_code
-                or response.statusCode
-                or response.Status
-                or response.status
-                or response.code
-                or 0
-            ) or 0
-        end
+        response.StatusCode = tonumber(
+            response.StatusCode
+            or response.status_code
+            or response.statusCode
+            or response.Status
+            or response.status
+            or response.code
+            or 0
+        ) or 0
 
-        if response.Headers == nil then
-            response.Headers = response.headers
-                or response.responseHeaders
-                or response.response_headers
-        end
+        response.Headers = response.Headers
+            or response.headers
+            or response.responseHeaders
+            or response.response_headers
 
         if response.Success == nil then
-            local status = tonumber(response.StatusCode or 0) or 0
-            response.Success = status >= 200 and status < 300
+            response.Success = response.StatusCode >= 200
+                and response.StatusCode < 300
         end
     end
 
@@ -95,181 +95,7 @@ if type(originalRequest) == "function" then
 end
 
 --==============================================================--
--- BASE64 -> BINÁRIO (SEM DEPENDER DE crypt)
---==============================================================--
-
-local alphabet =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-local decodeMap = {}
-
-for index = 1, #alphabet do
-    decodeMap[string.byte(alphabet, index)] = index - 1
-end
-
-local function decodeBase64(data)
-    data = tostring(data or "")
-        :gsub("%s+", "")
-
-    local output = {}
-    local outIndex = 0
-    local length = #data
-    local index = 1
-
-    while index <= length do
-        local c1 = string.byte(data, index)
-        local c2 = string.byte(data, index + 1)
-        local c3 = string.byte(data, index + 2)
-        local c4 = string.byte(data, index + 3)
-
-        if not c1 or not c2 then
-            break
-        end
-
-        local a = decodeMap[c1]
-        local b = decodeMap[c2]
-
-        if a == nil or b == nil then
-            return nil, "Base64 inválido."
-        end
-
-        local pad3 = c3 == 61 or c3 == nil
-        local pad4 = c4 == 61 or c4 == nil
-
-        local c = pad3 and 0 or decodeMap[c3]
-        local d = pad4 and 0 or decodeMap[c4]
-
-        if c == nil or d == nil then
-            return nil, "Base64 inválido."
-        end
-
-        local value =
-            a * 262144
-            + b * 4096
-            + c * 64
-            + d
-
-        outIndex += 1
-        output[outIndex] = string.char(
-            math.floor(value / 65536) % 256
-        )
-
-        if not pad3 then
-            outIndex += 1
-            output[outIndex] = string.char(
-                math.floor(value / 256) % 256
-            )
-        end
-
-        if not pad4 then
-            outIndex += 1
-            output[outIndex] = string.char(
-                value % 256
-            )
-        end
-
-        index += 4
-    end
-
-    return table.concat(output)
-end
-
---==============================================================--
--- PREPARAR PNG LOCAL
---==============================================================--
-
-local function preparePNG()
-    if type(writefile) ~= "function" then
-        return false, "writefile indisponível"
-    end
-
-    if type(isfile) == "function" then
-        local ok, exists = pcall(isfile, PNG_FILE)
-        if ok and exists then
-            local valid = true
-
-            if type(readfile) == "function" then
-                local readOK, bytes = pcall(readfile, PNG_FILE)
-                valid = readOK
-                    and type(bytes) == "string"
-                    and #bytes > 1000
-                    and string.byte(bytes, 1) == 137
-                    and string.sub(bytes, 2, 4) == "PNG"
-            end
-
-            if valid then
-                return true
-            end
-        end
-    end
-
-    local encoded
-
-    local httpOK, result = pcall(function()
-        return game:HttpGet(BASE64_URL, true)
-    end)
-
-    if httpOK and type(result) == "string" and #result > 1000 then
-        encoded = result
-    elseif type(originalRequest) == "function" then
-        local reqOK, response = pcall(normalizedRequest, {
-            Url = BASE64_URL,
-            Method = "GET",
-            Headers = {
-                ["Accept"] = "text/plain,*/*",
-            },
-        })
-
-        if reqOK
-            and type(response) == "table"
-            and type(response.Body) == "string"
-            and #response.Body > 1000
-        then
-            encoded = response.Body
-        end
-    end
-
-    if not encoded then
-        return false, "não foi possível baixar a imagem"
-    end
-
-    local binary, decodeError = decodeBase64(encoded)
-    encoded = nil
-
-    if not binary or #binary < 1000 then
-        return false, decodeError or "falha ao decodificar PNG"
-    end
-
-    if string.byte(binary, 1) ~= 137
-        or string.sub(binary, 2, 4) ~= "PNG"
-    then
-        binary = nil
-        return false, "assinatura PNG inválida"
-    end
-
-    local writeOK, writeError = pcall(
-        writefile,
-        PNG_FILE,
-        binary
-    )
-
-    binary = nil
-
-    if not writeOK then
-        return false, tostring(writeError)
-    end
-
-    return true
-end
-
-local pngOK, pngError = preparePNG()
-
-if not pngOK then
-    warn("[GRUPO LUA] PNG não preparado:", pngError)
-end
-
---==============================================================--
--- ASSET LOADER
+-- ASSET FUNCTION ORIGINAL
 --==============================================================--
 
 local originalAsset
@@ -288,16 +114,132 @@ pcall(function()
     end
 end)
 
-if type(originalAsset) == "function" and pngOK then
+--==============================================================--
+-- PREPARAR O ASSET EXATAMENTE COMO NO DIAGNÓSTICO QUE PASSOU
+--==============================================================--
+
+local preparedAsset
+local prepareError
+
+local function prepareImageAsset()
+    if type(originalAsset) ~= "function" then
+        return nil, "getcustomasset indisponível"
+    end
+
+    if type(writefile) ~= "function" then
+        return nil, "writefile indisponível"
+    end
+
+    -- Tenta reutilizar o arquivo extensionless já salvo.
+    if type(isfile) == "function" then
+        local existsOK, exists = pcall(isfile, EXTENSIONLESS_FILE)
+        if existsOK and exists then
+            local assetOK, asset = pcall(originalAsset, EXTENSIONLESS_FILE)
+            if assetOK and type(asset) == "string" and asset ~= "" then
+                return asset
+            end
+        end
+    end
+
+    local body
+
+    if type(originalRequest) == "function" then
+        local reqOK, response = pcall(normalizedRequest, {
+            Url = IMAGE_URL,
+            Method = "GET",
+            Headers = {
+                ["Accept"] = "image/jpeg,image/*,*/*",
+            },
+        })
+
+        if reqOK
+            and type(response) == "table"
+            and response.StatusCode >= 200
+            and response.StatusCode < 300
+            and type(response.Body) == "string"
+            and #response.Body > 1000
+        then
+            body = response.Body
+        end
+    end
+
+    -- Fallback HttpGet.
+    if not body then
+        local httpOK, result = pcall(function()
+            return game:HttpGet(IMAGE_URL, true)
+        end)
+
+        if httpOK and type(result) == "string" and #result > 1000 then
+            body = result
+        end
+    end
+
+    if not body then
+        return nil, "não foi possível baixar a imagem"
+    end
+
+    -- Remove somente o arquivo extensionless antigo para evitar cache ruim.
+    pcall(function()
+        if type(isfile) == "function"
+            and type(delfile) == "function"
+            and isfile(EXTENSIONLESS_FILE)
+        then
+            delfile(EXTENSIONLESS_FILE)
+        end
+    end)
+
+    local writeOK, writeErr = pcall(
+        writefile,
+        EXTENSIONLESS_FILE,
+        body
+    )
+
+    body = nil
+
+    if not writeOK then
+        return nil, "writefile: " .. tostring(writeErr)
+    end
+
+    -- Esta chamada foi confirmada funcionando no Delta pelo diagnóstico V2.
+    local assetOK, asset = pcall(
+        originalAsset,
+        EXTENSIONLESS_FILE
+    )
+
+    if not assetOK then
+        return nil, "getcustomasset: " .. tostring(asset)
+    end
+
+    if type(asset) ~= "string" or asset == "" then
+        return nil, "getcustomasset retornou asset vazio"
+    end
+
+    return asset
+end
+
+preparedAsset, prepareError = prepareImageAsset()
+
+if not preparedAsset then
+    warn("[GRUPO LUA] Imagem não preparada:", prepareError)
+end
+
+--==============================================================--
+-- REDIRECIONAR O CORE PARA O ASSET JÁ PREPARADO
+--==============================================================--
+
+if type(originalAsset) == "function" then
     local function deltaAsset(path)
         path = tostring(path or "")
 
-        -- O core V1 pede este JPEG. No Delta redirecionamos para PNG.
-        if path == "grupo_lua_login_v1.jpg"
+        if preparedAsset and (
+            path == "grupo_lua_login_v1.jpg"
             or path == "grupo_lua_login.jpg"
             or path == "grupo-lua-login.jpg"
-        then
-            return originalAsset(PNG_FILE)
+            or path == "grupo_lua_login_delta_v4.png"
+        ) then
+            -- Não chama getcustomasset novamente.
+            -- Retorna exatamente o rbxasset:// que o Delta já criou.
+            return preparedAsset
         end
 
         return originalAsset(path)
@@ -310,7 +252,7 @@ if type(originalAsset) == "function" and pngOK then
 end
 
 --==============================================================--
--- LIMPAR JPEG ANTIGO
+-- LIMPAR APENAS CACHE ANTIGO COM EXTENSÃO
 --==============================================================--
 
 pcall(function()
@@ -319,6 +261,7 @@ pcall(function()
             "grupo_lua_login_v1.jpg",
             "grupo_lua_login.jpg",
             "grupo-lua-login.jpg",
+            "grupo_lua_login_delta_v4.png",
             "grupo_lua_diag.jpg",
         }) do
             if isfile(file) then
@@ -329,7 +272,7 @@ pcall(function()
 end)
 
 --==============================================================--
--- CORE ESTÁVEL DO LOGIN
+-- CORE DO LOGIN
 --==============================================================--
 
 local CORE_URL =
