@@ -13,7 +13,10 @@ services:
     # readiness + migrations versionadas antes de iniciar a API.
     startCommand: npm run start:free
     healthCheckPath: /v1/health
-    autoDeploy: false
+    # O aplicativo e a API precisam avançar juntos. Auto deploy evita que um
+    # APK novo converse com um backend antigo (causa dos campos vazios/undefined
+    # observados durante os testes mobile).
+    autoDeploy: true
     maxShutdownDelaySeconds: 20
     envVars:
       - key: NODE_ENV
