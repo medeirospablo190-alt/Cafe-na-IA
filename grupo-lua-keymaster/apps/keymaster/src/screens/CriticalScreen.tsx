@@ -39,7 +39,7 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
       : action === "APP1_MAINTENANCE_ON"
         ? "colocar o Aplicativo 1 em manutenção"
         : "retirar o Aplicativo 1 da manutenção";
-    Alert.alert("Ação crítica", `Você está prestes a ${label}. A próxima etapa exige login e credencial DEV.`, [
+    Alert.alert("Ação crítica", `Você está prestes a ${label}. A próxima etapa exige o nome de um acesso DEV e a chave DEV.`, [
       { text: "Cancelar", style: "cancel" },
       { text: "Continuar", style: action === "APP1_MAINTENANCE_OFF" ? "default" : "destructive", onPress: () => setPendingAction(action) }
     ]);
@@ -85,7 +85,7 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
             <View style={styles.actionCard}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>Reiniciar servidor do App 1</Text>
-                <Text style={styles.muted}>Usa webhook privado do provedor quando configurado no servidor.</Text>
+                <Text style={styles.muted}>Usa webhook privado do provedor quando configurado no servidor. Se o provedor não estiver configurado, o aplicativo informa isso separadamente da autenticação DEV.</Text>
               </View>
               <Pressable disabled={busy} style={[styles.actionPill, styles.actionPillDanger]} onPress={() => requestAction("APP1_RESTART")}>
                 <Text style={styles.actionPillText}>REINICIAR</Text>
@@ -110,13 +110,20 @@ export function CriticalScreen({ session, onHome, onAccounts, onMenus, onAudit }
         title="Confirmar ação crítica"
         onCancel={() => setPendingAction(null)}
         onAuthorized={async (authorizationToken) => {
-          if (!pendingAction) return;
+          const action = pendingAction;
+          if (!action) return;
           setBusy(true);
           try {
-            const result = await executeCriticalAction(session, pendingAction, authorizationToken);
+            const result = await executeCriticalAction(session, action, authorizationToken);
             setPendingAction(null);
             await refresh();
             Alert.alert("Concluído", result.action === "APP1_RESTART" ? "Solicitação de reinício enviada." : "Estado de manutenção atualizado pelo servidor.");
+          } catch (error) {
+            setPendingAction(null);
+            Alert.alert(
+              "Ação não concluída",
+              error instanceof Error ? error.message : "A autenticação DEV foi aceita, mas o servidor não concluiu a ação."
+            );
           } finally {
             setBusy(false);
           }

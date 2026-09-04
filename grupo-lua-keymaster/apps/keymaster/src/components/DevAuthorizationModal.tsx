@@ -44,13 +44,27 @@ export function DevAuthorizationModal({
     const credentialForRequest = devCredential;
     const identityForRequest = devLogin.trim();
     setLoading(true);
+
+    let authorizationToken = "";
     try {
       const auth = await authorizeCriticalAction(session, action, identityForRequest, credentialForRequest, targetId);
-      setDevCredential("");
-      await onAuthorized(auth.authorizationToken);
+      authorizationToken = auth.authorizationToken;
     } catch (error) {
       setDevCredential("");
-      Alert.alert("Autorização negada", error instanceof Error ? error.message : "Não foi possível confirmar a ação.");
+      setLoading(false);
+      Alert.alert("Autorização DEV negada", error instanceof Error ? error.message : "Nome/chave DEV não foram aceitos pelo servidor.");
+      return;
+    }
+
+    // A chave DEV não permanece no estado durante a execução da operação.
+    setDevCredential("");
+    try {
+      await onAuthorized(authorizationToken);
+    } catch (error) {
+      Alert.alert(
+        "Ação não concluída",
+        error instanceof Error ? error.message : "A autenticação DEV foi aceita, mas a operação protegida não foi concluída."
+      );
     } finally {
       setLoading(false);
     }

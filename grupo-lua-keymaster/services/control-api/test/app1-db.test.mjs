@@ -31,14 +31,15 @@ test("App 1 migration supports LOCKED_SECURITY and scrubs definitive account del
 
     await client.query(
       `INSERT INTO app1_accounts
-        (id, login, role, status, credential_hash, terms_version, privacy_version,
-         terms_accepted_at, public_profile_id, public_name, public_name_normalized,
-         public_name_verified_at, onboarding_completed_at)
+        (id, login, display_name, role, status, credential_hash, credential_ciphertext,
+         terms_version, privacy_version, terms_accepted_at, public_profile_id,
+         public_name, public_name_normalized, public_name_verified_at,
+         onboarding_completed_at)
        VALUES
-        ($1, $2, 'ADM', 'ACTIVE', 'temporary-hash', '1.0', '1.0', NOW(),
-         $3, 'LuaTeste', 'luateste', NOW(), NOW()),
-        ($4, $5, 'DEV', 'ACTIVE', 'temporary-dev-hash', NULL, NULL, NULL,
-         NULL, NULL, NULL, NULL, NULL)`,
+        ($1, $2, 'CI ADM visível', 'ADM', 'ACTIVE', 'temporary-hash', 'temporary-ciphertext',
+         '1.0', '1.0', NOW(), $3, 'LuaTeste', 'luateste', NOW(), NOW()),
+        ($4, $5, 'CI DEV visível', 'DEV', 'ACTIVE', 'temporary-dev-hash', 'temporary-dev-ciphertext',
+         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)`,
       [targetId, targetLogin, `usr_${targetId.slice(0, 8)}`, devId, devLogin]
     );
 
@@ -78,9 +79,11 @@ test("App 1 migration supports LOCKED_SECURITY and scrubs definitive account del
       `INSERT INTO audit_events
         (actor_kind, actor_id, action, target_kind, target_id, metadata)
        VALUES ('SYSTEM', 'CI', 'CI_ACCOUNT_EVENT', 'APP1_ACCOUNT', $1, $2::jsonb)`,
-      [targetId, JSON.stringify({ login: targetLogin, keep: "audit-ok" })]
+      [targetId, JSON.stringify({ login: targetLogin, privateLogin: targetLogin, displayName: "CI ADM visível", keep: "audit-ok" })]
     );
 
+    // Intentionally update only the status. The database trigger itself must
+    // scrub every private/recoverable field even outside the normal API route.
     await client.query(
       `UPDATE app1_accounts
           SET status = 'DELETED', deleted_at = NOW()
@@ -89,15 +92,18 @@ test("App 1 migration supports LOCKED_SECURITY and scrubs definitive account del
     );
 
     const account = (await client.query(
-      `SELECT login, credential_hash, status, public_profile_id, public_name,
-              terms_version, terms_accepted_at, onboarding_completed_at
+      `SELECT login, display_name, credential_hash, credential_ciphertext, status,
+              public_profile_id, public_name, terms_version, terms_accepted_at,
+              onboarding_completed_at
          FROM app1_accounts WHERE id = $1`,
       [targetId]
     )).rows[0];
 
     assert.equal(account.status, "DELETED");
     assert.match(account.login, /^deleted_[a-f0-9]+$/i);
+    assert.equal(account.display_name, null);
     assert.match(account.credential_hash, /^deleted\$/);
+    assert.equal(account.credential_ciphertext, null);
     assert.equal(account.public_profile_id, null);
     assert.equal(account.public_name, null);
     assert.equal(account.terms_version, null);
@@ -121,6 +127,8 @@ test("App 1 migration supports LOCKED_SECURITY and scrubs definitive account del
       [targetId]
     )).rows[0]?.metadata;
     assert.equal(auditMetadata.login, undefined);
+    assert.equal(auditMetadata.privateLogin, undefined);
+    assert.equal(auditMetadata.displayName, undefined);
     assert.equal(auditMetadata.keep, "audit-ok");
 
     await client.query("ROLLBACK");
