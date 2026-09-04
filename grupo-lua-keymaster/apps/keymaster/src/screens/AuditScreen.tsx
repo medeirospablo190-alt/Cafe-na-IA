@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Pressable, SafeAreaView, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { listAudit, type AuditEvent } from "../api";
+import { clearAuditHistory } from "../audit-api";
 import { BottomNav } from "../components/BottomNav";
 import { Header } from "../components/Common";
 import { styles } from "../styles";
@@ -32,8 +33,8 @@ const ACTION_LABELS: Record<string, string> = {
   MENU_KEY_PERMANENT: "Chave FREE convertida para VIP",
   MENU_KEY_DURATION_CHANGED: "Duração FREE alterada",
   CRITICAL_AUTHORIZATION_CREATED: "Autorização crítica criada",
-  APP1_MAINTENANCE_ON: "Manutenção ativada",
-  APP1_MAINTENANCE_OFF: "Manutenção encerrada",
+  APP1_MAINTENANCE_ON: "App 1 suspenso globalmente",
+  APP1_MAINTENANCE_OFF: "App 1 reativado globalmente",
   APP1_RESTART_REQUESTED: "Reinício solicitado"
 };
 
@@ -56,6 +57,7 @@ export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
 
   async function load(reset = false) {
@@ -73,6 +75,37 @@ export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }
     }
   }
 
+  function confirmClear() {
+    if (clearing) return;
+    Alert.alert(
+      "Limpar histórico?",
+      "Isso apagará permanentemente todo o histórico de auditoria e de tentativas registrado no servidor. Esta ação não pode ser desfeita.",
+      [
+        { text: "Não", style: "cancel" },
+        {
+          text: "Sim, apagar",
+          style: "destructive",
+          onPress: async () => {
+            setClearing(true);
+            try {
+              const result = await clearAuditHistory(session);
+              setEvents([]);
+              setNextBefore(null);
+              Alert.alert(
+                "Histórico apagado",
+                `Foram removidos ${result.auditDeleted} eventos e ${result.loginAttemptsDeleted} registros de tentativas.`
+              );
+            } catch (error) {
+              Alert.alert("Não foi possível limpar", error instanceof Error ? error.message : "Erro desconhecido");
+            } finally {
+              setClearing(false);
+            }
+          }
+        }
+      ]
+    );
+  }
+
   useEffect(() => { load(true).catch(() => {}); }, [session]);
 
   return (
@@ -83,13 +116,30 @@ export function AuditScreen({ session, onHome, onAccounts, onMenus, onCritical }
           <Header title="AUDITORIA" onBack={onHome} />
           <View style={styles.listHeaderCompact}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.screenTitle}>Histórico protegido</Text>
+              <Text style={styles.screenTitle}>Histórico</Text>
               <Text style={styles.muted}>Eventos administrativos registrados pelo servidor. Logins privados não aparecem nesta tela.</Text>
             </View>
-            <Pressable style={styles.iconAction} onPress={() => load(true)}>
-              <Text style={styles.iconActionText}>↻</Text>
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Pressable disabled={loading || clearing} style={styles.iconAction} onPress={() => load(true)}>
+                <Text style={styles.iconActionText}>↻</Text>
+              </Pressable>
+              <Pressable
+                disabled={clearing}
+                accessibilityLabel="Limpar histórico"
+                style={[styles.iconAction, styles.smallDanger, clearing && styles.buttonMuted]}
+                onPress={confirmClear}
+              >
+                <Text style={styles.smallDangerText}>{clearing ? "…" : "LIX"}</Text>
+              </Pressable>
+            </View>
           </View>
+          <Pressable
+            disabled={clearing}
+            style={[styles.loadMore, styles.smallDanger, { marginTop: 12 }, clearing && styles.buttonMuted]}
+            onPress={confirmClear}
+          >
+            <Text style={styles.smallDangerText}>{clearing ? "LIMPANDO..." : "LIMPAR HISTÓRICO"}</Text>
+          </Pressable>
 
           {loading ? <ActivityIndicator style={{ marginTop: 30 }} /> : (
             <FlatList
