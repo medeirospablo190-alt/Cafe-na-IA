@@ -1,12 +1,12 @@
 --[[
-    GRUPO LUA — LOGIN V8 / GLASS TRANSPARENT
+    GRUPO LUA — LOGIN V8 / FOTO LIVRE
 
     Visual:
       • imagem oficial Roblox: rbxassetid://91124214069969
       • painel 500 x 250
-      • campo da chave bem transparente, deixando a foto visível
-      • botão VERIFICAR transparente, sem fundo vermelho
-      • bordas claras discretas para os controles continuarem visíveis
+      • campo da chave quase transparente
+      • botão VERIFICAR quase transparente e sem vermelho
+      • bordas claras discretas para continuar fácil de tocar no celular
 
     A validação FREE/VIP e o carregamento do menu continuam no core estável.
 ]]
@@ -32,7 +32,7 @@ local function replaceOnce(text, pattern, replacement, label)
     return patched
 end
 
--- Imagem oficial do Roblox.
+-- Usa o asset oficial do Roblox diretamente.
 source = replaceOnce(
     source,
     'local function loadBackgroundAsset%(%)%s.-%s-end%s-%s-local Parent',
@@ -40,7 +40,7 @@ source = replaceOnce(
     "imagem Roblox"
 )
 
--- Mantém a proporção 2:1 e o tamanho maior.
+-- Menu maior, mantendo proporção 2:1.
 source = replaceOnce(source, 'WIDTH = 430,', 'WIDTH = 500,', "largura")
 source = replaceOnce(source, 'HEIGHT = 215,', 'HEIGHT = 250,', "altura")
 
@@ -52,20 +52,28 @@ source = replaceOnce(
     "tamanho do campo"
 )
 
--- Borda do campo discreta/transparente.
+-- A moldura do campo fica visível, mas também deixa a foto aparecer.
 source = replaceOnce(
     source,
     'InputBorder.BackgroundColor3 = Color3.fromRGB%(125, 125, 128%)',
-    'InputBorder.BackgroundColor3 = Color3.fromRGB(220, 220, 225)\nInputBorder.BackgroundTransparency = 0.42',
-    "borda transparente do campo"
+    'InputBorder.BackgroundColor3 = Color3.fromRGB(225, 225, 230)\nInputBorder.BackgroundTransparency = 0.40',
+    "borda do campo"
 )
 
--- Fundo interno do campo quase transparente: a foto aparece por trás.
+-- Fundo do campo praticamente transparente.
 source = replaceOnce(
     source,
     'InputHolder.BackgroundTransparency = 0%.08',
-    'InputHolder.BackgroundTransparency = 0.78',
+    'InputHolder.BackgroundTransparency = 0.80',
     "transparência do campo"
+)
+
+-- Placeholder mais claro para continuar legível sobre a foto.
+source = replaceOnce(
+    source,
+    'KeyBox.PlaceholderColor3 = Color3.fromRGB%(120, 120, 125%)',
+    'KeyBox.PlaceholderColor3 = Color3.fromRGB(220, 220, 225)',
+    "placeholder"
 )
 
 -- Botão maior.
@@ -76,59 +84,37 @@ source = replaceOnce(
     "tamanho do botão"
 )
 
--- Botão neutro e muito transparente, sem vermelho.
+-- Remove completamente o vermelho do estado normal.
+-- O fundo fica preto neutro com 82% de transparência.
 source = replaceOnce(
     source,
     'Verify.BackgroundColor3 = COLORS.RED%s-Verify.BorderSizePixel = 0',
-    'Verify.BackgroundColor3 = Color3.fromRGB(8, 8, 10)\nVerify.BackgroundTransparency = 0.78\nVerify.BorderSizePixel = 0',
-    "fundo transparente do botão"
+    'Verify.BackgroundColor3 = Color3.fromRGB(6, 6, 8)\nVerify.BackgroundTransparency = 0.82\nVerify.BorderSizePixel = 0',
+    "botão transparente"
 )
 
--- Adiciona uma borda fina para o botão continuar visível sobre a foto.
+-- Borda fina para deixar claro onde tocar sem cobrir a foto.
 source = replaceOnce(
     source,
     'corner%(Verify, 9%)',
-    'corner(Verify, 9)\n\nlocal VerifyStroke = Instance.new("UIStroke")\nVerifyStroke.Color = Color3.fromRGB(225, 225, 230)\nVerifyStroke.Transparency = 0.38\nVerifyStroke.Thickness = 1\nVerifyStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border\nVerifyStroke.Parent = Verify',
+    'corner(Verify, 9)\n\nlocal VerifyStroke = Instance.new("UIStroke")\nVerifyStroke.Color = Color3.fromRGB(230, 230, 235)\nVerifyStroke.Transparency = 0.35\nVerifyStroke.Thickness = 1\nVerifyStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border\nVerifyStroke.Parent = Verify',
     "borda do botão"
 )
 
--- Hover sem vermelho.
+-- No hover também não volta o vermelho.
 source = replaceOnce(
     source,
-    'Verify.MouseEnter:Connect%(function%(%)%s-tween%(Verify, {%s-BackgroundColor3 = COLORS.RED_HOVER,%s-}%)%s-end%)',
-    'Verify.MouseEnter:Connect(function()\n    tween(Verify, {\n        BackgroundColor3 = Color3.fromRGB(28, 28, 32),\n        BackgroundTransparency = 0.68,\n    })\nend)',
-    "hover neutro"
+    'BackgroundColor3 = COLORS.RED_HOVER,',
+    'BackgroundColor3 = Color3.fromRGB(20, 20, 24),',
+    "hover sem vermelho"
 )
 
+-- Ao sair do hover, permanece neutro.
 source = replaceOnce(
     source,
-    'Verify.MouseLeave:Connect%(function%(%)%s-tween%(Verify, {%s-BackgroundColor3 = COLORS.RED,%s-}%)%s-end%)',
-    'Verify.MouseLeave:Connect(function()\n    tween(Verify, {\n        BackgroundColor3 = Color3.fromRGB(8, 8, 10),\n        BackgroundTransparency = 0.78,\n    })\nend)',
-    "saída do hover"
-)
-
--- Mensagens temporárias mudam só o texto; não pintam o botão de vermelho.
-source = replaceOnce(
-    source,
-    'if color then%s-tween%(Verify, {%s-BackgroundColor3 = color,%s-}%)%s-end',
-    '-- fundo permanece transparente durante mensagens de status',
-    "status sem cor"
-)
-
--- Ao voltar ao estado normal, mantém o fundo neutro/transparente.
-source = replaceOnce(
-    source,
-    'BackgroundColor3 = COLORS.RED,%s-}%)[%s-]*end[%s-]*end%)',
-    'BackgroundColor3 = Color3.fromRGB(8, 8, 10),\n                BackgroundTransparency = 0.78,\n            })\n        end\n    end)',
-    "reset transparente"
-)
-
--- Estado VERIFICANDO também não fica vermelho.
-source = replaceOnce(
-    source,
-    'BackgroundColor3 = Color3.fromRGB%(80, 22, 22%)',
-    'BackgroundColor3 = Color3.fromRGB(18, 18, 22)\n        ,BackgroundTransparency = 0.72',
-    "verificando neutro"
+    'BackgroundColor3 = COLORS.RED,%s-}%)%s-end%)%s-%s-local DEFAULT_BUTTON_TEXT',
+    'BackgroundColor3 = Color3.fromRGB(6, 6, 8),\n    })\nend)\n\nlocal DEFAULT_BUTTON_TEXT',
+    "estado normal sem vermelho"
 )
 
 local fn, compileError = loadstring(source)
