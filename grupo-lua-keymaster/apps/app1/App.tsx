@@ -26,13 +26,15 @@ import { API_URL } from "./config";
 import { getApp1DeviceIdentity } from "./device";
 import { FilesScreen } from "./FilesScreen";
 import { KeysScreen } from "./KeysScreen";
+import { ChatsScreen } from "./ChatsScreen";
+import { SettingsScreen } from "./SettingsScreen";
 import { logoutApp1 } from "./session-api";
 import { SocialFeedScreen } from "./SocialFeedScreen";
 
 const SESSION_KEY = "grupo-lua-app1-session-v1";
 const DEVICE_TOKEN_KEY = "grupo-lua-app1-device-token-v1";
 
-type Tab = "home" | "files" | "social" | "keys" | "chats";
+type Tab = "home" | "files" | "social" | "keys" | "chats" | "settings";
 
 type NoticeSection = {
   title: string;
@@ -663,7 +665,8 @@ function HomeShell({
     files: "Arquivos",
     social: "Social",
     keys: "Chaves",
-    chats: "Chats"
+    chats: "Chats",
+    settings: "Configurações"
   };
 
   return (
@@ -679,6 +682,9 @@ function HomeShell({
           </View>
           <Text style={styles.sessionLine}>Sessão até {formatExpiry(session.expiresAt)}</Text>
         </View>
+        <Pressable onPress={() => onTab("settings")} style={[styles.signOutButton, tab === "settings" && styles.settingsActive]}>
+          <Text style={styles.settingsText}>⚙</Text>
+        </Pressable>
         <Pressable onPress={onSignOut} style={styles.signOutButton}>
           <Text style={styles.signOutText}>SAIR</Text>
         </Pressable>
@@ -703,25 +709,27 @@ function HomeShell({
               </Text>
             </View>
             <View style={styles.grid}>
-              <Feature title="Social" text="Feed com códigos e loadstrings compartilhados; fotos e recursos sociais entram nas próximas fases." />
-              <Feature title="Chaves" text="FREE/VIP com vínculo ao aparelho e validade controlada pelo servidor." />
-              <Feature title="Chats" text="Conversas privadas e temporárias." />
-              <Feature title="Arquivos" text="Códigos e loadstrings nomeados, editáveis e salvos no servidor." />
+              <Feature title="Social" text="Feed com curtidas, comentários, favoritos, perfis, notificações e recursos oficiais DEV." />
+              <Feature title="Chaves" text="FREE/VIP com vínculo ao aparelho, ciclos e validade controlados pelo servidor." />
+              <Feature title="Chats" text="Conversas privadas, notificações separadas, favoritos e retenção de 24 horas." />
+              <Feature title="Arquivos" text="Códigos e loadstrings nomeados, editáveis, favoritos e compartilháveis no Social." />
             </View>
           </>
         ) : tab === "files" ? (
           <FilesScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : tab === "social" ? (
-          <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+          <SocialFeedScreen sessionToken={sessionToken} deviceToken={deviceToken} viewerRole={account.role} />
         ) : tab === "keys" ? (
           <KeysScreen sessionToken={sessionToken} deviceToken={deviceToken} />
+        ) : tab === "chats" ? (
+          <ChatsScreen sessionToken={sessionToken} deviceToken={deviceToken} />
         ) : (
-          <View style={styles.comingCard}>
-            <Text style={styles.cardTitle}>{pageLabel[tab]}</Text>
-            <Text style={styles.paragraph}>
-              A estrutura desta área já está reservada no App 1. O módulo funcional será conectado nas próximas fases sem alterar o fluxo de autenticação e onboarding que já está pronto.
-            </Text>
-          </View>
+          <SettingsScreen
+            sessionToken={sessionToken}
+            deviceToken={deviceToken}
+            role={account.role}
+            onBack={() => onTab("home")}
+          />
         )}
       </ScrollView>
 
@@ -812,7 +820,7 @@ const styles = StyleSheet.create({
   card: { width: "100%", maxWidth: 520, borderRadius: 18, borderWidth: 1, borderColor: "#29292E", backgroundColor: "#09090B", padding: 18 },
   cardTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "900", marginBottom: 7 },
   appShell: { flex: 1 },
-  appHeader: { minHeight: 70, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#1B1B1F", gap: 11 },
+  appHeader: { minHeight: 70, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#1B1B1F", gap: 8 },
   avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#17171B", borderWidth: 1, borderColor: "#424248", alignItems: "center", justifyContent: "center" },
   avatarDev: { borderColor: "#D93A41", borderWidth: 2 },
   avatarText: { color: "#FFFFFF", fontSize: 16, fontWeight: "900" },
@@ -821,8 +829,10 @@ const styles = StyleSheet.create({
   publicName: { color: "#FFFFFF", fontSize: 14, fontWeight: "900" },
   devBadge: { color: "#FF5A61", backgroundColor: "#21090B", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, fontSize: 8, fontWeight: "900" },
   sessionLine: { color: "#66666D", fontSize: 9, marginTop: 4 },
-  signOutButton: { borderRadius: 9, borderWidth: 1, borderColor: "#303035", paddingHorizontal: 10, paddingVertical: 8 },
+  signOutButton: { minWidth: 38, minHeight: 36, borderRadius: 9, borderWidth: 1, borderColor: "#303035", paddingHorizontal: 9, alignItems: "center", justifyContent: "center" },
   signOutText: { color: "#A2A2A8", fontSize: 8, fontWeight: "900" },
+  settingsText: { color: "#B9A2C9", fontSize: 15 },
+  settingsActive: { borderColor: "#765190", backgroundColor: "#130D18" },
   appScroll: { flex: 1 },
   appContent: { padding: 18, paddingBottom: 24 },
   pageTitle: { color: "#FFFFFF", fontSize: 30, fontWeight: "900", marginTop: 5, marginBottom: 14 },
