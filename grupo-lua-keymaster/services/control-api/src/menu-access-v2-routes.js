@@ -4,8 +4,11 @@ import { randomId, randomToken, tokenHash } from "./security.js";
 
 const PUBLIC_ATTEMPT_WINDOW_MS = 60 * 1000;
 const PUBLIC_ATTEMPT_LIMIT = 12;
+const ATTEMPT_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+const ATTEMPT_SWEEP_SIZE = 2_000;
 const PERMANENT_SESSION_MS = 100 * 365 * 24 * 60 * 60 * 1000;
 const attempts = new Map();
+let lastAttemptSweep = 0;
 
 function sendError(res, status, code, message, extra = {}) {
   return res.status(status).json({ ok: false, code, message, ...extra });
@@ -33,8 +36,21 @@ function deviceHint(deviceId, suppliedHint = "") {
   return `…${value.slice(-8)}`;
 }
 
+function sweepAttempts(now) {
+  if (attempts.size < ATTEMPT_SWEEP_SIZE && now - lastAttemptSweep < ATTEMPT_SWEEP_INTERVAL_MS) {
+    return;
+  }
+
+  for (const [id, entry] of attempts) {
+    if (!entry || entry.resetAt <= now) attempts.delete(id);
+  }
+  lastAttemptSweep = now;
+}
+
 function attemptAllowed(req, publicId) {
   const now = Date.now();
+  sweepAttempts(now);
+
   const id = `${String(req.ip || req.socket?.remoteAddress || "unknown")}:${publicId}`;
   const current = attempts.get(id);
   if (!current || current.resetAt <= now) {
