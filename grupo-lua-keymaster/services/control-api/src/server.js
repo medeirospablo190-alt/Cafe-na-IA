@@ -398,7 +398,7 @@ app.post("/v1/keymaster/login", async (req, res, next) => {
       const expiresAt = new Date(Date.now() + KEYMASTER_SESSION_MS);
       await client.query(
         `INSERT INTO keymaster_sessions (id, device_id, token_hash, expires_at)
-         VALUES ($1, $2, $3, $4, $5)`,
+         VALUES ($1, $2, $3, $4)`,
         [sessionId, row.id, tokenHash(token), expiresAt]
       );
       await audit(client, {
