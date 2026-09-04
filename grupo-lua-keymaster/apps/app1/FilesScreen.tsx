@@ -30,6 +30,24 @@ type LibraryTab = LibraryKind | "PHOTO" | "VIDEO";
 
 const PAGE_SIZE = 60;
 const MAX_SELECTION = 500;
+const MAX_TEXT_BYTES = 1_000_000;
+
+function utf8ByteLength(value: string) {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x7f) bytes += 1;
+    else if (code <= 0x7ff) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && index + 1 < value.length) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        index += 1;
+      } else bytes += 3;
+    } else bytes += 3;
+  }
+  return bytes;
+}
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -208,6 +226,14 @@ export function FilesScreen({ sessionToken, deviceToken }: {
       Alert.alert("Conteúdo vazio", "Digite ou cole o conteúdo antes de salvar.");
       return;
     }
+    const contentBytes = utf8ByteLength(editor.content);
+    if (contentBytes > MAX_TEXT_BYTES) {
+      Alert.alert(
+        "Arquivo muito grande",
+        `Este conteúdo tem ${bytesLabel(contentBytes)}. O limite por código/loadstring é ${bytesLabel(MAX_TEXT_BYTES)}.`
+      );
+      return;
+    }
     setEditorBusy(true);
     try {
       if (editor.id) {
@@ -292,6 +318,8 @@ export function FilesScreen({ sessionToken, deviceToken }: {
       setMutationBusy(false);
     }
   }
+
+  const editorBytes = editor ? utf8ByteLength(editor.content) : 0;
 
   return (
     <View style={local.root}>
@@ -519,6 +547,9 @@ export function FilesScreen({ sessionToken, deviceToken }: {
                     autoCorrect={false}
                     editable={!editorBusy}
                   />
+                  <Text style={[local.editorSize, editorBytes > MAX_TEXT_BYTES && local.editorSizeDanger]}>
+                    {bytesLabel(editorBytes)} / {bytesLabel(MAX_TEXT_BYTES)}
+                  </Text>
 
                   <View style={local.editorActions}>
                     {editor.content ? (
@@ -530,7 +561,7 @@ export function FilesScreen({ sessionToken, deviceToken }: {
                         <Text style={local.secondaryButtonText}>COPIAR</Text>
                       </Pressable>
                     ) : null}
-                    <Pressable style={[local.saveButton, editorBusy && local.disabled]} disabled={editorBusy} onPress={saveEditor}>
+                    <Pressable style={[local.saveButton, (editorBusy || editorBytes > MAX_TEXT_BYTES) && local.disabled]} disabled={editorBusy || editorBytes > MAX_TEXT_BYTES} onPress={saveEditor}>
                       <Text style={local.saveButtonText}>{editorBusy ? "SALVANDO..." : "SALVAR NO SERVIDOR"}</Text>
                     </Pressable>
                   </View>
@@ -607,6 +638,8 @@ const local = StyleSheet.create({
   close: { color: "#A7A7AD", fontSize: 22, padding: 5 },
   nameInput: { minHeight: 50, borderRadius: 13, borderWidth: 1, borderColor: "#29292F", backgroundColor: "#0E0E12", color: "#FFFFFF", paddingHorizontal: 14, fontSize: 15 },
   codeInput: { flex: 1, minHeight: 220, marginTop: 10, borderRadius: 13, borderWidth: 1, borderColor: "#29292F", backgroundColor: "#050507", color: "#DADADF", padding: 14, fontFamily: "monospace", fontSize: 12, lineHeight: 18 },
+  editorSize: { color: "#76767E", fontSize: 10, textAlign: "right", marginTop: 6 },
+  editorSizeDanger: { color: "#FF6258", fontWeight: "900" },
   editorActions: { flexDirection: "row", gap: 9, marginTop: 10 },
   secondaryButton: { minHeight: 48, borderRadius: 13, borderWidth: 1, borderColor: "#303036", paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
   secondaryButtonText: { color: "#E0E0E4", fontSize: 10, fontWeight: "900" },
