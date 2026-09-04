@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -25,6 +25,7 @@ import {
 import { API_URL } from "./config";
 import { getApp1DeviceIdentity } from "./device";
 import { FilesScreen } from "./FilesScreen";
+import { logoutApp1 } from "./session-api";
 import { SocialFeedScreen } from "./SocialFeedScreen";
 
 const SESSION_KEY = "grupo-lua-app1-session-v1";
@@ -102,6 +103,7 @@ export default function App() {
   const [publicName, setPublicName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
+  const signOutLock = useRef(false);
 
   const onboarding = account?.onboarding;
   const authenticated = Boolean(sessionToken && deviceToken && account);
@@ -219,7 +221,7 @@ export default function App() {
     }
   }
 
-  async function signOutLocal() {
+  async function clearLocalSession(messageText: string) {
     await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => {});
     setSessionToken(null);
     setSession(null);
@@ -229,7 +231,29 @@ export default function App() {
     setTermsChecked(false);
     setPublicName("");
     setTab("home");
-    setMessage("Sessão encerrada neste aparelho. A autorização do dispositivo foi preservada.");
+    setMessage(messageText);
+  }
+
+  async function signOutLocal() {
+    if (!sessionToken || !deviceToken || signOutLock.current) return;
+    signOutLock.current = true;
+    setMessage(null);
+    try {
+      await logoutApp1(sessionToken, deviceToken);
+      await clearLocalSession(
+        "Sessão encerrada no servidor e removida deste aparelho. A autorização do dispositivo foi preservada."
+      );
+    } catch (error) {
+      if (error instanceof App1ApiError && error.status === 401) {
+        await clearLocalSession("A sessão já não era válida no servidor e foi removida deste aparelho.");
+      } else {
+        setMessage(
+          `Não foi possível confirmar o encerramento no servidor: ${readableError(error)} A sessão foi mantida neste aparelho para você tentar novamente.`
+        );
+      }
+    } finally {
+      signOutLock.current = false;
+    }
   }
 
   const body = useMemo(() => {
