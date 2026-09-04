@@ -11,7 +11,7 @@
     "migrate": "node scripts/migrate.mjs",
     "hash:keymaster": "node scripts/hash-keymaster.mjs",
     "production:check": "node scripts/production-readiness.mjs",
-    "check": "node --check src/bootstrap.js && node --check src/server.js && node --check src/app1-routes.js && node --check src/app1-library-routes.js && node --check src/app1-library-routes-v2.js && node --check src/app1-feed-comment.js && node --check src/menu-routes.js && node --check src/keymaster-audit-clear.js && node --check src/security.js && node --check src/integrity.js && node --check src/db.js && node --check scripts/migrate.mjs && node --check scripts/production-readiness.mjs",
+    "check": "node --check src/bootstrap.js && node --check src/server.js && node --check src/app1-routes.js && node --check src/app1-library-routes.js && node --check src/app1-library-routes-v2.js && node --check src/app1-library-hardening-routes.js && node --check src/app1-feed-comment.js && node --check src/menu-routes.js && node --check src/keymaster-audit-clear.js && node --check src/security.js && node --check src/integrity.js && node --check src/db.js && node --check scripts/migrate.mjs && node --check scripts/production-readiness.mjs",
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
