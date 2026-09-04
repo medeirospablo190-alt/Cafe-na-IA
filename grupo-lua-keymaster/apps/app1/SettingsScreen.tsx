@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { App1Role } from "./api";
 import {
@@ -16,6 +16,13 @@ function labelForAvatar(value: string) {
   if (value === "CODE") return "CÓDIGO";
   if (value === "GHOST") return "GHOST";
   return "LUA";
+}
+
+function avatarGlyph(value: string) {
+  if (value === "CAT") return "ฅ";
+  if (value === "CODE") return "</>";
+  if (value === "GHOST") return "◌";
+  return "☾";
 }
 
 function labelForFrame(value: string) {
@@ -44,6 +51,7 @@ export function SettingsScreen({
   const [presenceMode, setPresenceMode] = useState<PresenceMode>("VISIBLE");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const mounted = useRef(true);
 
   function applyProfile(next: PublicProfileView) {
@@ -57,20 +65,38 @@ export function SettingsScreen({
 
   async function load() {
     setLoading(true);
+    setLoadError(null);
     try {
       const result = await getOwnProfile(sessionToken, deviceToken);
       if (mounted.current) applyProfile(result.profile);
     } catch (error) {
       if (mounted.current) {
-        Alert.alert("Configurações indisponíveis", error instanceof Error ? error.message : "Não foi possível carregar o perfil.");
+        setProfile(null);
+        setLoadError(error instanceof Error ? error.message : "Não foi possível carregar o perfil.");
       }
     } finally {
       if (mounted.current) setLoading(false);
     }
   }
 
+  const dirty = useMemo(() => {
+    if (!profile) return false;
+    return (
+      bio.trim() !== (profile.bio || "") ||
+      statusText.trim() !== (profile.statusText || "") ||
+      avatarStyle !== (profile.avatarStyle || "MOON") ||
+      frameStyle !== (profile.frameStyle || "DEFAULT") ||
+      presenceMode !== (profile.presenceMode || "VISIBLE")
+    );
+  }, [profile, bio, statusText, avatarStyle, frameStyle, presenceMode]);
+
+  function discardChanges() {
+    if (!profile || saving) return;
+    applyProfile(profile);
+  }
+
   async function save() {
-    if (saving) return;
+    if (saving || !profile || !dirty) return;
     setSaving(true);
     try {
       const result = await updateOwnProfile(sessionToken, deviceToken, {
@@ -101,6 +127,27 @@ export function SettingsScreen({
 
   if (loading) return <ActivityIndicator style={{ marginVertical: 32 }} />;
 
+  if (!profile) {
+    return (
+      <View style={s.root}>
+        <View style={s.titleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.title}>Perfil e configurações</Text>
+            <Text style={s.muted}>Não foi possível carregar seus dados públicos.</Text>
+          </View>
+          <Pressable style={s.back} onPress={onBack}><Text style={s.backText}>VOLTAR</Text></Pressable>
+        </View>
+        <View style={s.errorCard}>
+          <Text style={s.errorTitle}>Configurações indisponíveis</Text>
+          <Text style={s.errorText}>{loadError || "Tente novamente em alguns instantes."}</Text>
+          <Pressable style={s.retry} onPress={() => { load().catch(() => {}); }}>
+            <Text style={s.retryText}>TENTAR NOVAMENTE</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={s.root}>
       <View style={s.titleRow}>
@@ -108,19 +155,20 @@ export function SettingsScreen({
           <Text style={s.title}>Perfil e configurações</Text>
           <Text style={s.muted}>Personalização pública e privacidade de presença.</Text>
         </View>
-        <Pressable style={s.back} onPress={onBack}><Text style={s.backText}>VOLTAR</Text></Pressable>
+        <Pressable style={s.back} disabled={saving} onPress={onBack}><Text style={s.backText}>VOLTAR</Text></Pressable>
       </View>
 
       <View style={[s.profileCard, role === "DEV" && s.profileDev]}>
         <View style={[s.avatar, frameStyle === "RED" && s.frameRed, frameStyle === "PURPLE" && s.framePurple, frameStyle === "SILVER" && s.frameSilver]}>
-          <Text style={s.avatarText}>{(profile?.publicName || "L").slice(0, 1).toUpperCase()}</Text>
+          <Text style={[s.avatarText, avatarStyle === "CODE" && s.avatarCode]}>{avatarGlyph(avatarStyle)}</Text>
         </View>
         <View style={{ flex: 1 }}>
           <View style={s.identityRow}>
-            <Text style={s.publicName}>{profile?.publicName || "Perfil"}</Text>
+            <Text style={s.publicName}>{profile.publicName || "Perfil"}</Text>
             {role === "DEV" ? <Text style={s.devBadge}>DEV</Text> : null}
           </View>
           <Text style={s.muted}>Pseudônimo confirmado pelo servidor • {role}</Text>
+          <Text style={s.previewMeta}>{labelForAvatar(avatarStyle)} • moldura {labelForFrame(frameStyle).toLowerCase()} • {presenceMode === "VISIBLE" ? "presença visível" : "presença oculta"}</Text>
         </View>
       </View>
 
@@ -129,6 +177,7 @@ export function SettingsScreen({
         value={statusText}
         onChangeText={setStatusText}
         maxLength={80}
+        editable={!saving}
         style={s.input}
         placeholder="Ex.: trabalhando em um menu novo..."
         placeholderTextColor="#626269"
@@ -141,6 +190,7 @@ export function SettingsScreen({
         onChangeText={setBio}
         maxLength={280}
         multiline
+        editable={!saving}
         style={[s.input, s.bio]}
         placeholder="Uma descrição curta do seu perfil..."
         placeholderTextColor="#626269"
@@ -151,7 +201,7 @@ export function SettingsScreen({
       <Text style={s.label}>AVATAR</Text>
       <View style={s.choices}>
         {AVATARS.map((item) => (
-          <Pressable key={item} style={[s.choice, avatarStyle === item && s.choiceActive]} onPress={() => setAvatarStyle(item)}>
+          <Pressable key={item} disabled={saving} style={[s.choice, avatarStyle === item && s.choiceActive, saving && s.disabled]} onPress={() => setAvatarStyle(item)}>
             <Text style={[s.choiceText, avatarStyle === item && s.choiceTextActive]}>{labelForAvatar(item)}</Text>
           </Pressable>
         ))}
@@ -160,7 +210,7 @@ export function SettingsScreen({
       <Text style={s.label}>MOLDURA</Text>
       <View style={s.choices}>
         {FRAMES.map((item) => (
-          <Pressable key={item} style={[s.choice, frameStyle === item && s.choiceActive]} onPress={() => setFrameStyle(item)}>
+          <Pressable key={item} disabled={saving} style={[s.choice, frameStyle === item && s.choiceActive, saving && s.disabled]} onPress={() => setFrameStyle(item)}>
             <Text style={[s.choiceText, frameStyle === item && s.choiceTextActive]}>{labelForFrame(item)}</Text>
           </Pressable>
         ))}
@@ -168,17 +218,23 @@ export function SettingsScreen({
 
       <Text style={s.label}>PRESENÇA</Text>
       <View style={s.choices}>
-        <Pressable style={[s.choice, presenceMode === "VISIBLE" && s.choiceActive]} onPress={() => setPresenceMode("VISIBLE")}>
+        <Pressable disabled={saving} style={[s.choice, presenceMode === "VISIBLE" && s.choiceActive, saving && s.disabled]} onPress={() => setPresenceMode("VISIBLE")}>
           <Text style={[s.choiceText, presenceMode === "VISIBLE" && s.choiceTextActive]}>VISÍVEL</Text>
         </Pressable>
-        <Pressable style={[s.choice, presenceMode === "HIDDEN" && s.choiceActive]} onPress={() => setPresenceMode("HIDDEN")}>
+        <Pressable disabled={saving} style={[s.choice, presenceMode === "HIDDEN" && s.choiceActive, saving && s.disabled]} onPress={() => setPresenceMode("HIDDEN")}>
           <Text style={[s.choiceText, presenceMode === "HIDDEN" && s.choiceTextActive]}>OCULTA</Text>
         </Pressable>
       </View>
+      <Text style={s.presenceHelp}>{presenceMode === "VISIBLE" ? "Seu status de presença pode aparecer para outros perfis." : "Seu perfil continua existindo, mas a presença não é exibida como visível."}</Text>
 
-      <Pressable style={[s.save, saving && s.disabled]} disabled={saving} onPress={save}>
-        <Text style={s.saveText}>{saving ? "SALVANDO..." : "SALVAR CONFIGURAÇÕES"}</Text>
+      <Pressable style={[s.save, (saving || !dirty) && s.disabled]} disabled={saving || !dirty} onPress={save}>
+        <Text style={s.saveText}>{saving ? "SALVANDO..." : dirty ? "SALVAR CONFIGURAÇÕES" : "CONFIGURAÇÕES SALVAS"}</Text>
       </Pressable>
+      {dirty ? (
+        <Pressable style={[s.discard, saving && s.disabled]} disabled={saving} onPress={discardChanges}>
+          <Text style={s.discardText}>DESFAZER ALTERAÇÕES</Text>
+        </Pressable>
+      ) : null}
 
       <View style={s.securityCard}>
         <Text style={s.securityTitle}>Privacidade e segurança</Text>
@@ -203,10 +259,12 @@ const s = StyleSheet.create({
   frameRed: { borderColor: "#E24A52" },
   framePurple: { borderColor: "#B47AE8" },
   frameSilver: { borderColor: "#D0D0D5" },
-  avatarText: { color: "#FFF", fontSize: 18, fontWeight: "900" },
+  avatarText: { color: "#FFF", fontSize: 20, fontWeight: "900" },
+  avatarCode: { fontSize: 10 },
   identityRow: { flexDirection: "row", alignItems: "center", gap: 7 },
   publicName: { color: "#FFF", fontSize: 15, fontWeight: "900" },
   devBadge: { color: "#FF686F", fontSize: 8, fontWeight: "900", backgroundColor: "#210A0C", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  previewMeta: { color: "#67676F", fontSize: 8, lineHeight: 13, marginTop: 5 },
   label: { color: "#76767E", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 12 },
   input: { minHeight: 49, borderRadius: 13, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#101013", color: "#FFF", paddingHorizontal: 13, marginTop: 7 },
   bio: { minHeight: 105, paddingTop: 12, paddingBottom: 12 },
@@ -216,10 +274,18 @@ const s = StyleSheet.create({
   choiceActive: { backgroundColor: "#FFF", borderColor: "#FFF" },
   choiceText: { color: "#8B8B93", fontSize: 8, fontWeight: "900" },
   choiceTextActive: { color: "#070708" },
+  presenceHelp: { color: "#66666E", fontSize: 8, lineHeight: 13, marginTop: 7 },
   save: { minHeight: 50, borderRadius: 13, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 18 },
   saveText: { color: "#050505", fontSize: 10, fontWeight: "900" },
+  discard: { minHeight: 42, alignItems: "center", justifyContent: "center", marginTop: 5 },
+  discardText: { color: "#8B8B93", fontSize: 8, fontWeight: "900" },
   disabled: { opacity: 0.45 },
   securityCard: { borderWidth: 1, borderColor: "#27272D", borderRadius: 16, backgroundColor: "#08080A", padding: 14, marginTop: 13 },
   securityTitle: { color: "#FFF", fontSize: 13, fontWeight: "900" },
-  securityText: { color: "#74747C", fontSize: 10, lineHeight: 16, marginTop: 6 }
+  securityText: { color: "#74747C", fontSize: 10, lineHeight: 16, marginTop: 6 },
+  errorCard: { borderWidth: 1, borderColor: "#4A2429", borderRadius: 16, backgroundColor: "#100708", padding: 15 },
+  errorTitle: { color: "#FFF", fontSize: 14, fontWeight: "900" },
+  errorText: { color: "#B98C91", fontSize: 10, lineHeight: 16, marginTop: 7 },
+  retry: { minHeight: 44, borderRadius: 11, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 12 },
+  retryText: { color: "#050505", fontSize: 9, fontWeight: "900" }
 });
