@@ -1,5 +1,5 @@
 --[[
-    GRUPO LUA — LOGIN V9 / FOTO LIVRE
+    GRUPO LUA — LOGIN V10 / FOTO LIVRE
 
     Visual:
       • imagem oficial Roblox: rbxassetid://91124214069969
@@ -7,7 +7,7 @@
       • campo da chave bem transparente
       • ao tocar/digitar, o campo continua transparente
       • botão VERIFICAR quase transparente e sem vermelho no estado normal
-      • bordas discretas para manter boa leitura no celular
+      • X vermelho no canto superior direito para fechar o login
 
     A validação FREE/VIP e o carregamento do menu continuam no core estável.
 ]]
@@ -131,6 +131,14 @@ source = replaceOnce(
     'BackgroundColor3 = COLORS.RED,%s-}%)%s-end%)%s-%s-local DEFAULT_BUTTON_TEXT',
     'BackgroundColor3 = Color3.fromRGB(6, 6, 8),\n    })\nend)\n\nlocal DEFAULT_BUTTON_TEXT',
     "estado normal sem vermelho"
+)
+
+-- X vermelho no canto superior direito. Fundo invisível para não cobrir a foto.
+source = replaceOnce(
+    source,
+    'Background.Parent = Main',
+    'Background.Parent = Main\n\nlocal CloseButton = Instance.new("TextButton")\nCloseButton.Name = "CloseButton"\nCloseButton.AnchorPoint = Vector2.new(0.5, 0.5)\nCloseButton.Position = UDim2.new(1, -20, 0, 20)\nCloseButton.Size = UDim2.fromOffset(30, 30)\nCloseButton.BackgroundTransparency = 1\nCloseButton.BorderSizePixel = 0\nCloseButton.Text = "×"\nCloseButton.TextColor3 = Color3.fromRGB(235, 42, 38)\nCloseButton.Font = Enum.Font.GothamBold\nCloseButton.TextSize = 26\nCloseButton.AutoButtonColor = false\nCloseButton.ZIndex = 20\nCloseButton.Parent = Main\n\nCloseButton.MouseButton1Click:Connect(function()\n    GUI:Destroy()\nend)',
+    "botão fechar"
 )
 
 local fn, compileError = loadstring(source)
