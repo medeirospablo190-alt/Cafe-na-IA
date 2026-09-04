@@ -45,7 +45,26 @@ function attemptAllowed(req, publicId) {
   return current.count <= PUBLIC_ATTEMPT_LIMIT;
 }
 
-function durationUntil(row, now = new Date()) {
+function addMonthsClamped(date, months) {
+  const source = new Date(date);
+  const sourceDay = source.getUTCDate();
+  const targetMonthIndex = source.getUTCMonth() + Math.max(1, Math.floor(Number(months) || 1));
+  const targetYear = source.getUTCFullYear() + Math.floor(targetMonthIndex / 12);
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+
+  return new Date(Date.UTC(
+    targetYear,
+    targetMonth,
+    Math.min(sourceDay, lastDay),
+    source.getUTCHours(),
+    source.getUTCMinutes(),
+    source.getUTCSeconds(),
+    source.getUTCMilliseconds()
+  ));
+}
+
+export function durationUntil(row, now = new Date()) {
   const unit = String(row.duration_unit || (row.kind === "FREE" ? "HOURS" : "PERMANENT")).toUpperCase();
   const rawValue = Number(row.duration_value || (row.kind === "FREE" ? 24 : 1));
 
@@ -58,10 +77,7 @@ function durationUntil(row, now = new Date()) {
     return new Date(base.getTime() + hours * 60 * 60 * 1000);
   }
   if (unit === "DAYS") return new Date(base.getTime() + value * 24 * 60 * 60 * 1000);
-  if (unit === "MONTHS") {
-    base.setUTCMonth(base.getUTCMonth() + value);
-    return base;
-  }
+  if (unit === "MONTHS") return addMonthsClamped(base, value);
   return row.kind === "FREE"
     ? new Date(base.getTime() + 24 * 60 * 60 * 1000)
     : null;
