@@ -116,7 +116,7 @@ export function registerApp1LibraryRoutes(app) {
       const { rows } = await pool.query(
         `SELECT i.id, i.kind, i.title, i.favorite, i.text_content, i.created_at, i.updated_at,
                 OCTET_LENGTH(i.text_content)::int AS content_bytes,
-                COUNT(p.id)::int AS shared_count
+                COUNT(p.id) FILTER (WHERE p.expires_at > NOW())::int AS shared_count
            FROM app1_library_items i
            LEFT JOIN app1_feed_posts p ON p.library_item_id = i.id
           WHERE ${clauses.join(" AND ")}
@@ -285,7 +285,7 @@ export function registerApp1LibraryRoutes(app) {
       const id = String(req.params.id);
       const result = await withTransaction(async (client) => {
         const item = (await client.query(
-          `SELECT id, kind, title FROM app1_library_items
+          `SELECT id, kind, title, text_content FROM app1_library_items
             WHERE id = $1 AND account_id = $2
             LIMIT 1 FOR UPDATE`,
           [id, accountId]
@@ -293,10 +293,11 @@ export function registerApp1LibraryRoutes(app) {
         if (!item) return null;
         const postId = randomId();
         const post = (await client.query(
-          `INSERT INTO app1_feed_posts (id, account_id, post_kind, library_item_id)
-           VALUES ($1, $2, $3, $4)
-           RETURNING id, post_kind, created_at`,
-          [postId, accountId, item.kind, item.id]
+          `INSERT INTO app1_feed_posts
+            (id, account_id, post_kind, library_item_id, snapshot_title, snapshot_text_content)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id, post_kind, created_at, expires_at`,
+          [postId, accountId, item.kind, item.id, item.title, item.text_content]
         )).rows[0];
         await audit(client, {
           actorKind: "APP1_ACCOUNT",
@@ -304,7 +305,7 @@ export function registerApp1LibraryRoutes(app) {
           action: "APP1_LIBRARY_ITEM_SHARED_TO_FEED",
           targetKind: "APP1_FEED_POST",
           targetId: postId,
-          metadata: { itemId: item.id, kind: item.kind, title: item.title }
+          metadata: { itemId: item.id, kind: item.kind, title: item.title, expiresAt: post.expires_at }
         });
         return post;
       });
@@ -318,12 +319,12 @@ export function registerApp1LibraryRoutes(app) {
   app.get("/v1/app1/feed", requireFullSession, async (_req, res, next) => {
     try {
       const { rows } = await pool.query(
-        `SELECT p.id, p.post_kind, p.created_at,
-                a.public_profile_id, a.public_name,
-                i.id AS library_item_id, i.title, i.text_content
+        `SELECT p.id, p.post_kind, p.created_at, p.expires_at,
+                p.library_item_id, p.snapshot_title, p.snapshot_text_content,
+                a.public_profile_id, a.public_name
            FROM app1_feed_posts p
            JOIN app1_accounts a ON a.id = p.account_id AND a.status <> 'DELETED'
-           JOIN app1_library_items i ON i.id = p.library_item_id
+          WHERE p.expires_at > NOW()
           ORDER BY p.created_at DESC
           LIMIT 100`
       );
@@ -333,8 +334,9 @@ export function registerApp1LibraryRoutes(app) {
           id: row.id,
           kind: row.post_kind,
           createdAt: row.created_at,
+          expiresAt: row.expires_at,
           author: { profileId: row.public_profile_id, publicName: row.public_name || "Perfil" },
-          item: { id: row.library_item_id, title: row.title, content: row.text_content }
+          item: { id: row.library_item_id, title: row.snapshot_title, content: row.snapshot_text_content }
         }))
       });
     } catch (error) {
