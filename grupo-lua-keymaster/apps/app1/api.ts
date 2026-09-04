@@ -78,6 +78,32 @@ export class App1ApiError extends Error {
   }
 }
 
+const API_TIMEOUT_MS = 45_000;
+
+async function apiFetch(url: string, init: RequestInit = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new App1ApiError(
+        "O servidor demorou demais para responder. Verifique sua conexão e tente novamente.",
+        0,
+        "NETWORK_TIMEOUT"
+      );
+    }
+    if (error instanceof App1ApiError) throw error;
+    throw new App1ApiError(
+      error instanceof Error ? error.message : "Não foi possível conectar ao servidor.",
+      0,
+      "NETWORK_ERROR"
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -103,7 +129,7 @@ export async function loginApp1(
   identity: App1DeviceIdentity,
   savedDeviceToken: string
 ) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/login`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -128,7 +154,7 @@ export async function loginApp1(
 }
 
 export async function getMe(sessionToken: string, deviceToken: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/me`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/me`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{
@@ -139,7 +165,7 @@ export async function getMe(sessionToken: string, deviceToken: string) {
 }
 
 export async function acceptTerms(sessionToken: string, deviceToken: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/onboarding/accept-terms`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/onboarding/accept-terms`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -159,7 +185,7 @@ export async function confirmPublicName(
   deviceToken: string,
   publicName: string
 ) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/onboarding/public-name`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/onboarding/public-name`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -192,14 +218,14 @@ export async function listLibraryItems(
   if (options.limit !== undefined) params.set("limit", String(options.limit));
   if (options.offset !== undefined) params.set("offset", String(options.offset));
   const suffix = params.toString() ? `?${params.toString()}` : "";
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library${suffix}`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library${suffix}`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<LibraryPage>(response);
 }
 
 export async function getLibraryItem(sessionToken: string, deviceToken: string, id: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{ ok: true; item: LibraryItem }>(response);
@@ -210,7 +236,7 @@ export async function createLibraryItem(
   deviceToken: string,
   input: { kind: LibraryKind; title: string; content: string }
 ) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library`, {
     method: "POST",
     headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
     body: JSON.stringify(input)
@@ -224,7 +250,7 @@ export async function updateLibraryItem(
   id: string,
   input: { title?: string; content?: string }
 ) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
     body: JSON.stringify(input)
@@ -238,7 +264,7 @@ export async function setLibraryFavorite(
   ids: string[],
   favorite: boolean
 ) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library/bulk/favorite`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library/bulk/favorite`, {
     method: "POST",
     headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
     body: JSON.stringify({ ids, favorite })
@@ -247,7 +273,7 @@ export async function setLibraryFavorite(
 }
 
 export async function deleteLibraryItems(sessionToken: string, deviceToken: string, ids: string[]) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library/bulk/delete`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library/bulk/delete`, {
     method: "POST",
     headers: { "content-type": "application/json", ...authHeaders(sessionToken, deviceToken) },
     body: JSON.stringify({ ids })
@@ -256,7 +282,7 @@ export async function deleteLibraryItems(sessionToken: string, deviceToken: stri
 }
 
 export async function shareLibraryItem(sessionToken: string, deviceToken: string, id: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}/share`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/library/${encodeURIComponent(id)}/share`, {
     method: "POST",
     headers: authHeaders(sessionToken, deviceToken)
   });
@@ -264,14 +290,14 @@ export async function shareLibraryItem(sessionToken: string, deviceToken: string
 }
 
 export async function listFeedPosts(sessionToken: string, deviceToken: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/feed`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/feed`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{ ok: true; posts: FeedPost[] }>(response);
 }
 
 export async function getFeedPost(sessionToken: string, deviceToken: string, id: string) {
-  const response = await fetch(`${requireApiUrl()}/v1/app1/feed/${encodeURIComponent(id)}`, {
+  const response = await apiFetch(`${requireApiUrl()}/v1/app1/feed/${encodeURIComponent(id)}`, {
     headers: authHeaders(sessionToken, deviceToken)
   });
   return parseResponse<{ ok: true; post: FeedPost }>(response);
