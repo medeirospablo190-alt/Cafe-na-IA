@@ -135,7 +135,14 @@ function feedRow(row, fullContent = false) {
 }
 
 async function purgeExpiredFeedPosts(client = pool) {
-  await client.query(`DELETE FROM app1_feed_posts WHERE expires_at <= NOW()`);
+  await client.query(
+    `DELETE FROM app1_feed_posts p
+      WHERE p.expires_at <= NOW()
+        AND p.pinned_at IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM app1_social_favorites f WHERE f.post_id = p.id
+        )`
+  );
 }
 
 export function registerApp1LibraryRoutes(app) {
@@ -173,7 +180,11 @@ export function registerApp1LibraryRoutes(app) {
                   LEFT(i.text_content, ${LIBRARY_PREVIEW_CHARS}) AS preview_text,
                   i.created_at, i.updated_at,
                   OCTET_LENGTH(i.text_content)::int AS content_bytes,
-                  COUNT(p.id) FILTER (WHERE p.expires_at > NOW())::int AS shared_count
+                  COUNT(p.id) FILTER (
+                    WHERE p.expires_at > NOW()
+                       OR p.pinned_at IS NOT NULL
+                       OR EXISTS (SELECT 1 FROM app1_social_favorites f WHERE f.post_id = p.id)
+                  )::int AS shared_count
              FROM app1_library_items i
              LEFT JOIN app1_feed_posts p ON p.library_item_id = i.id
             WHERE ${clauses.join(" AND ")}
@@ -439,7 +450,9 @@ export function registerApp1LibraryRoutes(app) {
            FROM app1_feed_posts p
            JOIN app1_accounts a ON a.id = p.account_id AND a.status <> 'DELETED'
           WHERE p.expires_at > NOW()
-          ORDER BY p.created_at DESC
+             OR p.pinned_at IS NOT NULL
+             OR EXISTS (SELECT 1 FROM app1_social_favorites f WHERE f.post_id = p.id)
+          ORDER BY (p.pinned_at IS NOT NULL) DESC, p.pinned_at DESC NULLS LAST, p.created_at DESC
           LIMIT ${FEED_LIST_MAX}`
       );
       return res.json({ ok: true, posts: rows.map((row) => feedRow(row, false)) });
@@ -456,11 +469,16 @@ export function registerApp1LibraryRoutes(app) {
                 a.public_profile_id, a.public_name
            FROM app1_feed_posts p
            JOIN app1_accounts a ON a.id = p.account_id AND a.status <> 'DELETED'
-          WHERE p.id = $1 AND p.expires_at > NOW()
+          WHERE p.id = $1
+            AND (
+              p.expires_at > NOW()
+              OR p.pinned_at IS NOT NULL
+              OR EXISTS (SELECT 1 FROM app1_social_favorites f WHERE f.post_id = p.id)
+            )
           LIMIT 1`,
         [String(req.params.id)]
       )).rows[0];
-      if (!row) return sendError(res, 404, "NOT_FOUND", "Publicação não encontrada ou já expirada.");
+      if (!row) return sendError(res, 404, "NOT_FOUND", "Publicação não encontrada ou removida.");
       return res.json({ ok: true, post: feedRow(row, true) });
     } catch (error) {
       next(error);
