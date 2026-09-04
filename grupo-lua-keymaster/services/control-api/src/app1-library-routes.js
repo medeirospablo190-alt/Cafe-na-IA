@@ -6,7 +6,9 @@ const ALLOWED_KINDS = new Set(["CODE", "LOADSTRING"]);
 const TITLE_MAX = 120;
 const CONTENT_MAX_BYTES = 1_000_000;
 const BULK_MAX = 500;
-const LIBRARY_LIST_MAX = 500;
+const LIBRARY_PAGE_DEFAULT = 60;
+const LIBRARY_PAGE_MAX = 100;
+const LIBRARY_OFFSET_MAX = 100_000;
 const LIBRARY_PREVIEW_CHARS = 220;
 const FEED_LIST_MAX = 50;
 const FEED_PREVIEW_CHARS = 4_000;
@@ -80,6 +82,13 @@ function parseIds(value) {
   return [...new Set(value.map((item) => String(item || "").trim()).filter(Boolean))];
 }
 
+function parseBoundedInteger(value, fallback, min, max) {
+  if (value === undefined || value === null || value === "") return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
 function summaryRow(row) {
   const source = row.preview_text ?? row.text_content ?? "";
   return {
@@ -107,6 +116,8 @@ export function registerApp1LibraryRoutes(app) {
       if (req.query.kind && !kind) return sendError(res, 400, "INVALID_KIND", "Tipo de arquivo inválido.");
       const favorite = String(req.query.favorite || "").toLowerCase();
       const q = String(req.query.q || "").trim().slice(0, 120);
+      const limit = parseBoundedInteger(req.query.limit, LIBRARY_PAGE_DEFAULT, 1, LIBRARY_PAGE_MAX);
+      const offset = parseBoundedInteger(req.query.offset, 0, 0, LIBRARY_OFFSET_MAX);
       const values = [accountId];
       const clauses = ["i.account_id = $1"];
       if (kind) {
@@ -122,21 +133,42 @@ export function registerApp1LibraryRoutes(app) {
         clauses.push(`i.title ILIKE $${values.length}`);
       }
 
-      const { rows } = await pool.query(
-        `SELECT i.id, i.kind, i.title, i.favorite,
-                LEFT(i.text_content, ${LIBRARY_PREVIEW_CHARS}) AS preview_text,
-                i.created_at, i.updated_at,
-                OCTET_LENGTH(i.text_content)::int AS content_bytes,
-                COUNT(p.id) FILTER (WHERE p.expires_at > NOW())::int AS shared_count
-           FROM app1_library_items i
-           LEFT JOIN app1_feed_posts p ON p.library_item_id = i.id
-          WHERE ${clauses.join(" AND ")}
-          GROUP BY i.id
-          ORDER BY i.favorite DESC, i.updated_at DESC
-          LIMIT ${LIBRARY_LIST_MAX}`,
-        values
-      );
-      res.json({ ok: true, items: rows.map(summaryRow) });
+      const limitPosition = values.length + 1;
+      const offsetPosition = values.length + 2;
+      const [listResult, countResult] = await Promise.all([
+        pool.query(
+          `SELECT i.id, i.kind, i.title, i.favorite,
+                  LEFT(i.text_content, ${LIBRARY_PREVIEW_CHARS}) AS preview_text,
+                  i.created_at, i.updated_at,
+                  OCTET_LENGTH(i.text_content)::int AS content_bytes,
+                  COUNT(p.id) FILTER (WHERE p.expires_at > NOW())::int AS shared_count
+             FROM app1_library_items i
+             LEFT JOIN app1_feed_posts p ON p.library_item_id = i.id
+            WHERE ${clauses.join(" AND ")}
+            GROUP BY i.id
+            ORDER BY i.favorite DESC, i.updated_at DESC, i.id DESC
+            LIMIT $${limitPosition} OFFSET $${offsetPosition}`,
+          [...values, limit, offset]
+        ),
+        pool.query(
+          `SELECT COUNT(*)::int AS total
+             FROM app1_library_items i
+            WHERE ${clauses.join(" AND ")}`,
+          values
+        )
+      ]);
+      const total = Number(countResult.rows[0]?.total || 0);
+      const items = listResult.rows.map(summaryRow);
+      const nextOffset = offset + items.length;
+      res.json({
+        ok: true,
+        items,
+        total,
+        limit,
+        offset,
+        hasMore: nextOffset < total,
+        nextOffset: nextOffset < total ? nextOffset : null
+      });
     } catch (error) {
       next(error);
     }
