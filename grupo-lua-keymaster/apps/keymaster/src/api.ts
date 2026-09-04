@@ -12,6 +12,7 @@ export type CriticalAction =
   | "UNLOCK_APP1_ACCOUNT"
   | "AUTHORIZE_APP1_DEVICE"
   | "REVOKE_APP1_DEVICE"
+  | "RESTORE_APP1_ACCOUNT"
   | "ROTATE_APP1_CREDENTIAL"
   | "REVEAL_APP1_CREDENTIAL";
 
@@ -286,9 +287,15 @@ export async function createAccount(
   }, session);
 }
 
-export async function setAccountState(session: string, accountId: string, action: "suspend" | "restore") {
+export async function setAccountState(
+  session: string,
+  accountId: string,
+  action: "suspend" | "restore",
+  authorizationToken?: string
+) {
   return request<{ ok: true }>(`/v1/keymaster/accounts/${encodeURIComponent(accountId)}/${action}`, {
     method: "POST",
+    ...(authorizationToken ? { headers: { "x-critical-authorization": authorizationToken } } : {}),
     body: "{}"
   }, session);
 }
@@ -567,7 +574,7 @@ export async function executeCriticalAction(
   action: SystemCriticalAction,
   authorizationToken: string
 ) {
-  return request<{ ok: true; action: string; app1Maintenance?: boolean }>("/v1/keymaster/critical/execute", {
+  return request<{ ok: true; action: string; app1Maintenance?: boolean; revokedSessions?: number }>("/v1/keymaster/critical/execute", {
     method: "POST",
     body: JSON.stringify({ action, authorizationToken })
   }, session);
