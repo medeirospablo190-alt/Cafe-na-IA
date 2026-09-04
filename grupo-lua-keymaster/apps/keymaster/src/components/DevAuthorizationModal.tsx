@@ -52,7 +52,7 @@ export function DevAuthorizationModal({
     } catch (error) {
       setDevCredential("");
       setLoading(false);
-      Alert.alert("Autorização DEV negada", error instanceof Error ? error.message : "Nome/chave DEV não foram aceitos pelo servidor.");
+      Alert.alert("Autorização DEV negada", error instanceof Error ? error.message : "Login privado/chave DEV não foram aceitos pelo servidor.");
       return;
     }
 
@@ -77,16 +77,17 @@ export function DevAuthorizationModal({
           <Text style={styles.devTag}>DEV • CONFIRMAÇÃO SERVER-SIDE</Text>
           <Text style={styles.cardTitle}>{safeTitle}</Text>
           <Text style={styles.muted}>
-            Use o nome visível do acesso DEV e a chave DEV. O login privado também é aceito. A chave é removida do estado local depois da tentativa.
+            Digite o login privado da conta DEV e a chave DEV. O nome visível não substitui o login nesta confirmação. A chave é removida do estado local depois da tentativa.
           </Text>
           <TextInput
             value={devLogin}
             onChangeText={setDevLogin}
             style={styles.input}
-            placeholder="Nome do acesso DEV"
+            placeholder="LOGIN PRIVADO DEV"
             placeholderTextColor="#666"
             autoCapitalize="none"
             autoCorrect={false}
+            spellCheck={false}
           />
           <TextInput
             value={devCredential}
