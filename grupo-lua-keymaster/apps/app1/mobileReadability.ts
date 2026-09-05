@@ -99,6 +99,35 @@ const FONT_MINIMUMS: Record<string, number> = {
   renameButtonText: 10,
   cancelButtonText: 10,
 
+  counterBadgeText: 9,
+  mini: 10,
+  announcementTag: 10,
+  pinnedTag: 10,
+  kind: 10,
+  code: 10,
+  previewNote: 10,
+  reactionText: 10,
+  secondaryText: 10,
+  commentAuthor: 10,
+  commentActionText: 10,
+  replyingText: 10,
+  commentSendText: 10,
+  tabText: 10,
+  readAllText: 10,
+  profileCounts: 10,
+  profilePostPreview: 10,
+  publishText: 10,
+  small: 10,
+  unreadText: 10,
+  retentionText: 10,
+  loadOlderText: 10,
+  historyEnd: 10,
+  sender: 10,
+  messageMeta: 10,
+  sendText: 10,
+  modalPrimaryText: 10,
+  modalSecondaryText: 10,
+
   muted: 11,
   previewMeta: 10,
   choiceText: 10,
@@ -142,6 +171,13 @@ const HEIGHT_MINIMUMS: Record<string, number> = {
   renameButton: 44,
   previewClose: 44,
 
+  reaction: 44,
+  secondaryAction: 44,
+  readAll: 44,
+  modalClose: 44,
+  cancelReply: 44,
+  loadOlder: 44,
+
   choice: 44,
   save: 50,
   discard: 44,
@@ -155,7 +191,10 @@ const WIDTH_MINIMUMS: Record<string, number> = {
   clearSelection: 44,
   close: 44,
   refresh: 44,
-  previewClose: 44
+  previewClose: 44,
+  iconButton: 44,
+  modalClose: 44,
+  cancelReply: 44
 };
 
 const patchedStyleSheet = StyleSheet as typeof StyleSheet & {
