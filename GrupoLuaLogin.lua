@@ -1,5 +1,5 @@
 --[[
-    GRUPO LUA — LOGIN V12 / BASE ESTÁVEL
+    GRUPO LUA — LOGIN V13 / BASE ESTÁVEL
 
     Visual mobile:
       • imagem Roblox: rbxassetid://91124214069969
@@ -15,6 +15,7 @@
       • a chave digitada nunca é salva em arquivo
       • somente o token da sessão é persistido por menu
       • enquanto a sessão for válida, o menu abre sem pedir a chave novamente
+      • falha de runtime do menu mantém o login disponível para nova tentativa
 
     Loader de um menu:
       getgenv().GRUPO_LUA_MENU_ID = "menu_xxxxx"
@@ -540,10 +541,6 @@ local function compileMenu(source)
 end
 
 local function runMenuFunction(fn)
-    if GUI and GUI.Parent then
-        GUI:Destroy()
-    end
-
     local runtimeOK, runtimeError = xpcall(fn, function(errorMessage)
         local trace = tostring(errorMessage)
         pcall(function()
@@ -556,7 +553,14 @@ local function runMenuFunction(fn)
 
     if not runtimeOK then
         warn("[GRUPO LUA] Erro ao executar menu:", runtimeError)
+        return false, runtimeError
     end
+
+    if GUI and GUI.Parent then
+        GUI:Destroy()
+    end
+
+    return true
 end
 
 local function fetchManifest(token)
@@ -593,7 +597,11 @@ local function loadFromManifest(manifest)
         return false, "Falha de compilação"
     end
 
-    runMenuFunction(fn)
+    local runtimeOK, runtimeError = runMenuFunction(fn)
+    if not runtimeOK then
+        return false, "Falha de execução", runtimeError
+    end
+
     return true
 end
 

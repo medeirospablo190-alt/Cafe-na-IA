@@ -3,11 +3,13 @@ name: Keymaster CI
 on:
   push:
     paths:
+      - "GrupoLuaLogin.lua"
       - "grupo-lua-keymaster/**"
       - "render-control-api.yaml"
       - ".github/workflows/keymaster-ci.yml"
   pull_request:
     paths:
+      - "GrupoLuaLogin.lua"
       - "grupo-lua-keymaster/**"
       - "render-control-api.yaml"
       - ".github/workflows/keymaster-ci.yml"
@@ -142,6 +144,8 @@ jobs:
         run: bash scripts/npm-install-retry.sh
       - name: Mobile version consistency
         run: npm run versions:check
+      - name: Roblox login runtime guard
+        run: npm run login:check
       - name: Mobile Control API build guard
         run: |
           EXPO_PUBLIC_GRUPO_LUA_API_URL=https://grupo-lua-control-api.example.com node scripts/check-mobile-api-url.mjs
