@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   brand: { color: "#FFFFFF", fontSize: 24, fontWeight: "900", letterSpacing: 3.4 },
   byline: { color: "#707077", fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginTop: 5 },
   loginBackground: { flex: 1, width: "100%", backgroundColor: "#020202" },
-  photoShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.10)" },
+  photoShade: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "rgba(0,0,0,0.10)" },
   loginScroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 18, paddingTop: 170, paddingBottom: 22 },
   loginCard: { borderRadius: 18, padding: 16, backgroundColor: "rgba(4,4,5,0.34)", borderWidth: 1, borderColor: "rgba(210,49,57,0.34)" },
   eyebrowLight: { color: "#D8D8DD", fontSize: 9, fontWeight: "900", letterSpacing: 1.6 },
