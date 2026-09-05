@@ -2,24 +2,28 @@ name: Obfuscate GrupoLuaLogin
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - security-obfuscate-grupo-lua-login-2026-09-05
-    paths:
-      - .github/workflows/obfuscate-grupo-lua-login.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   obfuscate:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'one-time publish obfuscated login')
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Require clear source input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Fq -- '--[[ GRUPO LUA - OBFUSCATED BUILD - Prometheus Medium / LuaU ]]' GrupoLuaLogin.lua; then
+            echo 'GrupoLuaLogin.lua já é um build público ofuscado.'
+            echo 'Execute este workflow somente em uma ref que contenha a fonte legível a ser protegida.'
+            exit 1
+          fi
 
       - name: Validate clear login source
         run: node grupo-lua-keymaster/scripts/check-grupo-lua-login.mjs
@@ -83,20 +87,3 @@ jobs:
           path: dist-obfuscated/GrupoLuaLogin.lua
           if-no-files-found: error
           retention-days: 14
-
-      - name: Publish obfuscated login to test branch
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            printf '%s\n' '--[[ GRUPO LUA - OBFUSCATED BUILD - Prometheus Medium / LuaU ]]'
-            cat dist-obfuscated/GrupoLuaLogin.lua
-          } > GrupoLuaLogin.lua.new
-          mv GrupoLuaLogin.lua.new GrupoLuaLogin.lua
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add GrupoLuaLogin.lua
-          git commit -m "build: publish obfuscated GrupoLuaLogin"
-          git push
