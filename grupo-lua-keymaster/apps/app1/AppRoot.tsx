@@ -759,7 +759,12 @@ function HomeShell({
 
   return (
     <View style={styles.appShell}>
-      <View style={styles.appHeader}>
+      <Pressable
+        style={styles.appHeader}
+        onPress={() => onTab("settings")}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir perfil e configurações"
+      >
         <View style={[styles.avatar, isDev && styles.avatarDev]}>
           <Text style={styles.avatarText}>{(account.publicName || "L").slice(0, 1).toUpperCase()}</Text>
         </View>
@@ -770,7 +775,7 @@ function HomeShell({
           </View>
           <Text style={styles.sessionLine}>Sessão até {formatExpiry(session.expiresAt)}</Text>
         </View>
-      </View>
+      </Pressable>
 
       <ScrollView
         style={styles.appScroll}
