@@ -1,0 +1,89 @@
+name: Obfuscate GrupoLuaLogin
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  obfuscate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require clear source input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Fq -- '--[[ GRUPO LUA - OBFUSCATED BUILD - Prometheus Medium / LuaU ]]' GrupoLuaLogin.lua; then
+            echo 'GrupoLuaLogin.lua já é um build público ofuscado.'
+            echo 'Execute este workflow somente em uma ref que contenha a fonte legível a ser protegida.'
+            exit 1
+          fi
+
+      - name: Validate clear login source
+        run: node grupo-lua-keymaster/scripts/check-grupo-lua-login.mjs
+
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+
+      - name: Fetch pinned Prometheus
+        run: |
+          git clone --filter=blob:none https://github.com/prometheus-lua/Prometheus.git .prometheus
+          git -C .prometheus checkout a4efc5f381c50ae2a111bdbb9272fa3203685be3
+
+      - name: Obfuscate login for LuaU
+        run: |
+          mkdir -p dist-obfuscated
+          lua5.1 .prometheus/cli.lua \
+            --preset Medium \
+            --LuaU \
+            --nocolors \
+            --out dist-obfuscated/GrupoLuaLogin.lua \
+            GrupoLuaLogin.lua
+
+      - name: Validate transformed output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist-obfuscated/GrupoLuaLogin.lua
+
+          ORIGINAL_BYTES=$(wc -c < GrupoLuaLogin.lua)
+          OUTPUT_BYTES=$(wc -c < dist-obfuscated/GrupoLuaLogin.lua)
+
+          if [ "$OUTPUT_BYTES" -lt 500 ]; then
+            echo "Obfuscated output is unexpectedly small: ${OUTPUT_BYTES} bytes"
+            exit 1
+          fi
+
+          if cmp -s GrupoLuaLogin.lua dist-obfuscated/GrupoLuaLogin.lua; then
+            echo "Obfuscator returned the original source unchanged."
+            exit 1
+          fi
+
+          echo "Original: ${ORIGINAL_BYTES} bytes"
+          echo "Obfuscated: ${OUTPUT_BYTES} bytes"
+          sha256sum dist-obfuscated/GrupoLuaLogin.lua
+
+      - name: Fetch pinned Luau compiler
+        run: |
+          git clone --filter=blob:none https://github.com/luau-lang/luau.git .luau
+          git -C .luau checkout 62dbc0b4718e87fc746b02f969c91ca2a461b4cf
+          make -C .luau config=release luau-compile
+
+      - name: Compile-check obfuscated LuaU
+        run: ./.luau/build/release/luau-compile dist-obfuscated/GrupoLuaLogin.lua > /dev/null
+
+      - name: Upload guarded output
+        uses: actions/upload-artifact@v4
+        with:
+          name: GrupoLuaLogin-prometheus-medium-luau
+          path: dist-obfuscated/GrupoLuaLogin.lua
+          if-no-files-found: error
+          retention-days: 14
