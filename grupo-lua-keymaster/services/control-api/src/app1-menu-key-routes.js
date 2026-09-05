@@ -1,6 +1,12 @@
 import crypto from "crypto";
 import { pool, withTransaction, audit } from "./db.js";
-import { randomId, randomToken, tokenHash } from "./security.js";
+import {
+  decryptStoredSecret,
+  encryptStoredSecret,
+  randomId,
+  randomToken,
+  tokenHash
+} from "./security.js";
 
 function sendError(res, status, code, message, extra = {}) {
   return res.status(status).json({ ok: false, code, message, ...extra });
@@ -23,6 +29,10 @@ function keyHint(key) {
 
 function makeKey(kind) {
   return kind === "FREE" ? `FREE-${randomToken(24)}` : `VIP-${randomToken(32)}`;
+}
+
+function keyRevealPurpose(keyId) {
+  return `menu-key-reveal:${String(keyId || "")}`;
 }
 
 async function getApp1Session(req) {
@@ -61,7 +71,7 @@ async function requireApp1Admin(req, res, next) {
   try {
     const session = await getApp1Session(req);
     if (!session) return sendError(res, 401, "UNAUTHORIZED", "Sessão App 1 inválida ou incompatível com o dispositivo.");
-    if (!['ADM', 'DEV'].includes(String(session.role))) {
+    if (!["ADM", "DEV"].includes(String(session.role))) {
       return sendError(res, 403, "ADMIN_REQUIRED", "Esta área exige uma conta ADM ou DEV.");
     }
     req.app1MenuAdmin = session;
@@ -100,6 +110,7 @@ function mapKey(row) {
     created_at: row.created_at,
     updated_at: row.updated_at,
     revoked_at: row.revoked_at,
+    can_reveal: Boolean(row.key_value_encrypted),
     usable: row.status === "ACTIVE" && ["READY", "ACTIVE"].includes(state)
   };
 }
@@ -201,17 +212,28 @@ export function registerApp1MenuKeyRoutes(app) {
       const value = makeKey(kind);
       const id = randomId();
       const hint = keyHint(value);
+      const encryptedValue = encryptStoredSecret(value, keyRevealPurpose(id));
 
       const row = await withTransaction(async (client) => {
         const created = (await client.query(
           `INSERT INTO menu_access_keys
-            (id, menu_id, kind, status, key_hash, key_hint, note,
+            (id, menu_id, kind, status, key_hash, key_hint, key_value_encrypted, note,
              expires_at, access_state, duration_value, duration_unit,
              created_by_session)
-           VALUES ($1, $2, $3, 'ACTIVE', $4, $5, $6,
-                   NULL, 'READY', $7, $8, NULL)
+           VALUES ($1, $2, $3, 'ACTIVE', $4, $5, $6, $7,
+                   NULL, 'READY', $8, $9, NULL)
            RETURNING *`,
-          [id, menu.id, kind, tokenHash(`menu-key:${value}`), hint, note, durationValue, durationUnit]
+          [
+            id,
+            menu.id,
+            kind,
+            tokenHash(`menu-key:${value}`),
+            hint,
+            encryptedValue,
+            note,
+            durationValue,
+            durationUnit
+          ]
         )).rows[0];
         await audit(client, {
           actorKind: "APP1_ACCOUNT",
@@ -224,7 +246,67 @@ export function registerApp1MenuKeyRoutes(app) {
         return created;
       });
 
-      res.status(201).json({ ok: true, key: { ...mapKey(row), value, revealOnce: true } });
+      res.set("Cache-Control", "no-store, private");
+      res.status(201).json({ ok: true, key: { ...mapKey(row), value, revealOnce: false } });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/v1/app1/menu-admin/keys/:keyId/reveal", requireApp1Admin, async (req, res, next) => {
+    try {
+      const keyId = String(req.params.keyId || "");
+      const result = await withTransaction(async (client) => {
+        const row = (await client.query(
+          `SELECT id, menu_id, kind, status, key_hint, key_value_encrypted
+             FROM menu_access_keys
+            WHERE id = $1
+            LIMIT 1`,
+          [keyId]
+        )).rows[0];
+        if (!row) return { error: "NOT_FOUND" };
+        if (row.status === "REVOKED") return { error: "REVOKED" };
+        if (!row.key_value_encrypted) return { error: "NOT_RECOVERABLE" };
+
+        const value = decryptStoredSecret(row.key_value_encrypted, keyRevealPurpose(row.id));
+        if (!value) return { error: "DECRYPT_FAILED" };
+
+        await audit(client, {
+          actorKind: "APP1_ACCOUNT",
+          actorId: req.app1MenuAdmin.account_id,
+          action: "MENU_KEY_REVEALED_APP1",
+          targetKind: "MENU_KEY",
+          targetId: row.id,
+          metadata: { menuId: row.menu_id, kind: row.kind }
+        });
+        return { row, value };
+      });
+
+      if (result.error === "NOT_FOUND") return sendError(res, 404, "NOT_FOUND", "Chave não encontrada.");
+      if (result.error === "REVOKED") return sendError(res, 409, "KEY_REVOKED", "Uma chave revogada não pode ser revelada.");
+      if (result.error === "NOT_RECOVERABLE") {
+        return sendError(
+          res,
+          409,
+          "KEY_VALUE_NOT_RECOVERABLE",
+          "Esta chave foi criada antes da recuperação segura ser ativada e o valor original não pode ser reconstruído a partir do hash."
+        );
+      }
+      if (result.error === "DECRYPT_FAILED") {
+        return sendError(res, 500, "KEY_VALUE_DECRYPT_FAILED", "O servidor não conseguiu recuperar esta chave com segurança.");
+      }
+
+      res.set("Cache-Control", "no-store, private");
+      res.set("Pragma", "no-cache");
+      res.json({
+        ok: true,
+        key: {
+          id: result.row.id,
+          kind: result.row.kind,
+          key_hint: result.row.key_hint,
+          value: result.value
+        }
+      });
     } catch (error) {
       next(error);
     }
