@@ -77,7 +77,7 @@ async function publicValidate(baseUrl, publicId, key, deviceId, hint) {
   });
 }
 
-test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a chave novamente", { skip: !enabled, timeout: 40_000 }, async () => {
+test("App 1 administra FREE/VIP, troca aparelho e revela novas chaves sem expor valor em listagens", { skip: !enabled, timeout: 40_000 }, async () => {
   const db = new pg.Client({
     connectionString: process.env.DATABASE_URL,
     ssl: String(process.env.DATABASE_SSL || "true").toLowerCase() === "true"
@@ -162,10 +162,34 @@ test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a 
     assert.equal(createFree.data.key.kind, "FREE");
     assert.equal(createFree.data.key.duration_unit, "HOURS");
     assert.equal(createFree.data.key.duration_value, 6);
-    assert.equal(createFree.data.key.revealOnce, true);
+    assert.equal(createFree.data.key.revealOnce, false);
+    assert.equal(createFree.data.key.can_reveal, true);
     assert.match(createFree.data.key.value, /^FREE-/);
     const freeId = createFree.data.key.id;
     const freeValue = createFree.data.key.value;
+
+    const revealFree = await jsonRequest(baseUrl, `/v1/app1/menu-admin/keys/${freeId}/reveal`, {
+      method: "POST",
+      appToken,
+      appDeviceToken
+    });
+    assert.equal(revealFree.response.status, 200, JSON.stringify(revealFree.data));
+    assert.equal(revealFree.response.headers.get("cache-control"), "no-store, private");
+    assert.equal(revealFree.data.key.value, freeValue);
+    assert.equal(revealFree.data.key.id, freeId);
+
+    const revealAudit = (await db.query(
+      `SELECT metadata
+         FROM audit_events
+        WHERE actor_id = $1
+          AND target_id = $2
+          AND action = 'MENU_KEY_REVEALED_APP1'
+        ORDER BY created_at DESC
+        LIMIT 1`,
+      [accountId, freeId]
+    )).rows[0];
+    assert.ok(revealAudit, "reveal action must be audited");
+    assert.equal(JSON.stringify(revealAudit.metadata).includes(freeValue), false, "audit metadata must not contain plaintext key");
 
     const firstFree = await publicValidate(baseUrl, publicId, freeValue, deviceA, "Phone A");
     assert.equal(firstFree.response.status, 200, JSON.stringify(firstFree.data));
@@ -243,6 +267,7 @@ test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a 
     assert.equal(createVip.data.key.kind, "VIP");
     assert.equal(createVip.data.key.duration_unit, "MONTHS");
     assert.equal(createVip.data.key.duration_value, 2);
+    assert.equal(createVip.data.key.can_reveal, true);
     assert.match(createVip.data.key.value, /^VIP-/);
     const vipId = createVip.data.key.id;
     const vipValue = createVip.data.key.value;
@@ -278,9 +303,27 @@ test("App 1 administra ciclos FREE, troca aparelho e VIP permanente sem expor a 
     });
     assert.equal(listed.response.status, 200, JSON.stringify(listed.data));
     assert.ok(Array.isArray(listed.data.keys));
-    assert.ok(listed.data.keys.some((key) => key.id === freeId && key.kind === "FREE"));
-    assert.ok(listed.data.keys.some((key) => key.id === vipId && key.kind === "VIP"));
+    assert.ok(listed.data.keys.some((key) => key.id === freeId && key.kind === "FREE" && key.can_reveal === true));
+    assert.ok(listed.data.keys.some((key) => key.id === vipId && key.kind === "VIP" && key.can_reveal === true));
     assert.equal(listed.data.keys.some((key) => Object.hasOwn(key, "value")), false);
+    assert.equal(listed.data.keys.some((key) => Object.hasOwn(key, "key_value_encrypted")), false);
+
+    await db.query(`UPDATE menu_access_keys SET key_value_encrypted = NULL WHERE id = $1`, [freeId]);
+    const legacyReveal = await jsonRequest(baseUrl, `/v1/app1/menu-admin/keys/${freeId}/reveal`, {
+      method: "POST",
+      appToken,
+      appDeviceToken
+    });
+    assert.equal(legacyReveal.response.status, 409, JSON.stringify(legacyReveal.data));
+    assert.equal(legacyReveal.data.code, "KEY_VALUE_NOT_RECOVERABLE");
+
+    const legacyListed = await jsonRequest(baseUrl, `/v1/app1/menu-admin/menus/${menuId}/keys`, {
+      appToken,
+      appDeviceToken
+    });
+    const legacyFree = legacyListed.data.keys.find((key) => key.id === freeId);
+    assert.equal(legacyFree.can_reveal, false);
+    assert.equal(Object.hasOwn(legacyFree, "value"), false);
   } finally {
     if (child && child.exitCode === null) {
       child.kill("SIGTERM");
