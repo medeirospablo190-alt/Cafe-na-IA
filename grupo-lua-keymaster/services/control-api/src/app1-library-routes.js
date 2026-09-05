@@ -1,6 +1,8 @@
 import { registerApp1LibraryRoutes as registerApp1LibraryRoutesV2 } from "./app1-library-routes-v2.js";
 import { registerApp1LibraryHardeningRoutes } from "./app1-library-hardening-routes.js";
 import { registerApp1SessionControlRoutes } from "./app1-session-control-routes.js";
+import { registerApp1MenuManagementV2Routes } from "./app1-menu-management-v2-routes.js";
+import { registerApp1MenuKeyV2Routes } from "./app1-menu-key-v2-routes.js";
 import { registerApp1MenuKeyRoutes } from "./app1-menu-key-routes.js";
 import { registerApp1SocialRoutes } from "./app1-social-routes.js";
 import { registerApp1ChatRoutes } from "./app1-chat-routes.js";
@@ -15,6 +17,13 @@ export function registerApp1LibraryRoutes(app) {
   registerApp1ChatRoutes(app);
   registerApp1LibraryHardeningRoutes(app);
   registerApp1LibraryRoutesV2(app);
+
+  // V2 é registrada antes da implementação antiga: propriedade por conta,
+  // fonte Lua privada e proteção contra acesso a menu/chave de outra conta.
+  registerApp1MenuManagementV2Routes(app);
+  registerApp1MenuKeyV2Routes(app);
+
+  // Mantida por compatibilidade com clientes/rotas antigas não substituídas.
   registerApp1MenuKeyRoutes(app);
   registerMenuAccessV2Routes(app);
 
