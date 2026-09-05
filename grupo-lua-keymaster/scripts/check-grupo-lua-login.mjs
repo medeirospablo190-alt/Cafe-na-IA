@@ -4,6 +4,35 @@ import { fileURLToPath } from "node:url";
 const loginPath = fileURLToPath(new URL("../../GrupoLuaLogin.lua", import.meta.url));
 const source = await readFile(loginPath, "utf8");
 
+const OBFUSCATED_MARKER = "--[[ GRUPO LUA - OBFUSCATED BUILD - Prometheus Medium / LuaU ]]";
+
+if (source.startsWith(OBFUSCATED_MARKER)) {
+  if (source.length < 10000) {
+    throw new Error("GrupoLuaLogin ofuscado está pequeno demais para ser um build válido.");
+  }
+  if (!source.includes("return(function")) {
+    throw new Error("GrupoLuaLogin ofuscado não possui a estrutura esperada do build Prometheus.");
+  }
+
+  const leakedClearText = [
+    "local function fetchManifest(token)",
+    "local function resolveDeviceId()",
+    "local function runMenuFunction(fn)",
+    "https://grupo-lua-control-api.onrender.com",
+    "INVALID_MENU_KEY",
+    "GrupoLuaAccess"
+  ];
+
+  for (const text of leakedClearText) {
+    if (source.includes(text)) {
+      throw new Error(`GrupoLuaLogin ofuscado ainda expõe trecho sensível em claro: ${text}`);
+    }
+  }
+
+  console.log("GrupoLuaLogin: build público ofuscado detectado — estrutura básica OK");
+  process.exit(0);
+}
+
 function section(startMarker, endMarker) {
   const start = source.indexOf(startMarker);
   const end = source.indexOf(endMarker, start + startMarker.length);
