@@ -65,7 +65,20 @@ const FONT_MINIMUMS: Record<string, number> = {
   saveButtonText: 11,
   dangerButtonText: 11,
   cancelText: 10,
-  secretValue: 13
+  secretValue: 13,
+
+  muted: 11,
+  previewMeta: 10,
+  choiceText: 10,
+  presenceHelp: 10,
+  saveText: 11,
+  discardText: 10,
+  securityState: 10,
+  securityText: 11,
+  quickButtonText: 10,
+  signOutText: 11,
+  errorText: 11,
+  retryText: 10
 };
 
 const HEIGHT_MINIMUMS: Record<string, number> = {
@@ -81,7 +94,14 @@ const HEIGHT_MINIMUMS: Record<string, number> = {
   importButton: 44,
   saveButton: 50,
   dangerButton: 50,
-  cancelButton: 44
+  cancelButton: 44,
+
+  choice: 44,
+  save: 50,
+  discard: 44,
+  quickButton: 44,
+  signOut: 50,
+  retry: 44
 };
 
 const patchedStyleSheet = StyleSheet as typeof StyleSheet & {
