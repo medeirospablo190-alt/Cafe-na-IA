@@ -6,6 +6,8 @@ on:
     paths:
       - "grupo-lua-keymaster/apps/app1/**"
       - "grupo-lua-keymaster/packages/contracts/**"
+      - "grupo-lua-keymaster/package.json"
+      - "grupo-lua-keymaster/scripts/check-mobile-assets.mjs"
       - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
       - ".github/workflows/app1-android-apk.yml"
 
@@ -38,6 +40,10 @@ jobs:
           test -n "$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building GRUPO LUA App 1 v$VERSION"
+
+      - name: Validate App 1 assets
+        working-directory: grupo-lua-keymaster
+        run: npm run assets:check -- app1
 
       - name: Setup Java
         uses: actions/setup-java@v4
