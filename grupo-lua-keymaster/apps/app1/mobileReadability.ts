@@ -74,6 +74,31 @@ const FONT_MINIMUMS: Record<string, number> = {
   shareCounter: 10,
   favoriteChoiceHint: 10,
 
+  privacyTitle: 10,
+  privacyText: 10,
+  storageText: 10,
+  storageLimit: 10,
+  itemLimit: 10,
+  importText: 10,
+  message: 10,
+  videoLabel: 10,
+  mime: 10,
+  openText: 10,
+  deleteText: 10,
+  loadMoreText: 10,
+  noteText: 10,
+  previewEyebrow: 10,
+  previewDoneText: 10,
+  previewDeleteText: 10,
+  playerOverlayText: 10,
+  loadingText: 10,
+  organizerText: 10,
+  organizerButtonText: 10,
+  recoveryMessage: 10,
+  itemMeta: 10,
+  renameButtonText: 10,
+  cancelButtonText: 10,
+
   muted: 11,
   previewMeta: 10,
   choiceText: 10,
@@ -110,6 +135,13 @@ const HEIGHT_MINIMUMS: Record<string, number> = {
   clearSelection: 44,
   close: 44,
 
+  refresh: 44,
+  openButton: 44,
+  delete: 44,
+  organizerButton: 44,
+  renameButton: 44,
+  previewClose: 44,
+
   choice: 44,
   save: 50,
   discard: 44,
@@ -121,7 +153,9 @@ const HEIGHT_MINIMUMS: Record<string, number> = {
 const WIDTH_MINIMUMS: Record<string, number> = {
   headerTool: 44,
   clearSelection: 44,
-  close: 44
+  close: 44,
+  refresh: 44,
+  previewClose: 44
 };
 
 const patchedStyleSheet = StyleSheet as typeof StyleSheet & {
