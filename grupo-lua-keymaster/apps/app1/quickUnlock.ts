@@ -2,6 +2,10 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 
 const QUICK_UNLOCK_KEY = "grupo-lua-app1-quick-unlock-v1";
+const QUICK_UNLOCK_OFFER_KEY = "grupo-lua-app1-quick-unlock-offer-v1";
+const SECURE_OPTIONS = {
+  keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+} as const;
 
 export type QuickUnlockResult =
   | { ok: true }
@@ -11,11 +15,21 @@ export async function isQuickUnlockEnabled() {
   return (await SecureStore.getItemAsync(QUICK_UNLOCK_KEY)) === "1";
 }
 
+export async function shouldOfferQuickUnlock() {
+  const [enabled, alreadyOffered] = await Promise.all([
+    isQuickUnlockEnabled(),
+    SecureStore.getItemAsync(QUICK_UNLOCK_OFFER_KEY)
+  ]);
+  return !enabled && alreadyOffered !== "1";
+}
+
+export async function markQuickUnlockOfferShown() {
+  await SecureStore.setItemAsync(QUICK_UNLOCK_OFFER_KEY, "1", SECURE_OPTIONS);
+}
+
 export async function setQuickUnlockEnabled(enabled: boolean) {
   if (enabled) {
-    await SecureStore.setItemAsync(QUICK_UNLOCK_KEY, "1", {
-      keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY
-    });
+    await SecureStore.setItemAsync(QUICK_UNLOCK_KEY, "1", SECURE_OPTIONS);
     return;
   }
   await SecureStore.deleteItemAsync(QUICK_UNLOCK_KEY).catch(() => {});
