@@ -140,6 +140,8 @@ jobs:
           node-version: 22
       - name: Install workspace dependencies
         run: bash scripts/npm-install-retry.sh
+      - name: Mobile version consistency
+        run: npm run versions:check
       - name: Mobile Control API build guard
         run: |
           EXPO_PUBLIC_GRUPO_LUA_API_URL=https://grupo-lua-control-api.example.com node scripts/check-mobile-api-url.mjs
