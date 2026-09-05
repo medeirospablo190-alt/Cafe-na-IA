@@ -1,5 +1,6 @@
 import http from "node:http";
 import { installKeymasterAuditClearRoute } from "./keymaster-audit-clear.js";
+import { handleApp1VersionPolicy } from "./app1-version-policy.js";
 
 const ALLOWED_BROWSER_ORIGINS = new Set([
   "https://hoppscotch.io"
@@ -27,7 +28,11 @@ function applyCors(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Critical-Authorization, X-App1-Device-Token"
+    "Content-Type, Authorization, X-Critical-Authorization, X-App1-Device-Token, X-Grupo-Lua-App-Version, X-Grupo-Lua-Platform"
+  );
+  res.setHeader(
+    "Access-Control-Expose-Headers",
+    "X-Grupo-Lua-Min-Version, X-Grupo-Lua-Latest-Version, X-Grupo-Lua-Update-Status"
   );
   res.setHeader("Access-Control-Max-Age", "600");
   appendVary(res, "Origin");
@@ -46,6 +51,7 @@ http.createServer = function patchedCreateServer(...args) {
         res.end();
         return;
       }
+      if (handleApp1VersionPolicy(req, res)) return;
       originalListener(req, res);
     };
   }

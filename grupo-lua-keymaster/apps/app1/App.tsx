@@ -1,7 +1,9 @@
 import "./mobileReadability";
+import { installVersionedApiFetch } from "./appVersion";
 
 declare const require: (path: string) => { default: React.ComponentType };
 
-const AppRoot = require("./AppRoot").default;
+installVersionedApiFetch();
+const AppCompatibilityGate = require("./AppCompatibilityGate").default;
 
-export default AppRoot;
+export default AppCompatibilityGate;
