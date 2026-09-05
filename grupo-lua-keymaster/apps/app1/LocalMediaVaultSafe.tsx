@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -363,7 +365,10 @@ export function LocalMediaVault({ kind, ownerId }: { kind: MediaKind; ownerId: s
       </Modal>
 
       <Modal visible={Boolean(renameTarget)} transparent animationType="fade" onRequestClose={() => !managerBusy && setRenameTarget(null)}>
-        <View style={s.modalBackdrop}>
+        <KeyboardAvoidingView
+          style={s.modalBackdrop}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
           <View style={s.renamePanel}>
             <Text style={s.modalEyebrow}>NOME LOCAL</Text>
             <Text style={s.modalTitle}>Renomear mídia</Text>
@@ -386,7 +391,7 @@ export function LocalMediaVault({ kind, ownerId }: { kind: MediaKind; ownerId: s
               <Text style={s.cancelButtonText}>CANCELAR</Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
