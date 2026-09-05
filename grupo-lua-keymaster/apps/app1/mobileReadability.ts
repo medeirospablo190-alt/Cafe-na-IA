@@ -4,6 +4,7 @@ type MutableStyle = Record<string, unknown> & {
   fontSize?: number;
   lineHeight?: number;
   minHeight?: number;
+  minWidth?: number;
 };
 
 type StyleMap = Record<string, MutableStyle>;
@@ -67,6 +68,12 @@ const FONT_MINIMUMS: Record<string, number> = {
   cancelText: 10,
   secretValue: 13,
 
+  bulkButtonText: 10,
+  bulkDangerText: 10,
+  editorEyebrow: 10,
+  shareCounter: 10,
+  favoriteChoiceHint: 10,
+
   muted: 11,
   previewMeta: 10,
   choiceText: 10,
@@ -96,12 +103,25 @@ const HEIGHT_MINIMUMS: Record<string, number> = {
   dangerButton: 50,
   cancelButton: 44,
 
+  tab: 44,
+  bulkButton: 44,
+  headerTool: 44,
+  shareAction: 44,
+  clearSelection: 44,
+  close: 44,
+
   choice: 44,
   save: 50,
   discard: 44,
   quickButton: 44,
   signOut: 50,
   retry: 44
+};
+
+const WIDTH_MINIMUMS: Record<string, number> = {
+  headerTool: 44,
+  clearSelection: 44,
+  close: 44
 };
 
 const patchedStyleSheet = StyleSheet as typeof StyleSheet & {
@@ -118,6 +138,7 @@ if (!patchedStyleSheet.__grupoLuaMobileReadability) {
       const style = { ...source };
       const minimumFont = FONT_MINIMUMS[name];
       const minimumHeight = HEIGHT_MINIMUMS[name];
+      const minimumWidth = WIDTH_MINIMUMS[name];
 
       if (minimumFont && (typeof style.fontSize !== "number" || style.fontSize < minimumFont)) {
         style.fontSize = minimumFont;
@@ -125,6 +146,10 @@ if (!patchedStyleSheet.__grupoLuaMobileReadability) {
 
       if (minimumHeight && (typeof style.minHeight !== "number" || style.minHeight < minimumHeight)) {
         style.minHeight = minimumHeight;
+      }
+
+      if (minimumWidth && (typeof style.minWidth !== "number" || style.minWidth < minimumWidth)) {
+        style.minWidth = minimumWidth;
       }
 
       if (
