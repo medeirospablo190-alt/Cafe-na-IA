@@ -366,32 +366,30 @@ export function LocalMediaVault({ kind, ownerId }: { kind: MediaKind; ownerId: s
 
       <Modal visible={Boolean(renameTarget)} transparent animationType="fade" onRequestClose={() => !managerBusy && setRenameTarget(null)}>
         <KeyboardAvoidingView
-          style={s.keyboardAvoiding}
+          style={s.modalBackdrop}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <View style={s.modalBackdrop}>
-            <View style={s.renamePanel}>
-              <Text style={s.modalEyebrow}>NOME LOCAL</Text>
-              <Text style={s.modalTitle}>Renomear mídia</Text>
-              <TextInput
-                value={renameValue}
-                onChangeText={(value) => setRenameValue(Array.from(value).slice(0, 120).join(""))}
-                editable={!managerBusy}
-                maxLength={120}
-                autoCorrect={false}
-                style={s.input}
-                placeholder="Nome da mídia"
-                placeholderTextColor="#686870"
-                selectTextOnFocus
-              />
-              <Text style={s.counter}>{Array.from(renameValue).length}/120</Text>
-              <Pressable style={[s.saveButton, managerBusy && s.disabled]} disabled={managerBusy} onPress={() => { saveRename().catch(() => {}); }}>
-                <Text style={s.saveButtonText}>{managerBusy ? "SALVANDO..." : "SALVAR NOME"}</Text>
-              </Pressable>
-              <Pressable style={s.cancelButton} disabled={managerBusy} onPress={() => setRenameTarget(null)}>
-                <Text style={s.cancelButtonText}>CANCELAR</Text>
-              </Pressable>
-            </View>
+          <View style={s.renamePanel}>
+            <Text style={s.modalEyebrow}>NOME LOCAL</Text>
+            <Text style={s.modalTitle}>Renomear mídia</Text>
+            <TextInput
+              value={renameValue}
+              onChangeText={(value) => setRenameValue(Array.from(value).slice(0, 120).join(""))}
+              editable={!managerBusy}
+              maxLength={120}
+              autoCorrect={false}
+              style={s.input}
+              placeholder="Nome da mídia"
+              placeholderTextColor="#686870"
+              selectTextOnFocus
+            />
+            <Text style={s.counter}>{Array.from(renameValue).length}/120</Text>
+            <Pressable style={[s.saveButton, managerBusy && s.disabled]} disabled={managerBusy} onPress={() => { saveRename().catch(() => {}); }}>
+              <Text style={s.saveButtonText}>{managerBusy ? "SALVANDO..." : "SALVAR NOME"}</Text>
+            </Pressable>
+            <Pressable style={s.cancelButton} disabled={managerBusy} onPress={() => setRenameTarget(null)}>
+              <Text style={s.cancelButtonText}>CANCELAR</Text>
+            </Pressable>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -410,7 +408,6 @@ const s = StyleSheet.create({
   organizerButtonText: { color: "#D5B5E8", fontSize: 8, fontWeight: "900" },
   recoveryMessage: { color: "#BDA6CC", fontSize: 8, lineHeight: 13, marginTop: 7, paddingHorizontal: 3 },
   disabled: { opacity: 0.45 },
-  keyboardAvoiding: { flex: 1 },
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.84)", alignItems: "center", justifyContent: "center", padding: 16 },
   managerPanel: { width: "100%", maxWidth: 540, maxHeight: "78%", borderRadius: 18, borderWidth: 1, borderColor: "#313138", backgroundColor: "#09090C", padding: 15 },
   renamePanel: { width: "100%", maxWidth: 480, borderRadius: 18, borderWidth: 1, borderColor: "#313138", backgroundColor: "#09090C", padding: 16 },
