@@ -22,6 +22,8 @@ export type AppCompatibilityResult = {
   serverTime: string;
 };
 
+type VersionedFetchInput = Parameters<typeof fetch>[0] | URL;
+
 export const APP1_VERSION = String(
   Constants.expoConfig?.version || Application.nativeApplicationVersion || "0.0.0"
 ).trim();
@@ -30,7 +32,7 @@ export const APP1_PLATFORM = Platform.OS;
 
 const FETCH_PATCH_MARKER = "__grupoLuaVersionedFetchInstalled";
 
-function inputUrl(input: Parameters<typeof fetch>[0]) {
+function inputUrl(input: VersionedFetchInput) {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.toString();
   if (input && typeof input === "object" && "url" in input) {
@@ -39,7 +41,7 @@ function inputUrl(input: Parameters<typeof fetch>[0]) {
   return String(input || "");
 }
 
-function inheritedHeaders(input: Parameters<typeof fetch>[0]) {
+function inheritedHeaders(input: VersionedFetchInput) {
   if (input && typeof input === "object" && "headers" in input) {
     return (input as { headers?: HeadersInit }).headers;
   }
