@@ -9,6 +9,7 @@ on:
       - "grupo-lua-keymaster/package.json"
       - "grupo-lua-keymaster/scripts/check-mobile-assets.mjs"
       - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
+      - "grupo-lua-keymaster/scripts/gradle-build-retry.sh"
       - ".github/workflows/app1-android-apk.yml"
 
 permissions:
@@ -88,7 +89,7 @@ jobs:
 
       - name: Build standalone App 1 APK
         working-directory: grupo-lua-keymaster/apps/app1/android
-        run: ./gradlew assembleRelease --no-daemon
+        run: bash ../../../scripts/gradle-build-retry.sh
 
       - name: Stage APK
         run: |
