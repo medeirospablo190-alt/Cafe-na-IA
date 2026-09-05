@@ -7,6 +7,8 @@ on:
       - "grupo-lua-keymaster/apps/app1/**"
       - "grupo-lua-keymaster/apps/keymaster/**"
       - "grupo-lua-keymaster/packages/contracts/**"
+      - "grupo-lua-keymaster/package.json"
+      - "grupo-lua-keymaster/scripts/check-mobile-assets.mjs"
       - "grupo-lua-keymaster/scripts/npm-install-retry.sh"
       - ".github/workflows/ios-unsigned-ipa.yml"
 
@@ -53,6 +55,10 @@ jobs:
           test -n "$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building GRUPO LUA ${{ matrix.product }} v$VERSION"
+
+      - name: Validate mobile assets
+        working-directory: grupo-lua-keymaster
+        run: npm run assets:check -- "${{ matrix.id }}"
 
       - name: Install workspace dependencies
         working-directory: grupo-lua-keymaster
