@@ -165,14 +165,14 @@ jobs:
             echo "::error::Mobile guard accepted a missing API URL"
             exit 1
           fi
-          if grep -Fq 'bottomNav: { position: "absolute"' apps/app1/App.tsx; then
+          if grep -Fq 'bottomNav: { position: "absolute"' apps/app1/AppRoot.tsx; then
             echo "::error::App1 bottom navigation must participate in layout instead of overlaying Android system controls"
             exit 1
           fi
-          grep -Fq 'style={styles.appScroll}' apps/app1/App.tsx
-          grep -Fq 'logoutApp1(sessionToken, deviceToken)' apps/app1/App.tsx
-          grep -Fq '<ChatsScreen sessionToken={sessionToken} deviceToken={deviceToken} />' apps/app1/App.tsx
-          grep -Fq '<SettingsScreen' apps/app1/App.tsx
+          grep -Fq 'style={styles.appScroll}' apps/app1/AppRoot.tsx
+          grep -Fq 'logoutApp1(sessionToken, deviceToken)' apps/app1/AppRoot.tsx
+          grep -Fq '<ChatsScreen sessionToken={sessionToken} deviceToken={deviceToken} />' apps/app1/AppRoot.tsx
+          grep -Fq '<SettingsScreen' apps/app1/AppRoot.tsx
           grep -Fq 'SocialFeedScreenV3' apps/app1/SocialFeedScreen.tsx
           node - <<'NODE'
           const fs = require('fs');
