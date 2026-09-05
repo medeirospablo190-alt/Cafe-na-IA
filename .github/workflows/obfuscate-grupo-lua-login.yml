@@ -7,6 +7,7 @@ on:
       - security-obfuscate-grupo-lua-login-2026-09-05
     paths:
       - GrupoLuaLogin.lua
+      - grupo-lua-keymaster/scripts/check-grupo-lua-login.mjs
       - .github/workflows/obfuscate-grupo-lua-login.yml
 
 permissions:
@@ -15,11 +16,14 @@ permissions:
 jobs:
   obfuscate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate clear login source
+        run: node grupo-lua-keymaster/scripts/check-grupo-lua-login.mjs
 
       - name: Install Lua 5.1
         run: |
@@ -41,7 +45,7 @@ jobs:
             --out dist-obfuscated/GrupoLuaLogin.lua \
             GrupoLuaLogin.lua
 
-      - name: Validate output
+      - name: Validate transformed output
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +67,15 @@ jobs:
           echo "Original: ${ORIGINAL_BYTES} bytes"
           echo "Obfuscated: ${OUTPUT_BYTES} bytes"
           sha256sum dist-obfuscated/GrupoLuaLogin.lua
+
+      - name: Fetch pinned Luau compiler
+        run: |
+          git clone --filter=blob:none https://github.com/luau-lang/luau.git .luau
+          git -C .luau checkout 62dbc0b4718e87fc746b02f969c91ca2a461b4cf
+          make -C .luau config=release luau-compile
+
+      - name: Compile-check obfuscated LuaU
+        run: ./.luau/build/release/luau-compile dist-obfuscated/GrupoLuaLogin.lua > /dev/null
 
       - name: Upload guarded output
         uses: actions/upload-artifact@v4
