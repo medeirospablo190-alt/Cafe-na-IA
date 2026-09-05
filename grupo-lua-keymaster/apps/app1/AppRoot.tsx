@@ -35,7 +35,9 @@ import { SocialFeedScreen } from "./SocialFeedScreen";
 import {
   authenticateForQuickUnlock,
   isQuickUnlockEnabled,
-  setQuickUnlockEnabled
+  markQuickUnlockOfferShown,
+  setQuickUnlockEnabled,
+  shouldOfferQuickUnlock
 } from "./quickUnlock";
 import { LOGIN_BACKGROUND_DATA_URI } from "./loginBackground";
 
@@ -245,6 +247,40 @@ export default function AppRoot() {
     }
   }
 
+  async function activateQuickUnlockFromOffer() {
+    try {
+      const authentication = await authenticateForQuickUnlock();
+      if (!authentication.ok) {
+        Alert.alert("Não foi possível ativar", authentication.message);
+        return;
+      }
+      await setQuickUnlockEnabled(true);
+      Alert.alert(
+        "Acesso rápido ativado",
+        "Nas próximas aberturas, o GRUPO LUA pedirá a proteção do próprio celular antes de liberar a sessão salva. Sua senha/chave de login não é armazenada para isso."
+      );
+    } catch (error) {
+      Alert.alert("Falha", readableError(error));
+    }
+  }
+
+  async function offerQuickUnlockAfterLogin() {
+    try {
+      if (!(await shouldOfferQuickUnlock())) return;
+      await markQuickUnlockOfferShown();
+      Alert.alert(
+        "Ativar acesso rápido?",
+        "Você pode usar biometria ou a proteção oferecida pelo próprio celular para liberar esta sessão nas próximas aberturas. A senha/chave da conta não será salva.",
+        [
+          { text: "Agora não", style: "cancel" },
+          { text: "Ativar", onPress: () => { activateQuickUnlockFromOffer().catch(() => {}); } }
+        ]
+      );
+    } catch {
+      // Se o armazenamento seguro local estiver indisponível, o login continua normal.
+    }
+  }
+
   async function submitLogin() {
     if (!login.trim() || !credential || busy) return;
     setBusy(true);
@@ -268,6 +304,7 @@ export default function AppRoot() {
       setCredential("");
       setTermsChecked(false);
       setPublicName("");
+      offerQuickUnlockAfterLogin().catch(() => {});
     } catch (error) {
       setCredential("");
       setMessage(readableError(error));
@@ -578,7 +615,7 @@ function LoginScreen({
           <View style={styles.loginCard}>
             <Text style={styles.eyebrowLight}>ACESSO PRIVADO</Text>
             <Text style={styles.loginTitle}>Entrar</Text>
-            <Text style={styles.loginHelp}>Entre uma vez. Depois, você pode ativar o acesso rápido pelo próprio celular em Configurações.</Text>
+            <Text style={styles.loginHelp}>Entre uma vez. Depois do login, você pode ativar o acesso rápido pelo próprio celular; a opção também fica disponível em Configurações.</Text>
             <TextInput
               value={login}
               onChangeText={onLogin}
