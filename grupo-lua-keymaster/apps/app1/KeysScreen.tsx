@@ -24,6 +24,7 @@ import {
   resetApp1MenuKeyDevice,
   setApp1MenuKeyState
 } from "./api";
+import { revealApp1MenuKey, type RevealableMenuKey } from "./keyRevealApi";
 import { buildMenuLoader } from "./menuLoader";
 
 type VipUnit = "DAYS" | "MONTHS" | "PERMANENT";
@@ -63,6 +64,10 @@ function positiveInteger(value: string) {
   return numeric >= 1 ? numeric : null;
 }
 
+function canRevealKey(key: App1MenuKey) {
+  return Boolean((key as RevealableMenuKey).can_reveal) && key.status !== "REVOKED";
+}
+
 export function KeysScreen({ sessionToken, deviceToken }: {
   sessionToken: string;
   deviceToken: string;
@@ -78,6 +83,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   const [vipUnit, setVipUnit] = useState<VipUnit>("DAYS");
   const [note, setNote] = useState("");
   const [revealed, setRevealed] = useState<string | null>(null);
+  const [revealedTitle, setRevealedTitle] = useState("Chave");
   const [renewTarget, setRenewTarget] = useState<App1MenuKey | null>(null);
   const [renewDurationValue, setRenewDurationValue] = useState("24");
   const [renewVipUnit, setRenewVipUnit] = useState<VipUnit>("DAYS");
@@ -176,10 +182,49 @@ export function KeysScreen({ sessionToken, deviceToken }: {
         durationUnit: kind === "VIP" ? vipUnit : undefined,
         note: note.trim() || undefined
       });
+      setRevealedTitle("Chave criada");
       setRevealed(result.key.value);
       setCreateOpen(false);
       await Promise.all([loadKeys(selected), loadMenus()]);
     }, "Não foi possível gerar");
+  }
+
+  function viewExistingKey(key: App1MenuKey) {
+    if (!canRevealKey(key)) {
+      Alert.alert(
+        "Valor não recuperável",
+        "Esta chave foi criada antes da recuperação segura existir. O servidor possui somente o hash antigo, então o valor original não pode ser reconstruído."
+      );
+      return;
+    }
+    runLocked(async () => {
+      const result = await revealApp1MenuKey(sessionToken, deviceToken, key.id);
+      setRevealedTitle(`${key.kind} • ${key.key_hint}`);
+      setRevealed(result.key.value);
+    }, "Não foi possível ver a chave").catch(() => {});
+  }
+
+  function copyExistingKey(key: App1MenuKey) {
+    if (!canRevealKey(key)) {
+      Alert.alert(
+        "Valor não recuperável",
+        "Esta chave antiga não possui uma cópia recuperável no servidor. Ela continua válida normalmente, mas só o hash foi armazenado quando foi criada."
+      );
+      return;
+    }
+    runLocked(async () => {
+      const result = await revealApp1MenuKey(sessionToken, deviceToken, key.id);
+      await Clipboard.setStringAsync(result.key.value);
+      Alert.alert(
+        "Chave copiada",
+        "O App 1 não salvou a chave localmente. A cópia foi enviada apenas para a área de transferência do sistema."
+      );
+    }, "Não foi possível copiar").catch(() => {});
+  }
+
+  function closeRevealed() {
+    setRevealed(null);
+    setRevealedTitle("Chave");
   }
 
   function openRenewal(key: App1MenuKey) {
@@ -235,7 +280,7 @@ export function KeysScreen({ sessionToken, deviceToken }: {
         "VIP configurada",
         renewVipUnit === "PERMANENT"
           ? "A chave foi configurada como permanente e a nova validade começa no próximo uso."
-          : `A nova validade começa no próximo uso da chave.`
+          : "A nova validade começa no próximo uso da chave."
       );
     }, "Falha ao configurar VIP");
   }
@@ -330,12 +375,16 @@ export function KeysScreen({ sessionToken, deviceToken }: {
   return (
     <View>
       <View style={s.headerRow}>
-        <Pressable style={s.back} disabled={busy} onPress={() => { setSelected(null); setKeys([]); }}><Text style={s.backText}>‹ MENUS</Text></Pressable>
+        <Pressable style={s.back} disabled={busy} onPress={() => { setSelected(null); setKeys([]); }}>
+          <Text style={s.backText}>‹ MENUS</Text>
+        </Pressable>
         <View style={s.headerActions}>
           <Pressable style={[s.smallButton, busy && s.disabled]} disabled={busy} onPress={() => { copySelectedLoader().catch(() => {}); }}>
             <Text style={s.smallButtonText}>COPIAR LOADSTRING</Text>
           </Pressable>
-          <Pressable style={[s.add, busy && s.disabled]} disabled={busy} onPress={openCreate}><Text style={s.addText}>＋ CHAVE</Text></Pressable>
+          <Pressable style={[s.add, busy && s.disabled]} disabled={busy} onPress={openCreate}>
+            <Text style={s.addText}>＋ CHAVE</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -346,39 +395,46 @@ export function KeysScreen({ sessionToken, deviceToken }: {
 
       {keysLoading ? <ActivityIndicator style={{ marginTop: 24 }} /> : keys.length === 0 ? (
         <Text style={s.empty}>Nenhuma chave cadastrada neste menu.</Text>
-      ) : keys.map((key) => (
-        <View key={key.id} style={s.keyCard}>
-          <View style={s.keyTop}>
-            <View style={{ flex: 1 }}>
-              <View style={s.badgeRow}>
-                <Text style={[s.kind, key.kind === "VIP" && s.vip]}>{key.kind}</Text>
-                <Text style={key.usable ? s.ok : s.bad}>{stateText(key)}</Text>
+      ) : keys.map((key) => {
+        const recoverable = canRevealKey(key);
+        const legacyUnrecoverable = !(key as RevealableMenuKey).can_reveal;
+        return (
+          <View key={key.id} style={s.keyCard}>
+            <View style={s.keyTop}>
+              <View style={{ flex: 1 }}>
+                <View style={s.badgeRow}>
+                  <Text style={[s.kind, key.kind === "VIP" && s.vip]}>{key.kind}</Text>
+                  <Text style={key.usable ? s.ok : s.bad}>{stateText(key)}</Text>
+                </View>
+                <Text style={s.title}>{key.key_hint}</Text>
+                <Text style={s.meta}>{durationText(key)}{key.note ? ` • ${key.note}` : ""}</Text>
+                <Text style={s.meta}>Aparelho: {key.bound_device ? key.bound_device_hint || "vinculado" : "ainda não vinculado"}</Text>
+                <Text style={s.meta}>Início: {dateText(key.access_started_at)}</Text>
+                <Text style={s.meta}>Até: {key.duration_unit === "PERMANENT" && key.access_state === "ACTIVE" ? "PERMANENTE" : dateText(key.access_until)}</Text>
+                {legacyUnrecoverable ? <Text style={s.legacyNote}>CHAVE ANTIGA • valor completo não recuperável</Text> : null}
               </View>
-              <Text style={s.title}>{key.key_hint}</Text>
-              <Text style={s.meta}>{durationText(key)}{key.note ? ` • ${key.note}` : ""}</Text>
-              <Text style={s.meta}>Aparelho: {key.bound_device ? key.bound_device_hint || "vinculado" : "ainda não vinculado"}</Text>
-              <Text style={s.meta}>Início: {dateText(key.access_started_at)}</Text>
-              <Text style={s.meta}>Até: {key.duration_unit === "PERMANENT" && key.access_state === "ACTIVE" ? "PERMANENTE" : dateText(key.access_until)}</Text>
             </View>
-          </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.actions}>
-            {key.kind === "FREE" && key.access_state === "WAITING_ADMIN" && key.status !== "REVOKED" ? (
-              <Action label="LIBERAR FREE" disabled={busy} onPress={() => openRenewal(key)} />
-            ) : null}
-            {key.kind === "VIP" && key.status !== "REVOKED" ? (
-              <Action
-                label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "RECONFIGURAR VIP"}
-                disabled={busy}
-                onPress={() => openRenewal(key)}
-              />
-            ) : null}
-            {key.bound_device && key.status !== "REVOKED" ? <Action label="TROCAR CELULAR" disabled={busy} onPress={() => resetDevice(key)} /> : null}
-            {key.status !== "REVOKED" ? <Action label={key.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"} disabled={busy} onPress={() => toggleKey(key)} /> : null}
-            {key.status !== "REVOKED" ? <Action label="REVOGAR" danger disabled={busy} onPress={() => revokeKey(key)} /> : null}
-          </ScrollView>
-        </View>
-      ))}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.actions}>
+              {recoverable ? <Action label="VER CHAVE" disabled={busy} onPress={() => viewExistingKey(key)} /> : null}
+              {recoverable ? <Action label="COPIAR CHAVE" disabled={busy} onPress={() => copyExistingKey(key)} /> : null}
+              {key.kind === "FREE" && key.access_state === "WAITING_ADMIN" && key.status !== "REVOKED" ? (
+                <Action label="LIBERAR FREE" disabled={busy} onPress={() => openRenewal(key)} />
+              ) : null}
+              {key.kind === "VIP" && key.status !== "REVOKED" ? (
+                <Action
+                  label={key.access_state === "EXPIRED" ? "RENOVAR VIP" : "RECONFIGURAR VIP"}
+                  disabled={busy}
+                  onPress={() => openRenewal(key)}
+                />
+              ) : null}
+              {key.bound_device && key.status !== "REVOKED" ? <Action label="TROCAR CELULAR" disabled={busy} onPress={() => resetDevice(key)} /> : null}
+              {key.status !== "REVOKED" ? <Action label={key.status === "ACTIVE" ? "SUSPENDER" : "LIBERAR"} disabled={busy} onPress={() => toggleKey(key)} /> : null}
+              {key.status !== "REVOKED" ? <Action label="REVOGAR" danger disabled={busy} onPress={() => revokeKey(key)} /> : null}
+            </ScrollView>
+          </View>
+        );
+      })}
 
       <Modal visible={createOpen} transparent animationType="fade" onRequestClose={() => { if (!busy) setCreateOpen(false); }}>
         <View style={s.modalBackdrop}>
@@ -408,8 +464,12 @@ export function KeysScreen({ sessionToken, deviceToken }: {
             )}
 
             <TextInput value={note} editable={!busy} onChangeText={setNote} style={s.input} placeholder="Observação opcional" placeholderTextColor="#666" />
-            <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={createKey}><Text style={s.primaryText}>{busy ? "GERANDO..." : "GERAR CHAVE"}</Text></Pressable>
-            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={() => setCreateOpen(false)}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
+            <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={createKey}>
+              <Text style={s.primaryText}>{busy ? "GERANDO..." : "GERAR CHAVE"}</Text>
+            </Pressable>
+            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={() => setCreateOpen(false)}>
+              <Text style={s.secondaryText}>CANCELAR</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -442,19 +502,29 @@ export function KeysScreen({ sessionToken, deviceToken }: {
             <Pressable style={[s.primary, busy && s.disabled]} disabled={busy} onPress={submitRenewal}>
               <Text style={s.primaryText}>{busy ? "SALVANDO..." : renewTarget?.kind === "FREE" ? "LIBERAR CICLO" : "SALVAR VIP"}</Text>
             </Pressable>
-            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={closeRenewal}><Text style={s.secondaryText}>CANCELAR</Text></Pressable>
+            <Pressable style={[s.secondary, busy && s.disabled]} disabled={busy} onPress={closeRenewal}>
+              <Text style={s.secondaryText}>CANCELAR</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
 
-      <Modal visible={Boolean(revealed)} transparent animationType="fade" onRequestClose={() => setRevealed(null)}>
+      <Modal visible={Boolean(revealed)} transparent animationType="fade" onRequestClose={closeRevealed}>
         <View style={s.modalBackdrop}>
           <View style={s.modalBox}>
-            <Text style={s.modalTitle}>Chave criada</Text>
-            <Text style={s.help}>Esta é a única exibição do valor completo. Copie antes de fechar.</Text>
+            <Text style={s.modalTitle}>{revealedTitle}</Text>
+            <Text style={s.help}>O valor foi buscado diretamente do servidor para esta ação e não é salvo no armazenamento local do App 1.</Text>
             <Text selectable style={s.secret}>{revealed}</Text>
-            <Pressable style={s.primary} onPress={async () => { if (revealed) await Clipboard.setStringAsync(revealed); }}><Text style={s.primaryText}>COPIAR CHAVE</Text></Pressable>
-            <Pressable style={s.secondary} onPress={() => setRevealed(null)}><Text style={s.secondaryText}>FECHAR</Text></Pressable>
+            <Pressable style={s.primary} onPress={async () => {
+              if (!revealed) return;
+              await Clipboard.setStringAsync(revealed);
+              Alert.alert("Chave copiada", "A cópia foi enviada para a área de transferência do sistema.");
+            }}>
+              <Text style={s.primaryText}>COPIAR CHAVE</Text>
+            </Pressable>
+            <Pressable style={s.secondary} onPress={closeRevealed}>
+              <Text style={s.secondaryText}>FECHAR E LIMPAR DA TELA</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -497,49 +567,50 @@ function Choice({ label, active, onPress, disabled = false }: {
 }
 
 const s = StyleSheet.create({
-  infoCard: { borderRadius: 16, borderWidth: 1, borderColor: "#2A2A30", backgroundColor: "#0A0A0D", padding: 15, marginBottom: 12 },
+  infoCard: { borderRadius: 15, borderWidth: 1, borderColor: "#2A2A30", backgroundColor: "#0A0A0DB8", padding: 14, marginBottom: 10 },
   infoTitle: { color: "#FFF", fontSize: 17, fontWeight: "900" },
-  infoText: { color: "#8D8D94", fontSize: 11, lineHeight: 17, marginTop: 6 },
-  empty: { color: "#6F6F76", fontSize: 12, textAlign: "center", marginTop: 28 },
-  menuCard: { flexDirection: "row", gap: 12, alignItems: "center", borderRadius: 16, borderWidth: 1, borderColor: "#242429", backgroundColor: "#09090B", padding: 15, marginBottom: 9 },
-  keyCard: { borderRadius: 16, borderWidth: 1, borderColor: "#242429", backgroundColor: "#09090B", padding: 14, marginBottom: 10 },
+  infoText: { color: "#95959C", fontSize: 11, lineHeight: 17, marginTop: 5 },
+  empty: { color: "#76767D", fontSize: 12, textAlign: "center", marginTop: 28 },
+  menuCard: { flexDirection: "row", gap: 12, alignItems: "center", borderRadius: 14, borderWidth: 1, borderColor: "#29292E", backgroundColor: "#09090BA6", padding: 14, marginBottom: 8 },
+  keyCard: { borderRadius: 14, borderWidth: 1, borderColor: "#29292E", backgroundColor: "#09090BA6", padding: 13, marginBottom: 9 },
   keyTop: { flexDirection: "row", gap: 10 },
-  badgeRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+  badgeRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 5 },
   kind: { color: "#65D97F", fontSize: 9, fontWeight: "900" },
   vip: { color: "#D49CFF" },
   ok: { color: "#65D97F", fontSize: 9, fontWeight: "900" },
   bad: { color: "#FF666C", fontSize: 9, fontWeight: "900" },
   title: { color: "#FFF", fontSize: 14, fontWeight: "900" },
-  meta: { color: "#73737A", fontSize: 10, lineHeight: 16, marginTop: 3 },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 },
-  headerActions: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", gap: 7, flex: 1 },
-  back: { paddingVertical: 8, paddingHorizontal: 10 },
+  meta: { color: "#83838B", fontSize: 10, lineHeight: 15, marginTop: 2 },
+  legacyNote: { color: "#B38A63", fontSize: 8, fontWeight: "900", marginTop: 7 },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 9 },
+  headerActions: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", gap: 6, flex: 1 },
+  back: { paddingVertical: 8, paddingHorizontal: 8 },
   backText: { color: "#B4B4BA", fontSize: 10, fontWeight: "900" },
-  add: { minHeight: 37, borderRadius: 10, borderWidth: 1, borderColor: "#393940", paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
+  add: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#414148", backgroundColor: "#0B0B0DA6", paddingHorizontal: 11, alignItems: "center", justifyContent: "center" },
   addText: { color: "#FFF", fontSize: 9, fontWeight: "900" },
-  smallButton: { minHeight: 37, borderRadius: 10, borderWidth: 1, borderColor: "#41344D", backgroundColor: "#110C15", paddingHorizontal: 10, alignItems: "center", justifyContent: "center" },
+  smallButton: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#49384F", backgroundColor: "#110C1599", paddingHorizontal: 9, alignItems: "center", justifyContent: "center" },
   smallButtonText: { color: "#D6BAEA", fontSize: 8, fontWeight: "900" },
-  actions: { flexDirection: "row", gap: 7, marginTop: 12 },
-  action: { borderRadius: 9, borderWidth: 1, borderColor: "#34343A", paddingHorizontal: 10, paddingVertical: 8 },
-  actionDanger: { borderColor: "#542126", backgroundColor: "#130708" },
-  actionText: { color: "#C5C5CA", fontSize: 8, fontWeight: "900" },
+  actions: { flexDirection: "row", gap: 7, marginTop: 11 },
+  action: { borderRadius: 9, borderWidth: 1, borderColor: "#3A3A40", backgroundColor: "#08080A80", paddingHorizontal: 10, paddingVertical: 9 },
+  actionDanger: { borderColor: "#542126", backgroundColor: "#130708B8" },
+  actionText: { color: "#D0D0D5", fontSize: 8, fontWeight: "900" },
   dangerText: { color: "#FF676E" },
   disabled: { opacity: 0.45 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.82)", alignItems: "center", justifyContent: "center", padding: 18 },
-  modalBox: { width: "100%", maxWidth: 520, borderRadius: 20, borderWidth: 1, borderColor: "#303036", backgroundColor: "#09090C", padding: 18 },
-  modalTitle: { color: "#FFF", fontSize: 21, fontWeight: "900", marginBottom: 12 },
-  label: { color: "#77777E", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 12 },
-  help: { color: "#85858C", fontSize: 10, lineHeight: 16, marginTop: 8 },
-  warning: { color: "#FF8A90", fontSize: 9, lineHeight: 15, marginTop: 10, borderRadius: 10, borderWidth: 1, borderColor: "#51242A", backgroundColor: "#16090B", padding: 10 },
-  input: { minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#111114", color: "#FFF", paddingHorizontal: 12, marginTop: 10 },
-  choiceRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  choice: { borderRadius: 10, borderWidth: 1, borderColor: "#303037", paddingHorizontal: 12, paddingVertical: 9 },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.76)", alignItems: "center", justifyContent: "center", padding: 16 },
+  modalBox: { width: "100%", maxWidth: 520, borderRadius: 18, borderWidth: 1, borderColor: "#34343A", backgroundColor: "#09090CEB", padding: 16 },
+  modalTitle: { color: "#FFF", fontSize: 20, fontWeight: "900", marginBottom: 10 },
+  label: { color: "#8A8A92", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 11 },
+  help: { color: "#94949B", fontSize: 10, lineHeight: 16, marginTop: 7 },
+  warning: { color: "#FF8A90", fontSize: 9, lineHeight: 15, marginTop: 9, borderRadius: 10, borderWidth: 1, borderColor: "#51242A", backgroundColor: "#16090BB8", padding: 9 },
+  input: { minHeight: 48, borderRadius: 11, borderWidth: 1, borderColor: "#36363C", backgroundColor: "#111114B8", color: "#FFF", paddingHorizontal: 12, marginTop: 9 },
+  choiceRow: { flexDirection: "row", gap: 7, flexWrap: "wrap" },
+  choice: { borderRadius: 9, borderWidth: 1, borderColor: "#393940", backgroundColor: "#08080A80", paddingHorizontal: 11, paddingVertical: 9 },
   choiceActive: { borderColor: "#FFF", backgroundColor: "#FFF" },
-  choiceText: { color: "#8A8A91", fontSize: 9, fontWeight: "900" },
+  choiceText: { color: "#96969D", fontSize: 9, fontWeight: "900" },
   choiceTextActive: { color: "#050505" },
-  primary: { minHeight: 49, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 14 },
+  primary: { minHeight: 49, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 13 },
   primaryText: { color: "#050505", fontSize: 10, fontWeight: "900" },
-  secondary: { minHeight: 45, alignItems: "center", justifyContent: "center", marginTop: 6 },
-  secondaryText: { color: "#88888F", fontSize: 9, fontWeight: "900" },
-  secret: { color: "#FFF", backgroundColor: "#111116", borderRadius: 12, borderWidth: 1, borderColor: "#34343A", padding: 13, fontSize: 12, lineHeight: 18, marginTop: 10 }
+  secondary: { minHeight: 44, alignItems: "center", justifyContent: "center", marginTop: 5 },
+  secondaryText: { color: "#9A9AA2", fontSize: 9, fontWeight: "900" },
+  secret: { color: "#FFF", backgroundColor: "#111116B8", borderRadius: 11, borderWidth: 1, borderColor: "#3C3C43", padding: 13, fontSize: 12, lineHeight: 18, marginTop: 9 }
 });
