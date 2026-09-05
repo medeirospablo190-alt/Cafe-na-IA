@@ -794,10 +794,10 @@ function HomeShell({
               <Text style={styles.paragraph}>Acesso principal, arquivos, Social, chaves e configurações em uma navegação compacta pensada para celular.</Text>
             </View>
             <View style={styles.grid}>
-              <Feature title="Social + Chat" text="Feed e conversas no mesmo espaço, sem ocupar outro botão na barra principal." />
-              <Feature title="Chaves" text="FREE/VIP e vínculo de aparelho controlados pelo servidor." />
-              <Feature title="Arquivos" text="Códigos, loadstrings e cofre de mídia local." />
-              <Feature title="Configurações" text="Perfil, privacidade, acesso rápido e saída da conta." />
+              <Feature title="Social + Chat" text="Feed e conversas no mesmo espaço, sem ocupar outro botão na barra principal." onPress={() => onTab("social")} />
+              <Feature title="Chaves" text="FREE/VIP e vínculo de aparelho controlados pelo servidor." onPress={() => onTab("keys")} />
+              <Feature title="Arquivos" text="Códigos, loadstrings e cofre de mídia local." onPress={() => onTab("files")} />
+              <Feature title="Configurações" text="Perfil, privacidade, acesso rápido e saída da conta." onPress={() => onTab("settings")} />
             </View>
           </>
         ) : tab === "files" ? (
@@ -841,12 +841,12 @@ function HomeShell({
   );
 }
 
-function Feature({ title, text }: { title: string; text: string }) {
+function Feature({ title, text, onPress }: { title: string; text: string; onPress: () => void }) {
   return (
-    <View style={styles.feature}>
+    <Pressable style={styles.feature} onPress={onPress} accessibilityRole="button" accessibilityLabel={`Abrir ${title}`}>
       <Text style={styles.featureTitle}>{title}</Text>
       <Text style={styles.featureText}>{text}</Text>
-    </View>
+    </Pressable>
   );
 }
 
