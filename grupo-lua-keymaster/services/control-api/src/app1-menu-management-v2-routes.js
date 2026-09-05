@@ -161,10 +161,10 @@ export function registerApp1MenuManagementV2Routes(app) {
       const { rows } = await pool.query(
         `SELECT
            m.*,
-           COUNT(k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED')::int AS key_count,
-           COUNT(k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED' AND k.kind = 'FREE')::int AS free_key_count,
-           COUNT(k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED' AND k.kind = 'VIP')::int AS vip_key_count,
-           COUNT(s.id) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW())::int AS active_access_count
+           COUNT(DISTINCT k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED')::int AS key_count,
+           COUNT(DISTINCT k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED' AND k.kind = 'FREE')::int AS free_key_count,
+           COUNT(DISTINCT k.id) FILTER (WHERE k.deleted_at IS NULL AND k.status <> 'REVOKED' AND k.kind = 'VIP')::int AS vip_key_count,
+           COUNT(DISTINCT s.id) FILTER (WHERE s.revoked_at IS NULL AND s.expires_at > NOW())::int AS active_access_count
          FROM managed_menus m
          LEFT JOIN menu_access_keys k ON k.menu_id = m.id
          LEFT JOIN menu_access_sessions s ON s.menu_id = m.id
