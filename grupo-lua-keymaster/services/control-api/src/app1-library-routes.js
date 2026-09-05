@@ -9,6 +9,7 @@ import { registerApp1ChatRoutes } from "./app1-chat-routes.js";
 import { registerMenuInlineSourceRoutes } from "./menu-inline-source-routes.js";
 import { registerMenuAccessV2Routes } from "./menu-access-v2-routes.js";
 import { registerKeymasterMenuKeyLockdown } from "./keymaster-menu-key-lockdown.js";
+import { registerKeymasterMenuManagementLockdown } from "./keymaster-menu-management-lockdown.js";
 
 export function registerApp1LibraryRoutes(app) {
   // Registrado aqui para manter o server.js pequeno sem criar rotas paralelas
@@ -30,7 +31,8 @@ export function registerApp1LibraryRoutes(app) {
   registerMenuInlineSourceRoutes(app);
   registerMenuAccessV2Routes(app);
 
-  // FREE/VIP pertencem exclusivamente ao App 1. Intercepta as rotas antigas
-  // do Keymaster antes de registerMenuRoutes registrar a implementação legada.
+  // FREE/VIP pertencem exclusivamente ao App 1. Novos menus também passam a
+  // nascer no App 1; o Keymaster só mantém escrita em menus legados sem dono.
   registerKeymasterMenuKeyLockdown(app);
+  registerKeymasterMenuManagementLockdown(app);
 }
