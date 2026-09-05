@@ -54,15 +54,17 @@ export function installVersionedApiFetch() {
   const baseFetch = globalThis.fetch.bind(globalThis);
   globalThis.fetch = (async (input, init) => {
     const url = inputUrl(input);
+    const normalizedInput = input instanceof URL ? input.toString() : input;
+
     if (!API_URL || !url.startsWith(API_URL)) {
-      return baseFetch(input, init);
+      return baseFetch(normalizedInput, init);
     }
 
     const headers = new Headers(init?.headers || inheritedHeaders(input));
     headers.set("x-grupo-lua-app-version", APP1_VERSION);
     headers.set("x-grupo-lua-platform", APP1_PLATFORM);
 
-    return baseFetch(input, { ...init, headers });
+    return baseFetch(normalizedInput, { ...init, headers });
   }) as typeof fetch;
 }
 
