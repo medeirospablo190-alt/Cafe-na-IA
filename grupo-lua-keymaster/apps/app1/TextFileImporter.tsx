@@ -82,7 +82,7 @@ export function TextFileImporter({
 }: {
   sessionToken: string;
   deviceToken: string;
-  onSaved: (kind: LibraryKind, title: string) => void;
+  onSaved: () => void;
 }) {
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -210,7 +210,7 @@ export function TextFileImporter({
       const kind = draft.kind;
       setDraft(null);
       setMessage(`${title} importado como ${kind === "LOADSTRING" ? "loadstring" : "código"} e salvo no servidor.`);
-      onSaved(kind, title);
+      onSaved();
     } catch (error) {
       Alert.alert(
         "Não foi possível salvar",
@@ -340,7 +340,7 @@ const s = StyleSheet.create({
     marginBottom: 8
   },
   importTitle: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
-  importHint: { color: "#756B7C", fontSize: 9, marginTop: 2 },
+  importHint: { color: "#756B7C", fontSize: 10, marginTop: 2 },
   importButton: {
     minHeight: 44,
     borderRadius: 11,
@@ -351,7 +351,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
-  importButtonText: { color: "#D7B6ED", fontSize: 9, fontWeight: "900" },
+  importButtonText: { color: "#D7B6ED", fontSize: 10, fontWeight: "900" },
   message: { color: "#A98ABC", fontSize: 10, marginBottom: 7 },
   modalKeyboard: { flex: 1 },
   modalBackdrop: {
