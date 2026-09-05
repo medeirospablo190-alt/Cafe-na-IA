@@ -6,6 +6,7 @@ import { registerApp1MenuKeyV2Routes } from "./app1-menu-key-v2-routes.js";
 import { registerApp1MenuKeyRoutes } from "./app1-menu-key-routes.js";
 import { registerApp1SocialRoutes } from "./app1-social-routes.js";
 import { registerApp1ChatRoutes } from "./app1-chat-routes.js";
+import { registerMenuInlineSourceRoutes } from "./menu-inline-source-routes.js";
 import { registerMenuAccessV2Routes } from "./menu-access-v2-routes.js";
 import { registerKeymasterMenuKeyLockdown } from "./keymaster-menu-key-lockdown.js";
 
@@ -23,8 +24,10 @@ export function registerApp1LibraryRoutes(app) {
   registerApp1MenuManagementV2Routes(app);
   registerApp1MenuKeyV2Routes(app);
 
-  // Mantida por compatibilidade com clientes/rotas antigas não substituídas.
+  // Compatibilidade com clientes antigos e entrega de fonte: menus INLINE usam
+  // um tíquete curto; menus REMOTE_URL continuam no manifest V2 já existente.
   registerApp1MenuKeyRoutes(app);
+  registerMenuInlineSourceRoutes(app);
   registerMenuAccessV2Routes(app);
 
   // FREE/VIP pertencem exclusivamente ao App 1. Intercepta as rotas antigas
