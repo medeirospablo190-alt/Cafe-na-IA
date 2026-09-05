@@ -45,6 +45,20 @@ type RevealedSecret = {
   value: string;
 };
 
+const MAX_PRIVATE_LUA_BYTES = 4 * 1024 * 1024;
+const ALLOWED_LUA_EXTENSIONS = new Set([".lua", ".luau"]);
+
+function fileExtension(name: string) {
+  const match = String(name || "").trim().match(/(\.[a-zA-Z0-9]+)$/);
+  return match ? match[1].toLowerCase() : "";
+}
+
+async function cleanupPickerCopy(uri: string | null) {
+  const cache = FileSystem.cacheDirectory;
+  if (!uri || !cache || !uri.startsWith(cache)) return;
+  await FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {});
+}
+
 function errorText(error: unknown) {
   if (error instanceof App1ApiError) return error.message;
   if (error instanceof Error) return error.message;
@@ -239,6 +253,8 @@ export function KeysScreenV2({ sessionToken, deviceToken }: {
 
   async function importLuaFile() {
     if (busy || sourceLoading) return;
+    let pickedUri: string | null = null;
+    setBusy(true);
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*",
@@ -246,22 +262,46 @@ export function KeysScreenV2({ sessionToken, deviceToken }: {
         multiple: false
       });
       if (result.canceled || !result.assets?.[0]) return;
+
       const asset = result.assets[0];
-      const content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+      pickedUri = asset.uri;
+      const sourceName = String(asset.name || "").trim();
+      const extension = fileExtension(sourceName);
+      if (!ALLOWED_LUA_EXTENSIONS.has(extension)) {
+        throw new Error("Selecione um arquivo .lua ou .luau.");
+      }
+
+      const info = await FileSystem.getInfoAsync(asset.uri).catch(() => null);
+      const knownSize = info && typeof info === "object" && "exists" in info && info.exists === true && "size" in info && typeof info.size === "number"
+        ? info.size
+        : typeof asset.size === "number"
+          ? asset.size
+          : 0;
+      if (knownSize > MAX_PRIVATE_LUA_BYTES) {
+        throw new Error("O arquivo ultrapassa o limite de 4 MB para código Lua privado.");
+      }
+
+      let content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+      if (content.charCodeAt(0) === 0xfeff) content = content.slice(1);
       if (!content.trim()) {
-        Alert.alert("Arquivo vazio", "Este arquivo não contém código Lua.");
-        return;
+        throw new Error("Este arquivo não contém código Lua.");
       }
+
       const bytes = new TextEncoder().encode(content).byteLength;
-      if (bytes > 4 * 1024 * 1024) {
-        Alert.alert("Arquivo grande demais", "O limite para código Lua privado é 4 MB.");
-        return;
+      if (bytes > MAX_PRIVATE_LUA_BYTES) {
+        throw new Error("O conteúdo ultrapassa o limite de 4 MB para código Lua privado.");
       }
+
       setSourceMode("INLINE");
-      setSourceCode(content.replace(/^\uFEFF/, ""));
-      if (!menuName.trim() && asset.name) setMenuName(asset.name.replace(/\.lua$/i, "").slice(0, 100));
+      setSourceCode(content);
+      if (!menuName.trim()) {
+        setMenuName(sourceName.replace(/\.(lua|luau)$/i, "").slice(0, 100));
+      }
     } catch (error) {
       Alert.alert("Não foi possível importar", errorText(error));
+    } finally {
+      await cleanupPickerCopy(pickedUri);
+      setBusy(false);
     }
   }
 
@@ -764,7 +804,7 @@ function MenuEditorModal(props: {
                 {props.sourceMode === "INLINE" ? (
                   <>
                     <Pressable style={s.importButton} disabled={props.busy} onPress={props.onImport}>
-                      <Text style={s.importButtonText}>IMPORTAR ARQUIVO .LUA</Text>
+                      <Text style={s.importButtonText}>IMPORTAR .LUA / .LUAU</Text>
                     </Pressable>
                     <TextInput
                       value={props.sourceCode}
