@@ -138,9 +138,9 @@ test("App 1 administra FREE/VIP, troca aparelho e revela novas chaves sem expor 
 
     await db.query(
       `INSERT INTO managed_menus
-        (id, public_id, name, source_url, status)
-       VALUES ($1, $2, $3, $4, 'ACTIVE')`,
-      [menuId, publicId, `CI Admin Menu ${suffix}`, "https://raw.githubusercontent.com/example/example/main/menu.lua"]
+        (id, public_id, name, source_url, status, owner_account_id)
+       VALUES ($1, $2, $3, $4, 'ACTIVE', $5)`,
+      [menuId, publicId, `CI Admin Menu ${suffix}`, "https://raw.githubusercontent.com/example/example/main/menu.lua", accountId]
     );
 
     const port = await freePort();
@@ -156,9 +156,10 @@ test("App 1 administra FREE/VIP, troca aparelho e revela novas chaves sem expor 
       method: "POST",
       appToken,
       appDeviceToken,
-      body: { kind: "FREE", durationValue: 6, note: "CI FREE" }
+      body: { name: "CI FREE KEY", kind: "FREE", durationValue: 6, note: "CI FREE" }
     });
     assert.equal(createFree.response.status, 201, JSON.stringify(createFree.data));
+    assert.equal(createFree.data.key.name, "CI FREE KEY");
     assert.equal(createFree.data.key.kind, "FREE");
     assert.equal(createFree.data.key.duration_unit, "HOURS");
     assert.equal(createFree.data.key.duration_value, 6);
@@ -261,9 +262,10 @@ test("App 1 administra FREE/VIP, troca aparelho e revela novas chaves sem expor 
       method: "POST",
       appToken,
       appDeviceToken,
-      body: { kind: "VIP", durationUnit: "MONTHS", durationValue: 2, note: "CI VIP" }
+      body: { name: "CI VIP KEY", kind: "VIP", durationUnit: "MONTHS", durationValue: 2, note: "CI VIP" }
     });
     assert.equal(createVip.response.status, 201, JSON.stringify(createVip.data));
+    assert.equal(createVip.data.key.name, "CI VIP KEY");
     assert.equal(createVip.data.key.kind, "VIP");
     assert.equal(createVip.data.key.duration_unit, "MONTHS");
     assert.equal(createVip.data.key.duration_value, 2);
