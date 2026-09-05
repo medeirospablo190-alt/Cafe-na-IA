@@ -5,6 +5,33 @@ const loginPath = fileURLToPath(new URL("../../GrupoLuaLogin.lua", import.meta.u
 const source = await readFile(loginPath, "utf8");
 
 const OBFUSCATED_MARKER = "--[[ GRUPO LUA - OBFUSCATED BUILD - Prometheus Medium / LuaU ]]";
+const WRAPPER_MARKER = "GRUPO LUA — LOGIN PROTECTED RUNTIME WRAPPER";
+
+function requireSourceText(text, label) {
+  if (!source.includes(text)) {
+    throw new Error(`${label}: trecho obrigatório ausente: ${text}`);
+  }
+}
+
+if (source.includes(WRAPPER_MARKER)) {
+  const commitMatch = source.match(/local BUILD_COMMIT = "([0-9a-f]{40})"/i);
+  if (!commitMatch) {
+    throw new Error("GrupoLuaLogin wrapper deve fixar BUILD_COMMIT em um SHA Git completo de 40 caracteres.");
+  }
+
+  requireSourceText('"https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/" .. BUILD_COMMIT .. "/GrupoLuaLogin.lua"', "wrapper");
+  requireSourceText("game:HttpGet(BUILD_URL, true)", "wrapper");
+  requireSourceText("local compiled, compileError = loadstring(source)", "wrapper");
+  requireSourceText("if not compiled then", "wrapper");
+  requireSourceText("return compiled()", "wrapper");
+
+  if (source.includes('/main/GrupoLuaLogin.lua') || source.includes('/refs/heads/main/')) {
+    throw new Error("GrupoLuaLogin wrapper não pode carregar o build protegido a partir de main mutável.");
+  }
+
+  console.log(`GrupoLuaLogin: wrapper protegido com build imutável ${commitMatch[1]} — OK`);
+  process.exit(0);
+}
 
 if (source.startsWith(OBFUSCATED_MARKER)) {
   if (source.length < 10000) {
