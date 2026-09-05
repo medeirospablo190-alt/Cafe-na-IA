@@ -2,6 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { App1Role } from "./api";
 import {
+  authenticateForQuickUnlock,
+  isQuickUnlockEnabled,
+  setQuickUnlockEnabled
+} from "./quickUnlock";
+import {
   type PresenceMode,
   type PublicProfileView,
   getOwnProfile,
@@ -36,12 +41,12 @@ export function SettingsScreen({
   sessionToken,
   deviceToken,
   role,
-  onBack
+  onSignOut
 }: {
   sessionToken: string;
   deviceToken: string;
   role: App1Role;
-  onBack: () => void;
+  onSignOut: () => void;
 }) {
   const [profile, setProfile] = useState<PublicProfileView | null>(null);
   const [bio, setBio] = useState("");
@@ -52,6 +57,8 @@ export function SettingsScreen({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [quickUnlockEnabled, setQuickUnlockState] = useState(false);
+  const [quickUnlockBusy, setQuickUnlockBusy] = useState(false);
   const mounted = useRef(true);
 
   function applyProfile(next: PublicProfileView) {
@@ -67,11 +74,18 @@ export function SettingsScreen({
     setLoading(true);
     setLoadError(null);
     try {
-      const result = await getOwnProfile(sessionToken, deviceToken);
-      if (mounted.current) applyProfile(result.profile);
+      const [result, localUnlock] = await Promise.all([
+        getOwnProfile(sessionToken, deviceToken),
+        isQuickUnlockEnabled().catch(() => false)
+      ]);
+      if (mounted.current) {
+        applyProfile(result.profile);
+        setQuickUnlockState(localUnlock);
+      }
     } catch (error) {
       if (mounted.current) {
         setProfile(null);
+        setQuickUnlockState(await isQuickUnlockEnabled().catch(() => false));
         setLoadError(error instanceof Error ? error.message : "Não foi possível carregar o perfil.");
       }
     } finally {
@@ -119,6 +133,46 @@ export function SettingsScreen({
     }
   }
 
+  async function toggleQuickUnlock() {
+    if (quickUnlockBusy) return;
+    setQuickUnlockBusy(true);
+    try {
+      if (quickUnlockEnabled) {
+        await setQuickUnlockEnabled(false);
+        if (mounted.current) setQuickUnlockState(false);
+        Alert.alert("Acesso rápido desativado", "Na próxima abertura, o app não exigirá a autenticação local antes de validar a sessão salva.");
+        return;
+      }
+
+      const authentication = await authenticateForQuickUnlock();
+      if (!authentication.ok) {
+        Alert.alert("Não foi possível ativar", authentication.message);
+        return;
+      }
+      await setQuickUnlockEnabled(true);
+      if (mounted.current) setQuickUnlockState(true);
+      Alert.alert(
+        "Acesso rápido ativado",
+        "Enquanto houver uma sessão válida salva neste aparelho, o GRUPO LUA pedirá a autenticação do celular antes de abrir a conta. A senha/chave da conta não é armazenada para isso."
+      );
+    } catch (error) {
+      Alert.alert("Falha", error instanceof Error ? error.message : "Não foi possível alterar o acesso rápido.");
+    } finally {
+      if (mounted.current) setQuickUnlockBusy(false);
+    }
+  }
+
+  function confirmSignOut() {
+    Alert.alert(
+      "Sair da conta?",
+      "A sessão deste aparelho será encerrada no servidor. A autorização do dispositivo será preservada.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Sair", style: "destructive", onPress: onSignOut }
+      ]
+    );
+  }
+
   useEffect(() => {
     mounted.current = true;
     load().catch(() => {});
@@ -130,33 +184,29 @@ export function SettingsScreen({
   if (!profile) {
     return (
       <View style={s.root}>
-        <View style={s.titleRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.title}>Perfil e configurações</Text>
-            <Text style={s.muted}>Não foi possível carregar seus dados públicos.</Text>
-          </View>
-          <Pressable style={s.back} onPress={onBack}><Text style={s.backText}>VOLTAR</Text></Pressable>
-        </View>
+        <Text style={s.title}>Perfil e configurações</Text>
+        <Text style={s.muted}>Não foi possível carregar seus dados públicos.</Text>
         <View style={s.errorCard}>
-          <Text style={s.errorTitle}>Configurações indisponíveis</Text>
+          <Text style={s.errorTitle}>Configurações de perfil indisponíveis</Text>
           <Text style={s.errorText}>{loadError || "Tente novamente em alguns instantes."}</Text>
           <Pressable style={s.retry} onPress={() => { load().catch(() => {}); }}>
             <Text style={s.retryText}>TENTAR NOVAMENTE</Text>
           </Pressable>
         </View>
+        <SecurityActions
+          quickUnlockEnabled={quickUnlockEnabled}
+          quickUnlockBusy={quickUnlockBusy}
+          onToggleQuickUnlock={toggleQuickUnlock}
+          onSignOut={confirmSignOut}
+        />
       </View>
     );
   }
 
   return (
     <View style={s.root}>
-      <View style={s.titleRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.title}>Perfil e configurações</Text>
-          <Text style={s.muted}>Personalização pública e privacidade de presença.</Text>
-        </View>
-        <Pressable style={s.back} disabled={saving} onPress={onBack}><Text style={s.backText}>VOLTAR</Text></Pressable>
-      </View>
+      <Text style={s.title}>Perfil e configurações</Text>
+      <Text style={s.muted}>Personalização pública, privacidade e segurança deste aparelho.</Text>
 
       <View style={[s.profileCard, role === "DEV" && s.profileDev]}>
         <View style={[s.avatar, frameStyle === "RED" && s.frameRed, frameStyle === "PURPLE" && s.framePurple, frameStyle === "SILVER" && s.frameSilver]}>
@@ -236,26 +286,71 @@ export function SettingsScreen({
         </Pressable>
       ) : null}
 
+      <SecurityActions
+        quickUnlockEnabled={quickUnlockEnabled}
+        quickUnlockBusy={quickUnlockBusy}
+        onToggleQuickUnlock={toggleQuickUnlock}
+        onSignOut={confirmSignOut}
+      />
+    </View>
+  );
+}
+
+function SecurityActions({
+  quickUnlockEnabled,
+  quickUnlockBusy,
+  onToggleQuickUnlock,
+  onSignOut
+}: {
+  quickUnlockEnabled: boolean;
+  quickUnlockBusy: boolean;
+  onToggleQuickUnlock: () => void;
+  onSignOut: () => void;
+}) {
+  return (
+    <>
+      <View style={s.securityCard}>
+        <View style={s.securityRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.securityTitle}>Acesso rápido neste celular</Text>
+            <Text style={s.securityState}>{quickUnlockEnabled ? "ATIVADO" : "DESATIVADO"}</Text>
+          </View>
+          <Pressable
+            style={[s.quickButton, quickUnlockEnabled && s.quickButtonActive, quickUnlockBusy && s.disabled]}
+            disabled={quickUnlockBusy}
+            onPress={onToggleQuickUnlock}
+          >
+            <Text style={[s.quickButtonText, quickUnlockEnabled && s.quickButtonTextActive]}>
+              {quickUnlockBusy ? "AGUARDE" : quickUnlockEnabled ? "DESATIVAR" : "ATIVAR"}
+            </Text>
+          </Pressable>
+        </View>
+        <Text style={s.securityText}>
+          Quando ativado, uma sessão já cadastrada só abre depois da autenticação local oferecida pelo sistema do celular. O app continua validando a sessão no servidor e não salva sua senha/chave de login para esse acesso.
+        </Text>
+      </View>
+
       <View style={s.securityCard}>
         <Text style={s.securityTitle}>Privacidade e segurança</Text>
         <Text style={s.securityText}>
           Login privado, chave, dispositivos autorizados, role real e bloqueios de segurança não podem ser alterados pelo perfil. Chats privados não possuem leitura administrativa comum enquanto a conta estiver ativa.
         </Text>
       </View>
-    </View>
+
+      <Pressable style={s.signOut} onPress={onSignOut}>
+        <Text style={s.signOutText}>SAIR DA CONTA</Text>
+      </Pressable>
+    </>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
   title: { color: "#FFF", fontSize: 22, fontWeight: "900" },
-  muted: { color: "#77777F", fontSize: 10, lineHeight: 15, marginTop: 3 },
-  back: { borderWidth: 1, borderColor: "#303036", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 9 },
-  backText: { color: "#BDBDC4", fontSize: 8, fontWeight: "900" },
-  profileCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 1, borderColor: "#292930", backgroundColor: "#09090C", padding: 14, marginBottom: 14 },
+  muted: { color: "#8A8A91", fontSize: 10, lineHeight: 15, marginTop: 3 },
+  profileCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1, borderColor: "#292930", backgroundColor: "#09090CC7", padding: 14, marginTop: 12, marginBottom: 12 },
   profileDev: { borderColor: "#4B2024" },
-  avatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: "#45454D", backgroundColor: "#16161A", alignItems: "center", justifyContent: "center" },
+  avatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: "#45454D", backgroundColor: "#16161AD9", alignItems: "center", justifyContent: "center" },
   frameRed: { borderColor: "#E24A52" },
   framePurple: { borderColor: "#B47AE8" },
   frameSilver: { borderColor: "#D0D0D5" },
@@ -263,27 +358,35 @@ const s = StyleSheet.create({
   avatarCode: { fontSize: 10 },
   identityRow: { flexDirection: "row", alignItems: "center", gap: 7 },
   publicName: { color: "#FFF", fontSize: 15, fontWeight: "900" },
-  devBadge: { color: "#FF686F", fontSize: 8, fontWeight: "900", backgroundColor: "#210A0C", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  previewMeta: { color: "#67676F", fontSize: 8, lineHeight: 13, marginTop: 5 },
-  label: { color: "#76767E", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 12 },
-  input: { minHeight: 49, borderRadius: 13, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#101013", color: "#FFF", paddingHorizontal: 13, marginTop: 7 },
+  devBadge: { color: "#FF686F", fontSize: 8, fontWeight: "900", backgroundColor: "#210A0CD9", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  previewMeta: { color: "#76767E", fontSize: 8, lineHeight: 13, marginTop: 5 },
+  label: { color: "#8A8A92", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 11 },
+  input: { minHeight: 49, borderRadius: 12, borderWidth: 1, borderColor: "#34343A", backgroundColor: "#101013C7", color: "#FFF", paddingHorizontal: 13, marginTop: 7 },
   bio: { minHeight: 105, paddingTop: 12, paddingBottom: 12 },
-  counter: { color: "#606067", fontSize: 8, textAlign: "right", marginTop: 4 },
+  counter: { color: "#707078", fontSize: 8, textAlign: "right", marginTop: 4 },
   choices: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 7 },
-  choice: { borderWidth: 1, borderColor: "#313138", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 9 },
+  choice: { borderWidth: 1, borderColor: "#3A3A40", backgroundColor: "#09090C9E", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 9 },
   choiceActive: { backgroundColor: "#FFF", borderColor: "#FFF" },
-  choiceText: { color: "#8B8B93", fontSize: 8, fontWeight: "900" },
+  choiceText: { color: "#9B9BA3", fontSize: 8, fontWeight: "900" },
   choiceTextActive: { color: "#070708" },
-  presenceHelp: { color: "#66666E", fontSize: 8, lineHeight: 13, marginTop: 7 },
+  presenceHelp: { color: "#76767E", fontSize: 8, lineHeight: 13, marginTop: 7 },
   save: { minHeight: 50, borderRadius: 13, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 18 },
   saveText: { color: "#050505", fontSize: 10, fontWeight: "900" },
   discard: { minHeight: 42, alignItems: "center", justifyContent: "center", marginTop: 5 },
-  discardText: { color: "#8B8B93", fontSize: 8, fontWeight: "900" },
+  discardText: { color: "#9B9BA3", fontSize: 8, fontWeight: "900" },
   disabled: { opacity: 0.45 },
-  securityCard: { borderWidth: 1, borderColor: "#27272D", borderRadius: 16, backgroundColor: "#08080A", padding: 14, marginTop: 13 },
+  securityCard: { borderWidth: 1, borderColor: "#303036", borderRadius: 15, backgroundColor: "#08080AB8", padding: 14, marginTop: 12 },
+  securityRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   securityTitle: { color: "#FFF", fontSize: 13, fontWeight: "900" },
-  securityText: { color: "#74747C", fontSize: 10, lineHeight: 16, marginTop: 6 },
-  errorCard: { borderWidth: 1, borderColor: "#4A2429", borderRadius: 16, backgroundColor: "#100708", padding: 15 },
+  securityState: { color: "#9A9AA2", fontSize: 8, fontWeight: "900", marginTop: 4 },
+  securityText: { color: "#85858D", fontSize: 10, lineHeight: 16, marginTop: 7 },
+  quickButton: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#44444B", paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
+  quickButtonActive: { borderColor: "#7A3439", backgroundColor: "#1B090B" },
+  quickButtonText: { color: "#D0D0D5", fontSize: 8, fontWeight: "900" },
+  quickButtonTextActive: { color: "#FF757B" },
+  signOut: { minHeight: 49, borderRadius: 13, borderWidth: 1, borderColor: "#6A292F", backgroundColor: "#180709C7", alignItems: "center", justifyContent: "center", marginTop: 12, marginBottom: 8 },
+  signOutText: { color: "#FF7178", fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
+  errorCard: { borderWidth: 1, borderColor: "#4A2429", borderRadius: 16, backgroundColor: "#100708C7", padding: 15, marginTop: 12 },
   errorTitle: { color: "#FFF", fontSize: 14, fontWeight: "900" },
   errorText: { color: "#B98C91", fontSize: 10, lineHeight: 16, marginTop: 7 },
   retry: { minHeight: 44, borderRadius: 11, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 12 },
