@@ -1,9 +1,9 @@
-import { LOGIN_BG_P1 } from "./loginBackground.part1";
-import { LOGIN_BG_P2 } from "./loginBackground.part2";
-import { LOGIN_BG_P3 } from "./loginBackground.part3";
-import { LOGIN_BG_P4 } from "./loginBackground.part4";
-import { LOGIN_BG_P5 } from "./loginBackground.part5";
-import { LOGIN_BG_P6 } from "./loginBackground.part6";
+import { Image } from "react-native";
 
-// Arte fornecida pelo usuario, comprimida para o bundle mobile e carregada sem rede.
-export const LOGIN_BACKGROUND_DATA_URI = `data:image/jpeg;base64,${LOGIN_BG_P1}${LOGIN_BG_P2}${LOGIN_BG_P3}${LOGIN_BG_P4}${LOGIN_BG_P5}${LOGIN_BG_P6}`;
+declare const require: (path: string) => number;
+
+// Arte escolhida para o login do App 1. Mantida como asset físico no bundle Android/iOS
+// para evitar falhas de renderização causadas por Data URI/Base64 grande.
+const LOGIN_BACKGROUND_ASSET = require("./assets/login-background.jpg");
+
+export const LOGIN_BACKGROUND_DATA_URI = Image.resolveAssetSource(LOGIN_BACKGROUND_ASSET).uri;
