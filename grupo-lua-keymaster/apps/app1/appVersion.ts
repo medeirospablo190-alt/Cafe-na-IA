@@ -54,7 +54,9 @@ export function installVersionedApiFetch() {
   const baseFetch = globalThis.fetch.bind(globalThis);
   globalThis.fetch = (async (input, init) => {
     const url = inputUrl(input);
-    const normalizedInput = input instanceof URL ? input.toString() : input;
+    const normalizedInput = (
+      input instanceof URL ? input.toString() : input
+    ) as Parameters<typeof baseFetch>[0];
 
     if (!API_URL || !url.startsWith(API_URL)) {
       return baseFetch(normalizedInput, init);
