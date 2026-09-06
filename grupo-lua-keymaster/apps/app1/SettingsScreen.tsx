@@ -357,7 +357,7 @@ const s = StyleSheet.create({
   avatarText: { color: "#FFF", fontSize: 20, fontWeight: "900" },
   avatarCode: { fontSize: 10 },
   identityRow: { flexDirection: "row", alignItems: "center", gap: 7 },
-  publicName: { color: "#FFF", fontSize: 15, fontWeight: "900" },
+  publicName: { flexShrink: 1, color: "#FFF", fontSize: 15, fontWeight: "900" },
   devBadge: { color: "#FF686F", fontSize: 8, fontWeight: "900", backgroundColor: "#210A0CD9", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   previewMeta: { color: "#76767E", fontSize: 8, lineHeight: 13, marginTop: 5 },
   label: { color: "#8A8A92", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, marginTop: 11 },
