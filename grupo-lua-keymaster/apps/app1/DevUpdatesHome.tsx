@@ -15,7 +15,7 @@ import type { App1Role } from "./api";
 import {
   type SocialAnnouncement,
   createGlobalAnnouncement,
-  listSocialFeed,
+  listGlobalAnnouncements,
   updateGlobalAnnouncement
 } from "./social-api";
 
@@ -71,7 +71,7 @@ export function DevUpdatesHome({
     if (showSpinner) setLoading(true);
     setMessage(null);
     try {
-      const result = await listSocialFeed(sessionToken, deviceToken, 1, 0);
+      const result = await listGlobalAnnouncements(sessionToken, deviceToken);
       if (mounted.current) setItems(result.announcements);
     } catch (error) {
       if (mounted.current) {
