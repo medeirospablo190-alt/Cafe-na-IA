@@ -62,6 +62,11 @@ export function DevUpdatesHome({
   const [message, setMessage] = useState<string | null>(null);
   const mounted = useRef(true);
 
+  const trimmedDraft = draft.trim();
+  const unchangedEdit = Boolean(editing && trimmedDraft === editing.text.trim());
+  const canSave = viewerRole === "DEV" && Boolean(trimmedDraft) && !busy && !unchangedEdit;
+  const draftLength = Array.from(draft).length;
+
   async function reload(showSpinner = true) {
     if (showSpinner) setLoading(true);
     setMessage(null);
@@ -100,7 +105,7 @@ export function DevUpdatesHome({
 
   async function saveAnnouncement() {
     const text = draft.trim();
-    if (viewerRole !== "DEV" || !text || busy) return;
+    if (viewerRole !== "DEV" || !text || busy || (editing && text === editing.text.trim())) return;
     setBusy(true);
     try {
       if (editing) {
@@ -228,9 +233,13 @@ export function DevUpdatesHome({
               placeholderTextColor="rgba(230,230,236,0.50)"
               style={s.input}
             />
+            <View style={s.composerInfo}>
+              <Text style={s.editState}>{editing && unchangedEdit ? "SEM ALTERAÇÕES" : ""}</Text>
+              <Text style={s.characterCount}>{draftLength}/1000</Text>
+            </View>
             <Pressable
-              disabled={!draft.trim() || busy}
-              style={[s.publish, (!draft.trim() || busy) && s.disabled]}
+              disabled={!canSave}
+              style={[s.publish, !canSave && s.disabled]}
               onPress={() => saveAnnouncement().catch(() => {})}
             >
               <Text style={s.publishText}>
@@ -346,13 +355,16 @@ const s = StyleSheet.create({
     paddingVertical: 11,
     marginTop: 12
   },
+  composerInfo: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 18, marginTop: 4 },
+  editState: { color: "rgba(255,157,162,0.74)", fontSize: 7, fontWeight: "900" },
+  characterCount: { color: "rgba(235,235,240,0.50)", fontSize: 8 },
   publish: {
     minHeight: 48,
     borderRadius: 11,
     backgroundColor: "#B51D25",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 12
+    marginTop: 8
   },
   publishText: { color: "#FFFFFF", fontSize: 9, fontWeight: "900" },
   disabled: { opacity: 0.42 }
