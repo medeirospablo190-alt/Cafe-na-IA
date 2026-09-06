@@ -143,44 +143,68 @@ export function SocialArchive({ sessionToken, deviceToken }: {
     <View style={s.root}>
       <View style={s.header}>
         <View style={{ flex: 1 }}>
-          <Text style={s.title}>Mais publicações</Text>
-          <Text style={s.subtitle}>Histórico paginado além das 40 publicações mais recentes.</Text>
+          <Text style={s.title}>Histórico Social</Text>
+          <Text style={s.subtitle}>Publicações anteriores às 40 mais recentes.</Text>
         </View>
-        <Pressable style={s.refresh} disabled={loadingMore || Boolean(busyId)} onPress={() => { loadPage({ reset: true }).catch(() => {}); }}>
-          <Text style={s.refreshText}>↻</Text>
+        <Pressable
+          style={s.refresh}
+          disabled={loadingMore || Boolean(busyId)}
+          onPress={() => { loadPage({ reset: true }).catch(() => {}); }}
+          accessibilityRole="button"
+          accessibilityLabel="Atualizar histórico social"
+        >
+          <Text style={s.refreshText}>ATUALIZAR</Text>
         </Pressable>
       </View>
 
-      {posts.map((post) => (
-        <View key={post.id} style={[s.card, post.pinned && s.pinned]}>
-          <View style={s.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.author}>{post.author.publicName}{post.author.role === "DEV" ? " • DEV" : ""}</Text>
-              <Text style={s.meta}>{dateText(post.createdAt)} • {post.kind === "CODE" ? "CÓDIGO" : "LOADSTRING"}</Text>
+      <View style={s.list}>
+        {posts.map((post) => (
+          <View key={post.id} style={[s.post, post.pinned && s.pinned]}>
+            <View style={s.row}>
+              <View style={{ flex: 1 }}>
+                <View style={s.authorRow}>
+                  <Text style={s.author}>{post.author.publicName}</Text>
+                  <Text style={[s.role, post.author.role === "DEV" && s.roleDev]}>{post.author.role}</Text>
+                </View>
+                <Text style={s.meta}>{dateText(post.createdAt)} • {post.kind === "CODE" ? "CÓDIGO" : "LOADSTRING"}</Text>
+              </View>
+              {post.pinned ? <Text style={s.pin}>FIXADO</Text> : null}
             </View>
-            {post.pinned ? <Text style={s.pin}>FIXADO</Text> : null}
-          </View>
-          {post.comment ? <Text style={s.comment}>{post.comment}</Text> : null}
-          <Text style={s.postTitle}>{post.item.title}</Text>
-          <View style={s.codeBox}>
-            <Text numberOfLines={6} style={s.code}>{post.item.content}</Text>
-          </View>
-          {post.item.truncated ? <Text style={s.preview}>Prévia reduzida. Copiar busca o conteúdo completo.</Text> : null}
 
-          <View style={s.actions}>
-            <Pressable disabled={Boolean(busyId)} style={[s.action, post.reactions.liked && s.active]} onPress={() => { toggleLike(post).catch(() => {}); }}>
-              <Text style={s.actionText}>{post.reactions.liked ? "♥" : "♡"} {post.reactions.likeCount}</Text>
-            </Pressable>
-            <Pressable disabled={Boolean(busyId)} style={[s.action, post.reactions.favorited && s.active]} onPress={() => { toggleFavorite(post).catch(() => {}); }}>
-              <Text style={s.actionText}>{post.reactions.favorited ? "★" : "☆"} {post.reactions.favoriteCount}</Text>
-            </Pressable>
-            <Pressable disabled={Boolean(busyId)} style={s.action} onPress={() => { copyPost(post).catch(() => {}); }}>
-              <Text style={s.actionText}>COPIAR</Text>
-            </Pressable>
+            {post.comment ? <Text style={s.comment}>{post.comment}</Text> : null}
+            <Text style={s.postTitle}>{post.item.title}</Text>
+            <View style={s.codeBox}>
+              <Text numberOfLines={6} style={s.code}>{post.item.content}</Text>
+            </View>
+            {post.item.truncated ? <Text style={s.preview}>Prévia reduzida. Copiar busca o conteúdo completo.</Text> : null}
+
+            <View style={s.actions}>
+              <Pressable
+                disabled={Boolean(busyId)}
+                style={[s.action, post.reactions.liked && s.active]}
+                onPress={() => { toggleLike(post).catch(() => {}); }}
+              >
+                <Text style={[s.actionText, post.reactions.liked && s.actionTextActive]}>
+                  {post.reactions.liked ? "CURTIDO" : "CURTIR"}  {post.reactions.likeCount}
+                </Text>
+              </Pressable>
+              <Pressable
+                disabled={Boolean(busyId)}
+                style={[s.action, post.reactions.favorited && s.active]}
+                onPress={() => { toggleFavorite(post).catch(() => {}); }}
+              >
+                <Text style={[s.actionText, post.reactions.favorited && s.actionTextActive]}>
+                  {post.reactions.favorited ? "FAVORITADO" : "FAVORITAR"}  {post.reactions.favoriteCount}
+                </Text>
+              </Pressable>
+              <Pressable disabled={Boolean(busyId)} style={s.actionCompact} onPress={() => { copyPost(post).catch(() => {}); }}>
+                <Text style={s.actionText}>COPIAR</Text>
+              </Pressable>
+            </View>
+            <Text style={s.counts}>{post.reactions.commentCount} comentário{post.reactions.commentCount === 1 ? "" : "s"}</Text>
           </View>
-          <Text style={s.counts}>{post.reactions.commentCount} comentário(s)</Text>
-        </View>
-      ))}
+        ))}
+      </View>
 
       {hasMore ? (
         <Pressable
@@ -197,86 +221,112 @@ export function SocialArchive({ sessionToken, deviceToken }: {
 
 const s = StyleSheet.create({
   root: {
-    marginTop: 18,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.12)"
+    marginTop: 2,
+    paddingTop: 4
   },
-  header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2 },
-  title: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
-  subtitle: { color: "rgba(235,235,240,0.58)", fontSize: 9, lineHeight: 14, marginTop: 3 },
+  header: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 3, paddingBottom: 8 },
+  title: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
+  subtitle: { color: "rgba(235,235,240,0.54)", fontSize: 8, lineHeight: 13, marginTop: 2 },
   refresh: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(5,5,7,0.22)",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  refreshText: { color: "#D4B8E6", fontSize: 17 },
-  card: {
-    marginTop: 10,
-    borderRadius: 16,
+    minHeight: 34,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",
-    backgroundColor: "rgba(5,5,7,0.30)",
-    padding: 13
-  },
-  pinned: { borderColor: "rgba(222,66,74,0.50)" },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  author: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
-  meta: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 3 },
-  pin: { color: "#FF858B", fontSize: 7, fontWeight: "900" },
-  comment: {
-    color: "#ECE8EF",
-    fontSize: 10,
-    lineHeight: 15,
-    marginTop: 10,
-    borderLeftWidth: 2,
-    borderLeftColor: "rgba(192,137,225,0.62)",
-    paddingLeft: 8
-  },
-  postTitle: { color: "#FFFFFF", fontSize: 13, fontWeight: "900", marginTop: 10 },
-  codeBox: {
-    marginTop: 7,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.13)",
-    backgroundColor: "rgba(0,0,0,0.30)",
-    padding: 10
-  },
-  code: { color: "#DFDFE4", fontFamily: "monospace", fontSize: 8, lineHeight: 13 },
-  preview: { color: "rgba(225,225,232,0.55)", fontSize: 8, marginTop: 5 },
-  actions: { flexDirection: "row", gap: 6, marginTop: 9 },
-  action: {
-    flex: 1,
-    minHeight: 34,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(0,0,0,0.16)",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  active: {
-    borderColor: "rgba(189,133,224,0.48)",
-    backgroundColor: "rgba(59,29,76,0.30)"
-  },
-  actionText: { color: "rgba(245,245,248,0.80)", fontSize: 7, fontWeight: "900" },
-  counts: { color: "rgba(225,225,232,0.50)", fontSize: 8, marginTop: 7 },
-  more: {
-    minHeight: 46,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(210,171,235,0.30)",
-    backgroundColor: "rgba(30,16,37,0.30)",
+    backgroundColor: "rgba(0,0,0,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 12
+    paddingHorizontal: 10
   },
-  moreText: { color: "#DCC8E9", fontSize: 8, fontWeight: "900" },
-  end: { color: "rgba(225,225,232,0.45)", fontSize: 8, textAlign: "center", marginVertical: 14 },
+  refreshText: { color: "rgba(245,245,248,0.72)", fontSize: 7, fontWeight: "900", letterSpacing: 0.4 },
+  list: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(255,255,255,0.12)"
+  },
+  post: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.13)",
+    backgroundColor: "rgba(3,3,5,0.07)",
+    paddingHorizontal: 4,
+    paddingVertical: 12
+  },
+  pinned: { borderTopWidth: 1, borderTopColor: "rgba(255,38,56,0.55)" },
+  row: { flexDirection: "row", alignItems: "center", gap: 8 },
+  authorRow: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
+  author: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
+  role: {
+    color: "#FFFFFF",
+    fontSize: 6,
+    fontWeight: "900",
+    backgroundColor: "rgba(91,32,38,0.68)",
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2
+  },
+  roleDev: { backgroundColor: "rgba(121,17,24,0.84)" },
+  meta: { color: "rgba(225,225,232,0.52)", fontSize: 7, marginTop: 3 },
+  pin: { color: "#FF6873", fontSize: 7, fontWeight: "900", letterSpacing: 0.4 },
+  comment: {
+    color: "#ECECF0",
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 9,
+    borderLeftWidth: 2,
+    borderLeftColor: "rgba(255,38,56,0.55)",
+    paddingLeft: 8
+  },
+  postTitle: { color: "#FFFFFF", fontSize: 13, fontWeight: "900", marginTop: 9 },
+  codeBox: {
+    marginTop: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.10)",
+    backgroundColor: "rgba(0,0,0,0.18)",
+    paddingHorizontal: 9,
+    paddingVertical: 9
+  },
+  code: { color: "#DFDFE4", fontFamily: "monospace", fontSize: 8, lineHeight: 13 },
+  preview: { color: "rgba(225,225,232,0.52)", fontSize: 8, marginTop: 5 },
+  actions: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 9 },
+  action: {
+    flex: 1,
+    minHeight: 32,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(0,0,0,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6
+  },
+  actionCompact: {
+    minWidth: 66,
+    minHeight: 32,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(0,0,0,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8
+  },
+  active: {
+    borderColor: "rgba(255,38,56,0.48)",
+    backgroundColor: "rgba(83,7,14,0.26)"
+  },
+  actionText: { color: "rgba(245,245,248,0.76)", fontSize: 7, fontWeight: "900" },
+  actionTextActive: { color: "#FF8A92" },
+  counts: { color: "rgba(225,225,232,0.46)", fontSize: 8, marginTop: 7 },
+  more: {
+    minHeight: 42,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,38,56,0.30)",
+    backgroundColor: "rgba(70,5,11,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10
+  },
+  moreText: { color: "#FF8A92", fontSize: 8, fontWeight: "900" },
+  end: { color: "rgba(225,225,232,0.42)", fontSize: 8, textAlign: "center", marginVertical: 12 },
   disabled: { opacity: 0.42 }
 });
