@@ -3,9 +3,11 @@ GRUPO LUA — PORTAL OFICIAL DE DOWNLOAD
 
 OBJETIVO
 --------
-O serviço raiz deste repositório é somente o portal oficial de instalação dos aplicativos GRUPO LUA.
+O serviço raiz deste repositório é principalmente o portal oficial de instalação dos aplicativos GRUPO LUA.
 
-Ele NÃO oferece Social, Chats, Chaves FREE/VIP, gerenciamento ADM/DEV, scanner, recebimento de arquivos, diagnósticos runtime, análise Lua ou painel administrativo.
+Ele NÃO oferece Social, Chats, Chaves FREE/VIP, gerenciamento ADM/DEV, scanner universal, análise Lua ou painel administrativo.
+
+Existe uma exceção isolada e limitada: o **Avatar Dump**, usado somente para receber JSON técnico do avatar Roblox autorizado (`UserId 765329164`) para reconstrução visual. Ele não recebe cookies, credenciais Roblox, senhas ou tokens de login.
 
 A API administrativa do Keymaster/App 1 continua isolada em:
 `grupo-lua-keymaster/services/control-api`.
@@ -36,6 +38,32 @@ FLUXO DE SEGURANÇA
 Não existe rota pública fixa como `/keymaster.apk`.
 
 O diretório dos binários fica fora de `public/` e os padrões `.apk`, `.ipa` e `.aab` estão ignorados pelo Git.
+
+AVATAR DUMP
+-----------
+O gateway `avatar-gateway.js` fica na frente do `server.js` original. Rotas não relacionadas ao Avatar Dump continuam sendo encaminhadas para o portal original.
+
+Rotas do coletor:
+
+- `POST /api/avatar-dump`
+- `GET /api/avatar-dump/765329164/latest`
+- `GET /api/avatar-dump/765329164/status`
+
+O script de executor é:
+
+`AvatarDumpExecutor.lua`
+
+Execução rápida:
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/main/AvatarDumpExecutor.lua"))()
+```
+
+O JSON fica em `DOWNLOAD_DIR/avatar-dumps/765329164/` e mantém tanto histórico quanto `latest.json`.
+
+O workflow `.github/workflows/avatar-dump-sync.yml` consulta automaticamente o `latest.json` do serviço hospedado e sincroniza uma versão sanitizada para `avatar-dumps/765329164/`. Como este repositório é público, o workflow remove contexto do jogo e atributos arbitrários antes do commit.
+
+Mais detalhes em `docs/avatar-dump.md`.
 
 ANTI-BRUTEFORCE
 ---------------
@@ -118,6 +146,7 @@ VALIDAÇÃO
 
 ```bash
 npm run check
+npm test
 ```
 
 O portal é mobile-first, fundo preto, textos brancos, identidade GRUPO LUA e destaque vermelho para a área DEV/Keymaster.
