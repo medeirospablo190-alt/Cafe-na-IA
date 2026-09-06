@@ -1,9 +1,11 @@
-import { Image } from "react-native";
+import bg0 from "./backgroundData/bg0";
+import bg1 from "./backgroundData/bg1";
+import bg2 from "./backgroundData/bg2";
+import bg3 from "./backgroundData/bg3";
+import bg4 from "./backgroundData/bg4";
+import bg5 from "./backgroundData/bg5";
 
-declare const require: (path: string) => number;
-
-// Arte escolhida para o login do App 1. Mantida como asset físico no bundle Android/iOS
-// para evitar falhas de renderização causadas por Data URI/Base64 grande.
-const LOGIN_BACKGROUND_ASSET = require("./assets/login-background.jpg");
-
-export const LOGIN_BACKGROUND_DATA_URI = Image.resolveAssetSource(LOGIN_BACKGROUND_ASSET).uri;
+// Fundo global aprovado para o App 1. Dividido em partes pequenas para manter
+// o módulo legível e evitar uma única constante muito grande no código-fonte.
+export const LOGIN_BACKGROUND_DATA_URI =
+  `data:image/jpeg;base64,${bg0}${bg1}${bg2}${bg3}${bg4}${bg5}`;
