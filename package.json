@@ -1,11 +1,11 @@
 {
   "name": "grupo-lua-download-portal",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs",
+    "start": "node avatar-gateway.js",
+    "check": "node --check avatar-gateway.js && node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs",
     "test": "node --test test/*.test.mjs",
     "hash:download": "node scripts/hash-download-password.mjs"
   },
