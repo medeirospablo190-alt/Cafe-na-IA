@@ -39,9 +39,15 @@ export function SocialFeedScreen({
       />
 
       <View style={styles.archiveArea}>
-        <Pressable style={styles.archiveToggle} onPress={() => setArchiveOpen((value) => !value)}>
+        <Pressable
+          style={styles.archiveToggle}
+          onPress={() => setArchiveOpen((value) => !value)}
+          accessibilityRole="button"
+          accessibilityLabel={archiveOpen ? "Fechar arquivo social" : "Abrir arquivo social"}
+          accessibilityState={{ expanded: archiveOpen }}
+        >
           <Text style={styles.archiveToggleText}>{archiveOpen ? "FECHAR ARQUIVO" : "ARQUIVO SOCIAL"}</Text>
-          <Text style={styles.archiveToggleGlyph}>{archiveOpen ? "⌃" : "⌄"}</Text>
+          <View style={[styles.archiveChevron, archiveOpen && styles.archiveChevronOpen]} />
         </Pressable>
         {archiveOpen ? (
           <View style={styles.archivePanel}>
@@ -54,27 +60,37 @@ export function SocialFeedScreen({
 }
 
 const styles = StyleSheet.create({
-  archiveArea: { marginTop: 8, marginBottom: 12 },
+  archiveArea: { marginTop: 6, marginBottom: 10, marginHorizontal: 2 },
   archiveToggle: {
-    minHeight: 42,
-    borderRadius: 12,
+    minHeight: 39,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(123,123,136,0.30)",
-    backgroundColor: "rgba(7,7,10,0.30)",
-    paddingHorizontal: 13,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(5,5,8,0.18)",
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between"
   },
-  archiveToggleText: { color: "#B9B9C1", fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
-  archiveToggleGlyph: { color: "#9D9DA5", fontSize: 15, fontWeight: "900" },
+  archiveToggleText: { color: "rgba(235,235,240,0.68)", fontSize: 8, fontWeight: "900", letterSpacing: 0.7 },
+  archiveChevron: {
+    width: 8,
+    height: 8,
+    borderRightWidth: 1.5,
+    borderBottomWidth: 1.5,
+    borderColor: "rgba(235,235,240,0.62)",
+    transform: [{ rotate: "45deg" }, { translateY: -2 }]
+  },
+  archiveChevronOpen: {
+    transform: [{ rotate: "225deg" }, { translateY: -2 }]
+  },
   archivePanel: {
-    marginTop: 7,
-    borderRadius: 14,
+    marginTop: 6,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(108,108,120,0.24)",
-    backgroundColor: "rgba(5,5,8,0.24)",
-    padding: 8,
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(3,3,6,0.20)",
+    padding: 7,
     overflow: "hidden"
   }
 });
