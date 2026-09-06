@@ -5,19 +5,19 @@ import { SocialFeedScreenV5 } from "./SocialFeedScreenV5";
 export function SocialFeedScreen({
   sessionToken,
   deviceToken,
-  viewerProfileId,
-  viewerPublicName,
+  viewerProfileId = null,
+  viewerPublicName = "Lua",
   viewerRole = "ADM",
-  sessionExpiresAt,
+  sessionExpiresAt = "",
   onOpenChat = () => {},
   onOpenProfile = () => {}
 }: {
   sessionToken: string;
   deviceToken: string;
-  viewerProfileId: string | null;
-  viewerPublicName: string;
+  viewerProfileId?: string | null;
+  viewerPublicName?: string;
   viewerRole?: App1Role;
-  sessionExpiresAt: string;
+  sessionExpiresAt?: string;
   onOpenChat?: () => void;
   onOpenProfile?: () => void;
 }) {
