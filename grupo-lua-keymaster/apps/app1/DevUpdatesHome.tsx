@@ -25,6 +25,24 @@ function dateText(value?: string | null) {
   return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+function PlusIcon() {
+  return (
+    <View style={s.iconBox}>
+      <View style={s.plusHorizontal} />
+      <View style={s.plusVertical} />
+    </View>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <View style={s.iconBox}>
+      <View style={[s.closeStroke, { transform: [{ rotate: "45deg" }] }]} />
+      <View style={[s.closeStroke, { transform: [{ rotate: "-45deg" }] }]} />
+    </View>
+  );
+}
+
 export function DevUpdatesHome({
   sessionToken,
   deviceToken,
@@ -89,7 +107,7 @@ export function DevUpdatesHome({
       <View style={s.header}>
         <View style={s.headerText}>
           <Text style={s.title}>Atualizações</Text>
-          <Text style={s.subtitle}>Publicações oficiais dos desenvolvedores.</Text>
+          <Text style={s.subtitle}>Avisos oficiais dos desenvolvedores</Text>
         </View>
         {viewerRole === "DEV" ? (
           <Pressable
@@ -98,10 +116,12 @@ export function DevUpdatesHome({
             accessibilityRole="button"
             accessibilityLabel="Publicar aviso DEV"
           >
-            <Text style={s.devButtonText}>＋</Text>
+            <PlusIcon />
           </Pressable>
         ) : null}
       </View>
+
+      <View style={s.headerDivider} />
 
       {message ? (
         <Pressable style={s.messageCard} onPress={() => reload(true).catch(() => {})}>
@@ -120,7 +140,7 @@ export function DevUpdatesHome({
       ) : null}
 
       {!loading ? items.map((item) => (
-        <View key={item.id} style={s.card}>
+        <View key={item.id} style={s.post}>
           <View style={s.cardHead}>
             <View style={s.devMark}><Text style={s.devMarkText}>DEV</Text></View>
             <View style={s.identity}>
@@ -142,8 +162,14 @@ export function DevUpdatesHome({
           <View style={s.modalBox}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Novo aviso</Text>
-              <Pressable disabled={busy} onPress={() => setComposerOpen(false)}>
-                <Text style={s.close}>✕</Text>
+              <Pressable
+                disabled={busy}
+                style={s.closeButton}
+                onPress={() => setComposerOpen(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar"
+              >
+                <CloseIcon />
               </Pressable>
             </View>
             <TextInput
@@ -154,7 +180,7 @@ export function DevUpdatesHome({
               maxLength={1000}
               textAlignVertical="top"
               placeholder="Escreva o aviso..."
-              placeholderTextColor="#A2A2A8"
+              placeholderTextColor="rgba(230,230,236,0.50)"
               style={s.input}
             />
             <Pressable
@@ -173,88 +199,89 @@ export function DevUpdatesHome({
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: -2, paddingHorizontal: 2, paddingTop: 2, paddingBottom: 10 },
   headerText: { flex: 1 },
-  title: { color: "#FFFFFF", fontSize: 22, fontWeight: "900" },
-  subtitle: { color: "rgba(235,235,240,0.72)", fontSize: 10, marginTop: 3 },
+  title: { color: "#FFFFFF", fontSize: 20, fontWeight: "900" },
+  subtitle: { color: "rgba(235,235,240,0.62)", fontSize: 9, marginTop: 3 },
+  headerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(255,255,255,0.14)", marginHorizontal: -12 },
+  iconBox: { width: 22, height: 22, alignItems: "center", justifyContent: "center", position: "relative" },
+  plusHorizontal: { position: "absolute", width: 13, height: 1.8, borderRadius: 1, backgroundColor: "#FFFFFF" },
+  plusVertical: { position: "absolute", width: 1.8, height: 13, borderRadius: 1, backgroundColor: "#FFFFFF" },
+  closeStroke: { position: "absolute", width: 14, height: 1.6, borderRadius: 1, backgroundColor: "#FFFFFF" },
   devButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: "rgba(192,26,34,0.94)",
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "rgba(185,20,30,0.90)",
     borderWidth: 1,
-    borderColor: "rgba(255,110,116,0.58)",
+    borderColor: "rgba(255,100,108,0.48)",
     alignItems: "center",
     justifyContent: "center"
   },
-  devButtonText: { color: "#FFFFFF", fontSize: 25, lineHeight: 27, fontWeight: "500" },
   loader: { marginVertical: 26 },
   messageCard: {
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(5,5,7,0.34)",
-    padding: 13,
-    marginBottom: 10
-  },
-  message: { color: "#F1D9DB", fontSize: 11, lineHeight: 17 },
-  retry: { color: "#FF777D", fontSize: 7, fontWeight: "900", marginTop: 7 },
-  empty: {
-    borderRadius: 18,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",
-    backgroundColor: "rgba(5,5,7,0.28)",
-    padding: 24,
+    backgroundColor: "rgba(5,5,7,0.24)",
+    padding: 12,
+    marginTop: 10
+  },
+  message: { color: "#F1D9DB", fontSize: 10, lineHeight: 16 },
+  retry: { color: "#FF777D", fontSize: 7, fontWeight: "900", marginTop: 7 },
+  empty: {
+    paddingVertical: 42,
+    paddingHorizontal: 20,
     alignItems: "center"
   },
-  emptyTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", textAlign: "center" },
-  emptyText: { color: "rgba(235,235,240,0.68)", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 6 },
-  card: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(5,5,7,0.32)",
-    padding: 14,
-    marginBottom: 10
+  emptyTitle: { color: "#FFFFFF", fontSize: 14, fontWeight: "900", textAlign: "center" },
+  emptyText: { color: "rgba(235,235,240,0.60)", fontSize: 9, lineHeight: 15, textAlign: "center", marginTop: 6 },
+  post: {
+    marginHorizontal: -12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(3,3,5,0.06)",
+    paddingHorizontal: 14,
+    paddingVertical: 14
   },
   cardHead: { flexDirection: "row", alignItems: "center", gap: 9 },
   devMark: {
-    minWidth: 38,
-    height: 30,
-    borderRadius: 10,
-    backgroundColor: "rgba(163,20,27,0.78)",
+    minWidth: 36,
+    height: 27,
+    borderRadius: 7,
+    backgroundColor: "rgba(151,15,24,0.68)",
     borderWidth: 1,
-    borderColor: "rgba(255,105,111,0.45)",
+    borderColor: "rgba(255,88,98,0.38)",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 7
   },
-  devMarkText: { color: "#FFB1B5", fontSize: 8, fontWeight: "900" },
+  devMarkText: { color: "#FFB1B5", fontSize: 7, fontWeight: "900" },
   identity: { flex: 1 },
   author: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
-  date: { color: "rgba(225,225,232,0.58)", fontSize: 8, marginTop: 2 },
-  body: { color: "#F2F2F5", fontSize: 12, lineHeight: 19, marginTop: 12 },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.64)", justifyContent: "center", padding: 16 },
+  date: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 2 },
+  body: { color: "#F2F2F5", fontSize: 12, lineHeight: 19, marginTop: 11 },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.68)", justifyContent: "center", padding: 16 },
   modalBox: {
     width: "100%",
     maxWidth: 540,
     alignSelf: "center",
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
-    backgroundColor: "rgba(8,8,10,0.86)",
+    backgroundColor: "rgba(8,8,10,0.88)",
     padding: 15
   },
   modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   modalTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
-  close: { color: "#D0D0D5", fontSize: 18, padding: 5 },
+  closeButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   input: {
     minHeight: 130,
     maxHeight: 240,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
-    backgroundColor: "rgba(0,0,0,0.28)",
+    backgroundColor: "rgba(0,0,0,0.26)",
     color: "#FFFFFF",
     paddingHorizontal: 12,
     paddingVertical: 11,
@@ -262,7 +289,7 @@ const s = StyleSheet.create({
   },
   publish: {
     minHeight: 48,
-    borderRadius: 12,
+    borderRadius: 11,
     backgroundColor: "#B51D25",
     alignItems: "center",
     justifyContent: "center",
