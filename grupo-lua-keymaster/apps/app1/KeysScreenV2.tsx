@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -787,7 +789,7 @@ function MenuEditorModal(props: {
 }) {
   return (
     <Modal visible={props.visible} transparent animationType="fade" onRequestClose={props.onClose}>
-      <View style={s.modalBackdrop}>
+      <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={s.modalPanelLarge}>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 4 }}>
             <Text style={s.modalEyebrow}>{props.editing ? "EDITAR MENU" : "NOVO MENU"}</Text>
@@ -834,7 +836,7 @@ function MenuEditorModal(props: {
             )}
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -849,7 +851,7 @@ function SuspensionModal(props: {
 }) {
   return (
     <Modal visible={Boolean(props.target)} transparent animationType="fade" onRequestClose={props.onClose}>
-      <View style={s.modalBackdrop}>
+      <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={s.modalPanel}>
           <Text style={s.modalEyebrow}>SUSPENDER MENU</Text>
           <Text style={s.modalTitle}>{props.target?.name}</Text>
@@ -867,7 +869,7 @@ function SuspensionModal(props: {
           </Pressable>
           <Pressable style={s.cancelButton} disabled={props.busy} onPress={props.onClose}><Text style={s.cancelText}>CANCELAR</Text></Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -890,14 +892,14 @@ function KeyCreateModal(props: {
 }) {
   return (
     <Modal visible={props.visible} transparent animationType="fade" onRequestClose={props.onClose}>
-      <View style={s.modalBackdrop}>
+      <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={s.modalPanel}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={s.modalEyebrow}>NOVA CHAVE</Text>
             <Text style={s.modalTitle}>Gerar FREE / VIP</Text>
             <Text style={s.label}>NOME DA CHAVE</Text>
             <TextInput value={props.name} onChangeText={props.onName} editable={!props.busy} maxLength={80} style={s.input} placeholder="Ex.: Cliente João" placeholderTextColor="#666" />
-            <View style={[s.choiceRow, { marginTop: 12 }]}>
+            <View style={[s.choiceRow, { marginTop: 12 }] }>
               <Chip label="FREE" active={props.kind === "FREE"} onPress={() => props.onKind("FREE")} />
               <Chip label="VIP" active={props.kind === "VIP"} onPress={() => props.onKind("VIP")} />
             </View>
@@ -924,7 +926,7 @@ function KeyCreateModal(props: {
             <Pressable style={s.cancelButton} disabled={props.busy} onPress={props.onClose}><Text style={s.cancelText}>CANCELAR</Text></Pressable>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -941,7 +943,7 @@ function RenewModal(props: {
 }) {
   return (
     <Modal visible={Boolean(props.target)} transparent animationType="fade" onRequestClose={props.onClose}>
-      <View style={s.modalBackdrop}>
+      <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={s.modalPanel}>
           <Text style={s.modalEyebrow}>{props.target?.kind === "FREE" ? "FREE" : "VIP"}</Text>
           <Text style={s.modalTitle}>Reconfigurar {props.target?.name}</Text>
@@ -966,7 +968,7 @@ function RenewModal(props: {
           </Pressable>
           <Pressable style={s.cancelButton} disabled={props.busy} onPress={props.onClose}><Text style={s.cancelText}>CANCELAR</Text></Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
