@@ -917,7 +917,7 @@ const styles = StyleSheet.create({
   avatarText: { color: "#FFFFFF", fontSize: 14, fontWeight: "900" },
   headerIdentity: { flex: 1 },
   identityRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  publicName: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
+  publicName: { flexShrink: 1, color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
   devBadge: { color: "#FF686F", backgroundColor: "#21090BD9", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, fontSize: 8, fontWeight: "900" },
   sessionLine: { color: "#74747B", fontSize: 8, marginTop: 3 },
   appScroll: { flex: 1 },
