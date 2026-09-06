@@ -610,7 +610,7 @@ function LoginScreen({
   return (
     <ImageBackground source={{ uri: LOGIN_BACKGROUND_DATA_URI }} style={styles.loginBackground} resizeMode="cover">
       <View style={styles.photoShade} />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView contentContainerStyle={styles.loginScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.loginCard}>
             <Text style={styles.eyebrowLight}>ACESSO PRIVADO</Text>
@@ -704,7 +704,7 @@ function NameScreen({
 }) {
   const length = Array.from(value.trim()).length;
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView contentContainerStyle={styles.nameScroll} keyboardShouldPersistTaps="handled">
         <Brand />
         <View style={styles.card}>
