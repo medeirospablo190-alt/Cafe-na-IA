@@ -672,7 +672,7 @@ export function LocalMediaVault({ kind, ownerId }: {
           onPress={() => { loadVault().catch(() => {}); }}
           accessibilityLabel="Atualizar mídia local"
         >
-          <Text style={s.refreshText}>↻</Text>
+          <Text style={s.refreshText}>ATUALIZAR</Text>
         </Pressable>
       </View>
 
@@ -715,7 +715,7 @@ export function LocalMediaVault({ kind, ownerId }: {
           onPress={() => { importMedia().catch(() => {}); }}
           accessibilityLabel={`Importar ${kind === "PHOTO" ? "foto" : "vídeo"}`}
         >
-          <Text style={s.importText}>{busy ? "..." : "＋ IMPORTAR"}</Text>
+          <Text style={s.importText}>{busy ? "..." : "IMPORTAR"}</Text>
         </Pressable>
       </View>
 
@@ -724,7 +724,7 @@ export function LocalMediaVault({ kind, ownerId }: {
 
       {!loading && filteredItems.length === 0 ? (
         <View style={s.empty}>
-          <Text style={s.emptyIcon}>{kind === "PHOTO" ? "▧" : "▷"}</Text>
+          <Text style={s.emptyIcon}>{kind === "PHOTO" ? "FOTO" : "VÍDEO"}</Text>
           <Text style={s.emptyTitle}>Nenhum {kind === "PHOTO" ? "foto" : "vídeo"} guardado</Text>
           <Text style={s.emptyText}>
             Use IMPORTAR para selecionar um arquivo do celular e criar uma cópia privada dentro do App 1.
@@ -752,7 +752,7 @@ export function LocalMediaVault({ kind, ownerId }: {
                 onPress={() => { openPreview(item).catch(() => {}); }}
                 accessibilityLabel={`Abrir ${item.name}`}
               >
-                <Text style={s.videoGlyph}>{broken ? "!" : item.kind === "VIDEO" ? "▷" : "▧"}</Text>
+                <Text style={s.videoGlyph}>{broken ? "ERRO" : item.kind === "VIDEO" ? "VÍDEO" : "FOTO"}</Text>
                 <Text style={s.videoLabel}>{broken ? "ARQUIVO ILEGÍVEL" : item.kind === "VIDEO" ? "VÍDEO LOCAL" : "FOTO LOCAL"}</Text>
               </Pressable>
             )}
@@ -806,7 +806,7 @@ export function LocalMediaVault({ kind, ownerId }: {
                 <Text numberOfLines={2} style={s.previewTitle}>{preview?.item.name || "Mídia"}</Text>
               </View>
               <Pressable disabled={busy} onPress={() => setPreview(null)} accessibilityLabel="Fechar visualização">
-                <Text style={s.previewClose}>✕</Text>
+                <Text style={s.previewClose}>FECHAR</Text>
               </Pressable>
             </View>
 
@@ -848,70 +848,70 @@ const s = StyleSheet.create({
   root: { flex: 1, marginTop: 18 },
   hero: { flexDirection: "row", alignItems: "center", gap: 9 },
   title: { color: "#FFF", fontSize: 22, fontWeight: "900" },
-  subtitle: { color: "#77777F", fontSize: 10, lineHeight: 15, marginTop: 4 },
-  refresh: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#303036", alignItems: "center", justifyContent: "center" },
-  refreshText: { color: "#CCAFDF", fontSize: 18 },
-  privacyCard: { borderRadius: 14, borderWidth: 1, borderColor: "#2B2430", backgroundColor: "#0D0910", padding: 12, marginTop: 12 },
-  privacyTitle: { color: "#D3B6E7", fontSize: 8, fontWeight: "900", letterSpacing: 0.7 },
-  privacyText: { color: "#7D7285", fontSize: 9, lineHeight: 15, marginTop: 5 },
-  storageCard: { borderRadius: 14, borderWidth: 1, borderColor: "#25252B", backgroundColor: "#09090C", padding: 12, marginTop: 10 },
+  subtitle: { color: "rgba(235,235,240,0.62)", fontSize: 10, lineHeight: 15, marginTop: 4 },
+  refresh: { minWidth: 74, minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.12)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  refreshText: { color: "rgba(245,245,248,0.72)", fontSize: 7, fontWeight: "900" },
+  privacyCard: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(5,5,7,0.18)", padding: 12, marginTop: 12 },
+  privacyTitle: { color: "#FF8A91", fontSize: 8, fontWeight: "900", letterSpacing: 0.7 },
+  privacyText: { color: "rgba(235,235,240,0.62)", fontSize: 9, lineHeight: 15, marginTop: 5 },
+  storageCard: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(5,5,7,0.16)", padding: 12, marginTop: 10 },
   storageRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  storageText: { color: "#C9C9CE", fontSize: 9, fontWeight: "800" },
-  storageLimit: { color: "#696970", fontSize: 8 },
-  storageTrack: { height: 5, borderRadius: 999, backgroundColor: "#202026", overflow: "hidden", marginTop: 8 },
-  storageFill: { height: "100%", minWidth: 2, borderRadius: 999, backgroundColor: "#9865BE" },
-  itemLimit: { color: "#626269", fontSize: 8, marginTop: 7 },
+  storageText: { color: "rgba(245,245,248,0.80)", fontSize: 9, fontWeight: "800" },
+  storageLimit: { color: "rgba(225,225,232,0.54)", fontSize: 8 },
+  storageTrack: { height: 5, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.10)", overflow: "hidden", marginTop: 8 },
+  storageFill: { height: "100%", minWidth: 2, borderRadius: 999, backgroundColor: "#C92D36" },
+  itemLimit: { color: "rgba(225,225,232,0.54)", fontSize: 8, marginTop: 7 },
   searchRow: { flexDirection: "row", gap: 8, marginTop: 10 },
-  search: { flex: 1, minHeight: 47, borderRadius: 12, borderWidth: 1, borderColor: "#2B2B31", backgroundColor: "#0D0D10", color: "#FFF", paddingHorizontal: 12 },
-  importButton: { minWidth: 104, minHeight: 47, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
-  importText: { color: "#050505", fontSize: 8, fontWeight: "900" },
-  message: { color: "#BBA3CE", fontSize: 9, lineHeight: 14, marginTop: 8 },
-  empty: { borderRadius: 18, borderWidth: 1, borderColor: "#25252B", backgroundColor: "#09090C", padding: 25, alignItems: "center", marginTop: 14 },
-  emptyIcon: { color: "#B591CE", fontSize: 30 },
+  search: { flex: 1, minHeight: 47, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.20)", color: "#FFF", paddingHorizontal: 12 },
+  importButton: { minWidth: 104, minHeight: 47, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(181,29,37,0.88)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  importText: { color: "#FFFFFF", fontSize: 8, fontWeight: "900" },
+  message: { color: "rgba(245,225,228,0.80)", fontSize: 9, lineHeight: 14, marginTop: 8 },
+  empty: { borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.16)", padding: 25, alignItems: "center", marginTop: 14 },
+  emptyIcon: { color: "#FF8A91", fontSize: 9, fontWeight: "900", letterSpacing: 1.2 },
   emptyTitle: { color: "#FFF", fontSize: 14, fontWeight: "900", marginTop: 8 },
-  emptyText: { color: "#77777F", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 6 },
-  card: { flexDirection: "row", borderRadius: 16, borderWidth: 1, borderColor: "#27272D", backgroundColor: "#09090C", overflow: "hidden", marginTop: 10, minHeight: 118 },
-  photo: { width: 118, height: 118, backgroundColor: "#111114" },
-  videoThumb: { width: 118, minHeight: 118, backgroundColor: "#100B13", alignItems: "center", justifyContent: "center", padding: 8 },
-  brokenThumb: { backgroundColor: "#16090B" },
-  videoGlyph: { color: "#C49BDD", fontSize: 26 },
-  videoLabel: { color: "#745D82", fontSize: 7, fontWeight: "900", marginTop: 5, textAlign: "center" },
+  emptyText: { color: "rgba(235,235,240,0.62)", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 6 },
+  card: { flexDirection: "row", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.16)", overflow: "hidden", marginTop: 10, minHeight: 118 },
+  photo: { width: 118, height: 118, backgroundColor: "rgba(0,0,0,0.24)" },
+  videoThumb: { width: 118, minHeight: 118, backgroundColor: "rgba(0,0,0,0.24)", alignItems: "center", justifyContent: "center", padding: 8 },
+  brokenThumb: { backgroundColor: "rgba(82,12,17,0.28)" },
+  videoGlyph: { color: "#FF8A91", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  videoLabel: { color: "rgba(235,235,240,0.58)", fontSize: 7, fontWeight: "900", marginTop: 5, textAlign: "center" },
   cardBody: { flex: 1, padding: 12 },
   name: { color: "#FFF", fontSize: 12, fontWeight: "900", lineHeight: 17 },
-  meta: { color: "#74747C", fontSize: 8, marginTop: 5 },
-  mime: { color: "#5C5C64", fontSize: 7, marginTop: 3 },
+  meta: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 5 },
+  mime: { color: "rgba(225,225,232,0.44)", fontSize: 7, marginTop: 3 },
   actions: { flexDirection: "row", gap: 7, marginTop: "auto", paddingTop: 10 },
-  openButton: { flex: 1, borderRadius: 8, borderWidth: 1, borderColor: "#443052", backgroundColor: "#120C18", paddingHorizontal: 9, paddingVertical: 7, alignItems: "center" },
-  openText: { color: "#D9B9EF", fontSize: 7, fontWeight: "900" },
-  delete: { borderRadius: 8, borderWidth: 1, borderColor: "#4A2429", backgroundColor: "#120708", paddingHorizontal: 9, paddingVertical: 7 },
-  deleteText: { color: "#E56D74", fontSize: 7, fontWeight: "900" },
-  loadMore: { minHeight: 48, marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: "#34343A", alignItems: "center", justifyContent: "center" },
-  loadMoreText: { color: "#D0D0D5", fontSize: 8, fontWeight: "900" },
-  note: { borderRadius: 14, borderWidth: 1, borderColor: "#24242A", backgroundColor: "#08080A", padding: 12, marginTop: 14 },
+  openButton: { flex: 1, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.12)", paddingHorizontal: 9, paddingVertical: 7, alignItems: "center" },
+  openText: { color: "rgba(245,245,248,0.80)", fontSize: 7, fontWeight: "900" },
+  delete: { borderRadius: 8, borderWidth: 1, borderColor: "rgba(211,71,83,0.50)", backgroundColor: "rgba(82,12,17,0.22)", paddingHorizontal: 9, paddingVertical: 7 },
+  deleteText: { color: "#FF858B", fontSize: 7, fontWeight: "900" },
+  loadMore: { minHeight: 48, marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center" },
+  loadMoreText: { color: "rgba(245,245,248,0.74)", fontSize: 8, fontWeight: "900" },
+  note: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.14)", padding: 12, marginTop: 14 },
   noteTitle: { color: "#FFF", fontSize: 10, fontWeight: "900" },
-  noteText: { color: "#707078", fontSize: 9, lineHeight: 15, marginTop: 5 },
-  previewBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.95)", alignItems: "center", justifyContent: "center", padding: 12 },
-  previewPanel: { width: "100%", maxWidth: 760, height: "90%", borderRadius: 20, borderWidth: 1, borderColor: "#302A35", backgroundColor: "#070709", padding: 12 },
+  noteText: { color: "rgba(235,235,240,0.58)", fontSize: 9, lineHeight: 15, marginTop: 5 },
+  previewBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 12 },
+  previewPanel: { width: "100%", maxWidth: 760, height: "90%", borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(7,7,9,0.80)", padding: 12 },
   previewHeader: { flexDirection: "row", alignItems: "flex-start", gap: 10, paddingBottom: 10 },
-  previewEyebrow: { color: "#9D72BC", fontSize: 8, fontWeight: "900", letterSpacing: 1.1 },
+  previewEyebrow: { color: "#FF7E86", fontSize: 8, fontWeight: "900", letterSpacing: 1.1 },
   previewTitle: { color: "#FFF", fontSize: 15, lineHeight: 20, fontWeight: "900", marginTop: 4 },
-  previewClose: { color: "#B9B9BF", fontSize: 22, paddingHorizontal: 6, paddingVertical: 2 },
+  previewClose: { color: "rgba(245,245,248,0.72)", fontSize: 8, fontWeight: "900", paddingHorizontal: 6, paddingVertical: 7 },
   previewMedia: { flex: 1, minHeight: 180, borderRadius: 14, overflow: "hidden", backgroundColor: "#000" },
   previewImage: { width: "100%", height: "100%" },
   previewError: { color: "#FF858A", fontSize: 10, lineHeight: 15, marginTop: 8 },
   previewFooter: { paddingTop: 10 },
-  previewMeta: { color: "#73737B", fontSize: 8 },
+  previewMeta: { color: "rgba(225,225,232,0.54)", fontSize: 8 },
   previewActions: { flexDirection: "row", gap: 8, marginTop: 8 },
-  previewDone: { flex: 1, minHeight: 44, borderRadius: 11, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center" },
-  previewDoneText: { color: "#050505", fontSize: 9, fontWeight: "900" },
-  previewDelete: { minHeight: 44, borderRadius: 11, borderWidth: 1, borderColor: "#51262B", backgroundColor: "#15090A", paddingHorizontal: 14, alignItems: "center", justifyContent: "center" },
-  previewDeleteText: { color: "#EF777D", fontSize: 8, fontWeight: "900" },
+  previewDone: { flex: 1, minHeight: 44, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.14)", alignItems: "center", justifyContent: "center" },
+  previewDoneText: { color: "#FFFFFF", fontSize: 9, fontWeight: "900" },
+  previewDelete: { minHeight: 44, borderRadius: 11, borderWidth: 1, borderColor: "rgba(211,71,83,0.52)", backgroundColor: "rgba(82,12,17,0.24)", paddingHorizontal: 14, alignItems: "center", justifyContent: "center" },
+  previewDeleteText: { color: "#FF858B", fontSize: 8, fontWeight: "900" },
   videoPreviewRoot: { flex: 1, position: "relative", backgroundColor: "#000" },
   videoPlayer: { width: "100%", height: "100%" },
   playerOverlay: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "rgba(0,0,0,0.32)" },
   playerOverlayText: { color: "#C9C9CE", fontSize: 9 },
-  playerError: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#100708", padding: 24 },
+  playerError: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(48,7,10,0.78)", padding: 24 },
   playerErrorTitle: { color: "#FF858A", fontSize: 13, fontWeight: "900", textAlign: "center" },
-  playerErrorText: { color: "#A78085", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 7 },
+  playerErrorText: { color: "rgba(235,190,195,0.72)", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 7 },
   disabled: { opacity: 0.42 }
 });
