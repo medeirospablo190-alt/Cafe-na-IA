@@ -89,7 +89,7 @@ async function insertAccount(db, {
   );
 }
 
-test("somente DEV edita aviso global e a edição preserva o prazo original", { skip: !enabled, timeout: 45_000 }, async () => {
+test("DEV edita aviso, mantém prazo e a Home lista mais de três avisos ativos", { skip: !enabled, timeout: 45_000 }, async () => {
   const db = new pg.Client({
     connectionString: process.env.DATABASE_URL,
     ssl: String(process.env.DATABASE_SSL || "true").toLowerCase() === "true"
@@ -114,6 +114,7 @@ test("somente DEV edita aviso global e a edição preserva o prazo original", { 
 
   let child = null;
   let announcementId = null;
+  const extraAnnouncementIds = [];
 
   try {
     await insertAccount(db, adm);
@@ -162,14 +163,34 @@ test("somente DEV edita aviso global e a edição preserva o prazo original", { 
       "editar não pode renovar o prazo de expiração"
     );
 
+    for (let index = 0; index < 4; index += 1) {
+      const id = `ci-home-announcement-${suffix}-${index}`;
+      extraAnnouncementIds.push(id);
+      await db.query(
+        `INSERT INTO app1_global_announcements (id, actor_account_id, text_content)
+         VALUES ($1, $2, $3)`,
+        [id, dev.id, `Aviso extra ${index + 1}`]
+      );
+    }
+
+    const homeList = await api(baseUrl, "/v1/app1/social/announcements", {
+      token: adm.token,
+      deviceToken: adm.deviceToken
+    });
+    assert.equal(homeList.response.status, 200, JSON.stringify(homeList.data));
+    const expectedIds = new Set([announcementId, ...extraAnnouncementIds]);
+    const returnedIds = new Set(homeList.data.announcements.map((item) => item.id));
+    for (const id of expectedIds) assert.equal(returnedIds.has(id), true, `Home não retornou ${id}`);
+    const editedOnHome = homeList.data.announcements.find((item) => item.id === announcementId);
+    assert.equal(editedOnHome?.text, "Aviso editado CI");
+    assert.equal(editedOnHome?.author?.role, "DEV");
+
     const feed = await api(baseUrl, "/v1/app1/social/feed", {
       token: adm.token,
       deviceToken: adm.deviceToken
     });
     assert.equal(feed.response.status, 200, JSON.stringify(feed.data));
-    const edited = feed.data.announcements.find((item) => item.id === announcementId);
-    assert.ok(edited, JSON.stringify(feed.data));
-    assert.equal(edited.text, "Aviso editado CI");
+    assert.ok(feed.data.announcements.length <= 3, "o feed Social deve manter sua lista curta de destaques");
 
     const auditRow = (await db.query(
       `SELECT action, actor_id, target_id
@@ -195,8 +216,13 @@ test("somente DEV edita aviso global e a edição preserva o prazo original", { 
 
     if (announcementId) {
       await db.query(`DELETE FROM app1_social_notifications WHERE announcement_id = $1`, [announcementId]).catch(() => {});
-      await db.query(`DELETE FROM app1_global_announcements WHERE id = $1`, [announcementId]).catch(() => {});
       await db.query(`DELETE FROM audit_events WHERE target_id = $1`, [announcementId]).catch(() => {});
+    }
+    if (announcementId || extraAnnouncementIds.length) {
+      await db.query(
+        `DELETE FROM app1_global_announcements WHERE id = ANY($1::text[])`,
+        [[...(announcementId ? [announcementId] : []), ...extraAnnouncementIds]]
+      ).catch(() => {});
     }
     await db.query(`DELETE FROM audit_events WHERE actor_id = $1 OR actor_id = $2`, [adm.id, dev.id]).catch(() => {});
     await db.query(`DELETE FROM app1_accounts WHERE id = $1 OR id = $2`, [adm.id, dev.id]).catch(() => {});
