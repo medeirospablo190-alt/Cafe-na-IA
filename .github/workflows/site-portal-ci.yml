@@ -3,22 +3,28 @@ name: Site Portal CI
 on:
   push:
     paths:
+      - "avatar-gateway.js"
+      - "AvatarDumpExecutor.lua"
       - "server.js"
       - "package.json"
       - "public/**"
       - "scripts/hash-download-password.mjs"
       - "test/site-portal.test.mjs"
+      - "test/avatar-gateway.test.mjs"
       - ".github/workflows/site-portal-ci.yml"
       - ".env.example"
       - ".gitignore"
       - "README.md"
   pull_request:
     paths:
+      - "avatar-gateway.js"
+      - "AvatarDumpExecutor.lua"
       - "server.js"
       - "package.json"
       - "public/**"
       - "scripts/hash-download-password.mjs"
       - "test/site-portal.test.mjs"
+      - "test/avatar-gateway.test.mjs"
       - ".github/workflows/site-portal-ci.yml"
       - ".env.example"
       - ".gitignore"
