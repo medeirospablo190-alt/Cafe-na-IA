@@ -341,7 +341,7 @@ export function LocalMediaVault({ kind, ownerId }: { kind: MediaKind; ownerId: s
                 <Text style={s.modalTitle}>Nomes do cofre</Text>
               </View>
               <Pressable disabled={managerBusy} onPress={() => setManagerOpen(false)}>
-                <Text style={s.close}>✕</Text>
+                <Text style={s.close}>FECHAR</Text>
               </Pressable>
             </View>
 
@@ -399,34 +399,34 @@ export function LocalMediaVault({ kind, ownerId }: { kind: MediaKind; ownerId: s
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  loadingCard: { minHeight: 110, borderRadius: 16, borderWidth: 1, borderColor: "rgba(103,103,115,0.34)", backgroundColor: "rgba(6,6,9,0.30)", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 18 },
-  loadingText: { color: "#A0A0A8", fontSize: 9 },
-  organizerRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(134,73,88,0.46)", backgroundColor: "rgba(15,6,10,0.34)", padding: 11, marginTop: 18 },
+  loadingCard: { minHeight: 110, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.18)", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 18 },
+  loadingText: { color: "rgba(235,235,240,0.64)", fontSize: 9 },
+  organizerRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(5,5,7,0.18)", padding: 11, marginTop: 18 },
   organizerTitle: { color: "#FFF", fontSize: 10, fontWeight: "900" },
-  organizerText: { color: "#A99BA2", fontSize: 8, lineHeight: 13, marginTop: 3 },
-  organizerButton: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "rgba(191,56,70,0.60)", backgroundColor: "rgba(45,8,14,0.38)", alignItems: "center", justifyContent: "center", paddingHorizontal: 11 },
-  organizerButtonText: { color: "#FF8790", fontSize: 8, fontWeight: "900" },
-  recoveryMessage: { color: "#D4B7C0", fontSize: 8, lineHeight: 13, marginTop: 7, paddingHorizontal: 3 },
+  organizerText: { color: "rgba(235,235,240,0.62)", fontSize: 8, lineHeight: 13, marginTop: 3 },
+  organizerButton: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(95,15,20,0.30)", alignItems: "center", justifyContent: "center", paddingHorizontal: 11 },
+  organizerButtonText: { color: "#FF9299", fontSize: 8, fontWeight: "900" },
+  recoveryMessage: { color: "rgba(245,225,228,0.78)", fontSize: 8, lineHeight: 13, marginTop: 7, paddingHorizontal: 3 },
   disabled: { opacity: 0.45 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 16 },
-  managerPanel: { width: "100%", maxWidth: 540, maxHeight: "78%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(112,112,124,0.48)", backgroundColor: "rgba(8,8,12,0.91)", padding: 15 },
-  renamePanel: { width: "100%", maxWidth: 480, borderRadius: 18, borderWidth: 1, borderColor: "rgba(112,112,124,0.48)", backgroundColor: "rgba(8,8,12,0.91)", padding: 16 },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.58)", alignItems: "center", justifyContent: "center", padding: 16 },
+  managerPanel: { width: "100%", maxWidth: 540, maxHeight: "78%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(7,7,10,0.76)", padding: 15 },
+  renamePanel: { width: "100%", maxWidth: 480, borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(7,7,10,0.76)", padding: 16 },
   modalHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
   modalEyebrow: { color: "#FF727D", fontSize: 8, fontWeight: "900", letterSpacing: 1 },
   modalTitle: { color: "#FFF", fontSize: 19, fontWeight: "900", marginTop: 4 },
-  close: { color: "#C0C0C7", fontSize: 18, padding: 7 },
+  close: { color: "rgba(245,245,248,0.72)", fontSize: 8, fontWeight: "900", paddingHorizontal: 7, paddingVertical: 9 },
   managerList: { marginTop: 12 },
   managerListContent: { paddingBottom: 4 },
-  empty: { color: "#A0A0A8", fontSize: 10, textAlign: "center", paddingVertical: 24 },
-  itemRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, borderColor: "rgba(104,104,116,0.36)", backgroundColor: "rgba(7,7,10,0.34)", padding: 11, marginBottom: 7 },
+  empty: { color: "rgba(235,235,240,0.62)", fontSize: 10, textAlign: "center", paddingVertical: 24 },
+  itemRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(0,0,0,0.16)", padding: 11, marginBottom: 7 },
   itemName: { color: "#FFF", fontSize: 10, fontWeight: "800" },
-  itemMeta: { color: "#93939C", fontSize: 7, fontWeight: "900", marginTop: 4 },
-  renameButton: { minHeight: 34, borderRadius: 9, borderWidth: 1, borderColor: "rgba(177,66,80,0.52)", backgroundColor: "rgba(29,7,11,0.24)", paddingHorizontal: 9, alignItems: "center", justifyContent: "center" },
+  itemMeta: { color: "rgba(225,225,232,0.56)", fontSize: 7, fontWeight: "900", marginTop: 4 },
+  renameButton: { minHeight: 34, borderRadius: 9, borderWidth: 1, borderColor: "rgba(211,71,83,0.52)", backgroundColor: "rgba(72,10,15,0.22)", paddingHorizontal: 9, alignItems: "center", justifyContent: "center" },
   renameButtonText: { color: "#FF9098", fontSize: 7, fontWeight: "900" },
-  input: { minHeight: 50, borderRadius: 12, borderWidth: 1, borderColor: "rgba(111,111,123,0.46)", backgroundColor: "rgba(14,14,18,0.70)", color: "#FFF", paddingHorizontal: 12, marginTop: 13 },
-  counter: { color: "#92929A", fontSize: 8, textAlign: "right", marginTop: 4 },
-  saveButton: { minHeight: 48, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 11 },
-  saveButtonText: { color: "#050505", fontSize: 9, fontWeight: "900" },
+  input: { minHeight: 50, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.24)", color: "#FFF", paddingHorizontal: 12, marginTop: 13 },
+  counter: { color: "rgba(225,225,232,0.54)", fontSize: 8, textAlign: "right", marginTop: 4 },
+  saveButton: { minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(181,29,37,0.90)", alignItems: "center", justifyContent: "center", marginTop: 11 },
+  saveButtonText: { color: "#FFFFFF", fontSize: 9, fontWeight: "900" },
   cancelButton: { minHeight: 42, alignItems: "center", justifyContent: "center", marginTop: 3 },
-  cancelButtonText: { color: "#B5B5BD", fontSize: 8, fontWeight: "900" }
+  cancelButtonText: { color: "rgba(240,240,245,0.68)", fontSize: 8, fontWeight: "900" }
 });
