@@ -47,6 +47,7 @@ const DEVICE_TOKEN_KEY = "grupo-lua-app1-device-token-v1";
 
 type Tab = "home" | "files" | "social" | "keys" | "settings";
 type SocialSection = "feed" | "chat";
+type NavIconName = "home" | "files" | "social" | "keys" | "settings";
 
 type NoticeSection = {
   title: string;
@@ -447,6 +448,7 @@ export default function AppRootRedesign() {
           account={account}
           sessionToken={sessionToken}
           deviceToken={deviceToken}
+          sessionExpiresAt={session?.expiresAt || ""}
           tab={tab}
           onTab={setTab}
           onSignOut={signOutLocal}
@@ -472,6 +474,7 @@ export default function AppRootRedesign() {
     account,
     sessionToken,
     deviceToken,
+    session?.expiresAt,
     tab
   ]);
 
@@ -479,7 +482,7 @@ export default function AppRootRedesign() {
     <SafeAreaProvider>
       <ImageBackground source={{ uri: LOGIN_BACKGROUND_DATA_URI }} style={styles.background} resizeMode="cover">
         <View style={styles.globalShade} pointerEvents="none" />
-        <StatusBar style="light" translucent backgroundColor="transparent" />
+        <StatusBar style="light" />
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           {body}
         </SafeAreaView>
@@ -692,6 +695,7 @@ function HomeShell({
   account,
   sessionToken,
   deviceToken,
+  sessionExpiresAt,
   tab,
   onTab,
   onSignOut
@@ -699,6 +703,7 @@ function HomeShell({
   account: PublicAccount;
   sessionToken: string;
   deviceToken: string;
+  sessionExpiresAt: string;
   tab: Tab;
   onTab: (tab: Tab) => void;
   onSignOut: () => void;
@@ -731,7 +736,10 @@ function HomeShell({
             <SocialFeedScreen
               sessionToken={sessionToken}
               deviceToken={deviceToken}
+              viewerProfileId={account.profileId}
+              viewerPublicName={account.publicName || "Lua"}
               viewerRole={account.role}
+              sessionExpiresAt={sessionExpiresAt}
               onOpenChat={() => setSocialSection("chat")}
               onOpenProfile={() => onTab("settings")}
             />
@@ -764,30 +772,85 @@ function HomeShell({
       </ScrollView>
 
       <View style={styles.bottomNav}>
-        <NavItem symbol="⌂" label="Início" active={tab === "home"} onPress={() => openTab("home")} />
-        <NavItem symbol="▱" label="Arquivos" active={tab === "files"} onPress={() => openTab("files")} />
-        <NavItem symbol="◉" label="Social" active={tab === "social"} onPress={() => openTab("social")} />
-        <NavItem symbol="◇" label="Chaves" active={tab === "keys"} onPress={() => openTab("keys")} />
-        <NavItem symbol="⚙" label="Config." active={tab === "settings"} onPress={() => openTab("settings")} />
+        <NavItem icon="home" label="Início" active={tab === "home"} onPress={() => openTab("home")} />
+        <NavItem icon="files" label="Arquivos" active={tab === "files"} onPress={() => openTab("files")} />
+        <NavItem icon="social" label="Social" active={tab === "social"} onPress={() => openTab("social")} />
+        <NavItem icon="keys" label="Chaves" active={tab === "keys"} onPress={() => openTab("keys")} />
+        <NavItem icon="settings" label="Config." active={tab === "settings"} onPress={() => openTab("settings")} />
       </View>
     </View>
   );
 }
 
+function NavGlyph({ icon, active }: { icon: NavIconName; active: boolean }) {
+  const tint = active ? "#FFFFFF" : "rgba(235,235,240,0.62)";
+  const accent = active ? "#FF2638" : "transparent";
+
+  if (icon === "home") {
+    return (
+      <View style={styles.navGlyphBox}>
+        <View style={[styles.homeRoof, { borderColor: tint }]} />
+        <View style={[styles.homeBody, { borderColor: tint }]} />
+      </View>
+    );
+  }
+
+  if (icon === "files") {
+    return (
+      <View style={styles.navGlyphBox}>
+        <View style={[styles.folderBody, { borderColor: tint }]}>
+          <View style={[styles.folderTab, { borderColor: tint }]} />
+        </View>
+      </View>
+    );
+  }
+
+  if (icon === "social") {
+    return (
+      <View style={styles.navGlyphBox}>
+        <View style={[styles.socialSquare, { borderColor: active ? "#FF2638" : tint, backgroundColor: accent }]} />
+      </View>
+    );
+  }
+
+  if (icon === "keys") {
+    return (
+      <View style={styles.navGlyphBox}>
+        <View style={[styles.keyRing, { borderColor: tint }]} />
+        <View style={[styles.keyShaft, { backgroundColor: tint }]} />
+        <View style={[styles.keyToothA, { backgroundColor: tint }]} />
+        <View style={[styles.keyToothB, { backgroundColor: tint }]} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.navGlyphBox}>
+      <View style={[styles.settingsRing, { borderColor: tint }]}>
+        <View style={[styles.settingsCore, { borderColor: tint }]} />
+      </View>
+      <View style={[styles.settingsSpokeTop, { backgroundColor: tint }]} />
+      <View style={[styles.settingsSpokeBottom, { backgroundColor: tint }]} />
+      <View style={[styles.settingsSpokeLeft, { backgroundColor: tint }]} />
+      <View style={[styles.settingsSpokeRight, { backgroundColor: tint }]} />
+    </View>
+  );
+}
+
 function NavItem({
-  symbol,
+  icon,
   label,
   active,
   onPress
 }: {
-  symbol: string;
+  icon: NavIconName;
   label: string;
   active: boolean;
   onPress: () => void;
 }) {
   return (
     <Pressable style={styles.navItem} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-      <Text style={[styles.navSymbol, active && styles.navSymbolActive]}>{symbol}</Text>
+      <NavGlyph icon={icon} active={active} />
       <Text style={[styles.navText, active && styles.navTextActive]}>{label}</Text>
     </Pressable>
   );
@@ -961,17 +1024,32 @@ const styles = StyleSheet.create({
   profileMiniShoulders: { width: 18, height: 9, borderTopLeftRadius: 9, borderTopRightRadius: 9, borderWidth: 1.4, borderBottomWidth: 0, borderColor: "#FFFFFF", position: "absolute", bottom: 8 },
   bottomNav: {
     flexShrink: 0,
-    minHeight: 64,
+    minHeight: 68,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(4,4,6,0.54)",
+    backgroundColor: "rgba(3,3,5,0.62)",
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.13)",
-    paddingHorizontal: 4
+    borderTopColor: "rgba(255,255,255,0.14)",
+    paddingHorizontal: 4,
+    paddingTop: 3
   },
-  navItem: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 58, gap: 2 },
-  navSymbol: { color: "rgba(235,235,240,0.58)", fontSize: 17, fontWeight: "800" },
-  navSymbolActive: { color: "#FFFFFF" },
-  navText: { color: "rgba(225,225,232,0.50)", fontSize: 7, fontWeight: "800" },
-  navTextActive: { color: "#FFFFFF" }
+  navItem: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 61, gap: 3 },
+  navGlyphBox: { width: 27, height: 25, alignItems: "center", justifyContent: "center", position: "relative" },
+  homeRoof: { position: "absolute", width: 14, height: 14, top: 2, transform: [{ rotate: "45deg" }], borderLeftWidth: 1.8, borderTopWidth: 1.8, borderRadius: 2, backgroundColor: "transparent" },
+  homeBody: { position: "absolute", width: 18, height: 14, bottom: 2, borderWidth: 1.8, borderTopWidth: 0, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: "transparent" },
+  folderBody: { width: 22, height: 16, marginTop: 4, borderWidth: 1.8, borderRadius: 3, position: "relative", backgroundColor: "transparent" },
+  folderTab: { position: "absolute", left: 2, top: -6, width: 9, height: 6, borderWidth: 1.8, borderBottomWidth: 0, borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: "transparent" },
+  socialSquare: { width: 15, height: 15, borderRadius: 2, borderWidth: 1.8 },
+  keyRing: { position: "absolute", left: 2, top: 4, width: 10, height: 10, borderRadius: 5, borderWidth: 1.8 },
+  keyShaft: { position: "absolute", width: 14, height: 2, left: 10, top: 12, borderRadius: 1, transform: [{ rotate: "-42deg" }] },
+  keyToothA: { position: "absolute", width: 2, height: 5, right: 5, bottom: 5, borderRadius: 1, transform: [{ rotate: "48deg" }] },
+  keyToothB: { position: "absolute", width: 2, height: 4, right: 2, bottom: 7, borderRadius: 1, transform: [{ rotate: "48deg" }] },
+  settingsRing: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.7, alignItems: "center", justifyContent: "center" },
+  settingsCore: { width: 6, height: 6, borderRadius: 3, borderWidth: 1.5 },
+  settingsSpokeTop: { position: "absolute", width: 2, height: 4, top: 1, borderRadius: 1 },
+  settingsSpokeBottom: { position: "absolute", width: 2, height: 4, bottom: 1, borderRadius: 1 },
+  settingsSpokeLeft: { position: "absolute", width: 4, height: 2, left: 1, borderRadius: 1 },
+  settingsSpokeRight: { position: "absolute", width: 4, height: 2, right: 1, borderRadius: 1 },
+  navText: { color: "rgba(225,225,232,0.56)", fontSize: 7, fontWeight: "800" },
+  navTextActive: { color: "#FFFFFF", fontWeight: "900" }
 });
