@@ -575,7 +575,7 @@ export function KeysScreenV2({ sessionToken, deviceToken }: {
             <Text style={s.heroText}>Cadastre seu Lua, gere o loadstring e administre FREE/VIP no mesmo lugar.</Text>
           </View>
           <Pressable style={[s.primaryMini, busy && s.disabled]} disabled={busy} onPress={newMenu}>
-            <Text style={s.primaryMiniText}>＋ MENU</Text>
+            <Text style={s.primaryMiniText}>NOVO MENU</Text>
           </Pressable>
         </View>
 
@@ -660,7 +660,7 @@ export function KeysScreenV2({ sessionToken, deviceToken }: {
     <View>
       <View style={s.detailHeader}>
         <Pressable style={s.backButton} disabled={busy} onPress={() => { setSelectedMenu(null); setKeys([]); }}>
-          <Text style={s.backText}>‹ MENUS</Text>
+          <Text style={s.backText}>MENUS</Text>
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={s.detailTitle}>{selectedMenu.name}</Text>
@@ -674,7 +674,7 @@ export function KeysScreenV2({ sessionToken, deviceToken }: {
           disabled={busy || selectedMenu.status !== "ACTIVE"}
           onPress={openNewKey}
         >
-          <Text style={s.primaryMiniText}>＋ CHAVE</Text>
+          <Text style={s.primaryMiniText}>NOVA CHAVE</Text>
         </Pressable>
       </View>
 
@@ -1023,73 +1023,73 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const s = StyleSheet.create({
-  heroCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(108,89,114,0.38)", backgroundColor: "rgba(8,6,10,0.34)", padding: 14, marginBottom: 10 },
+  heroCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(5,5,7,0.18)", padding: 14, marginBottom: 10 },
   heroTitle: { color: "#FFF", fontSize: 16, fontWeight: "900" },
-  heroText: { color: "#AAA5AE", fontSize: 9, lineHeight: 14, marginTop: 4 },
-  primaryMini: { minHeight: 38, borderRadius: 10, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 11 },
-  primaryMiniText: { color: "#050505", fontSize: 8, fontWeight: "900" },
-  search: { minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(106,106,118,0.40)", backgroundColor: "rgba(8,8,12,0.34)", color: "#FFF", paddingHorizontal: 12, marginTop: 4 },
+  heroText: { color: "rgba(235,235,240,0.62)", fontSize: 9, lineHeight: 14, marginTop: 4 },
+  primaryMini: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(181,29,37,0.88)", alignItems: "center", justifyContent: "center", paddingHorizontal: 11 },
+  primaryMiniText: { color: "#FFFFFF", fontSize: 8, fontWeight: "900" },
+  search: { minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.20)", color: "#FFF", paddingHorizontal: 12, marginTop: 4 },
   filterRow: { flexDirection: "row", gap: 6, paddingVertical: 9, paddingRight: 8 },
-  chip: { minHeight: 34, borderRadius: 9, borderWidth: 1, borderColor: "rgba(112,112,124,0.38)", backgroundColor: "rgba(8,8,11,0.30)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
-  chipActive: { backgroundColor: "#FFF", borderColor: "#FFF" },
-  chipText: { color: "#A8A8B0", fontSize: 7, fontWeight: "900" },
-  chipTextActive: { color: "#050505" },
-  menuCard: { borderRadius: 15, borderWidth: 1, borderColor: "rgba(104,104,116,0.34)", backgroundColor: "rgba(6,6,9,0.34)", marginBottom: 9, overflow: "hidden" },
-  menuSuspended: { borderColor: "rgba(157,72,80,0.48)", backgroundColor: "rgba(14,7,8,0.36)" },
+  chip: { minHeight: 34, borderRadius: 9, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.12)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  chipActive: { backgroundColor: "rgba(181,29,37,0.88)", borderColor: "rgba(255,105,111,0.58)" },
+  chipText: { color: "rgba(240,240,245,0.68)", fontSize: 7, fontWeight: "900" },
+  chipTextActive: { color: "#FFFFFF" },
+  menuCard: { borderRadius: 15, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.16)", marginBottom: 9, overflow: "hidden" },
+  menuSuspended: { borderColor: "rgba(211,71,83,0.46)", backgroundColor: "rgba(82,12,17,0.20)" },
   menuMain: { padding: 13 },
   badgeRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginBottom: 6 },
   ok: { color: "#70E08A", fontSize: 8, fontWeight: "900" },
   warn: { color: "#FF767D", fontSize: 8, fontWeight: "900" },
-  sourceBadge: { color: "#D8B9E9", backgroundColor: "rgba(22,15,27,0.46)", borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2, fontSize: 7, fontWeight: "900" },
-  legacyBadge: { color: "#F2C36B", backgroundColor: "rgba(27,20,7,0.46)", borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2, fontSize: 7, fontWeight: "900" },
+  sourceBadge: { color: "#FF9299", backgroundColor: "rgba(95,15,20,0.26)", borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2, fontSize: 7, fontWeight: "900" },
+  legacyBadge: { color: "#F2C36B", backgroundColor: "rgba(27,20,7,0.38)", borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2, fontSize: 7, fontWeight: "900" },
   kindBadge: { color: "#70E08A", fontSize: 8, fontWeight: "900" },
-  vipBadge: { color: "#E0B3FA" },
+  vipBadge: { color: "#FFB0B5" },
   cardTitle: { color: "#FFF", fontSize: 13, fontWeight: "900" },
-  meta: { color: "#9797A0", fontSize: 8, lineHeight: 13, marginTop: 3 },
+  meta: { color: "rgba(225,225,232,0.60)", fontSize: 8, lineHeight: 13, marginTop: 3 },
   warnMeta: { color: "#DFA0A4", fontSize: 8, marginTop: 4 },
-  secretHint: { color: "#C0C0C7", fontSize: 9, fontWeight: "700", marginTop: 4 },
+  secretHint: { color: "rgba(245,245,248,0.76)", fontSize: 9, fontWeight: "700", marginTop: 4 },
   actions: { flexDirection: "row", gap: 6, paddingHorizontal: 11, paddingBottom: 11 },
-  action: { minHeight: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(116,116,127,0.40)", backgroundColor: "rgba(7,7,10,0.20)", alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
-  actionDanger: { borderColor: "rgba(166,68,77,0.50)", backgroundColor: "rgba(19,8,9,0.32)" },
-  actionText: { color: "#D0D0D6", fontSize: 7, fontWeight: "900" },
+  action: { minHeight: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
+  actionDanger: { borderColor: "rgba(211,71,83,0.46)", backgroundColor: "rgba(82,12,17,0.20)" },
+  actionText: { color: "rgba(245,245,248,0.76)", fontSize: 7, fontWeight: "900" },
   actionDangerText: { color: "#FF858B" },
   disabled: { opacity: 0.42 },
-  emptyCard: { minHeight: 112, borderRadius: 15, borderWidth: 1, borderColor: "rgba(103,103,114,0.30)", backgroundColor: "rgba(6,6,9,0.30)", alignItems: "center", justifyContent: "center", padding: 18, marginTop: 8 },
+  emptyCard: { minHeight: 112, borderRadius: 15, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.14)", alignItems: "center", justifyContent: "center", padding: 18, marginTop: 8 },
   emptyTitle: { color: "#FFF", fontSize: 12, fontWeight: "900" },
-  emptyText: { color: "#A0A0A8", fontSize: 9, lineHeight: 14, textAlign: "center", marginTop: 5 },
+  emptyText: { color: "rgba(235,235,240,0.60)", fontSize: 9, lineHeight: 14, textAlign: "center", marginTop: 5 },
   detailHeader: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 9 },
   backButton: { minHeight: 38, justifyContent: "center", paddingRight: 4 },
-  backText: { color: "#D0D0D6", fontSize: 8, fontWeight: "900" },
+  backText: { color: "rgba(245,245,248,0.76)", fontSize: 8, fontWeight: "900" },
   detailTitle: { color: "#FFF", fontSize: 14, fontWeight: "900" },
-  iconButton: { minHeight: 38, borderRadius: 9, borderWidth: 1, borderColor: "rgba(119,88,138,0.50)", backgroundColor: "rgba(10,8,12,0.22)", alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
-  iconButtonText: { color: "#D8B8E9", fontSize: 7, fontWeight: "900" },
-  suspendedNotice: { borderRadius: 13, borderWidth: 1, borderColor: "rgba(174,71,81,0.55)", backgroundColor: "rgba(18,8,9,0.36)", padding: 12, marginBottom: 9 },
+  iconButton: { minHeight: 38, borderRadius: 9, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  iconButtonText: { color: "rgba(245,245,248,0.76)", fontSize: 7, fontWeight: "900" },
+  suspendedNotice: { borderRadius: 13, borderWidth: 1, borderColor: "rgba(211,71,83,0.52)", backgroundColor: "rgba(82,12,17,0.22)", padding: 12, marginBottom: 9 },
   suspendedTitle: { color: "#FF858B", fontSize: 11, fontWeight: "900" },
-  suspendedText: { color: "#C69A9E", fontSize: 8, lineHeight: 13, marginTop: 4 },
-  noticeButton: { minHeight: 35, borderRadius: 9, borderWidth: 1, borderColor: "rgba(179,76,86,0.55)", backgroundColor: "rgba(17,7,8,0.18)", alignItems: "center", justifyContent: "center", marginTop: 8 },
+  suspendedText: { color: "rgba(235,190,195,0.72)", fontSize: 8, lineHeight: 13, marginTop: 4 },
+  noticeButton: { minHeight: 35, borderRadius: 9, borderWidth: 1, borderColor: "rgba(211,71,83,0.50)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center", marginTop: 8 },
   noticeButtonText: { color: "#FF989D", fontSize: 7, fontWeight: "900" },
   statsRow: { flexDirection: "row", gap: 6, marginBottom: 5 },
-  stat: { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: "rgba(102,102,114,0.30)", backgroundColor: "rgba(6,6,9,0.30)", alignItems: "center", paddingVertical: 8 },
+  stat: { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.14)", alignItems: "center", paddingVertical: 8 },
   statValue: { color: "#FFF", fontSize: 12, fontWeight: "900" },
-  statLabel: { color: "#96969F", fontSize: 6, fontWeight: "900", marginTop: 2 },
-  keyCard: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(104,104,116,0.34)", backgroundColor: "rgba(6,6,9,0.34)", padding: 12, marginBottom: 8 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 15 },
-  modalPanel: { width: "100%", maxWidth: 520, maxHeight: "84%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(113,113,126,0.48)", backgroundColor: "rgba(8,8,12,0.90)", padding: 15 },
-  modalPanelLarge: { width: "100%", maxWidth: 560, maxHeight: "90%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(113,113,126,0.48)", backgroundColor: "rgba(8,8,12,0.90)", padding: 15 },
-  modalEyebrow: { color: "#C79DDE", fontSize: 8, fontWeight: "900", letterSpacing: 1 },
+  statLabel: { color: "rgba(225,225,232,0.56)", fontSize: 6, fontWeight: "900", marginTop: 2 },
+  keyCard: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.16)", padding: 12, marginBottom: 8 },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.58)", alignItems: "center", justifyContent: "center", padding: 15 },
+  modalPanel: { width: "100%", maxWidth: 520, maxHeight: "84%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(8,8,12,0.76)", padding: 15 },
+  modalPanelLarge: { width: "100%", maxWidth: 560, maxHeight: "90%", borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(8,8,12,0.76)", padding: 15 },
+  modalEyebrow: { color: "#FF7E86", fontSize: 8, fontWeight: "900", letterSpacing: 1 },
   modalTitle: { color: "#FFF", fontSize: 19, fontWeight: "900", marginTop: 4, marginBottom: 8 },
-  label: { color: "#A0A0A8", fontSize: 8, fontWeight: "900", letterSpacing: 0.9, marginTop: 9, marginBottom: 2 },
-  input: { minHeight: 47, borderRadius: 11, borderWidth: 1, borderColor: "rgba(112,112,124,0.46)", backgroundColor: "rgba(14,14,18,0.72)", color: "#FFF", paddingHorizontal: 11, marginTop: 6 },
+  label: { color: "rgba(235,235,240,0.62)", fontSize: 8, fontWeight: "900", letterSpacing: 0.9, marginTop: 9, marginBottom: 2 },
+  input: { minHeight: 47, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.22)", color: "#FFF", paddingHorizontal: 11, marginTop: 6 },
   codeInput: { minHeight: 190, paddingTop: 10, paddingBottom: 10, fontSize: 11 },
-  help: { color: "#A0A0A8", fontSize: 8, lineHeight: 13, marginTop: 7 },
+  help: { color: "rgba(235,235,240,0.60)", fontSize: 8, lineHeight: 13, marginTop: 7 },
   choiceRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
-  importButton: { minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(135,90,158,0.58)", backgroundColor: "rgba(20,14,24,0.48)", alignItems: "center", justifyContent: "center", marginTop: 8 },
-  importButtonText: { color: "#DFC5EC", fontSize: 8, fontWeight: "900" },
-  saveButton: { minHeight: 47, borderRadius: 11, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", marginTop: 13 },
-  saveButtonText: { color: "#050505", fontSize: 9, fontWeight: "900" },
-  dangerButton: { minHeight: 47, borderRadius: 11, backgroundColor: "rgba(106,35,43,0.88)", alignItems: "center", justifyContent: "center", marginTop: 13 },
+  importButton: { minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,105,111,0.52)", backgroundColor: "rgba(95,15,20,0.24)", alignItems: "center", justifyContent: "center", marginTop: 8 },
+  importButtonText: { color: "#FF9299", fontSize: 8, fontWeight: "900" },
+  saveButton: { minHeight: 47, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(181,29,37,0.90)", alignItems: "center", justifyContent: "center", marginTop: 13 },
+  saveButtonText: { color: "#FFFFFF", fontSize: 9, fontWeight: "900" },
+  dangerButton: { minHeight: 47, borderRadius: 11, borderWidth: 1, borderColor: "rgba(211,71,83,0.52)", backgroundColor: "rgba(106,35,43,0.80)", alignItems: "center", justifyContent: "center", marginTop: 13 },
   dangerButtonText: { color: "#FFF", fontSize: 9, fontWeight: "900" },
   cancelButton: { minHeight: 40, alignItems: "center", justifyContent: "center", marginTop: 3 },
-  cancelText: { color: "#B4B4BC", fontSize: 8, fontWeight: "900" },
-  secretValue: { color: "#FFF", backgroundColor: "rgba(14,14,19,0.76)", borderRadius: 11, borderWidth: 1, borderColor: "rgba(116,116,128,0.48)", padding: 12, fontSize: 11, lineHeight: 17, marginTop: 9 }
+  cancelText: { color: "rgba(240,240,245,0.70)", fontSize: 8, fontWeight: "900" },
+  secretValue: { color: "#FFF", backgroundColor: "rgba(0,0,0,0.24)", borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", padding: 12, fontSize: 11, lineHeight: 17, marginTop: 9 }
 });
