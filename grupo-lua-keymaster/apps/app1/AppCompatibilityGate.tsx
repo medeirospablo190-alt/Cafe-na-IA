@@ -117,32 +117,34 @@ const styles = StyleSheet.create({
     maxWidth: 520,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,110,116,0.40)",
-    backgroundColor: "rgba(35,7,9,0.52)",
+    borderColor: "rgba(255,105,111,0.42)",
+    backgroundColor: "rgba(24,5,7,0.30)",
     padding: 18
   },
   eyebrow: { color: "#FF9A9F", fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   title: { color: "#FFFFFF", fontSize: 22, lineHeight: 28, fontWeight: "900", marginTop: 7 },
-  body: { color: "#F1E4E5", fontSize: 13, lineHeight: 19, marginTop: 8 },
+  body: { color: "rgba(250,245,246,0.88)", fontSize: 13, lineHeight: 19, marginTop: 8 },
   versionBox: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(0,0,0,0.24)",
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(0,0,0,0.18)",
     padding: 12,
     marginTop: 12,
     gap: 4
   },
   versionLine: { color: "#FFFFFF", fontSize: 12, lineHeight: 17, fontWeight: "700" },
-  help: { color: "rgba(245,245,248,0.72)", fontSize: 11, lineHeight: 17, marginTop: 11 },
+  help: { color: "rgba(245,245,248,0.68)", fontSize: 11, lineHeight: 17, marginTop: 11 },
   button: {
     minHeight: 50,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,105,111,0.58)",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "rgba(181,29,37,0.90)",
     marginTop: 14,
     paddingHorizontal: 16
   },
-  buttonText: { color: "#050505", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 }
+  buttonText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 }
 });
