@@ -333,3 +333,20 @@ export async function createGlobalAnnouncement(sessionToken: string, deviceToken
     { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ text }) }
   );
 }
+
+export async function updateGlobalAnnouncement(
+  sessionToken: string,
+  deviceToken: string,
+  announcementId: string,
+  text: string
+) {
+  return app1FeatureRequest<{
+    ok: true;
+    announcement: { id: string; text: string; createdAt: string; expiresAt: string };
+  }>(
+    `/v1/app1/social/announcements/${encodeURIComponent(announcementId)}`,
+    sessionToken,
+    deviceToken,
+    { method: "PATCH", headers: jsonHeaders(), body: JSON.stringify({ text }) }
+  );
+}
