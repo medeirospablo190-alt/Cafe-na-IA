@@ -899,7 +899,7 @@ function KeyCreateModal(props: {
             <Text style={s.modalTitle}>Gerar FREE / VIP</Text>
             <Text style={s.label}>NOME DA CHAVE</Text>
             <TextInput value={props.name} onChangeText={props.onName} editable={!props.busy} maxLength={80} style={s.input} placeholder="Ex.: Cliente João" placeholderTextColor="#666" />
-            <View style={[s.choiceRow, { marginTop: 12 }] }>
+            <View style={[s.choiceRow, { marginTop: 12 }]}>
               <Chip label="FREE" active={props.kind === "FREE"} onPress={() => props.onKind("FREE")} />
               <Chip label="VIP" active={props.kind === "VIP"} onPress={() => props.onKind("VIP")} />
             </View>
