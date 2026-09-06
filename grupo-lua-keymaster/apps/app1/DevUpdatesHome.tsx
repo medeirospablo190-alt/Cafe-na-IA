@@ -15,7 +15,8 @@ import type { App1Role } from "./api";
 import {
   type SocialAnnouncement,
   createGlobalAnnouncement,
-  listSocialFeed
+  listSocialFeed,
+  updateGlobalAnnouncement
 } from "./social-api";
 
 function dateText(value?: string | null) {
@@ -56,6 +57,7 @@ export function DevUpdatesHome({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [editing, setEditing] = useState<SocialAnnouncement | null>(null);
   const [draft, setDraft] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const mounted = useRef(true);
@@ -75,19 +77,48 @@ export function DevUpdatesHome({
     }
   }
 
-  async function publish() {
+  function openNewComposer() {
+    if (viewerRole !== "DEV" || busy) return;
+    setEditing(null);
+    setDraft("");
+    setComposerOpen(true);
+  }
+
+  function openEditComposer(item: SocialAnnouncement) {
+    if (viewerRole !== "DEV" || busy) return;
+    setEditing(item);
+    setDraft(item.text);
+    setComposerOpen(true);
+  }
+
+  function closeComposer() {
+    if (busy) return;
+    setComposerOpen(false);
+    setEditing(null);
+    setDraft("");
+  }
+
+  async function saveAnnouncement() {
     const text = draft.trim();
     if (viewerRole !== "DEV" || !text || busy) return;
     setBusy(true);
     try {
-      await createGlobalAnnouncement(sessionToken, deviceToken, text);
+      if (editing) {
+        await updateGlobalAnnouncement(sessionToken, deviceToken, editing.id, text);
+      } else {
+        await createGlobalAnnouncement(sessionToken, deviceToken, text);
+      }
       if (!mounted.current) return;
       setDraft("");
+      setEditing(null);
       setComposerOpen(false);
       await reload(false);
     } catch (error) {
       if (mounted.current) {
-        Alert.alert("Não foi possível publicar", error instanceof Error ? error.message : "Falha ao publicar o aviso.");
+        Alert.alert(
+          editing ? "Não foi possível editar" : "Não foi possível publicar",
+          error instanceof Error ? error.message : editing ? "Falha ao editar o aviso." : "Falha ao publicar o aviso."
+        );
       }
     } finally {
       if (mounted.current) setBusy(false);
@@ -112,7 +143,7 @@ export function DevUpdatesHome({
         {viewerRole === "DEV" ? (
           <Pressable
             style={s.devButton}
-            onPress={() => setComposerOpen(true)}
+            onPress={openNewComposer}
             accessibilityRole="button"
             accessibilityLabel="Publicar aviso DEV"
           >
@@ -147,6 +178,17 @@ export function DevUpdatesHome({
               <Text style={s.author}>{item.author.publicName || "GRUPO LUA"}</Text>
               <Text style={s.date}>{dateText(item.createdAt)}</Text>
             </View>
+            {viewerRole === "DEV" ? (
+              <Pressable
+                style={s.editButton}
+                disabled={busy}
+                onPress={() => openEditComposer(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`Editar aviso de ${item.author.publicName || "DEV"}`}
+              >
+                <Text style={s.editText}>EDITAR</Text>
+              </Pressable>
+            ) : null}
           </View>
           <Text style={s.body}>{item.text}</Text>
         </View>
@@ -156,16 +198,19 @@ export function DevUpdatesHome({
         visible={composerOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => { if (!busy) setComposerOpen(false); }}
+        onRequestClose={closeComposer}
       >
         <KeyboardAvoidingView style={s.backdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <View style={s.modalBox}>
             <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>Novo aviso</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.modalTitle}>{editing ? "Editar aviso" : "Novo aviso"}</Text>
+                {editing ? <Text style={s.modalMeta}>O prazo original do aviso será mantido.</Text> : null}
+              </View>
               <Pressable
                 disabled={busy}
                 style={s.closeButton}
-                onPress={() => setComposerOpen(false)}
+                onPress={closeComposer}
                 accessibilityRole="button"
                 accessibilityLabel="Fechar"
               >
@@ -186,9 +231,11 @@ export function DevUpdatesHome({
             <Pressable
               disabled={!draft.trim() || busy}
               style={[s.publish, (!draft.trim() || busy) && s.disabled]}
-              onPress={() => publish().catch(() => {})}
+              onPress={() => saveAnnouncement().catch(() => {})}
             >
-              <Text style={s.publishText}>{busy ? "PUBLICANDO..." : "PUBLICAR"}</Text>
+              <Text style={s.publishText}>
+                {busy ? "SALVANDO..." : editing ? "SALVAR ALTERAÇÕES" : "PUBLICAR"}
+              </Text>
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -260,6 +307,17 @@ const s = StyleSheet.create({
   identity: { flex: 1 },
   author: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
   date: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 2 },
+  editButton: {
+    minHeight: 30,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,94,103,0.36)",
+    backgroundColor: "rgba(74,10,14,0.20)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 9
+  },
+  editText: { color: "#FF9DA2", fontSize: 7, fontWeight: "900" },
   body: { color: "#F2F2F5", fontSize: 12, lineHeight: 19, marginTop: 11 },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.68)", justifyContent: "center", padding: 16 },
   modalBox: {
@@ -272,8 +330,9 @@ const s = StyleSheet.create({
     backgroundColor: "rgba(8,8,10,0.88)",
     padding: 15
   },
-  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   modalTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
+  modalMeta: { color: "rgba(235,235,240,0.56)", fontSize: 8, lineHeight: 13, marginTop: 3 },
   closeButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   input: {
     minHeight: 130,
