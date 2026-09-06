@@ -196,30 +196,87 @@ export function SocialArchive({ sessionToken, deviceToken }: {
 }
 
 const s = StyleSheet.create({
-  root: { marginTop: 18, paddingTop: 15, borderTopWidth: 1, borderTopColor: "#222228" },
+  root: {
+    marginTop: 18,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.12)"
+  },
   header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2 },
-  title: { color: "#FFF", fontSize: 17, fontWeight: "900" },
-  subtitle: { color: "#66666E", fontSize: 9, lineHeight: 14, marginTop: 3 },
-  refresh: { width: 38, height: 38, borderRadius: 11, borderWidth: 1, borderColor: "#303036", alignItems: "center", justifyContent: "center" },
-  refreshText: { color: "#C7A7DD", fontSize: 17 },
-  card: { marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: "#25252B", backgroundColor: "#09090C", padding: 13 },
-  pinned: { borderColor: "#542C31" },
+  title: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
+  subtitle: { color: "rgba(235,235,240,0.58)", fontSize: 9, lineHeight: 14, marginTop: 3 },
+  refresh: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(5,5,7,0.22)",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  refreshText: { color: "#D4B8E6", fontSize: 17 },
+  card: {
+    marginTop: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(5,5,7,0.30)",
+    padding: 13
+  },
+  pinned: { borderColor: "rgba(222,66,74,0.50)" },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  author: { color: "#FFF", fontSize: 11, fontWeight: "900" },
-  meta: { color: "#65656D", fontSize: 8, marginTop: 3 },
-  pin: { color: "#F16A72", fontSize: 7, fontWeight: "900" },
-  comment: { color: "#CFCBD3", fontSize: 10, lineHeight: 15, marginTop: 10, borderLeftWidth: 2, borderLeftColor: "#684782", paddingLeft: 8 },
-  postTitle: { color: "#F3F3F5", fontSize: 13, fontWeight: "900", marginTop: 10 },
-  codeBox: { marginTop: 7, borderRadius: 11, borderWidth: 1, borderColor: "#24242A", backgroundColor: "#050507", padding: 10 },
-  code: { color: "#C9C9CF", fontFamily: "monospace", fontSize: 8, lineHeight: 13 },
-  preview: { color: "#73737B", fontSize: 8, marginTop: 5 },
+  author: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
+  meta: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 3 },
+  pin: { color: "#FF858B", fontSize: 7, fontWeight: "900" },
+  comment: {
+    color: "#ECE8EF",
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: "rgba(192,137,225,0.62)",
+    paddingLeft: 8
+  },
+  postTitle: { color: "#FFFFFF", fontSize: 13, fontWeight: "900", marginTop: 10 },
+  codeBox: {
+    marginTop: 7,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.13)",
+    backgroundColor: "rgba(0,0,0,0.30)",
+    padding: 10
+  },
+  code: { color: "#DFDFE4", fontFamily: "monospace", fontSize: 8, lineHeight: 13 },
+  preview: { color: "rgba(225,225,232,0.55)", fontSize: 8, marginTop: 5 },
   actions: { flexDirection: "row", gap: 6, marginTop: 9 },
-  action: { flex: 1, minHeight: 34, borderRadius: 9, borderWidth: 1, borderColor: "#303036", alignItems: "center", justifyContent: "center" },
-  active: { borderColor: "#704C89", backgroundColor: "#150D1C" },
-  actionText: { color: "#BDBDC4", fontSize: 7, fontWeight: "900" },
-  counts: { color: "#616168", fontSize: 8, marginTop: 7 },
-  more: { minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "#43344F", backgroundColor: "#100B13", alignItems: "center", justifyContent: "center", marginTop: 12 },
-  moreText: { color: "#D1B9E2", fontSize: 8, fontWeight: "900" },
-  end: { color: "#595960", fontSize: 8, textAlign: "center", marginVertical: 14 },
+  action: {
+    flex: 1,
+    minHeight: 34,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(0,0,0,0.16)",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  active: {
+    borderColor: "rgba(189,133,224,0.48)",
+    backgroundColor: "rgba(59,29,76,0.30)"
+  },
+  actionText: { color: "rgba(245,245,248,0.80)", fontSize: 7, fontWeight: "900" },
+  counts: { color: "rgba(225,225,232,0.50)", fontSize: 8, marginTop: 7 },
+  more: {
+    minHeight: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(210,171,235,0.30)",
+    backgroundColor: "rgba(30,16,37,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12
+  },
+  moreText: { color: "#DCC8E9", fontSize: 8, fontWeight: "900" },
+  end: { color: "rgba(225,225,232,0.45)", fontSize: 8, textAlign: "center", marginVertical: 14 },
   disabled: { opacity: 0.42 }
 });
