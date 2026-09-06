@@ -444,7 +444,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
               onPress={createNew}
               accessibilityLabel={`Adicionar ${tab === "CODE" ? "código" : "loadstring"}`}
             >
-              <Text style={local.addIcon}>＋</Text>
+              <Text style={local.addIcon}>NOVO</Text>
             </Pressable>
           </View>
 
@@ -453,7 +453,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
               value={query}
               onChangeText={setQuery}
               placeholder={`Buscar ${tab === "CODE" ? "códigos" : "loadstrings"}...`}
-              placeholderTextColor="#67676E"
+              placeholderTextColor="rgba(220,220,228,0.48)"
               style={local.search}
               autoCapitalize="none"
               autoCorrect={false}
@@ -465,9 +465,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
               onPress={() => setFavoritesOnly((value) => !value)}
               accessibilityLabel={favoritesOnly ? "Mostrar todos os arquivos" : "Mostrar somente favoritos"}
             >
-              <Text style={[local.favoriteIcon, favoritesOnly && local.favoriteIconActive]}>
-                {favoritesOnly ? "★" : "☆"}
-              </Text>
+              <Text style={[local.favoriteIcon, favoritesOnly && local.favoriteIconActive]}>FAV</Text>
             </Pressable>
           </View>
 
@@ -479,18 +477,18 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                   <Text style={local.selectionHint}>{selectedIds.length === 1 ? "Escolha uma ação." : "Compartilhar aceita apenas um item por vez."}</Text>
                 </View>
                 <Pressable disabled={mutationBusy} onPress={() => setSelectedIds([])} accessibilityLabel="Cancelar seleção">
-                  <Text style={local.clearSelection}>✕</Text>
+                  <Text style={local.clearSelection}>LIMPAR</Text>
                 </Pressable>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={local.bulkActions}>
                 {anySelectedUnfavorite ? (
                   <Pressable style={local.bulkButton} disabled={mutationBusy} onPress={() => toggleFavorite(selectedIds, true)}>
-                    <Text style={local.bulkButtonText}>★ FAVORITAR</Text>
+                    <Text style={local.bulkButtonText}>FAVORITAR</Text>
                   </Pressable>
                 ) : null}
                 {anySelectedFavorite ? (
                   <Pressable style={local.bulkButton} disabled={mutationBusy} onPress={() => toggleFavorite(selectedIds, false)}>
-                    <Text style={local.bulkButtonText}>☆ DESFAVORITAR</Text>
+                    <Text style={local.bulkButtonText}>REMOVER FAVORITO</Text>
                   </Pressable>
                 ) : null}
                 <Pressable style={[local.bulkButton, local.bulkDanger]} disabled={mutationBusy} onPress={() => confirmDelete(selectedIds)}>
@@ -498,7 +496,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                 </Pressable>
                 {selectedIds.length === 1 && selectedItems[0] ? (
                   <Pressable style={local.bulkButton} disabled={mutationBusy} onPress={() => openShare(selectedItems[0])}>
-                    <Text style={local.bulkButtonText}>↗ COMPARTILHAR</Text>
+                    <Text style={local.bulkButtonText}>COMPARTILHAR</Text>
                   </Pressable>
                 ) : null}
               </ScrollView>
@@ -510,9 +508,9 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
 
           {!loading && !editorBusy && items.length === 0 ? (
             <View style={local.emptyCard}>
-              <Text style={local.emptyIcon}>{tab === "CODE" ? "⌘" : "↗"}</Text>
+              <Text style={local.emptyIcon}>{tab === "CODE" ? "LUA" : "LS"}</Text>
               <Text style={local.emptyTitle}>Nenhum {tab === "CODE" ? "código" : "loadstring"} aqui</Text>
-              <Text style={local.emptyText}>Toque no + para criar e salvar o primeiro item no servidor.</Text>
+              <Text style={local.emptyText}>Toque em NOVO para criar e salvar o primeiro item no servidor.</Text>
             </View>
           ) : null}
 
@@ -548,7 +546,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                         }}
                         accessibilityLabel={item.favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                       >
-                        <Text style={[local.headerStar, item.favorite && local.headerStarActive]}>{item.favorite ? "★" : "☆"}</Text>
+                        <Text style={[local.headerStar, item.favorite && local.headerStarActive]}>FAV</Text>
                       </Pressable>
                       <Pressable
                         style={[local.headerTool, local.headerTrash]}
@@ -558,7 +556,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                         }}
                         accessibilityLabel={`Excluir ${item.title}`}
                       >
-                        <Text style={local.trashIcon}>🗑</Text>
+                        <Text style={local.trashIcon}>DEL</Text>
                       </Pressable>
                     </View>
                   )}
@@ -579,7 +577,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                       onPress={(event) => { event.stopPropagation(); openShare(item); }}
                       accessibilityLabel="Compartilhar no Feed"
                     >
-                      <Text style={local.shareActionIcon}>↗</Text>
+                      <Text style={local.shareActionIcon}>FEED</Text>
                     </Pressable>
                   </View>
                 ) : null}
@@ -616,7 +614,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                       <Text style={local.editorTitle}>{editor.id ? "Editar arquivo" : `Novo ${kindSingular(editor.kind)}`}</Text>
                     </View>
                     <Pressable disabled={editorBusy} onPress={() => setEditor(null)} accessibilityLabel="Fechar editor">
-                      <Text style={local.close}>✕</Text>
+                      <Text style={local.close}>FECHAR</Text>
                     </Pressable>
                   </View>
 
@@ -624,7 +622,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                     value={editor.title}
                     onChangeText={(title) => setEditor({ ...editor, title })}
                     placeholder="Nome do arquivo"
-                    placeholderTextColor="#626268"
+                    placeholderTextColor="rgba(220,220,228,0.46)"
                     style={local.nameInput}
                     maxLength={120}
                     editable={!editorBusy}
@@ -633,7 +631,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                     value={editor.content}
                     onChangeText={setEditorContent}
                     placeholder={editor.kind === "LOADSTRING" ? "Cole a loadstring aqui..." : "Digite ou cole o código aqui..."}
-                    placeholderTextColor="#55555C"
+                    placeholderTextColor="rgba(220,220,228,0.40)"
                     style={[local.codeInput, editor.kind === "LOADSTRING" && local.loadstringInput]}
                     multiline
                     scrollEnabled
@@ -683,7 +681,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                   <Text style={local.shareTitle} numberOfLines={2}>{shareTarget?.title || "Arquivo"}</Text>
                 </View>
                 <Pressable disabled={mutationBusy} onPress={closeShare} accessibilityLabel="Fechar compartilhamento">
-                  <Text style={local.close}>✕</Text>
+                  <Text style={local.close}>FECHAR</Text>
                 </Pressable>
               </View>
 
@@ -692,7 +690,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                 value={shareComment}
                 onChangeText={setBoundedShareComment}
                 placeholder="Escreva algo sobre esta publicação..."
-                placeholderTextColor="#5E5E65"
+                placeholderTextColor="rgba(220,220,228,0.46)"
                 style={local.shareInput}
                 multiline
                 textAlignVertical="top"
@@ -707,9 +705,7 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: shareFavorite }}
               >
-                <Text style={[local.favoriteChoiceStar, shareFavorite && local.favoriteChoiceStarActive]}>
-                  {shareFavorite ? "★" : "☆"}
-                </Text>
+                <Text style={[local.favoriteChoiceStar, shareFavorite && local.favoriteChoiceStarActive]}>FAV</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={local.favoriteChoiceTitle}>Favoritar na biblioteca</Text>
                   <Text style={local.favoriteChoiceHint}>{shareFavorite ? "Será mantido/adicionado aos favoritos ao publicar." : "A publicação não vai favoritar este arquivo."}</Text>
@@ -735,90 +731,90 @@ export function FilesScreen({ sessionToken, deviceToken, profileId }: {
 const local = StyleSheet.create({
   root: { flex: 1 },
   disabled: { opacity: 0.45 },
-  tabs: { gap: 8, paddingVertical: 4, paddingRight: 18 },
-  tab: { borderWidth: 1, borderColor: "rgba(105,105,117,0.38)", backgroundColor: "rgba(8,8,11,0.30)", borderRadius: 999, paddingHorizontal: 15, paddingVertical: 9 },
-  tabActive: { borderColor: "rgba(192,57,68,0.74)", backgroundColor: "rgba(77,11,17,0.40)" },
-  tabText: { color: "#A6A6AE", fontSize: 11, fontWeight: "800" },
+  tabs: { gap: 7, paddingVertical: 4, paddingRight: 18 },
+  tab: { borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.10)", borderRadius: 9, paddingHorizontal: 14, paddingVertical: 9 },
+  tabActive: { borderColor: "rgba(255,105,111,0.52)", backgroundColor: "rgba(181,29,37,0.34)" },
+  tabText: { color: "rgba(235,235,240,0.64)", fontSize: 10, fontWeight: "800" },
   tabTextActive: { color: "#FFFFFF" },
-  summaryRow: { flexDirection: "row", alignItems: "center", marginTop: 18 },
-  title: { color: "#FFFFFF", fontSize: 22, fontWeight: "900" },
-  subtitle: { color: "#A0A0A8", fontSize: 11, marginTop: 3 },
-  addButton: { width: 48, height: 48, borderRadius: 15, borderWidth: 1, borderColor: "rgba(201,56,69,0.72)", backgroundColor: "rgba(74,10,16,0.42)", alignItems: "center", justifyContent: "center" },
-  addIcon: { color: "#FF6670", fontSize: 28, lineHeight: 30 },
-  searchRow: { flexDirection: "row", gap: 9, marginTop: 14 },
-  search: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: "rgba(103,103,115,0.38)", backgroundColor: "rgba(8,8,11,0.32)", color: "#FFFFFF", paddingHorizontal: 14, fontSize: 14 },
-  favoriteFilter: { width: 48, minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: "rgba(107,107,118,0.40)", backgroundColor: "rgba(8,8,11,0.30)", alignItems: "center", justifyContent: "center" },
-  favoriteFilterActive: { borderColor: "rgba(177,134,43,0.72)", backgroundColor: "rgba(42,32,8,0.38)" },
-  favoriteIcon: { color: "#A8A8AF", fontSize: 21 },
-  favoriteIconActive: { color: "#FFD35A" },
-  selectionBar: { flexDirection: "row", alignItems: "center", marginTop: 12, padding: 13, borderRadius: 14, borderWidth: 1, borderColor: "rgba(133,72,95,0.52)", backgroundColor: "rgba(29,8,13,0.36)" },
-  selectionTitle: { color: "#FFFFFF", fontWeight: "900", fontSize: 12 },
-  selectionHint: { color: "#B8A5AE", fontSize: 10, marginTop: 3 },
-  clearSelection: { color: "#D0BDC5", fontSize: 20, padding: 5 },
-  bulkActions: { gap: 8, paddingVertical: 10, paddingRight: 14 },
-  bulkButton: { borderRadius: 10, borderWidth: 1, borderColor: "rgba(113,113,125,0.42)", backgroundColor: "rgba(8,8,12,0.26)", paddingHorizontal: 13, paddingVertical: 10 },
-  bulkButtonText: { color: "#E8E8EC", fontSize: 9, fontWeight: "900" },
-  bulkDanger: { borderColor: "rgba(173,67,76,0.52)", backgroundColor: "rgba(22,9,10,0.34)" },
-  bulkDangerText: { color: "#FF726A", fontSize: 9, fontWeight: "900" },
-  message: { color: "#D1A9B7", fontSize: 11, marginTop: 10 },
-  emptyCard: { marginTop: 18, borderWidth: 1, borderColor: "rgba(101,101,112,0.30)", borderRadius: 18, backgroundColor: "rgba(6,6,9,0.30)", padding: 28, alignItems: "center" },
-  emptyIcon: { color: "#FF5965", fontSize: 28, fontWeight: "900" },
-  emptyTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "900", marginTop: 10 },
-  emptyText: { color: "#A0A0A8", fontSize: 12, lineHeight: 18, textAlign: "center", marginTop: 6 },
-  itemCard: { marginTop: 10, borderRadius: 17, borderWidth: 1, borderColor: "rgba(104,104,116,0.34)", backgroundColor: "rgba(6,6,9,0.34)", padding: 14 },
-  itemSelected: { borderColor: "rgba(213,62,75,0.76)", backgroundColor: "rgba(36,7,12,0.42)" },
-  itemHeader: { flexDirection: "row", alignItems: "center", gap: 11 },
-  fileIcon: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "rgba(168,59,74,0.56)", backgroundColor: "rgba(37,8,13,0.42)", alignItems: "center", justifyContent: "center" },
-  fileIconLoad: { borderColor: "rgba(55,112,124,0.58)", backgroundColor: "rgba(9,23,27,0.40)" },
-  fileIconText: { color: "#FF7881", fontWeight: "900", fontSize: 11 },
-  itemTitle: { color: "#F3F3F5", fontWeight: "900", fontSize: 14 },
-  meta: { color: "#9898A0", fontSize: 9, marginTop: 4 },
-  cardTools: { flexDirection: "row", gap: 6 },
-  headerTool: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(108,108,119,0.40)", backgroundColor: "rgba(8,8,11,0.26)", alignItems: "center", justifyContent: "center" },
-  headerToolFavorite: { borderColor: "rgba(176,136,42,0.68)", backgroundColor: "rgba(35,27,6,0.40)" },
-  headerStar: { color: "#ABABB2", fontSize: 20, lineHeight: 22 },
-  headerStarActive: { color: "#FFD35A" },
-  headerTrash: { borderColor: "rgba(163,66,75,0.50)", backgroundColor: "rgba(19,9,10,0.30)" },
-  trashIcon: { fontSize: 15 },
-  check: { width: 25, height: 25, borderRadius: 99, backgroundColor: "#CF3945", alignItems: "center", justifyContent: "center" },
+  summaryRow: { flexDirection: "row", alignItems: "center", marginTop: 16 },
+  title: { color: "#FFFFFF", fontSize: 21, fontWeight: "900" },
+  subtitle: { color: "rgba(235,235,240,0.58)", fontSize: 10, marginTop: 3 },
+  addButton: { minWidth: 54, height: 42, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,105,111,0.52)", backgroundColor: "rgba(95,15,20,0.24)", alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
+  addIcon: { color: "#FF9299", fontSize: 8, fontWeight: "900" },
+  searchRow: { flexDirection: "row", gap: 8, marginTop: 13 },
+  search: { flex: 1, minHeight: 46, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.18)", color: "#FFFFFF", paddingHorizontal: 13, fontSize: 13 },
+  favoriteFilter: { width: 48, minHeight: 46, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center" },
+  favoriteFilterActive: { borderColor: "rgba(255,105,111,0.50)", backgroundColor: "rgba(95,15,20,0.24)" },
+  favoriteIcon: { color: "rgba(235,235,240,0.62)", fontSize: 7, fontWeight: "900" },
+  favoriteIconActive: { color: "#FF9299" },
+  selectionBar: { flexDirection: "row", alignItems: "center", marginTop: 11, padding: 12, borderRadius: 11, borderWidth: 1, borderColor: "rgba(211,71,83,0.40)", backgroundColor: "rgba(82,12,17,0.16)" },
+  selectionTitle: { color: "#FFFFFF", fontWeight: "900", fontSize: 11 },
+  selectionHint: { color: "rgba(235,215,220,0.62)", fontSize: 9, marginTop: 3 },
+  clearSelection: { color: "#FF9DA2", fontSize: 7, fontWeight: "900", padding: 7 },
+  bulkActions: { gap: 7, paddingVertical: 9, paddingRight: 14 },
+  bulkButton: { borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 12, paddingVertical: 9 },
+  bulkButtonText: { color: "rgba(245,245,248,0.78)", fontSize: 7, fontWeight: "900" },
+  bulkDanger: { borderColor: "rgba(211,71,83,0.44)", backgroundColor: "rgba(82,12,17,0.18)" },
+  bulkDangerText: { color: "#FF858B", fontSize: 7, fontWeight: "900" },
+  message: { color: "#DFA0A4", fontSize: 10, marginTop: 9 },
+  emptyCard: { marginTop: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", borderRadius: 14, backgroundColor: "rgba(5,5,7,0.12)", padding: 25, alignItems: "center" },
+  emptyIcon: { color: "#FF9299", fontSize: 9, fontWeight: "900" },
+  emptyTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", marginTop: 9 },
+  emptyText: { color: "rgba(235,235,240,0.60)", fontSize: 11, lineHeight: 17, textAlign: "center", marginTop: 5 },
+  itemCard: { marginTop: 9, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.16)", padding: 13 },
+  itemSelected: { borderColor: "rgba(211,71,83,0.54)", backgroundColor: "rgba(82,12,17,0.22)" },
+  itemHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  fileIcon: { width: 40, height: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,105,111,0.38)", backgroundColor: "rgba(95,15,20,0.20)", alignItems: "center", justifyContent: "center" },
+  fileIconLoad: { borderColor: "rgba(255,255,255,0.22)", backgroundColor: "rgba(0,0,0,0.12)" },
+  fileIconText: { color: "#FF9299", fontWeight: "900", fontSize: 9 },
+  itemTitle: { color: "#F3F3F5", fontWeight: "900", fontSize: 13 },
+  meta: { color: "rgba(225,225,232,0.56)", fontSize: 8, marginTop: 4 },
+  cardTools: { flexDirection: "row", gap: 5 },
+  headerTool: { minWidth: 36, height: 34, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
+  headerToolFavorite: { borderColor: "rgba(255,105,111,0.46)", backgroundColor: "rgba(95,15,20,0.22)" },
+  headerStar: { color: "rgba(235,235,240,0.62)", fontSize: 6, fontWeight: "900" },
+  headerStarActive: { color: "#FF9299" },
+  headerTrash: { borderColor: "rgba(211,71,83,0.38)", backgroundColor: "rgba(82,12,17,0.14)" },
+  trashIcon: { color: "#FF858B", fontSize: 6, fontWeight: "900" },
+  check: { width: 25, height: 25, borderRadius: 99, backgroundColor: "#B51D25", alignItems: "center", justifyContent: "center" },
   checkText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
-  preview: { color: "#B0B0B7", fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginTop: 12 },
-  actions: { flexDirection: "row", gap: 7, marginTop: 12 },
-  action: { flex: 1, minHeight: 40, borderRadius: 9, borderWidth: 1, borderColor: "rgba(108,108,120,0.38)", backgroundColor: "rgba(7,7,10,0.18)", alignItems: "center", justifyContent: "center", paddingHorizontal: 7 },
-  actionText: { color: "#D7D7DC", fontWeight: "900", fontSize: 8 },
-  shareAction: { width: 48, minHeight: 40, borderRadius: 9, borderWidth: 1, borderColor: "rgba(191,56,70,0.58)", backgroundColor: "rgba(39,7,12,0.34)", alignItems: "center", justifyContent: "center" },
-  shareActionIcon: { color: "#FF7881", fontSize: 18, fontWeight: "900" },
-  loadMoreButton: { minHeight: 48, marginTop: 14, borderRadius: 13, borderWidth: 1, borderColor: "rgba(111,111,123,0.40)", backgroundColor: "rgba(8,8,12,0.26)", alignItems: "center", justifyContent: "center" },
-  loadMoreText: { color: "#E0E0E4", fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
+  preview: { color: "rgba(235,235,240,0.66)", fontFamily: "monospace", fontSize: 10, lineHeight: 15, marginTop: 11 },
+  actions: { flexDirection: "row", gap: 6, marginTop: 11 },
+  action: { flex: 1, minHeight: 38, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.08)", alignItems: "center", justifyContent: "center", paddingHorizontal: 7 },
+  actionText: { color: "rgba(245,245,248,0.76)", fontWeight: "900", fontSize: 7 },
+  shareAction: { width: 48, minHeight: 38, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,105,111,0.42)", backgroundColor: "rgba(95,15,20,0.18)", alignItems: "center", justifyContent: "center" },
+  shareActionIcon: { color: "#FF9299", fontSize: 6, fontWeight: "900" },
+  loadMoreButton: { minHeight: 46, marginTop: 13, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.10)", alignItems: "center", justifyContent: "center" },
+  loadMoreText: { color: "rgba(245,245,248,0.78)", fontSize: 8, fontWeight: "900", letterSpacing: 0.4 },
   modalKeyboard: { flex: 1 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", justifyContent: "flex-end" },
-  editorModal: { height: "92%", backgroundColor: "rgba(7,7,9,0.92)", borderTopLeftRadius: 22, borderTopRightRadius: 22, borderWidth: 1, borderColor: "rgba(108,108,120,0.48)", padding: 16 },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.62)", justifyContent: "flex-end" },
+  editorModal: { height: "92%", backgroundColor: "rgba(7,7,9,0.82)", borderTopLeftRadius: 18, borderTopRightRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", padding: 15 },
   loadstringEditorModal: { height: "64%", minHeight: 380 },
-  editorHeader: { flexDirection: "row", alignItems: "flex-start", paddingBottom: 12 },
-  editorEyebrow: { color: "#FF6570", fontSize: 9, fontWeight: "900", letterSpacing: 1.4 },
-  editorTitle: { color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginTop: 4 },
-  close: { color: "#C2C2C8", fontSize: 22, padding: 5 },
-  nameInput: { minHeight: 50, borderRadius: 13, borderWidth: 1, borderColor: "rgba(104,104,116,0.48)", backgroundColor: "rgba(14,14,18,0.72)", color: "#FFFFFF", paddingHorizontal: 14, fontSize: 15 },
-  codeInput: { flex: 1, minHeight: 220, marginTop: 10, borderRadius: 13, borderWidth: 1, borderColor: "rgba(104,104,116,0.46)", backgroundColor: "rgba(5,5,7,0.82)", color: "#DADADF", padding: 14, fontFamily: "monospace", fontSize: 12, lineHeight: 18 },
+  editorHeader: { flexDirection: "row", alignItems: "flex-start", paddingBottom: 11 },
+  editorEyebrow: { color: "#FF7E86", fontSize: 8, fontWeight: "900", letterSpacing: 1.2 },
+  editorTitle: { color: "#FFFFFF", fontSize: 19, fontWeight: "900", marginTop: 4 },
+  close: { color: "rgba(245,245,248,0.74)", fontSize: 7, fontWeight: "900", paddingHorizontal: 6, paddingVertical: 8 },
+  nameInput: { minHeight: 48, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.22)", color: "#FFFFFF", paddingHorizontal: 13, fontSize: 14 },
+  codeInput: { flex: 1, minHeight: 220, marginTop: 9, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.30)", color: "#E4E4E8", padding: 13, fontFamily: "monospace", fontSize: 12, lineHeight: 18 },
   loadstringInput: { flex: 0, minHeight: 110, maxHeight: 180 },
-  editorSize: { color: "#96969F", fontSize: 10, textAlign: "right", marginTop: 6 },
-  editorSizeDanger: { color: "#FF6258", fontWeight: "900" },
-  editorActions: { flexDirection: "row", gap: 9, marginTop: 10 },
-  secondaryButton: { minHeight: 48, borderRadius: 13, borderWidth: 1, borderColor: "rgba(113,113,125,0.46)", backgroundColor: "rgba(7,7,10,0.16)", paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
-  secondaryButtonText: { color: "#E0E0E4", fontSize: 10, fontWeight: "900" },
-  saveButton: { flex: 1, minHeight: 48, borderRadius: 13, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
-  saveButtonText: { color: "#050505", fontSize: 10, fontWeight: "900" },
+  editorSize: { color: "rgba(225,225,232,0.54)", fontSize: 9, textAlign: "right", marginTop: 5 },
+  editorSizeDanger: { color: "#FF777D", fontWeight: "900" },
+  editorActions: { flexDirection: "row", gap: 8, marginTop: 9 },
+  secondaryButton: { minHeight: 46, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 16, alignItems: "center", justifyContent: "center" },
+  secondaryButtonText: { color: "rgba(245,245,248,0.76)", fontSize: 8, fontWeight: "900" },
+  saveButton: { flex: 1, minHeight: 46, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,105,111,0.58)", backgroundColor: "rgba(181,29,37,0.90)", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
+  saveButtonText: { color: "#FFFFFF", fontSize: 8, fontWeight: "900" },
   shareKeyboard: { flex: 1 },
-  shareBackdrop: { flexGrow: 1, backgroundColor: "rgba(0,0,0,0.70)", justifyContent: "center", padding: 18 },
-  shareModal: { width: "100%", borderRadius: 20, borderWidth: 1, borderColor: "rgba(135,77,91,0.52)", backgroundColor: "rgba(8,8,11,0.90)", padding: 16 },
-  shareTitle: { color: "#FFFFFF", fontSize: 18, fontWeight: "900", marginTop: 4 },
-  shareHint: { color: "#A6A6AE", fontSize: 11, lineHeight: 17, marginBottom: 10 },
-  shareInput: { minHeight: 105, maxHeight: 180, borderRadius: 13, borderWidth: 1, borderColor: "rgba(105,105,117,0.46)", backgroundColor: "rgba(13,13,17,0.70)", color: "#FFFFFF", padding: 12, fontSize: 13 },
-  shareCounter: { color: "#92929A", fontSize: 9, textAlign: "right", marginTop: 5 },
-  favoriteChoice: { flexDirection: "row", alignItems: "center", gap: 11, marginTop: 10, borderRadius: 13, borderWidth: 1, borderColor: "rgba(108,108,120,0.42)", backgroundColor: "rgba(8,8,11,0.30)", padding: 12 },
-  favoriteChoiceActive: { borderColor: "rgba(177,137,42,0.70)", backgroundColor: "rgba(35,27,6,0.38)" },
-  favoriteChoiceStar: { color: "#A8A8AF", fontSize: 24 },
-  favoriteChoiceStarActive: { color: "#FFD35A" },
-  favoriteChoiceTitle: { color: "#E9E9EC", fontSize: 12, fontWeight: "900" },
-  favoriteChoiceHint: { color: "#A0A0A8", fontSize: 9, lineHeight: 14, marginTop: 3 }
+  shareBackdrop: { flexGrow: 1, backgroundColor: "rgba(0,0,0,0.62)", justifyContent: "center", padding: 18 },
+  shareModal: { width: "100%", borderRadius: 17, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(8,8,11,0.82)", padding: 15 },
+  shareTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900", marginTop: 4 },
+  shareHint: { color: "rgba(235,235,240,0.60)", fontSize: 10, lineHeight: 16, marginBottom: 9 },
+  shareInput: { minHeight: 105, maxHeight: 180, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.22)", color: "#FFFFFF", padding: 12, fontSize: 13 },
+  shareCounter: { color: "rgba(225,225,232,0.54)", fontSize: 8, textAlign: "right", marginTop: 5 },
+  favoriteChoice: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 9, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.10)", padding: 11 },
+  favoriteChoiceActive: { borderColor: "rgba(255,105,111,0.46)", backgroundColor: "rgba(95,15,20,0.22)" },
+  favoriteChoiceStar: { color: "rgba(235,235,240,0.62)", fontSize: 7, fontWeight: "900" },
+  favoriteChoiceStarActive: { color: "#FF9299" },
+  favoriteChoiceTitle: { color: "#F1F1F4", fontSize: 11, fontWeight: "900" },
+  favoriteChoiceHint: { color: "rgba(235,235,240,0.56)", fontSize: 8, lineHeight: 13, marginTop: 3 }
 });
