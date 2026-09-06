@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -571,7 +573,7 @@ export function SocialFeedScreen({
       </Modal>
 
       <Modal visible={announcementOpen} transparent animationType="fade" onRequestClose={() => { if (!busyAction) setAnnouncementOpen(false); }}>
-        <View style={s.modalBackdrop}><View style={s.modalBox}><View style={s.modalHeader}><Text style={s.modalTitle}>Mensagem global DEV</Text><Pressable onPress={() => setAnnouncementOpen(false)}><Text style={s.modalClose}>✕</Text></Pressable></View><Text style={s.profileBio}>Mensagem oficial separada dos chats privados. O envio é validado e auditado pelo servidor.</Text><TextInput value={announcementDraft} onChangeText={setAnnouncementDraft} maxLength={1000} multiline editable={!busyAction} style={[s.commentInput, { minHeight: 120, marginTop: 12 }]} placeholder="Escreva o anúncio..." placeholderTextColor="#666" textAlignVertical="top" /><Pressable disabled={!announcementDraft.trim() || Boolean(busyAction)} style={[s.publishButton, (!announcementDraft.trim() || busyAction) && s.disabled]} onPress={publishAnnouncement}><Text style={s.publishText}>{busyAction === "announcement" ? "PUBLICANDO..." : "PUBLICAR PARA TODOS"}</Text></Pressable></View></View>
+        <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}><View style={s.modalBox}><View style={s.modalHeader}><Text style={s.modalTitle}>Mensagem global DEV</Text><Pressable onPress={() => setAnnouncementOpen(false)}><Text style={s.modalClose}>✕</Text></Pressable></View><Text style={s.profileBio}>Mensagem oficial separada dos chats privados. O envio é validado e auditado pelo servidor.</Text><TextInput value={announcementDraft} onChangeText={setAnnouncementDraft} maxLength={1000} multiline editable={!busyAction} style={[s.commentInput, { minHeight: 120, marginTop: 12 }]} placeholder="Escreva o anúncio..." placeholderTextColor="#666" textAlignVertical="top" /><Pressable disabled={!announcementDraft.trim() || Boolean(busyAction)} style={[s.publishButton, (!announcementDraft.trim() || busyAction) && s.disabled]} onPress={publishAnnouncement}><Text style={s.publishText}>{busyAction === "announcement" ? "PUBLICANDO..." : "PUBLICAR PARA TODOS"}</Text></Pressable></View></KeyboardAvoidingView>
       </Modal>
     </View>
   );
