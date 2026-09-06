@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -413,7 +415,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
         </View>
 
         <Modal visible={reportOpen} transparent animationType="fade" onRequestClose={() => { if (!busy) setReportOpen(false); }}>
-          <View style={s.modalBackdrop}>
+          <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <View style={s.modalBox}>
               <Text style={s.modalTitle}>Denunciar conversa</Text>
               <Text style={s.modalText}>Explique o motivo. A denúncia é registrada; o conteúdo privado não é automaticamente exibido para administração.</Text>
@@ -435,7 +437,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
                 <Text style={s.modalSecondaryText}>CANCELAR</Text>
               </Pressable>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     );
