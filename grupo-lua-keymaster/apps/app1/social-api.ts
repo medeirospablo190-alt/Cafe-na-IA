@@ -322,6 +322,14 @@ export async function markSocialNotificationsRead(
   );
 }
 
+export async function listGlobalAnnouncements(sessionToken: string, deviceToken: string) {
+  return app1FeatureRequest<{ ok: true; announcements: SocialAnnouncement[] }>(
+    "/v1/app1/social/announcements",
+    sessionToken,
+    deviceToken
+  );
+}
+
 export async function createGlobalAnnouncement(sessionToken: string, deviceToken: string, text: string) {
   return app1FeatureRequest<{
     ok: true;
