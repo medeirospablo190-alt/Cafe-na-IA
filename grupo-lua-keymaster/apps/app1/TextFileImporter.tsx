@@ -265,7 +265,7 @@ export function TextFileImporter({
                   onPress={() => setDraft(null)}
                   accessibilityLabel="Fechar importação"
                 >
-                  <Text style={s.close}>✕</Text>
+                  <Text style={s.close}>FECHAR</Text>
                 </Pressable>
               </View>
 
@@ -333,52 +333,52 @@ const s = StyleSheet.create({
     gap: 10,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(108,88,122,0.38)",
-    backgroundColor: "rgba(8,6,11,0.34)",
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(5,5,7,0.18)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 8
   },
   importTitle: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
-  importHint: { color: "#978A9F", fontSize: 10, marginTop: 2 },
+  importHint: { color: "rgba(235,235,240,0.60)", fontSize: 10, marginTop: 2 },
   importButton: {
     minHeight: 44,
     borderRadius: 11,
     borderWidth: 1,
-    borderColor: "rgba(135,83,170,0.66)",
-    backgroundColor: "rgba(23,15,29,0.48)",
+    borderColor: "rgba(255,105,111,0.58)",
+    backgroundColor: "rgba(95,15,20,0.30)",
     paddingHorizontal: 14,
     alignItems: "center",
     justifyContent: "center"
   },
-  importButtonText: { color: "#E0C2F2", fontSize: 10, fontWeight: "900" },
-  message: { color: "#C1A2D2", fontSize: 10, marginBottom: 7 },
+  importButtonText: { color: "#FF9299", fontSize: 10, fontWeight: "900" },
+  message: { color: "rgba(245,225,228,0.80)", fontSize: 10, marginBottom: 7 },
   modalKeyboard: { flex: 1 },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.72)",
+    backgroundColor: "rgba(0,0,0,0.58)",
     justifyContent: "flex-end"
   },
   modalPanel: {
     height: "86%",
-    backgroundColor: "rgba(7,7,9,0.90)",
+    backgroundColor: "rgba(7,7,9,0.76)",
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     borderWidth: 1,
-    borderColor: "rgba(105,105,117,0.46)",
+    borderColor: "rgba(255,255,255,0.16)",
     padding: 16
   },
   modalHeader: { flexDirection: "row", alignItems: "flex-start", gap: 10, paddingBottom: 12 },
-  modalEyebrow: { color: "#AE7ED3", fontSize: 9, fontWeight: "900", letterSpacing: 1.2 },
+  modalEyebrow: { color: "#FF7E86", fontSize: 9, fontWeight: "900", letterSpacing: 1.2 },
   modalTitle: { color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginTop: 4 },
-  sourceName: { color: "#93939C", fontSize: 10, marginTop: 4 },
-  close: { color: "#BEBEC5", fontSize: 22, padding: 5 },
+  sourceName: { color: "rgba(225,225,232,0.58)", fontSize: 10, marginTop: 4 },
+  close: { color: "rgba(245,245,248,0.72)", fontSize: 8, fontWeight: "900", paddingHorizontal: 5, paddingVertical: 9 },
   input: {
     minHeight: 50,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: "rgba(103,103,115,0.48)",
-    backgroundColor: "rgba(14,14,18,0.72)",
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(0,0,0,0.22)",
     color: "#FFFFFF",
     paddingHorizontal: 14,
     fontSize: 15
@@ -389,36 +389,39 @@ const s = StyleSheet.create({
     marginTop: 10,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: "rgba(103,103,115,0.48)",
-    backgroundColor: "rgba(5,5,7,0.82)",
-    color: "#DADADF",
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(0,0,0,0.34)",
+    color: "#E6E6EA",
     padding: 14,
     fontFamily: "monospace",
     fontSize: 12,
     lineHeight: 18
   },
-  counter: { color: "#94949D", fontSize: 10, textAlign: "right", marginTop: 6 },
+  counter: { color: "rgba(225,225,232,0.56)", fontSize: 10, textAlign: "right", marginTop: 6 },
   counterDanger: { color: "#FF6258", fontWeight: "900" },
   actions: { flexDirection: "row", gap: 9, marginTop: 10 },
   cancelButton: {
     minHeight: 44,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: "rgba(111,111,123,0.48)",
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(0,0,0,0.12)",
     paddingHorizontal: 18,
     alignItems: "center",
     justifyContent: "center"
   },
-  cancelText: { color: "#E0E0E4", fontSize: 10, fontWeight: "900" },
+  cancelText: { color: "rgba(240,240,245,0.72)", fontSize: 10, fontWeight: "900" },
   saveButton: {
     flex: 1,
     minHeight: 50,
     borderRadius: 13,
-    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(255,105,111,0.58)",
+    backgroundColor: "rgba(181,29,37,0.90)",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 14
   },
-  saveButtonText: { color: "#050505", fontSize: 11, fontWeight: "900" },
+  saveButtonText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
   disabled: { opacity: 0.45 }
 });
