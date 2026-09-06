@@ -50,6 +50,10 @@ function timeValue(value?: string | null) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function ChevronIcon() {
+  return <View style={s.chevronIcon} />;
+}
+
 export function ChatsScreen({ sessionToken, deviceToken }: {
   sessionToken: string;
   deviceToken: string;
@@ -341,7 +345,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
             setMessages([]);
             setHasOlderMessages(false);
           }}>
-            <Text style={s.backText}>‹ CHATS</Text>
+            <Text style={s.backText}>VOLTAR</Text>
           </Pressable>
           <View style={[s.avatar, selected.other.role === "DEV" && s.avatarDev]}>
             <Text style={s.avatarText}>{selected.other.publicName.slice(0, 1).toUpperCase()}</Text>
@@ -349,7 +353,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           <View style={{ flex: 1 }}>
             <View style={s.nameRow}>
               <Text style={s.chatName}>{selected.other.publicName}</Text>
-              {selected.other.role === "DEV" ? <Text style={s.devBadge}>DEV</Text> : null}
+              <Text style={[s.roleBadge, selected.other.role === "DEV" && s.roleBadgeDev]}>{selected.other.role}</Text>
             </View>
             <Text style={s.small}>{selected.other.statusText || "Conversa privada"}</Text>
           </View>
@@ -357,10 +361,10 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
 
         <View style={s.actionRow}>
           <Pressable disabled={busy} style={[s.action, selected.favorite && s.actionActive]} onPress={toggleFavorite}>
-            <Text style={s.actionText}>{selected.favorite ? "★ FAVORITA" : "☆ FAVORITAR"}</Text>
+            <Text style={[s.actionText, selected.favorite && s.actionTextActive]}>{selected.favorite ? "FAVORITA" : "FAVORITAR"}</Text>
           </Pressable>
           <Pressable disabled={busy} style={[s.action, selected.muted && s.actionActive]} onPress={toggleMute}>
-            <Text style={s.actionText}>{selected.muted ? "MUDO" : "SILENCIAR"}</Text>
+            <Text style={[s.actionText, selected.muted && s.actionTextActive]}>{selected.muted ? "MUDO" : "SILENCIAR"}</Text>
           </Pressable>
           <Pressable disabled={busy} style={[s.action, s.report]} onPress={() => setReportOpen(true)}>
             <Text style={[s.actionText, s.reportText]}>DENUNCIAR</Text>
@@ -377,7 +381,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           <>
             {hasOlderMessages ? (
               <Pressable style={[s.loadOlder, loadingOlder && s.disabled]} disabled={loadingOlder} onPress={() => { loadOlderMessages().catch(() => {}); }}>
-                <Text style={s.loadOlderText}>{loadingOlder ? "CARREGANDO..." : "↑ CARREGAR MENSAGENS MAIS ANTIGAS"}</Text>
+                <Text style={s.loadOlderText}>{loadingOlder ? "CARREGANDO..." : "CARREGAR MENSAGENS MAIS ANTIGAS"}</Text>
               </Pressable>
             ) : messages.length > MESSAGE_PAGE_SIZE ? (
               <Text style={s.historyEnd}>Início do histórico disponível</Text>
@@ -388,7 +392,12 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
             ) : messages.map((message) => (
               <View key={message.id} style={[s.messageRow, message.mine && s.messageRowMine]}>
                 <View style={[s.bubble, message.mine && s.bubbleMine]}>
-                  {!message.mine ? <Text style={s.sender}>{message.sender.publicName}{message.sender.role === "DEV" ? " • DEV" : ""}</Text> : null}
+                  {!message.mine ? (
+                    <View style={s.senderRow}>
+                      <Text style={s.sender}>{message.sender.publicName}</Text>
+                      <Text style={[s.messageRole, message.sender.role === "DEV" && s.messageRoleDev]}>{message.sender.role}</Text>
+                    </View>
+                  ) : null}
                   <Text style={s.messageText}>{message.text}</Text>
                   <Text style={s.messageMeta}>{dateText(message.createdAt)} • {expiryText(message.expiresAt)}</Text>
                 </View>
@@ -406,7 +415,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
             editable={!busy}
             style={s.messageInput}
             placeholder="Escreva uma mensagem..."
-            placeholderTextColor="#66666E"
+            placeholderTextColor="rgba(230,230,236,0.46)"
             textAlignVertical="top"
           />
           <Pressable style={[s.send, (!draft.trim() || busy) && s.disabled]} disabled={!draft.trim() || busy} onPress={send}>
@@ -427,7 +436,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
                 editable={!busy}
                 style={[s.messageInput, { minHeight: 110 }]}
                 placeholder="Motivo da denúncia..."
-                placeholderTextColor="#66666E"
+                placeholderTextColor="rgba(230,230,236,0.46)"
                 textAlignVertical="top"
               />
               <Pressable style={[s.modalPrimary, (busy || reportReason.trim().length < 5) && s.disabled]} disabled={busy || reportReason.trim().length < 5} onPress={submitReport}>
@@ -450,8 +459,14 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           <Text style={s.title}>Conversas privadas</Text>
           <Text style={s.subtitle}>{unreadTotal > 0 ? `${unreadTotal} mensagem(ns) não lida(s)` : "Tudo em dia"}</Text>
         </View>
-        <Pressable style={s.refresh} onPress={() => reloadConversations(true)} disabled={loading}>
-          <Text style={s.refreshText}>↻</Text>
+        <Pressable
+          style={s.refresh}
+          onPress={() => reloadConversations(true)}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Atualizar conversas"
+        >
+          <Text style={s.refreshText}>ATUALIZAR</Text>
         </Pressable>
       </View>
 
@@ -460,7 +475,7 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
         onChangeText={setSearch}
         style={s.searchInput}
         placeholder="Buscar pseudônimo para conversar..."
-        placeholderTextColor="#66666E"
+        placeholderTextColor="rgba(230,230,236,0.48)"
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -471,10 +486,13 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
             <Pressable key={profile.profileId || profile.publicName} style={s.profileResult} disabled={busy} onPress={() => startWithProfile(profile)}>
               <View style={[s.avatarSmall, profile.role === "DEV" && s.avatarDev]}><Text style={s.avatarText}>{profile.publicName.slice(0, 1).toUpperCase()}</Text></View>
               <View style={{ flex: 1 }}>
-                <View style={s.nameRow}><Text style={s.resultName}>{profile.publicName}</Text>{profile.role === "DEV" ? <Text style={s.devBadge}>DEV</Text> : null}</View>
+                <View style={s.nameRow}>
+                  <Text style={s.resultName}>{profile.publicName}</Text>
+                  <Text style={[s.roleBadge, profile.role === "DEV" && s.roleBadgeDev]}>{profile.role}</Text>
+                </View>
                 <Text style={s.small}>{profile.statusText || profile.bio || "Abrir conversa"}</Text>
               </View>
-              <Text style={s.chevron}>›</Text>
+              <ChevronIcon />
             </Pressable>
           ))}
         </View>
@@ -495,15 +513,15 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
           <View style={{ flex: 1 }}>
             <View style={s.nameRow}>
               <Text style={s.chatName}>{conversation.other.publicName}</Text>
-              {conversation.other.role === "DEV" ? <Text style={s.devBadge}>DEV</Text> : null}
-              {conversation.favorite ? <Text style={s.favorite}>★</Text> : null}
+              <Text style={[s.roleBadge, conversation.other.role === "DEV" && s.roleBadgeDev]}>{conversation.other.role}</Text>
+              {conversation.favorite ? <Text style={s.favorite}>FAV</Text> : null}
             </View>
             <Text numberOfLines={1} style={s.preview}>
               {conversation.latestMessage ? `${conversation.latestMessage.mine ? "Você: " : ""}${conversation.latestMessage.text}` : "Conversa iniciada"}
             </Text>
             <Text style={s.small}>{dateText(conversation.latestMessage?.createdAt || conversation.updatedAt)}</Text>
           </View>
-          {conversation.unreadCount > 0 ? <View style={s.unreadBadge}><Text style={s.unreadText}>{conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}</Text></View> : <Text style={s.chevron}>›</Text>}
+          {conversation.unreadCount > 0 ? <View style={s.unreadBadge}><Text style={s.unreadText}>{conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}</Text></View> : <ChevronIcon />}
         </Pressable>
       ))}
     </View>
@@ -513,65 +531,70 @@ export function ChatsScreen({ sessionToken, deviceToken }: {
 const s = StyleSheet.create({
   root: { flex: 1 },
   listTitleRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  title: { color: "#FFF", fontSize: 22, fontWeight: "900" },
-  subtitle: { color: "#75757D", fontSize: 10, marginTop: 3 },
-  refresh: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#303036", alignItems: "center", justifyContent: "center" },
-  refreshText: { color: "#C9B0DE", fontSize: 19 },
-  searchInput: { minHeight: 49, borderRadius: 13, borderWidth: 1, borderColor: "#29292F", backgroundColor: "#0D0D10", color: "#FFF", paddingHorizontal: 13 },
-  searchResults: { borderRadius: 14, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#09090C", marginTop: 7, overflow: "hidden" },
-  profileResult: { flexDirection: "row", alignItems: "center", gap: 10, padding: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#242429" },
-  avatarSmall: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: "#4B4B52", backgroundColor: "#151518", alignItems: "center", justifyContent: "center" },
+  title: { color: "#FFF", fontSize: 20, fontWeight: "900" },
+  subtitle: { color: "rgba(235,235,240,0.58)", fontSize: 9, marginTop: 3 },
+  refresh: { minHeight: 36, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.12)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  refreshText: { color: "rgba(245,245,248,0.72)", fontSize: 7, fontWeight: "900", letterSpacing: 0.3 },
+  searchInput: { minHeight: 47, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(5,5,8,0.28)", color: "#FFF", paddingHorizontal: 13 },
+  searchResults: { borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(5,5,8,0.78)", marginTop: 7, overflow: "hidden" },
+  profileResult: { flexDirection: "row", alignItems: "center", gap: 10, padding: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(255,255,255,0.12)" },
+  avatarSmall: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: "rgba(255,255,255,0.30)", backgroundColor: "rgba(0,0,0,0.24)", alignItems: "center", justifyContent: "center" },
   resultName: { color: "#FFF", fontSize: 12, fontWeight: "900" },
-  privacyCard: { borderRadius: 14, borderWidth: 1, borderColor: "#29232E", backgroundColor: "#0D0910", padding: 12, marginTop: 10, marginBottom: 4 },
-  privacyTitle: { color: "#D5B8EA", fontSize: 10, fontWeight: "900" },
-  privacyText: { color: "#7F7288", fontSize: 9, lineHeight: 14, marginTop: 4 },
-  conversationCard: { flexDirection: "row", alignItems: "center", gap: 11, borderRadius: 16, borderWidth: 1, borderColor: "#25252B", backgroundColor: "#09090C", padding: 12, marginTop: 9 },
-  unreadCard: { borderColor: "#514064", backgroundColor: "#0D0A10" },
-  avatar: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, borderColor: "#46464D", backgroundColor: "#161619", alignItems: "center", justifyContent: "center" },
+  privacyCard: { borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", backgroundColor: "rgba(5,5,7,0.20)", padding: 11, marginTop: 10, marginBottom: 4 },
+  privacyTitle: { color: "#FF8A92", fontSize: 9, fontWeight: "900" },
+  privacyText: { color: "rgba(235,235,240,0.56)", fontSize: 8, lineHeight: 13, marginTop: 4 },
+  conversationCard: { flexDirection: "row", alignItems: "center", gap: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(3,3,5,0.07)", paddingHorizontal: 3, paddingVertical: 12, marginTop: 2 },
+  unreadCard: { borderBottomColor: "rgba(255,38,56,0.42)", backgroundColor: "rgba(75,5,12,0.16)" },
+  avatar: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.32)", backgroundColor: "rgba(0,0,0,0.26)", alignItems: "center", justifyContent: "center" },
   avatarDev: { borderColor: "#D9464E", borderWidth: 2 },
   avatarText: { color: "#FFF", fontSize: 14, fontWeight: "900" },
-  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
   chatName: { color: "#FFF", fontSize: 13, fontWeight: "900" },
-  devBadge: { color: "#FF676E", fontSize: 7, fontWeight: "900", backgroundColor: "#22090B", borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2 },
-  favorite: { color: "#D5B4F0", fontSize: 11 },
-  preview: { color: "#919198", fontSize: 10, marginTop: 4 },
-  small: { color: "#626269", fontSize: 8, marginTop: 4 },
-  chevron: { color: "#707077", fontSize: 20 },
-  unreadBadge: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 5 },
-  unreadText: { color: "#050505", fontSize: 8, fontWeight: "900" },
-  empty: { color: "#73737B", fontSize: 11, lineHeight: 17, textAlign: "center", marginTop: 24 },
-  chatHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 },
-  backButton: { paddingVertical: 8, paddingRight: 4 },
-  backText: { color: "#BEBEC5", fontSize: 9, fontWeight: "900" },
-  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 8 },
-  action: { borderRadius: 9, borderWidth: 1, borderColor: "#303036", paddingHorizontal: 9, paddingVertical: 8 },
-  actionActive: { borderColor: "#765498", backgroundColor: "#160D1E" },
-  actionText: { color: "#B2B2B9", fontSize: 7, fontWeight: "900" },
-  report: { borderColor: "#492125" },
-  reportText: { color: "#E56D73" },
-  retentionNote: { borderRadius: 11, borderWidth: 1, borderColor: "#27272D", backgroundColor: "#08080A", padding: 10, marginTop: 9, marginBottom: 4 },
-  retentionText: { color: "#6E6E76", fontSize: 8, lineHeight: 13 },
-  loadOlder: { minHeight: 38, borderRadius: 10, borderWidth: 1, borderColor: "#37313D", backgroundColor: "#0E0A11", alignItems: "center", justifyContent: "center", marginTop: 9, marginBottom: 3 },
-  loadOlderText: { color: "#CDB6DE", fontSize: 8, fontWeight: "900" },
-  historyEnd: { color: "#55555D", fontSize: 8, textAlign: "center", marginTop: 10, marginBottom: 3 },
+  roleBadge: { color: "#FFFFFF", fontSize: 6, fontWeight: "900", backgroundColor: "rgba(91,32,38,0.68)", borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
+  roleBadgeDev: { backgroundColor: "rgba(121,17,24,0.84)" },
+  favorite: { color: "#FF8A92", fontSize: 6, fontWeight: "900", borderWidth: 1, borderColor: "rgba(255,38,56,0.34)", borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
+  preview: { color: "rgba(235,235,240,0.62)", fontSize: 10, marginTop: 4 },
+  small: { color: "rgba(225,225,232,0.46)", fontSize: 8, marginTop: 4 },
+  chevronIcon: { width: 8, height: 8, borderRightWidth: 1.5, borderBottomWidth: 1.5, borderColor: "rgba(235,235,240,0.50)", transform: [{ rotate: "-45deg" }], marginRight: 4 },
+  unreadBadge: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: "#FF2638", alignItems: "center", justifyContent: "center", paddingHorizontal: 5 },
+  unreadText: { color: "#FFFFFF", fontSize: 8, fontWeight: "900" },
+  empty: { color: "rgba(235,235,240,0.54)", fontSize: 10, lineHeight: 16, textAlign: "center", marginTop: 24 },
+  chatHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: -12, paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(255,255,255,0.14)" },
+  backButton: { minHeight: 38, justifyContent: "center", paddingRight: 4 },
+  backText: { color: "rgba(245,245,248,0.70)", fontSize: 8, fontWeight: "900" },
+  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 9 },
+  action: { borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 9, paddingVertical: 8 },
+  actionActive: { borderColor: "rgba(255,38,56,0.48)", backgroundColor: "rgba(83,7,14,0.24)" },
+  actionText: { color: "rgba(235,235,240,0.68)", fontSize: 7, fontWeight: "900" },
+  actionTextActive: { color: "#FF8A92" },
+  report: { borderColor: "rgba(255,80,90,0.30)" },
+  reportText: { color: "#FF7A83" },
+  retentionNote: { borderRadius: 9, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(0,0,0,0.14)", padding: 9, marginTop: 9, marginBottom: 4 },
+  retentionText: { color: "rgba(235,235,240,0.48)", fontSize: 8, lineHeight: 13 },
+  loadOlder: { minHeight: 37, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(0,0,0,0.14)", alignItems: "center", justifyContent: "center", marginTop: 9, marginBottom: 3 },
+  loadOlderText: { color: "rgba(245,245,248,0.68)", fontSize: 7, fontWeight: "900" },
+  historyEnd: { color: "rgba(225,225,232,0.42)", fontSize: 8, textAlign: "center", marginTop: 10, marginBottom: 3 },
   messageRow: { alignItems: "flex-start", marginTop: 8 },
   messageRowMine: { alignItems: "flex-end" },
-  bubble: { maxWidth: "84%", borderRadius: 15, borderWidth: 1, borderColor: "#2A2A30", backgroundColor: "#0A0A0D", paddingHorizontal: 12, paddingVertical: 9 },
-  bubbleMine: { backgroundColor: "#17101D", borderColor: "#4B365D" },
-  sender: { color: "#C6A4E0", fontSize: 8, fontWeight: "900", marginBottom: 4 },
-  messageText: { color: "#E2E2E6", fontSize: 11, lineHeight: 17 },
-  messageMeta: { color: "#65656C", fontSize: 7, marginTop: 5 },
+  bubble: { maxWidth: "84%", borderRadius: 13, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(3,3,6,0.26)", paddingHorizontal: 12, paddingVertical: 9 },
+  bubbleMine: { backgroundColor: "rgba(85,7,14,0.30)", borderColor: "rgba(255,38,56,0.38)" },
+  senderRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 4 },
+  sender: { color: "#FFFFFF", fontSize: 8, fontWeight: "900" },
+  messageRole: { color: "#FFFFFF", fontSize: 5, fontWeight: "900", backgroundColor: "rgba(91,32,38,0.62)", borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1 },
+  messageRoleDev: { backgroundColor: "rgba(121,17,24,0.82)" },
+  messageText: { color: "#EEEEF2", fontSize: 11, lineHeight: 17 },
+  messageMeta: { color: "rgba(225,225,232,0.43)", fontSize: 7, marginTop: 5 },
   composer: { flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 13 },
-  messageInput: { flex: 1, minHeight: 48, maxHeight: 140, borderRadius: 13, borderWidth: 1, borderColor: "#2C2C32", backgroundColor: "#0D0D10", color: "#FFF", paddingHorizontal: 12, paddingVertical: 11 },
-  send: { minWidth: 70, minHeight: 48, borderRadius: 12, backgroundColor: "#FFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  messageInput: { flex: 1, minHeight: 48, maxHeight: 140, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(5,5,8,0.28)", color: "#FFF", paddingHorizontal: 12, paddingVertical: 11 },
+  send: { minWidth: 70, minHeight: 48, borderRadius: 11, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
   sendText: { color: "#050505", fontSize: 8, fontWeight: "900" },
   disabled: { opacity: 0.42 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.84)", alignItems: "center", justifyContent: "center", padding: 18 },
-  modalBox: { width: "100%", maxWidth: 520, borderRadius: 19, borderWidth: 1, borderColor: "#34343A", backgroundColor: "#09090C", padding: 17 },
-  modalTitle: { color: "#FFF", fontSize: 19, fontWeight: "900" },
-  modalText: { color: "#85858D", fontSize: 10, lineHeight: 16, marginTop: 7, marginBottom: 10 },
-  modalPrimary: { minHeight: 48, borderRadius: 12, backgroundColor: "#3A1115", borderWidth: 1, borderColor: "#68232A", alignItems: "center", justifyContent: "center", marginTop: 12 },
-  modalPrimaryText: { color: "#FF7A80", fontSize: 9, fontWeight: "900" },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.74)", alignItems: "center", justifyContent: "center", padding: 18 },
+  modalBox: { width: "100%", maxWidth: 520, borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(8,8,10,0.90)", padding: 17 },
+  modalTitle: { color: "#FFF", fontSize: 18, fontWeight: "900" },
+  modalText: { color: "rgba(235,235,240,0.58)", fontSize: 10, lineHeight: 16, marginTop: 7, marginBottom: 10 },
+  modalPrimary: { minHeight: 48, borderRadius: 11, backgroundColor: "rgba(122,14,22,0.76)", borderWidth: 1, borderColor: "rgba(255,74,84,0.38)", alignItems: "center", justifyContent: "center", marginTop: 12 },
+  modalPrimaryText: { color: "#FF9BA2", fontSize: 9, fontWeight: "900" },
   modalSecondary: { minHeight: 44, alignItems: "center", justifyContent: "center", marginTop: 5 },
-  modalSecondaryText: { color: "#85858C", fontSize: 8, fontWeight: "900" }
+  modalSecondaryText: { color: "rgba(235,235,240,0.58)", fontSize: 8, fontWeight: "900" }
 });
