@@ -1,6 +1,9 @@
 name: Avatar Dump Sync
 
 on:
+  push:
+    paths:
+      - ".github/workflows/avatar-dump-sync.yml"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -43,8 +46,6 @@ jobs:
           if (String(data.userId) !== '765329164') throw new Error('UserId inesperado');
           if (!data.avatar || typeof data.avatar !== 'object') throw new Error('Campo avatar ausente');
 
-          // O repo é público: não espelhar contexto do jogo nem atributos
-          // arbitrários que possam ter sido colocados por experiências Roblox.
           delete data.placeId;
           delete data.gameId;
 
