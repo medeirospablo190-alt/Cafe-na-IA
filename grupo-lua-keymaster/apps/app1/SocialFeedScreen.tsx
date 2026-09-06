@@ -1,6 +1,6 @@
 import type { App1Role } from "./api";
 import { SocialArchive } from "./SocialArchive";
-import { SocialFeedScreenV5 } from "./SocialFeedScreenV5";
+import { SocialFeedScreenV5Connected } from "./SocialFeedScreenV5Connected";
 
 export function SocialFeedScreen({
   sessionToken,
@@ -23,13 +23,13 @@ export function SocialFeedScreen({
 }) {
   return (
     <>
-      <SocialFeedScreenV5
+      <SocialFeedScreenV5Connected
         sessionToken={sessionToken}
         deviceToken={deviceToken}
-        viewerProfileId={viewerProfileId}
-        viewerPublicName={viewerPublicName}
-        viewerRole={viewerRole}
-        sessionExpiresAt={sessionExpiresAt}
+        fallbackProfileId={viewerProfileId}
+        fallbackPublicName={viewerPublicName}
+        fallbackRole={viewerRole}
+        fallbackSessionExpiresAt={sessionExpiresAt}
         onOpenChat={onOpenChat}
         onOpenProfile={onOpenProfile}
       />
