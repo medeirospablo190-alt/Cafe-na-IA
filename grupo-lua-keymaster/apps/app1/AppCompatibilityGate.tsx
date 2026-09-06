@@ -28,7 +28,7 @@ function GateBackground({ children }: { children: React.ReactNode }) {
     <SafeAreaProvider>
       <ImageBackground source={{ uri: LOGIN_BACKGROUND_DATA_URI }} style={styles.background} resizeMode="cover">
         <View style={styles.shade} pointerEvents="none" />
-        <StatusBar style="light" translucent backgroundColor="transparent" />
+        <StatusBar style="light" />
         <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
           {children}
         </SafeAreaView>
