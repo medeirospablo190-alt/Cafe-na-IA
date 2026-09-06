@@ -1,6 +1,7 @@
 import http from "node:http";
 import { installKeymasterAuditClearRoute } from "./keymaster-audit-clear.js";
 import { installApp1AnnouncementEditRoute } from "./app1-announcement-edit-route.js";
+import { installApp1AnnouncementListRoute } from "./app1-announcement-list-route.js";
 import { handleApp1VersionPolicy } from "./app1-version-policy.js";
 
 const ALLOWED_BROWSER_ORIGINS = new Set([
@@ -61,4 +62,5 @@ http.createServer = function patchedCreateServer(...args) {
 
 installKeymasterAuditClearRoute();
 installApp1AnnouncementEditRoute();
+installApp1AnnouncementListRoute();
 await import("./server.js");
