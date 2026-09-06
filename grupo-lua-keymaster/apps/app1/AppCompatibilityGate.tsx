@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
@@ -9,17 +10,32 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import AppRoot from "./AppRoot";
+import AppRootRedesign from "./AppRootRedesign";
 import {
   APP1_VERSION,
   checkApp1Compatibility,
   type AppCompatibilityResult
 } from "./appVersion";
+import { LOGIN_BACKGROUND_DATA_URI } from "./loginBackground";
 
 type GateState = {
   checking: boolean;
   result: AppCompatibilityResult | null;
 };
+
+function GateBackground({ children }: { children: React.ReactNode }) {
+  return (
+    <SafeAreaProvider>
+      <ImageBackground source={{ uri: LOGIN_BACKGROUND_DATA_URI }} style={styles.background} resizeMode="cover">
+        <View style={styles.shade} pointerEvents="none" />
+        <StatusBar style="light" translucent backgroundColor="transparent" />
+        <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
+          {children}
+        </SafeAreaView>
+      </ImageBackground>
+    </SafeAreaProvider>
+  );
+}
 
 export default function AppCompatibilityGate() {
   const [state, setState] = useState<GateState>({ checking: true, result: null });
@@ -48,64 +64,85 @@ export default function AppCompatibilityGate() {
 
   if (state.checking) {
     return (
-      <SafeAreaProvider>
-        <StatusBar style="light" />
-        <SafeAreaView style={styles.root}>
-          <View style={styles.center}>
-            <Text style={styles.moon}>☾</Text>
-            <Text style={styles.brand}>GRUPO LUA</Text>
-            <ActivityIndicator size="small" />
-            <Text style={styles.muted}>Verificando compatibilidade da versão {APP1_VERSION}...</Text>
-          </View>
-        </SafeAreaView>
-      </SafeAreaProvider>
+      <GateBackground>
+        <View style={styles.center}>
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        </View>
+      </GateBackground>
     );
   }
 
   if (state.result?.updateRequired) {
     return (
-      <SafeAreaProvider>
-        <StatusBar style="light" />
-        <SafeAreaView style={styles.root}>
-          <View style={styles.center}>
-            <View style={styles.blockCard}>
-              <Text style={styles.eyebrow}>ATUALIZAÇÃO NECESSÁRIA</Text>
-              <Text style={styles.title}>Esta versão não é mais compatível</Text>
-              <Text style={styles.body}>{state.result.message}</Text>
-              <View style={styles.versionBox}>
-                <Text style={styles.versionLine}>Instalada: {state.result.currentVersion}</Text>
-                <Text style={styles.versionLine}>Mínima: {state.result.minSupportedVersion}</Text>
-                <Text style={styles.versionLine}>Mais recente: {state.result.latestVersion}</Text>
-              </View>
-              <Text style={styles.help}>
-                O bloqueio protege o login, as chaves e os dados quando a Control API deixa de aceitar uma versão antiga do aplicativo.
-              </Text>
-              <Pressable style={styles.button} onPress={() => refresh().catch(() => {})}>
-                <Text style={styles.buttonText}>VERIFICAR NOVAMENTE</Text>
-              </Pressable>
+      <GateBackground>
+        <View style={styles.center}>
+          <View style={styles.blockCard}>
+            <Text style={styles.eyebrow}>ATUALIZAÇÃO NECESSÁRIA</Text>
+            <Text style={styles.title}>Esta versão não é mais compatível</Text>
+            <Text style={styles.body}>{state.result.message}</Text>
+            <View style={styles.versionBox}>
+              <Text style={styles.versionLine}>Instalada: {state.result.currentVersion}</Text>
+              <Text style={styles.versionLine}>Mínima: {state.result.minSupportedVersion}</Text>
+              <Text style={styles.versionLine}>Mais recente: {state.result.latestVersion}</Text>
             </View>
+            <Text style={styles.help}>
+              O bloqueio protege o login, as chaves e os dados quando a Control API deixa de aceitar uma versão antiga do aplicativo.
+            </Text>
+            <Pressable style={styles.button} onPress={() => refresh().catch(() => {})}>
+              <Text style={styles.buttonText}>VERIFICAR NOVAMENTE</Text>
+            </Pressable>
           </View>
-        </SafeAreaView>
-      </SafeAreaProvider>
+        </View>
+      </GateBackground>
     );
   }
 
-  return <AppRoot />;
+  return <AppRootRedesign />;
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#030303" },
+  background: { flex: 1, width: "100%", height: "100%" },
+  shade: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.10)"
+  },
+  root: { flex: 1, backgroundColor: "transparent" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 20, gap: 10 },
-  moon: { color: "#D53037", fontSize: 34, fontWeight: "900" },
-  brand: { color: "#FFFFFF", fontSize: 22, fontWeight: "900", letterSpacing: 3 },
-  muted: { color: "#8B8B92", fontSize: 12, lineHeight: 17, textAlign: "center", marginTop: 4 },
-  blockCard: { width: "100%", maxWidth: 520, borderRadius: 18, borderWidth: 1, borderColor: "#5A272C", backgroundColor: "#100708", padding: 18 },
-  eyebrow: { color: "#FF737A", fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
+  blockCard: {
+    width: "100%",
+    maxWidth: 520,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,110,116,0.40)",
+    backgroundColor: "rgba(35,7,9,0.52)",
+    padding: 18
+  },
+  eyebrow: { color: "#FF9A9F", fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   title: { color: "#FFFFFF", fontSize: 22, lineHeight: 28, fontWeight: "900", marginTop: 7 },
-  body: { color: "#D7C6C8", fontSize: 13, lineHeight: 19, marginTop: 8 },
-  versionBox: { borderRadius: 12, borderWidth: 1, borderColor: "#3D2A2D", backgroundColor: "#090708", padding: 12, marginTop: 12, gap: 4 },
-  versionLine: { color: "#E9E9ED", fontSize: 12, lineHeight: 17, fontWeight: "700" },
-  help: { color: "#8F8587", fontSize: 11, lineHeight: 17, marginTop: 11 },
-  button: { minHeight: 50, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFF", marginTop: 14, paddingHorizontal: 16 },
+  body: { color: "#F1E4E5", fontSize: 13, lineHeight: 19, marginTop: 8 },
+  versionBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(0,0,0,0.24)",
+    padding: 12,
+    marginTop: 12,
+    gap: 4
+  },
+  versionLine: { color: "#FFFFFF", fontSize: 12, lineHeight: 17, fontWeight: "700" },
+  help: { color: "rgba(245,245,248,0.72)", fontSize: 11, lineHeight: 17, marginTop: 11 },
+  button: {
+    minHeight: 50,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    marginTop: 14,
+    paddingHorizontal: 16
+  },
   buttonText: { color: "#050505", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 }
 });
