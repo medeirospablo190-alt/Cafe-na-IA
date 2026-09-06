@@ -5,6 +5,7 @@ import { registerApp1MenuManagementV2Routes } from "./app1-menu-management-v2-ro
 import { registerApp1MenuKeyV2Routes } from "./app1-menu-key-v2-routes.js";
 import { registerApp1MenuKeyRoutes } from "./app1-menu-key-routes.js";
 import { registerApp1SocialRoutes } from "./app1-social-routes.js";
+import { registerApp1StatusRoutes } from "./app1-status-routes.js";
 import { registerApp1ChatRoutes } from "./app1-chat-routes.js";
 import { registerMenuInlineSourceRoutes } from "./menu-inline-source-routes.js";
 import { registerMenuAccessV2Routes } from "./menu-access-v2-routes.js";
@@ -16,6 +17,7 @@ export function registerApp1LibraryRoutes(app) {
   // no bootstrap principal. As rotas novas entram antes do menu-routes legado.
   registerApp1SessionControlRoutes(app);
   registerApp1SocialRoutes(app);
+  registerApp1StatusRoutes(app);
   registerApp1ChatRoutes(app);
   registerApp1LibraryHardeningRoutes(app);
   registerApp1LibraryRoutesV2(app);
