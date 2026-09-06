@@ -143,7 +143,11 @@ export function DevUpdatesHome({
       <View style={s.header}>
         <View style={s.headerText}>
           <Text style={s.title}>Atualizações</Text>
-          <Text style={s.subtitle}>Avisos oficiais dos desenvolvedores</Text>
+          <Text style={s.subtitle}>
+            {loading
+              ? "Avisos oficiais dos desenvolvedores"
+              : `Avisos oficiais dos desenvolvedores • ${items.length} ativo(s)`}
+          </Text>
         </View>
         {viewerRole === "DEV" ? (
           <Pressable
