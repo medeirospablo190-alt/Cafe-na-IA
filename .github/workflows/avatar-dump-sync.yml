@@ -1,0 +1,81 @@
+name: Avatar Dump Sync
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: avatar-dump-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest Capuccino40 avatar dump
+        id: fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/avatar-sync
+          URL="https://cafe-na-ia.onrender.com/api/avatar-dump/765329164/latest"
+          CODE="$(curl --silent --show-error --location --max-time 45 --output /tmp/avatar-sync/latest.json --write-out '%{http_code}' "$URL" || true)"
+
+          if [ "$CODE" != "200" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Nenhum dump disponível ainda (HTTP $CODE)."
+            exit 0
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = '/tmp/avatar-sync/latest.json';
+          const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+          if (String(data.userId) !== '765329164') throw new Error('UserId inesperado');
+          if (!data.avatar || typeof data.avatar !== 'object') throw new Error('Campo avatar ausente');
+          fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\n');
+          NODE
+
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Store latest and history
+        if: steps.fetch.outputs.available == 'true'
+        id: store
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET_DIR="avatar-dumps/765329164"
+          mkdir -p "$TARGET_DIR"
+
+          if [ -f "$TARGET_DIR/latest.json" ] && cmp -s /tmp/avatar-sync/latest.json "$TARGET_DIR/latest.json"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Dump não mudou."
+            exit 0
+          fi
+
+          cp /tmp/avatar-sync/latest.json "$TARGET_DIR/latest.json"
+
+          STAMP="$(node -e "const d=require('/tmp/avatar-sync/latest.json'); console.log(String(d.serverReceivedAt || d.capturedAt || new Date().toISOString()).replace(/[:.]/g,'-'))")"
+          HASH="$(sha256sum /tmp/avatar-sync/latest.json | cut -c1-10)"
+          cp /tmp/avatar-sync/latest.json "$TARGET_DIR/${STAMP}_${HASH}.json"
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit synchronized dump
+        if: steps.store.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add avatar-dumps/765329164
+          git commit -m "Avatar dump sync: Capuccino40 [skip ci]"
+          git push
