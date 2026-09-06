@@ -148,6 +148,290 @@ function Avatar({
   );
 }
 
+type SocialIconName =
+  | "bell"
+  | "chat"
+  | "search"
+  | "heart"
+  | "favorite"
+  | "more"
+  | "plus"
+  | "eye"
+  | "profile"
+  | "trash"
+  | "notice"
+  | "close"
+  | "chevron";
+
+function SocialIcon({
+  name,
+  size = 24,
+  color = "#FFFFFF",
+  active = false
+}: {
+  name: SocialIconName;
+  size?: number;
+  color?: string;
+  active?: boolean;
+}) {
+  const k = size / 24;
+  const stroke = Math.max(1.35, 1.65 * k);
+  const tint = active && (name === "heart" || name === "favorite") ? "#FF2638" : color;
+  const box = [s.iconBox, { width: size, height: size }];
+
+  if (name === "bell") {
+    return (
+      <View style={box}>
+        <View style={{
+          position: "absolute",
+          left: 5 * k,
+          top: 4 * k,
+          width: 14 * k,
+          height: 14 * k,
+          borderWidth: stroke,
+          borderColor: tint,
+          borderTopLeftRadius: 8 * k,
+          borderTopRightRadius: 8 * k,
+          borderBottomLeftRadius: 4 * k,
+          borderBottomRightRadius: 4 * k
+        }} />
+        <View style={{ position: "absolute", left: 10 * k, top: 1.8 * k, width: 4 * k, height: 3 * k, borderRadius: 2 * k, backgroundColor: tint }} />
+        <View style={{ position: "absolute", left: 9.7 * k, top: 19 * k, width: 4.6 * k, height: 2.3 * k, borderRadius: 2 * k, backgroundColor: tint }} />
+      </View>
+    );
+  }
+
+  if (name === "chat") {
+    return (
+      <View style={box}>
+        <View style={{
+          position: "absolute",
+          left: 3 * k,
+          top: 3 * k,
+          width: 18 * k,
+          height: 14 * k,
+          borderWidth: stroke,
+          borderColor: tint,
+          borderRadius: 5 * k
+        }} />
+        <View style={{
+          position: "absolute",
+          left: 6 * k,
+          top: 15 * k,
+          width: 6 * k,
+          height: 6 * k,
+          borderLeftWidth: stroke,
+          borderBottomWidth: stroke,
+          borderColor: tint,
+          transform: [{ rotate: "-28deg" }]
+        }} />
+      </View>
+    );
+  }
+
+  if (name === "search") {
+    return (
+      <View style={box}>
+        <View style={{
+          position: "absolute",
+          left: 3 * k,
+          top: 3 * k,
+          width: 13 * k,
+          height: 13 * k,
+          borderRadius: 7 * k,
+          borderWidth: stroke,
+          borderColor: tint
+        }} />
+        <View style={{
+          position: "absolute",
+          left: 14 * k,
+          top: 15 * k,
+          width: 8 * k,
+          height: stroke,
+          borderRadius: stroke / 2,
+          backgroundColor: tint,
+          transform: [{ rotate: "45deg" }]
+        }} />
+      </View>
+    );
+  }
+
+  if (name === "heart") {
+    const fill = active ? tint : "transparent";
+    return (
+      <View style={box}>
+        <View style={{
+          position: "absolute",
+          left: 6.3 * k,
+          top: 7.4 * k,
+          width: 11.4 * k,
+          height: 11.4 * k,
+          borderWidth: stroke,
+          borderColor: tint,
+          backgroundColor: fill,
+          transform: [{ rotate: "45deg" }]
+        }} />
+        <View style={{
+          position: "absolute",
+          left: 4.1 * k,
+          top: 4.2 * k,
+          width: 10.8 * k,
+          height: 10.8 * k,
+          borderRadius: 6 * k,
+          borderWidth: stroke,
+          borderColor: tint,
+          backgroundColor: fill
+        }} />
+        <View style={{
+          position: "absolute",
+          right: 4.1 * k,
+          top: 4.2 * k,
+          width: 10.8 * k,
+          height: 10.8 * k,
+          borderRadius: 6 * k,
+          borderWidth: stroke,
+          borderColor: tint,
+          backgroundColor: fill
+        }} />
+      </View>
+    );
+  }
+
+  if (name === "favorite") {
+    return (
+      <View style={box}>
+        <View style={{
+          position: "absolute",
+          left: 2 * k,
+          top: 8.2 * k,
+          width: 0,
+          height: 0,
+          borderLeftWidth: 10 * k,
+          borderRightWidth: 10 * k,
+          borderBottomWidth: 7 * k,
+          borderLeftColor: "transparent",
+          borderRightColor: "transparent",
+          borderBottomColor: tint,
+          transform: [{ rotate: "35deg" }]
+        }} />
+        <View style={{
+          position: "absolute",
+          left: 8.8 * k,
+          top: 2.2 * k,
+          width: 0,
+          height: 0,
+          borderLeftWidth: 3.2 * k,
+          borderRightWidth: 3.2 * k,
+          borderBottomWidth: 8.6 * k,
+          borderLeftColor: "transparent",
+          borderRightColor: "transparent",
+          borderBottomColor: tint,
+          transform: [{ rotate: "-35deg" }]
+        }} />
+        <View style={{
+          position: "absolute",
+          left: 2 * k,
+          top: 8.2 * k,
+          width: 0,
+          height: 0,
+          borderLeftWidth: 10 * k,
+          borderRightWidth: 10 * k,
+          borderBottomWidth: 7 * k,
+          borderLeftColor: "transparent",
+          borderRightColor: "transparent",
+          borderBottomColor: tint,
+          transform: [{ rotate: "-35deg" }]
+        }} />
+      </View>
+    );
+  }
+
+  if (name === "more") {
+    return (
+      <View style={box}>
+        {[5, 11, 17].map((top) => (
+          <View key={top} style={{ position: "absolute", top: top * k, width: 3 * k, height: 3 * k, borderRadius: 1.5 * k, backgroundColor: tint }} />
+        ))}
+      </View>
+    );
+  }
+
+  if (name === "plus") {
+    return (
+      <View style={box}>
+        <View style={{ position: "absolute", width: 15 * k, height: stroke, borderRadius: stroke / 2, backgroundColor: tint }} />
+        <View style={{ position: "absolute", width: stroke, height: 15 * k, borderRadius: stroke / 2, backgroundColor: tint }} />
+      </View>
+    );
+  }
+
+  if (name === "eye") {
+    return (
+      <View style={box}>
+        <View style={{ width: 20 * k, height: 12 * k, borderRadius: 10 * k, borderWidth: stroke, borderColor: tint, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 5.5 * k, height: 5.5 * k, borderRadius: 3 * k, backgroundColor: tint }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (name === "profile") {
+    return (
+      <View style={box}>
+        <View style={{ position: "absolute", top: 3 * k, width: 8 * k, height: 8 * k, borderRadius: 4 * k, borderWidth: stroke, borderColor: tint }} />
+        <View style={{
+          position: "absolute",
+          bottom: 3 * k,
+          width: 18 * k,
+          height: 9 * k,
+          borderTopLeftRadius: 9 * k,
+          borderTopRightRadius: 9 * k,
+          borderWidth: stroke,
+          borderBottomWidth: 0,
+          borderColor: tint
+        }} />
+      </View>
+    );
+  }
+
+  if (name === "trash") {
+    return (
+      <View style={box}>
+        <View style={{ position: "absolute", top: 5 * k, width: 15 * k, height: stroke, borderRadius: stroke / 2, backgroundColor: tint }} />
+        <View style={{ position: "absolute", top: 2.5 * k, width: 7 * k, height: 3 * k, borderWidth: stroke, borderBottomWidth: 0, borderColor: tint, borderTopLeftRadius: 2 * k, borderTopRightRadius: 2 * k }} />
+        <View style={{ position: "absolute", top: 8 * k, width: 13 * k, height: 13 * k, borderWidth: stroke, borderTopWidth: 0, borderColor: tint, borderBottomLeftRadius: 3 * k, borderBottomRightRadius: 3 * k }} />
+      </View>
+    );
+  }
+
+  if (name === "notice") {
+    return (
+      <View style={box}>
+        <View style={{ width: 20 * k, height: 20 * k, borderRadius: 10 * k, borderWidth: stroke, borderColor: tint, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: stroke, height: 8 * k, borderRadius: stroke / 2, backgroundColor: tint, marginBottom: 2 * k }} />
+          <View style={{ width: 2.5 * k, height: 2.5 * k, borderRadius: 1.3 * k, backgroundColor: tint }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (name === "close") {
+    return (
+      <View style={box}>
+        <View style={{ position: "absolute", width: 16 * k, height: stroke, borderRadius: stroke / 2, backgroundColor: tint, transform: [{ rotate: "45deg" }] }} />
+        <View style={{ position: "absolute", width: 16 * k, height: stroke, borderRadius: stroke / 2, backgroundColor: tint, transform: [{ rotate: "-45deg" }] }} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={box}>
+      <View style={{ position: "absolute", width: 9 * k, height: stroke, backgroundColor: tint, transform: [{ rotate: "45deg" }], top: 7 * k, left: 8 * k }} />
+      <View style={{ position: "absolute", width: 9 * k, height: stroke, backgroundColor: tint, transform: [{ rotate: "-45deg" }], top: 13 * k, left: 8 * k }} />
+    </View>
+  );
+}
+
 export function SocialFeedScreenV5({
   sessionToken,
   deviceToken,
@@ -621,12 +905,22 @@ export function SocialFeedScreenV5({
       <View style={s.brandRow}>
         <Text style={s.brand}>GRUPO <Text style={s.brandRed}>LUA</Text></Text>
         <View style={s.brandActions}>
-          <Pressable style={s.headerIconButton} onPress={() => openNotifications().catch(() => {})}>
-            <Text style={s.headerIcon}>♢</Text>
+          <Pressable
+            style={s.headerIconButton}
+            onPress={() => openNotifications().catch(() => {})}
+            accessibilityRole="button"
+            accessibilityLabel="Notificações"
+          >
+            <SocialIcon name="bell" size={23} />
             {unread > 0 ? <View style={s.unreadDot} /> : null}
           </Pressable>
-          <Pressable style={s.headerIconButton} onPress={onOpenChat}>
-            <Text style={s.chatBubble}>◯</Text>
+          <Pressable
+            style={s.headerIconButton}
+            onPress={onOpenChat}
+            accessibilityRole="button"
+            accessibilityLabel="Chat"
+          >
+            <SocialIcon name="chat" size={24} />
           </Pressable>
         </View>
       </View>
@@ -646,6 +940,7 @@ export function SocialFeedScreenV5({
         <>
           <ScrollView
             horizontal
+            style={s.statusScroller}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={s.statusStrip}
           >
@@ -673,7 +968,7 @@ export function SocialFeedScreenV5({
                       name={profile.publicName}
                       avatarStyle={profile.avatarStyle}
                       imageSource={source}
-                      size={72}
+                      size={68}
                       highlighted={Boolean(profile.activeStatus) || profile.mine}
                     />
                     {!profile.mine ? (
@@ -682,7 +977,7 @@ export function SocialFeedScreenV5({
                       </View>
                     ) : (
                       <View style={s.addStatusBadge}>
-                        <Text style={s.addStatusText}>+</Text>
+                        <SocialIcon name="plus" size={11} />
                       </View>
                     )}
                   </View>
@@ -696,7 +991,7 @@ export function SocialFeedScreenV5({
           </ScrollView>
 
           <View style={s.searchBox}>
-            <Text style={s.searchIcon}>⌕</Text>
+            <SocialIcon name="search" size={19} color="rgba(245,245,248,0.88)" />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -725,7 +1020,7 @@ export function SocialFeedScreenV5({
                     </View>
                     <Text numberOfLines={1} style={s.searchMeta}>{profile.statusText || profile.bio || "Abrir perfil"}</Text>
                   </View>
-                  <Text style={s.chevron}>›</Text>
+                  <SocialIcon name="chevron" size={18} color="rgba(255,255,255,0.55)" />
                 </Pressable>
               ))}
             </View>
@@ -733,7 +1028,9 @@ export function SocialFeedScreenV5({
 
           {announcements[0] ? (
             <Pressable style={s.devNotice} onPress={() => setAnnouncementOpen(announcements[0])}>
-              <Text style={s.devNoticeIcon}>⚑</Text>
+              <View style={s.devNoticeIconBox}>
+                <SocialIcon name="notice" size={18} color="#FF2638" />
+              </View>
               <View style={s.devNoticeBody}>
                 <Text numberOfLines={1} style={s.devNoticeText}>
                   <Text style={s.devNoticeLabel}>AVISO DEV</Text>
@@ -806,7 +1103,7 @@ export function SocialFeedScreenV5({
             <View style={s.actionSheetHandle} />
             <Text style={s.actionSheetTitle}>Seu status</Text>
             <Pressable style={s.actionRow} onPress={() => pickAndPublishStatus().catch(() => {})}>
-              <Text style={s.actionIcon}>＋</Text>
+              <View style={s.actionIconBox}><SocialIcon name="plus" size={21} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.actionTitle}>Postar foto</Text>
                 <Text style={s.actionMeta}>JPG, PNG ou WEBP • até 4 MB • 24 horas</Text>
@@ -814,7 +1111,7 @@ export function SocialFeedScreenV5({
             </Pressable>
             {ownStatusProfile?.activeStatus ? (
               <Pressable style={s.actionRow} onPress={viewOwnStatus}>
-                <Text style={s.actionIcon}>◉</Text>
+                <View style={s.actionIconBox}><SocialIcon name="eye" size={21} /></View>
                 <Text style={s.actionTitle}>Ver status</Text>
               </Pressable>
             ) : null}
@@ -825,12 +1122,12 @@ export function SocialFeedScreenV5({
                 setMainTab("PROFILE");
               }}
             >
-              <Text style={s.actionIcon}>♙</Text>
+              <View style={s.actionIconBox}><SocialIcon name="profile" size={21} /></View>
               <Text style={s.actionTitle}>Entrar no perfil</Text>
             </Pressable>
             {ownStatusProfile?.activeStatus ? (
               <Pressable style={s.actionRow} onPress={deleteOwnStatus}>
-                <Text style={[s.actionIcon, s.dangerText]}>×</Text>
+                <View style={s.actionIconBox}><SocialIcon name="trash" size={21} color="#FF6672" /></View>
                 <Text style={[s.actionTitle, s.dangerText]}>Apagar status</Text>
               </Pressable>
             ) : null}
@@ -853,8 +1150,8 @@ export function SocialFeedScreenV5({
                     <Text style={s.statusViewerTime}>{relativeDate(statusViewer.activeStatus.createdAt)}</Text>
                   </View>
                 </Pressable>
-                <Pressable style={s.closeCircle} onPress={() => setStatusViewer(null)}>
-                  <Text style={s.closeText}>×</Text>
+                <Pressable style={s.closeCircle} onPress={() => setStatusViewer(null)} accessibilityLabel="Fechar status">
+                  <SocialIcon name="close" size={19} />
                 </Pressable>
               </View>
               <Image
@@ -889,7 +1186,7 @@ export function SocialFeedScreenV5({
           <View style={s.modalPanel}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Notificações</Text>
-              <Pressable onPress={() => setNotificationsOpen(false)}><Text style={s.modalClose}>×</Text></Pressable>
+              <Pressable style={s.modalCloseButton} onPress={() => setNotificationsOpen(false)} accessibilityLabel="Fechar notificações"><SocialIcon name="close" size={18} /></Pressable>
             </View>
             <ScrollView style={s.modalList} contentContainerStyle={s.modalListContent}>
               {notifications.length === 0 ? (
@@ -920,7 +1217,7 @@ export function SocialFeedScreenV5({
           <View style={s.modalPanelCompact}>
             <View style={s.modalHeader}>
               <Text style={s.devNoticeLabel}>AVISO DEV</Text>
-              <Pressable onPress={() => setAnnouncementOpen(null)}><Text style={s.modalClose}>×</Text></Pressable>
+              <Pressable style={s.modalCloseButton} onPress={() => setAnnouncementOpen(null)} accessibilityLabel="Fechar aviso"><SocialIcon name="close" size={18} /></Pressable>
             </View>
             <Text style={s.announcementText}>{announcementOpen?.text}</Text>
             <Text style={s.announcementMeta}>
@@ -997,8 +1294,8 @@ function PostBlock({
           </View>
           <Text style={s.postTime}>{relativeDate(post.createdAt)}</Text>
         </Pressable>
-        <Pressable style={s.moreButton} onPress={onMenu}>
-          <Text style={s.moreText}>⋮</Text>
+        <Pressable style={s.moreButton} onPress={onMenu} accessibilityLabel="Mais ações">
+          <SocialIcon name="more" size={22} />
         </Pressable>
       </View>
 
@@ -1012,14 +1309,14 @@ function PostBlock({
       </View>
 
       <View style={s.postActions}>
-        <Pressable disabled={busy} onPress={onLike} style={s.postAction}>
-          <Text style={[s.likeIcon, post.reactions.liked && s.likeIconActive]}>{post.reactions.liked ? "♥" : "♡"}</Text>
+        <Pressable disabled={busy} onPress={onLike} style={s.postAction} accessibilityLabel={post.reactions.liked ? "Descurtir" : "Curtir"}>
+          <SocialIcon name="heart" size={24} active={post.reactions.liked} />
         </Pressable>
-        <Pressable onPress={onComments} style={s.postAction}>
-          <Text style={s.commentIcon}>◯</Text>
+        <Pressable onPress={onComments} style={s.postAction} accessibilityLabel="Comentários">
+          <SocialIcon name="chat" size={23} />
         </Pressable>
-        <Pressable disabled={busy} onPress={onFavorite} style={s.postAction}>
-          <Text style={[s.starIcon, post.reactions.favorited && s.starIconActive]}>{post.reactions.favorited ? "★" : "☆"}</Text>
+        <Pressable disabled={busy} onPress={onFavorite} style={s.postAction} accessibilityLabel={post.reactions.favorited ? "Remover dos favoritos" : "Favoritar"}>
+          <SocialIcon name="favorite" size={23} active={post.reactions.favorited} />
         </Pressable>
       </View>
 
@@ -1132,7 +1429,7 @@ function PublicProfilePanel({ bundle, onClose }: { bundle: ProfileBundle; onClos
     <>
       <View style={s.modalHeader}>
         <Text style={s.modalTitle}>Perfil</Text>
-        <Pressable onPress={onClose}><Text style={s.modalClose}>×</Text></Pressable>
+        <Pressable style={s.modalCloseButton} onPress={onClose} accessibilityLabel="Fechar perfil"><SocialIcon name="close" size={18} /></Pressable>
       </View>
       <View style={s.publicProfileHero}>
         <Avatar name={bundle.profile.publicName} avatarStyle={bundle.profile.avatarStyle} size={72} highlighted={bundle.profile.role === "DEV"} />
@@ -1168,51 +1465,54 @@ function PublicProfilePanel({ bundle, onClose }: { bundle: ProfileBundle; onClos
 
 const s = StyleSheet.create({
   root: { width: "100%" },
-  sessionHeader: { flexDirection: "row", alignItems: "center", gap: 11, paddingHorizontal: 8, paddingTop: 6, paddingBottom: 12 },
+  iconBox: { alignItems: "center", justifyContent: "center", position: "relative", flexShrink: 0 },
+  sessionHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: -12, paddingHorizontal: 14, paddingTop: 4, paddingBottom: 10 },
   sessionIdentity: { flex: 1 },
-  sessionName: { color: "#FFFFFF", fontSize: 16, fontWeight: "900" },
-  sessionMeta: { color: "rgba(240,240,244,0.70)", fontSize: 10, marginTop: 4 },
+  sessionName: { color: "#FFFFFF", fontSize: 15, fontWeight: "900" },
+  sessionMeta: { color: "rgba(240,240,244,0.70)", fontSize: 9, marginTop: 3 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" },
   roleBadge: { color: "#FFFFFF", backgroundColor: "rgba(111,24,30,0.78)", borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, fontSize: 8, fontWeight: "900" },
   roleBadgeDev: { backgroundColor: "rgba(123,17,24,0.88)" },
   divider: { height: 1, backgroundColor: "rgba(255,255,255,0.16)", marginHorizontal: -12 },
-  brandRow: { minHeight: 62, flexDirection: "row", alignItems: "center", paddingHorizontal: 8 },
-  brand: { flex: 1, color: "#D9D9E1", fontSize: 17, fontWeight: "900", letterSpacing: 4.5 },
+  brandRow: { minHeight: 52, flexDirection: "row", alignItems: "center", marginHorizontal: -12, paddingHorizontal: 14 },
+  brand: { flex: 1, color: "#E7E7EC", fontSize: 16, fontWeight: "900", letterSpacing: 3.6 },
   brandRed: { color: "#FF3344" },
-  brandActions: { flexDirection: "row", gap: 7 },
-  headerIconButton: { width: 39, height: 39, alignItems: "center", justifyContent: "center", position: "relative" },
+  brandActions: { flexDirection: "row", gap: 4 },
+  headerIconButton: { width: 38, height: 38, alignItems: "center", justifyContent: "center", position: "relative" },
   headerIcon: { color: "#FFFFFF", fontSize: 26, transform: [{ rotate: "45deg" }] },
   chatBubble: { color: "#FFFFFF", fontSize: 30, lineHeight: 32 },
   unreadDot: { position: "absolute", width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF2638", right: 5, top: 5 },
   mainTabs: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.14)", marginHorizontal: -12 },
-  mainTab: { flex: 1, minHeight: 51, alignItems: "center", justifyContent: "center", position: "relative" },
-  mainTabText: { color: "rgba(220,220,230,0.58)", fontSize: 14, fontWeight: "900" },
+  mainTab: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", position: "relative" },
+  mainTabText: { color: "rgba(220,220,230,0.56)", fontSize: 12, fontWeight: "900", letterSpacing: 0.3 },
   mainTabTextActive: { color: "#FFFFFF" },
-  mainTabLine: { position: "absolute", left: 24, right: 24, bottom: -1, height: 3, backgroundColor: "#FF2638" },
-  statusStrip: { paddingHorizontal: 9, paddingTop: 17, paddingBottom: 14, gap: 12 },
-  statusItem: { width: 82, alignItems: "center" },
+  mainTabLine: { position: "absolute", left: 32, right: 32, bottom: -1, height: 3, backgroundColor: "#FF2638" },
+  statusScroller: { marginHorizontal: -12 },
+  statusStrip: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, gap: 10 },
+  statusItem: { width: 76, alignItems: "center" },
   statusAvatarWrap: { position: "relative" },
-  statusName: { color: "#F5F5F7", fontSize: 10, marginTop: 7, maxWidth: 82, textAlign: "center" },
-  statusRoleBadge: { position: "absolute", bottom: -5, alignSelf: "center", left: 16, right: 16, borderRadius: 7, borderWidth: 1, borderColor: "#FF3344", backgroundColor: "rgba(20,6,8,0.94)", alignItems: "center", paddingVertical: 1 },
+  statusName: { color: "#F5F5F7", fontSize: 9, marginTop: 6, maxWidth: 76, textAlign: "center" },
+  statusRoleBadge: { position: "absolute", bottom: -4, alignSelf: "center", left: 15, right: 15, borderRadius: 7, borderWidth: 1, borderColor: "#FF3344", backgroundColor: "rgba(20,6,8,0.90)", alignItems: "center", paddingVertical: 1 },
   statusRoleText: { color: "#FFFFFF", fontSize: 7, fontWeight: "900" },
-  addStatusBadge: { position: "absolute", right: 0, bottom: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: "#FF2638", borderWidth: 2, borderColor: "#09090B", alignItems: "center", justifyContent: "center" },
+  addStatusBadge: { position: "absolute", right: 0, bottom: 0, width: 19, height: 19, borderRadius: 10, backgroundColor: "#FF2638", borderWidth: 2, borderColor: "#09090B", alignItems: "center", justifyContent: "center" },
   addStatusText: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", marginTop: -2 },
   statusLoader: { alignSelf: "center", marginHorizontal: 12 },
   avatar: { borderWidth: 1.3, borderColor: "rgba(255,255,255,0.42)", backgroundColor: "rgba(0,0,0,0.38)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   avatarHighlighted: { borderWidth: 2.2, borderColor: "#FF2638" },
   avatarGlyph: { color: "#FFFFFF", fontSize: 20, fontWeight: "900" },
   avatarCode: { fontSize: 11 },
-  searchBox: { minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.24)", backgroundColor: "rgba(7,7,9,0.32)", flexDirection: "row", alignItems: "center", paddingHorizontal: 14, marginHorizontal: 2, gap: 10 },
+  searchBox: { minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", backgroundColor: "rgba(7,7,9,0.28)", flexDirection: "row", alignItems: "center", paddingHorizontal: 13, marginHorizontal: 2, gap: 9 },
   searchIcon: { color: "#FFFFFF", fontSize: 27, lineHeight: 29 },
-  searchInput: { flex: 1, minHeight: 50, color: "#FFFFFF", fontSize: 13 },
+  searchInput: { flex: 1, minHeight: 44, color: "#FFFFFF", fontSize: 12 },
   searchResults: { marginTop: 6, borderRadius: 13, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(5,5,7,0.82)", overflow: "hidden" },
   searchResult: { flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(255,255,255,0.12)" },
   searchName: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
   searchMeta: { color: "rgba(225,225,232,0.58)", fontSize: 8, marginTop: 3 },
   miniRole: { color: "#FF8A92", fontSize: 7, fontWeight: "900" },
   chevron: { color: "rgba(255,255,255,0.55)", fontSize: 22 },
-  devNotice: { minHeight: 54, borderRadius: 13, borderWidth: 1, borderColor: "rgba(255,38,56,0.82)", backgroundColor: "rgba(35,2,7,0.30)", flexDirection: "row", alignItems: "center", marginTop: 13, paddingHorizontal: 14, gap: 10 },
+  devNotice: { minHeight: 50, borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,38,56,0.74)", backgroundColor: "rgba(35,2,7,0.24)", flexDirection: "row", alignItems: "center", marginTop: 11, paddingHorizontal: 12, gap: 9 },
   devNoticeIcon: { color: "#FF2638", fontSize: 22 },
+  devNoticeIconBox: { width: 24, alignItems: "center", justifyContent: "center" },
   devNoticeBody: { flex: 1 },
   devNoticeText: { color: "#FFFFFF", fontSize: 11 },
   devNoticeLabel: { color: "#FF4050", fontSize: 10, fontWeight: "900", letterSpacing: 0.4 },
@@ -1224,7 +1524,7 @@ const s = StyleSheet.create({
   emptyFeed: { paddingVertical: 36, alignItems: "center" },
   emptyFeedTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "900" },
   emptyFeedText: { color: "rgba(235,235,240,0.62)", fontSize: 10, marginTop: 6, textAlign: "center" },
-  post: { marginHorizontal: -12, marginTop: 13, borderTopWidth: 1, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(3,3,5,0.14)", paddingHorizontal: 14, paddingTop: 14, paddingBottom: 15 },
+  post: { marginHorizontal: -12, marginTop: 10, borderTopWidth: 1, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(3,3,5,0.08)", paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
   postPinned: { borderTopColor: "rgba(255,38,56,0.68)" },
   pinnedLabel: { color: "#FF6570", fontSize: 7, fontWeight: "900", letterSpacing: 0.8, marginBottom: 8 },
   postHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -1235,14 +1535,14 @@ const s = StyleSheet.create({
   postTime: { color: "rgba(225,225,232,0.57)", fontSize: 8, marginTop: 3 },
   moreButton: { width: 34, height: 40, alignItems: "center", justifyContent: "center" },
   moreText: { color: "#FFFFFF", fontSize: 27, lineHeight: 28 },
-  postMedia: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(5,5,7,0.38)", padding: 17, marginTop: 11, minHeight: 260 },
+  postMedia: { borderRadius: 4, borderWidth: 0, backgroundColor: "rgba(5,5,7,0.22)", paddingHorizontal: 14, paddingVertical: 16, marginTop: 10, minHeight: 220 },
   postBrand: { color: "rgba(220,220,228,0.82)", fontSize: 9, fontWeight: "900", letterSpacing: 3.4 },
-  postHeroTitle: { color: "#FFFFFF", fontSize: 23, lineHeight: 28, fontWeight: "900", marginTop: 13 },
-  postHeroSubtitle: { color: "rgba(210,210,222,0.68)", fontSize: 13, marginTop: 2 },
-  codePanel: { borderRadius: 11, borderWidth: 1, borderColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.30)", marginTop: 14, padding: 12 },
+  postHeroTitle: { color: "#FFFFFF", fontSize: 21, lineHeight: 25, fontWeight: "900", marginTop: 11 },
+  postHeroSubtitle: { color: "rgba(210,210,222,0.68)", fontSize: 11, marginTop: 2 },
+  codePanel: { borderRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.24)", marginTop: 12, padding: 11 },
   codeText: { color: "#E3E3E8", fontFamily: "monospace", fontSize: 9, lineHeight: 14 },
-  postActions: { flexDirection: "row", alignItems: "center", gap: 13, marginTop: 12 },
-  postAction: { minWidth: 30, minHeight: 34, justifyContent: "center" },
+  postActions: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
+  postAction: { width: 31, minHeight: 32, alignItems: "center", justifyContent: "center" },
   likeIcon: { color: "#FFFFFF", fontSize: 31, lineHeight: 32 },
   likeIconActive: { color: "#FF2638" },
   commentIcon: { color: "#FFFFFF", fontSize: 31, lineHeight: 32 },
@@ -1294,6 +1594,7 @@ const s = StyleSheet.create({
   actionSheetTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900", marginBottom: 8 },
   actionRow: { minHeight: 58, flexDirection: "row", alignItems: "center", gap: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(255,255,255,0.11)" },
   actionIcon: { color: "#FFFFFF", fontSize: 23, width: 30, textAlign: "center" },
+  actionIconBox: { width: 30, alignItems: "center", justifyContent: "center" },
   actionTitle: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" },
   actionMeta: { color: "rgba(225,225,232,0.50)", fontSize: 8, marginTop: 3 },
   dangerText: { color: "#FF6672" },
@@ -1316,6 +1617,7 @@ const s = StyleSheet.create({
   modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   modalTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
   modalClose: { color: "#FFFFFF", fontSize: 23, padding: 4 },
+  modalCloseButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   modalList: { marginTop: 10 },
   modalListContent: { paddingBottom: 10 },
   modalEmpty: { color: "rgba(225,225,232,0.58)", fontSize: 10, textAlign: "center", marginVertical: 24 },
