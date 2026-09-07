@@ -3,171 +3,317 @@
   "type": "inventory_remote_trace",
   "userId": "765329164",
   "username": "capuccino40",
-  "capturedAt": "2026-09-07T14:24:17.000Z",
-  "serverReceivedAt": "2026-09-07T14:24:17.964Z",
+  "capturedAt": "2026-09-07T14:46:42.000Z",
+  "serverReceivedAt": "2026-09-07T14:46:43.332Z",
   "placeId": 138686218420016,
   "gameId": 10532995815,
-  "runId": "40ff30f9-e80c-4277-adb6-befac4200fd5",
+  "runId": "4817d428-cde9-461f-9aea-8a44caaf403b",
   "trace": {
-    "anomalies": [
-      {
-        "code": "BASELINE_DROP_NO_WORLD",
-        "severity": "critical",
-        "details": {
-          "bagId": 12667
-        },
-        "clock": 1946.2385889450002,
-        "phase": "baseline_drop"
-      }
-    ],
+    "anomalies": [],
     "pickupSessions": [],
     "diagnostics": {
-      "guards": {
-        "noFlood": true,
-        "noTouchWatcher": true,
-        "staleBagIdReplays": 2,
-        "maxControlledDropCalls": 3,
-        "noHook": true,
-        "oneCrystalPerRun": true,
-        "noSpatialPolling": true
-      },
-      "version": "CAFEINA_CRYSTAL_DUP_CONSISTENCY_V1_1",
-      "errors": [],
       "counters": {
-        "worldAdded": 0,
-        "anomalies": 1,
-        "toolRemoved": 0,
+        "worldAdded": 1,
+        "inventoryChanged": 2,
         "worldRemoved": 0,
-        "records": 3,
+        "records": 9,
         "droppedRecords": 0,
+        "toolAdded": 1,
         "uploadAttempts": 0,
-        "inventoryChanged": 0,
-        "toolAdded": 0,
-        "dropCalls": 1
+        "promptAttempts": 1,
+        "gemCollected": 1,
+        "toolRemoved": 1
       },
-      "operation": {
-        "durationSeconds": 3,
-        "controlledDropCalls": 1,
-        "startedAt": 1788791054,
-        "finishedAt": 1788791057,
-        "noHook": true,
+      "guards": {
+        "oneAutomaticPromptAttempt": true,
         "noTouchWatcher": true,
-        "spatialPolling": false
-      },
-      "health": {
-        "ok": true,
-        "githubMirrorConfigured": true,
-        "checked": true,
-        "httpStatus": 200
+        "eventDrivenTargeting": true,
+        "noDropRemoteAutomation": true,
+        "noHook": true,
+        "maxRecords": 180,
+        "noSpatialPolling": true
       },
       "transport": {
         "endpoint": "https://cafe-na-ia.onrender.com/api/inventory-trace",
-        "retries": 3,
-        "status": "pending_at_send"
-      }
+        "retries": 3
+      },
+      "errors": []
     },
-    "purpose": "crystal_dupe_consistency_test",
+    "dupeRace": {
+      "finishReason": "pickup_confirmed",
+      "timelineMs": {
+        "worldAdded_to_promptFire": 0.14635400000884147,
+        "toolRemoved_to_dropInventoryChanged": 29.62744799998518,
+        "dropInventoryChanged_to_worldAdded": 0.20359399999847483,
+        "toolRemoved_to_worldAdded": 29.831041999983654,
+        "worldAdded_to_promptReady": 0.13041599999041864,
+        "promptFire_to_toolAdded": 126.74359299998628,
+        "worldAdded_to_toolAdded": 126.88994699999512,
+        "promptFire_to_gemCollected": 128.65744799998424,
+        "promptFire_to_inventoryChanged": 127.80213499999604
+      },
+      "newTool": {
+        "path": "Players.capuccino40.Backpack.1.6 kg",
+        "name": "1.6 kg",
+        "attributes": {
+          "Favorited": false,
+          "BagId": 217,
+          "Rarity": "Rare",
+          "GemName": "EmeraldCrystalSpire",
+          "BaseValue": 1024,
+          "Value": 1024,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "Kg": 1.6
+        }
+      },
+      "newBagId": 217,
+      "uid": "779eecc5-9d95-4004-b863-fa550427f23e",
+      "finalState": {
+        "newBagId": 217,
+        "oldBagIdPresent": false,
+        "activeMatchingBagIds": 1,
+        "sameUidWorldCount": 1,
+        "bagIdChanged": true,
+        "uid": "779eecc5-9d95-4004-b863-fa550427f23e",
+        "activeBagIds": {
+          "217": true
+        },
+        "targetStillInWorld": true
+      },
+      "selected": {
+        "tool": {
+          "path": "Workspace.capuccino40.1.6 kg",
+          "name": "1.6 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 213,
+            "Rarity": "Rare",
+            "GemName": "EmeraldCrystalSpire",
+            "BaseValue": 1024,
+            "Value": 1024,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.6
+          }
+        },
+        "oldBagId": 213,
+        "rarity": "Rare",
+        "kg": 1.6,
+        "gemName": "EmeraldCrystalSpire",
+        "value": 1024,
+        "sizeLetter": "Tiny",
+        "container": "Character"
+      },
+      "world": {
+        "path": "Workspace.DroppedGems.EmeraldCrystalSpire",
+        "name": "EmeraldCrystalSpire",
+        "position": "411.28082275390625, 65.1268539428711, -840.5659790039062",
+        "class": "Model",
+        "attributes": {
+          "Dropped": true,
+          "DropZ": -840.56884765625,
+          "Kg": 1.6,
+          "GemName": "EmeraldCrystalSpire",
+          "BaseValue": 1024,
+          "Freed": true,
+          "DropX": 411.2795715332031,
+          "GlowColor": "0.180392, 0.886275, 0.431373",
+          "Uid": "779eecc5-9d95-4004-b863-fa550427f23e",
+          "Luck": 0.25756890712011854,
+          "RBX_ReimportId": "a4cde42e-96b6-44a2-a1fb-f46957a96d3c",
+          "Value": 1024,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "Rarity": "Rare"
+        }
+      },
+      "departedContainer": "Character"
+    },
     "records": [
       {
-        "phase": "prepare",
-        "unix": 1788791054,
-        "clock": 1942.7333206650005,
+        "phase": "armed",
+        "unix": 1788792400,
+        "clock": 42.51217972400002,
         "selected": {
-          "oldBagId": 12667,
-          "rarity": "Rare",
-          "gemName": "RadiantGoldenStar",
-          "value": 960,
           "tool": {
-            "path": "Players.capuccino40.Backpack.1.5 kg",
-            "name": "1.5 kg",
+            "path": "Workspace.capuccino40.1.6 kg",
+            "name": "1.6 kg",
             "attributes": {
-              "Favorited": "false",
-              "BagId": 12667,
+              "Favorited": false,
+              "BagId": 213,
               "Rarity": "Rare",
-              "GemName": "RadiantGoldenStar",
-              "BaseValue": 960,
-              "Value": 960,
+              "GemName": "EmeraldCrystalSpire",
+              "BaseValue": 1024,
+              "Value": 1024,
               "Mutations": "",
               "SizeLetter": "Tiny",
-              "Kg": 1.5
+              "Kg": 1.6
             }
           },
-          "kg": 1.5
+          "oldBagId": 213,
+          "rarity": "Rare",
+          "kg": 1.6,
+          "gemName": "EmeraldCrystalSpire",
+          "value": 1024,
+          "sizeLetter": "Tiny",
+          "container": "Character"
         },
         "seq": 1,
-        "kind": "test_begin"
+        "kind": "race_test_armed"
       },
       {
-        "bagId": 12667,
-        "label": "baseline",
-        "phase": "baseline_drop",
-        "unix": 1788791054,
-        "callClock": 1942.7333244670003,
-        "success": true,
-        "returnClock": 1942.7333450400006,
-        "clock": 1942.7333472800005,
-        "kind": "controlled_drop_call",
-        "error": "nil",
+        "arguments": [
+          5,
+          16.4,
+          1318,
+          22
+        ],
+        "phase": "armed",
+        "unix": 1788792401,
+        "clock": 44.202067692000014,
+        "kind": "inventory_changed",
+        "stage": "drop_transition",
         "seq": 2
       },
       {
-        "anomaly": {
-          "code": "BASELINE_DROP_NO_WORLD",
-          "severity": "critical",
-          "details": {
-            "bagId": 12667
-          },
-          "clock": 1946.2385889450002,
-          "phase": "baseline_drop"
-        },
-        "phase": "baseline_drop",
-        "clock": 1946.2385954550004,
-        "kind": "dupe_anomaly",
+        "oldBagId": 213,
+        "phase": "world_seen",
+        "unix": 1788792401,
+        "clock": 44.17244024400003,
+        "kind": "selected_tool_removed_confirmed",
         "seq": 3,
-        "unix": 1788791057
+        "container": "Character"
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.EmeraldCrystalSpire",
+          "name": "EmeraldCrystalSpire",
+          "position": "411.28082275390625, 65.1268539428711, -840.5659790039062",
+          "class": "Model",
+          "attributes": {
+            "Dropped": true,
+            "DropZ": -840.56884765625,
+            "Kg": 1.6,
+            "GemName": "EmeraldCrystalSpire",
+            "BaseValue": 1024,
+            "Freed": true,
+            "DropX": 411.2795715332031,
+            "GlowColor": "0.180392, 0.886275, 0.431373",
+            "Uid": "779eecc5-9d95-4004-b863-fa550427f23e",
+            "Luck": 0.25756890712011854,
+            "RBX_ReimportId": "a4cde42e-96b6-44a2-a1fb-f46957a96d3c",
+            "Value": 1024,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Rarity": "Rare"
+          }
+        },
+        "oldBagId": 213,
+        "phase": "world_seen",
+        "clock": 44.202350817000024,
+        "kind": "target_world_added",
+        "seq": 4,
+        "unix": 1788792401
+      },
+      {
+        "enabled": true,
+        "actionText": "Pick Up",
+        "phase": "world_seen",
+        "unix": 1788792401,
+        "holdDuration": 0,
+        "clock": 44.202413681000024,
+        "prompt": "Workspace.DroppedGems.EmeraldCrystalSpire.Mesh_0.Pickup",
+        "seq": 5,
+        "kind": "pickup_prompt_ready"
+      },
+      {
+        "fireClock": 44.20241764000002,
+        "phase": "pickup_fired",
+        "unix": 1788792401,
+        "fireDurationMs": 0.03614599998513768,
+        "seq": 6,
+        "success": true,
+        "returnClock": 44.20245378600001,
+        "clock": 44.20246086900002,
+        "prompt": "Workspace.DroppedGems.EmeraldCrystalSpire.Mesh_0.Pickup",
+        "error": "nil",
+        "kind": "automatic_pickup_attempt"
+      },
+      {
+        "phase": "pickup_fired",
+        "unix": 1788792402,
+        "newBagId": 217,
+        "oldBagId": 213,
+        "seq": 7,
+        "clock": 44.32922873300001,
+        "kind": "pickup_tool_added",
+        "tool": {
+          "path": "Players.capuccino40.Backpack.1.6 kg",
+          "name": "1.6 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 217,
+            "Rarity": "Rare",
+            "GemName": "EmeraldCrystalSpire",
+            "BaseValue": 1024,
+            "Value": 1024,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.6
+          }
+        },
+        "container": "Backpack"
+      },
+      {
+        "arguments": [
+          6,
+          18,
+          2342,
+          22
+        ],
+        "phase": "pickup_fired",
+        "unix": 1788792402,
+        "clock": 44.33021977500002,
+        "kind": "inventory_changed",
+        "stage": "after_pickup_attempt",
+        "seq": 8
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.EmeraldCrystalSpire",
+          "type": "Instance",
+          "name": "EmeraldCrystalSpire",
+          "class": "Model"
+        },
+        "player": {
+          "path": "Players.capuccino40",
+          "type": "Instance",
+          "name": "capuccino40",
+          "class": "Player"
+        },
+        "phase": "pickup_fired",
+        "clock": 44.331106963000025,
+        "kind": "gem_collected",
+        "seq": 9,
+        "unix": 1788792402
       }
     ],
-    "startedAt": 1788791054,
-    "version": "CAFEINA_CRYSTAL_DUP_CONSISTENCY_V1_1",
+    "startedAt": 1788792400,
+    "version": "CAFEINA_CRYSTAL_DUP_RACE_TEST_V2_1",
     "bagMap": [],
-    "finishedAt": 1788791057,
+    "finishedAt": 1788792402,
     "remotes": [
-      {
-        "name": "DropCrystal",
-        "path": "ReplicatedStorage.GemSignals.DropCrystal"
-      },
       {
         "name": "InventoryChanged",
         "path": "ReplicatedStorage.GemRemotes.InventoryChanged"
+      },
+      {
+        "name": "GemCollected",
+        "path": "ReplicatedStorage.GemSignals.GemCollected"
       }
     ],
-    "runId": "40ff30f9-e80c-4277-adb6-befac4200fd5",
-    "dupeTest": {
-      "finishReason": "baseline_no_world",
-      "selected": {
-        "oldBagId": 12667,
-        "rarity": "Rare",
-        "gemName": "RadiantGoldenStar",
-        "value": 960,
-        "tool": {
-          "path": "Players.capuccino40.Backpack.1.5 kg",
-          "name": "1.5 kg",
-          "attributes": {
-            "Favorited": "false",
-            "BagId": 12667,
-            "Rarity": "Rare",
-            "GemName": "RadiantGoldenStar",
-            "BaseValue": 960,
-            "Value": 960,
-            "Mutations": "",
-            "SizeLetter": "Tiny",
-            "Kg": 1.5
-          }
-        },
-        "kg": 1.5
-      },
-      "result": "POSSIBLE_INCONSISTENCY",
-      "phases": []
-    }
+    "runId": "4817d428-cde9-461f-9aea-8a44caaf403b",
+    "purpose": "crystal_drop_immediate_pickup_race_timing"
   }
 }
