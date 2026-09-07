@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
+import { installAvatarGeometryRoutes } from "./avatar-geometry-routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,13 @@ const ARTIFACTS = Object.freeze({
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
+
+// Keep geometry routes available even when the Render service has an
+// explicit `node server.js` Start Command instead of `npm start`.
+// Install these before the portal-wide 4 KB JSON parser because geometry
+// chunks use their own larger, route-scoped parser.
+installAvatarGeometryRoutes(app);
+
 app.use(express.json({ limit: "4kb", strict: true }));
 app.use(securityHeaders);
 app.use(express.static(PUBLIC_DIR, {
@@ -327,7 +335,7 @@ function registerFailure(key) {
     windowStartedAt: blockedUntil ? now : current.windowStartedAt,
     blockedUntil
   };
-  failedAttempts.set(key, next);
+  failedAttempts.set(rateKey, next);
   return next;
 }
 
