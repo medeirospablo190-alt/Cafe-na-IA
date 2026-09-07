@@ -331,7 +331,7 @@ function proxyToPortal(req, res) {
 function startPortal() {
   const env = { ...process.env, PORT: String(INTERNAL_PORT) };
   delete env.AVATAR_GATEWAY_INTERNAL_PORT;
-  portalChild = spawn(process.execPath, [path.join(__dirname, "server.js")], {
+  portalChild = spawn(process.execPath, [path.join(__dirname, "portal-main.js")], {
     cwd: __dirname,
     env,
     stdio: ["ignore", "inherit", "inherit"],
