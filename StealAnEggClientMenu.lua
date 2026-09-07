@@ -1,71 +1,81 @@
 --==============================================================--
--- CAFEINA • STEAL AN EGG • CLIENT MENU V3.2
--- Executor/mobile • client-side only
+-- CAFEINA • STEAL AN EGG • CLIENT MENU V4
+-- Executor/mobile • CLIENT-SIDE ONLY
 --
 -- Funcoes:
---   1) listar ovos visiveis ao cliente
---   2) tocar em um ovo = selecionar + trazer localmente ate voce
---   3) trazer novamente o selecionado
---   4) pegar selecionado e ir para Safe Zone
---   5) pegar automaticamente o mais proximo e ir para Safe Zone
---   6) ir somente para Safe Zone
+--   • ao detectar que voce pegou um ovo -> TP imediato para Safe Zone
+--   • God Mode local
+--   • lista de jogadores online
+--   • TP ate jogador selecionado
+--   • Kill LOCAL do jogador selecionado
+--   • adicionar dinheiro LOCAL ao jogador selecionado
+--   • adicionar dinheiro LOCAL a voce
 --
--- Nao chama FireServer/InvokeServer manualmente.
--- Nao cria logica server-side.
+-- Nao usa FireServer / InvokeServer.
+-- Kill, dinheiro e God sao apenas client-side e nao persistem no servidor.
 --==============================================================--
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
-local UserInputService = game:GetService("UserInputService")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
 
-local KNOWN_PLACE = 107778070777162
+-- Centro aproximado da Safe Zone ja mapeada.
 local SAFE_CFRAME = CFrame.new(529, 75, -360)
 
 local S = {
-    busy = false,
     selected = nil,
-    eggs = {},
-    carrySignal = false,
-    status = "Iniciando...",
-    gui = nil,
+    god = false,
+    lastEggTp = 0,
+    status = "AUTO SAFE ativo • aguardando ovo",
+    eggConnections = {},
+    charConnections = {},
+    godConn = nil,
+    originalBreakJoints = nil,
 }
 
-local EGG_ATTRIBUTES = {
-    "EggId",
-    "EggID",
-    "FieldEggId",
-    "FieldEggID",
-    "EggType",
-    "EggName",
-    "Id",
+local MONEY_NAMES = {
+    money = true,
+    cash = true,
+    coin = true,
+    coins = true,
+    dinheiro = true,
+    bucks = true,
+    credits = true,
+    credit = true,
+    currency = true,
+}
+
+local EGG_ATTRS = {
+    EggId = true,
+    EggID = true,
+    FieldEggId = true,
+    FieldEggID = true,
+    EggType = true,
+    EggName = true,
 }
 
 local function setStatus(text)
     S.status = tostring(text or "")
 end
 
-local function getCharacter(timeout)
-    local char = LP.Character
-    if not char then
-        char = LP.CharacterAdded:Wait()
-    end
-
+local function getCharacter(plr)
+    plr = plr or LP
+    local char = plr.Character
+    if not char then return nil, nil, nil end
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then
-        hrp = char:WaitForChild("HumanoidRootPart", timeout or 5)
-    end
-
-    return char, hrp
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    return char, hrp, hum
 end
 
-local function teleportCharacter(cf)
-    local char, hrp = getCharacter(5)
+local function teleportSelf(cf)
+    local char, hrp = getCharacter(LP)
     if not char or not hrp then
-        return false, "HumanoidRootPart ausente"
+        return false, "personagem local indisponivel"
     end
 
     local ok, err = pcall(function()
@@ -81,540 +91,310 @@ local function teleportCharacter(cf)
     return ok, err
 end
 
-local function lower(value)
-    return string.lower(tostring(value or ""))
-end
+local function looksLikeEgg(obj)
+    if not obj then return false end
 
-local function eggNameLike(name)
-    local n = lower(name)
-    return string.find(n, "egg", 1, true) ~= nil
-        or string.find(n, "ovo", 1, true) ~= nil
-end
-
-local function hasEggAttribute(obj)
-    if not obj then
-        return false
-    end
-
-    for _, attr in ipairs(EGG_ATTRIBUTES) do
-        local ok, value = pcall(function()
-            return obj:GetAttribute(attr)
-        end)
-
-        if ok and value ~= nil then
-            if attr ~= "Id" or eggNameLike(obj.Name) or eggNameLike(obj.Parent and obj.Parent.Name) then
-                return true
-            end
-        end
-    end
-
-    return false
-end
-
-local function getPart(obj)
-    if not obj then
-        return nil
-    end
-
-    if obj:IsA("BasePart") then
-        return obj
-    end
-
-    if obj:IsA("Model") then
-        if obj.PrimaryPart then
-            return obj.PrimaryPart
-        end
-        return obj:FindFirstChildWhichIsA("BasePart", true)
-    end
-
-    return nil
-end
-
-local function promptLooksEgg(prompt)
-    if not prompt or not prompt:IsA("ProximityPrompt") then
-        return false
-    end
-
-    local txt = lower(prompt.ActionText) .. " " .. lower(prompt.ObjectText)
-    return string.find(txt, "egg", 1, true) ~= nil
-        or string.find(txt, "ovo", 1, true) ~= nil
-        or string.find(txt, "steal", 1, true) ~= nil
-        or string.find(txt, "take", 1, true) ~= nil
-        or string.find(txt, "grab", 1, true) ~= nil
-        or string.find(txt, "pick", 1, true) ~= nil
-end
-
-local function basicEggScore(obj)
-    if not obj then
-        return 0
-    end
-
-    local score = 0
-
-    if eggNameLike(obj.Name) then
-        score = score + 120
-    end
-
-    if hasEggAttribute(obj) then
-        score = score + 180
-    end
-
-    local parent = obj.Parent
-    if parent then
-        if eggNameLike(parent.Name) then
-            score = score + 55
-        end
-        if hasEggAttribute(parent) then
-            score = score + 90
-        end
-    end
-
-    local directPrompt = obj:FindFirstChildOfClass("ProximityPrompt")
-    if directPrompt and promptLooksEgg(directPrompt) then
-        score = score + 140
-    end
-
-    return score
-end
-
-local function normalizeEgg(obj)
-    if not obj then
-        return nil
-    end
-
-    local current = obj
-    local best = nil
-    local bestScore = 0
-
-    for _ = 1, 5 do
-        if not current or current == workspace then
-            break
-        end
-
-        if current:IsA("Model") or current:IsA("BasePart") then
-            local part = getPart(current)
-            if part then
-                local score = basicEggScore(current)
-                if score > bestScore then
-                    best = current
-                    bestScore = score
-                end
-            end
-        end
-
-        current = current.Parent
-    end
-
-    if bestScore <= 0 then
-        return nil
-    end
-
-    return best
-end
-
-local function addCandidate(found, seen, root, hrp)
-    if not root or seen[root] then
-        return
-    end
-
-    local part = getPart(root)
-    if not part or not part.Parent then
-        return
-    end
-
-    if LP.Character and part:IsDescendantOf(LP.Character) then
-        return
-    end
-
-    seen[root] = true
-
-    local distance = (part.Position - hrp.Position).Magnitude
-    found[#found + 1] = {
-        root = root,
-        part = part,
-        name = tostring(root.Name),
-        distance = distance,
-        score = basicEggScore(root),
-    }
-end
-
-local function scanEggs()
-    local _, hrp = getCharacter(5)
-    if not hrp then
-        return {}
-    end
-
-    local found = {}
-    local seen = {}
-    local descendants = workspace:GetDescendants()
-
-    for i, obj in ipairs(descendants) do
-        if obj:IsA("ProximityPrompt") and promptLooksEgg(obj) then
-            local root = normalizeEgg(obj.Parent) or obj.Parent
-            if root and (root:IsA("Model") or root:IsA("BasePart")) then
-                addCandidate(found, seen, root, hrp)
-            end
-        elseif obj:IsA("Model") or obj:IsA("BasePart") then
-            if basicEggScore(obj) > 0 then
-                local root = normalizeEgg(obj) or obj
-                addCandidate(found, seen, root, hrp)
-            end
-        end
-
-        if i % 700 == 0 then
-            task.wait()
-        end
-    end
-
-    table.sort(found, function(a, b)
-        if math.abs(a.distance - b.distance) < 0.01 then
-            return a.score > b.score
-        end
-        return a.distance < b.distance
-    end)
-
-    S.eggs = found
-    return found
-end
-
-local function refreshItem(item)
-    if not item or not item.root or not item.root.Parent then
-        return nil, "ovo nao existe mais"
-    end
-
-    local part = getPart(item.root)
-    if not part or not part.Parent then
-        return nil, "parte do ovo nao encontrada"
-    end
-
-    item.part = part
-
-    local _, hrp = getCharacter(3)
-    if hrp then
-        item.distance = (part.Position - hrp.Position).Magnitude
-    end
-
-    return item
-end
-
-local function bringEggToMe(item)
-    local refreshed, refreshErr = refreshItem(item)
-    if not refreshed then
-        return false, refreshErr
-    end
-
-    item = refreshed
-
-    local _, hrp = getCharacter(5)
-    if not hrp then
-        return false, "personagem indisponivel"
-    end
-
-    local target = hrp.CFrame * CFrame.new(0, 0.8, -3)
-    local ok, err
-
-    if item.root:IsA("Model") then
-        ok, err = pcall(function()
-            item.root:PivotTo(target)
-        end)
-    else
-        ok, err = pcall(function()
-            item.part.CFrame = target
-        end)
-    end
-
-    if ok then
-        S.selected = item
-        setStatus("Selecionado e trazido localmente: " .. item.name)
+    local lower = string.lower(tostring(obj.Name or ""))
+    if string.find(lower, "egg", 1, true) or string.find(lower, "ovo", 1, true) then
         return true
     end
 
-    return false, tostring(err)
-end
-
-local function findPrompt(item)
-    if not item then
-        return nil
-    end
-
-    if item.root and item.root.Parent then
-        local prompt = item.root:FindFirstChildWhichIsA("ProximityPrompt", true)
-        if prompt then
-            return prompt
+    for attr in pairs(EGG_ATTRS) do
+        local ok, value = pcall(function()
+            return obj:GetAttribute(attr)
+        end)
+        if ok and value ~= nil then
+            return true
         end
     end
 
-    if item.part and item.part.Parent then
-        local prompt = item.part:FindFirstChildWhichIsA("ProximityPrompt", true)
-        if prompt then
-            return prompt
+    return false
+end
+
+local function autoSafe(reason)
+    local now = os.clock()
+    if now - S.lastEggTp < 0.75 then
+        return
+    end
+    S.lastEggTp = now
+
+    task.defer(function()
+        local ok, err = teleportSelf(SAFE_CFRAME)
+        if ok then
+            setStatus("OVO DETECTADO > SAFE ZONE ✓ • " .. tostring(reason or "carry"))
+        else
+            setStatus("Ovo detectado, TP falhou: " .. tostring(err))
+        end
+    end)
+end
+
+--==============================================================--
+-- AUTO SAFE: observa o evento recebido pelo cliente.
+-- Nao chama o RemoteEvent.
+--==============================================================--
+
+local connectedRemotes = setmetatable({}, {__mode = "k"})
+
+local function connectEggRemote(obj)
+    if not obj or connectedRemotes[obj] then return end
+    if not obj:IsA("RemoteEvent") then return end
+    if obj.Name ~= "FieldEggCarry" then return end
+
+    connectedRemotes[obj] = true
+    local conn = obj.OnClientEvent:Connect(function(...)
+        autoSafe("FieldEggCarry")
+    end)
+    S.eggConnections[#S.eggConnections + 1] = conn
+end
+
+for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+    connectEggRemote(obj)
+end
+
+S.eggConnections[#S.eggConnections + 1] = ReplicatedStorage.DescendantAdded:Connect(function(obj)
+    connectEggRemote(obj)
+end)
+
+local function bindLocalContainers()
+    for _, conn in ipairs(S.charConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    table.clear(S.charConnections)
+
+    local char = LP.Character
+    local backpack = LP:FindFirstChildOfClass("Backpack")
+
+    local function watch(container, label)
+        if not container then return end
+        S.charConnections[#S.charConnections + 1] = container.ChildAdded:Connect(function(obj)
+            if looksLikeEgg(obj) then
+                autoSafe(label .. ":" .. tostring(obj.Name))
+            end
+        end)
+    end
+
+    watch(char, "Character")
+    watch(backpack, "Backpack")
+end
+
+LP.CharacterAdded:Connect(function()
+    task.wait(0.25)
+    bindLocalContainers()
+end)
+
+task.defer(bindLocalContainers)
+
+--==============================================================--
+-- GOD MODE LOCAL
+--==============================================================--
+
+local function applyGodFrame()
+    if not S.god then return end
+
+    local _, _, hum = getCharacter(LP)
+    if not hum then return end
+
+    pcall(function()
+        hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+    end)
+
+    if hum.MaxHealth > 0 and hum.Health < hum.MaxHealth then
+        pcall(function()
+            hum.Health = hum.MaxHealth
+        end)
+    end
+end
+
+local function setGod(enabled)
+    S.god = enabled == true
+
+    local _, _, hum = getCharacter(LP)
+    if hum then
+        if S.god then
+            if S.originalBreakJoints == nil then
+                S.originalBreakJoints = hum.BreakJointsOnDeath
+            end
+            pcall(function() hum.BreakJointsOnDeath = false end)
+            pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false) end)
+            pcall(function() hum.Health = hum.MaxHealth end)
+        else
+            pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead, true) end)
+            if S.originalBreakJoints ~= nil then
+                pcall(function() hum.BreakJointsOnDeath = S.originalBreakJoints end)
+            end
+        end
+    end
+
+    setStatus(S.god and "GOD LOCAL ON" or "GOD LOCAL OFF")
+end
+
+S.godConn = RunService.Heartbeat:Connect(applyGodFrame)
+
+--==============================================================--
+-- PLAYER ACTIONS • TODAS LOCAIS
+--==============================================================--
+
+local function tpToPlayer(plr)
+    if not plr or plr == LP then
+        return false, "selecione outro jogador"
+    end
+
+    local _, targetRoot = getCharacter(plr)
+    if not targetRoot then
+        return false, "alvo sem HumanoidRootPart"
+    end
+
+    return teleportSelf(targetRoot.CFrame * CFrame.new(0, 0, 3))
+end
+
+local function killPlayerLocal(plr)
+    if not plr or plr == LP then
+        return false, "selecione outro jogador"
+    end
+
+    local _, _, hum = getCharacter(plr)
+    if not hum then
+        return false, "Humanoid do alvo nao encontrado"
+    end
+
+    local ok, err = pcall(function()
+        hum.Health = 0
+        hum:ChangeState(Enum.HumanoidStateType.Dead)
+    end)
+
+    return ok, err
+end
+
+local function normalizeMoneyName(name)
+    return string.lower(tostring(name or "")):gsub("[^%w]", "")
+end
+
+local function findMoneyValue(plr)
+    if not plr then return nil end
+
+    local leaderstats = plr:FindFirstChild("leaderstats")
+    if leaderstats then
+        for _, obj in ipairs(leaderstats:GetChildren()) do
+            if (obj:IsA("IntValue") or obj:IsA("NumberValue"))
+                and MONEY_NAMES[normalizeMoneyName(obj.Name)] then
+                return obj, "leaderstats." .. obj.Name
+            end
+        end
+    end
+
+    for _, obj in ipairs(plr:GetChildren()) do
+        if (obj:IsA("IntValue") or obj:IsA("NumberValue"))
+            and MONEY_NAMES[normalizeMoneyName(obj.Name)] then
+            return obj, obj.Name
+        end
+    end
+
+    for _, attrName in ipairs({"Money", "Cash", "Coins", "Dinheiro", "Credits", "Currency"}) do
+        local ok, value = pcall(function()
+            return plr:GetAttribute(attrName)
+        end)
+        if ok and type(value) == "number" then
+            return {
+                AttributeOwner = plr,
+                AttributeName = attrName,
+                AttributeValue = value,
+            }, "Attribute:" .. attrName
         end
     end
 
     return nil
 end
 
-local function triggerPrompt(prompt)
-    if not prompt then
-        return false
+local function addMoneyLocal(plr, amount)
+    amount = tonumber(amount)
+    if not amount then
+        return false, "valor invalido"
     end
 
-    if type(fireproximityprompt) == "function" then
-        local ok = pcall(function()
-            fireproximityprompt(prompt)
+    if amount > 1000000000 then amount = 1000000000 end
+    if amount < -1000000000 then amount = -1000000000 end
+
+    local target, path = findMoneyValue(plr)
+    if not target then
+        return false, "nenhum valor de dinheiro visivel no cliente"
+    end
+
+    if typeof(target) == "Instance" then
+        local old = target.Value
+        local ok, err = pcall(function()
+            target.Value = old + amount
         end)
         if ok then
-            return true
+            return true, tostring(path) .. " • " .. tostring(old) .. " > " .. tostring(target.Value)
         end
+        return false, err
     end
 
-    local ok = pcall(function()
-        prompt:InputHoldBegin()
-        task.wait(math.max(tonumber(prompt.HoldDuration) or 0, 0.05))
-        prompt:InputHoldEnd()
-    end)
-
-    return ok
-end
-
-local function triggerTouch(part)
-    if not part or type(firetouchinterest) ~= "function" then
-        return false
-    end
-
-    local _, hrp = getCharacter(3)
-    if not hrp then
-        return false
-    end
-
-    local ok = pcall(function()
-        firetouchinterest(hrp, part, 0)
-        task.wait()
-        firetouchinterest(hrp, part, 1)
-    end)
-
-    return ok
-end
-
-local function interactEgg(item)
-    local refreshed, refreshErr = refreshItem(item)
-    if not refreshed then
-        return false, refreshErr
-    end
-
-    item = refreshed
-
-    local _, hrp = getCharacter(5)
-    if not hrp then
-        return false, "personagem indisponivel"
-    end
-
-    local distance = (hrp.Position - item.part.Position).Magnitude
-    if distance > 7 then
-        local ok, err = teleportCharacter(item.part.CFrame * CFrame.new(0, 2.2, 0))
-        if not ok then
-            return false, "falha ao chegar no ovo: " .. tostring(err)
-        end
-        task.wait(0.12)
-    end
-
-    local prompt = findPrompt(item)
-    if prompt and triggerPrompt(prompt) then
-        return true, "prompt"
-    end
-
-    if triggerTouch(item.part) then
-        return true, "touch"
-    end
-
-    return false, "nenhuma interacao cliente compativel"
-end
-
-local function looksLikeCarriedEgg()
-    local char = LP.Character
-    local backpack = LP:FindFirstChildOfClass("Backpack")
-
-    for _, container in ipairs({char, backpack}) do
-        if container then
-            for _, obj in ipairs(container:GetChildren()) do
-                if eggNameLike(obj.Name) or hasEggAttribute(obj) then
-                    return true
-                end
-            end
-        end
-    end
-
-    return false
-end
-
-local function hookCarryRemote(remote)
-    if not remote or not remote:IsA("RemoteEvent") or remote.Name ~= "FieldEggCarry" then
-        return
-    end
-
-    pcall(function()
-        remote.OnClientEvent:Connect(function()
-            S.carrySignal = true
+    if type(target) == "table" and target.AttributeOwner then
+        local old = target.AttributeValue
+        local ok, err = pcall(function()
+            target.AttributeOwner:SetAttribute(target.AttributeName, old + amount)
         end)
-    end)
-end
-
-for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-    hookCarryRemote(obj)
-end
-
-ReplicatedStorage.DescendantAdded:Connect(function(obj)
-    hookCarryRemote(obj)
-end)
-
-local function waitCarry(timeout)
-    local started = os.clock()
-
-    while os.clock() - started < timeout do
-        if S.carrySignal or looksLikeCarriedEgg() then
-            return true
+        if ok then
+            return true, tostring(path) .. " • " .. tostring(old) .. " > " .. tostring(old + amount)
         end
-        task.wait(0.05)
+        return false, err
     end
 
-    return false
-end
-
-local function pickupAndSafe(item)
-    if S.busy then
-        return
-    end
-
-    if not item then
-        setStatus("Escolha um ovo primeiro.")
-        return
-    end
-
-    S.busy = true
-    S.carrySignal = false
-    setStatus("Pegando: " .. tostring(item.name))
-
-    local ok, method = interactEgg(item)
-    if not ok then
-        setStatus("Falha ao interagir: " .. tostring(method))
-        S.busy = false
-        return
-    end
-
-    setStatus("Interacao " .. tostring(method) .. " • aguardando carry...")
-    local confirmed = waitCarry(1.8)
-
-    if confirmed then
-        setStatus("Carry confirmado • indo para Safe Zone...")
-    else
-        setStatus("Carry sem confirmacao local • indo para Safe Zone...")
-    end
-
-    local tpOK, err = teleportCharacter(SAFE_CFRAME)
-    if tpOK then
-        setStatus("SAFE ZONE OK")
-    else
-        setStatus("Falha no TP Safe: " .. tostring(err))
-    end
-
-    S.busy = false
-end
-
-local function nearestAndSafe()
-    if S.busy then
-        return
-    end
-
-    S.busy = true
-    setStatus("Procurando ovo mais proximo...")
-
-    local eggs = scanEggs()
-    if #eggs == 0 then
-        setStatus("Nenhum ovo encontrado.")
-        S.busy = false
-        return
-    end
-
-    local item = eggs[1]
-    S.selected = item
-    S.busy = false
-    pickupAndSafe(item)
+    return false, "tipo de dinheiro nao suportado"
 end
 
 --==============================================================--
--- GUI STARTUP ROBUSTO
+-- GUI MOBILE
 --==============================================================--
 
 pcall(function()
-    local old = rawget(ENV, "__CAFEINA_EGG_MENU")
+    local old = rawget(ENV, "__CAFEINA_EGG_PLAYER_MENU_V4")
     if old and typeof(old) == "Instance" then
         old:Destroy()
     end
 end)
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "CafeinaEggClientV32"
-gui.ResetOnSpawn = false
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.DisplayOrder = 999
-
-local parented = false
-
+local parent
 pcall(function()
     if gethui then
-        local hui = gethui()
-        if hui then
-            gui.Parent = hui
-            parented = gui.Parent ~= nil
-        end
+        parent = gethui()
     end
 end)
 
-if not parented then
-    pcall(function()
-        gui.Parent = CoreGui
-        parented = gui.Parent ~= nil
-    end)
+if not parent then
+    local ok, cg = pcall(function() return CoreGui end)
+    if ok then parent = cg end
 end
 
-if not parented then
-    local playerGui = LP:FindFirstChildOfClass("PlayerGui") or LP:WaitForChild("PlayerGui", 5)
-    if playerGui then
-        local ok = pcall(function()
-            gui.Parent = playerGui
-        end)
-        parented = ok and gui.Parent ~= nil
-    end
+if not parent then
+    parent = LP:WaitForChild("PlayerGui")
 end
 
-if not parented then
-    warn("[CAFEINA EGG] Falha: executor bloqueou gethui/CoreGui/PlayerGui")
-    return
-end
-
-ENV.__CAFEINA_EGG_MENU = gui
-S.gui = gui
+local gui = Instance.new("ScreenGui")
+gui.Name = "CafeinaEggPlayerMenuV4"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = parent
+ENV.__CAFEINA_EGG_PLAYER_MENU_V4 = gui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(318, 500)
+frame.Size = UDim2.fromOffset(315, 505)
 frame.Position = UDim2.new(0, 10, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Parent = gui
-
-local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 12)
-frameCorner.Parent = frame
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -78, 0, 30)
 title.Position = UDim2.fromOffset(10, 6)
 title.BackgroundTransparency = 1
-title.Text = "CAFEINA • EGG CLIENT V3.2"
+title.Text = "CAFEINA • EGG PLAYER V4"
 title.TextColor3 = Color3.fromRGB(245, 245, 248)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 13
+title.TextSize = 12
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Active = true
 title.Parent = frame
@@ -629,14 +409,11 @@ minButton.TextColor3 = Color3.new(1, 1, 1)
 minButton.Font = Enum.Font.GothamBold
 minButton.TextSize = 10
 minButton.Parent = frame
-
-local minCorner = Instance.new("UICorner")
-minCorner.CornerRadius = UDim.new(0, 7)
-minCorner.Parent = minButton
+Instance.new("UICorner", minButton).CornerRadius = UDim.new(0, 7)
 
 local status = Instance.new("TextLabel")
 status.Size = UDim2.new(1, -20, 0, 42)
-status.Position = UDim2.fromOffset(10, 40)
+status.Position = UDim2.fromOffset(10, 38)
 status.BackgroundTransparency = 1
 status.TextWrapped = true
 status.TextColor3 = Color3.fromRGB(185, 185, 195)
@@ -646,40 +423,37 @@ status.TextXAlignment = Enum.TextXAlignment.Left
 status.TextYAlignment = Enum.TextYAlignment.Top
 status.Parent = frame
 
-local function makeButton(text, y, color)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, -20, 0, 34)
-    button.Position = UDim2.fromOffset(10, y)
-    button.BackgroundColor3 = color or Color3.fromRGB(43, 43, 50)
-    button.BorderSizePixel = 0
-    button.Text = text
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 10
-    button.Parent = frame
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = button
-
-    return button
+local function makeButton(text, x, y, w, color)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(w or 1, -15, 0, 34)
+    b.Position = UDim2.new(x or 0, 10, 0, y)
+    b.BackgroundColor3 = color or Color3.fromRGB(43, 43, 50)
+    b.BorderSizePixel = 0
+    b.Text = text
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 10
+    b.Parent = frame
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    return b
 end
 
-local refreshButton = makeButton("ATUALIZAR LISTA DE OVOS", 86)
-local nearestButton = makeButton("MAIS PROXIMO > PEGAR > SAFE", 126, Color3.fromRGB(115, 28, 32))
+local refreshButton = makeButton("ATUALIZAR JOGADORES", 0, 84, 0.5)
+refreshButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local godButton = makeButton("GOD LOCAL: OFF", 0.5, 84, 0.5, Color3.fromRGB(92, 30, 34))
+godButton.Position = UDim2.new(0.5, 5, 0, 84)
+godButton.Size = UDim2.new(0.5, -15, 0, 34)
 
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -20, 0, 205)
-list.Position = UDim2.fromOffset(10, 168)
+list.Position = UDim2.fromOffset(10, 126)
 list.BackgroundColor3 = Color3.fromRGB(23, 23, 27)
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 3
 list.CanvasSize = UDim2.fromOffset(0, 0)
 list.Parent = frame
-
-local listCorner = Instance.new("UICorner")
-listCorner.CornerRadius = UDim.new(0, 8)
-listCorner.Parent = list
+Instance.new("UICorner", list).CornerRadius = UDim.new(0, 8)
 
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 5)
@@ -693,27 +467,52 @@ listPadding.PaddingLeft = UDim.new(0, 6)
 listPadding.PaddingRight = UDim.new(0, 6)
 listPadding.Parent = list
 
-local bringButton = makeButton("TRAZER SELECIONADO ATE MIM", 383)
-local pickupButton = makeButton("PEGAR SELECIONADO > SAFE", 423, Color3.fromRGB(115, 28, 32))
-local safeButton = makeButton("IR PARA SAFE ZONE", 463)
+local amountBox = Instance.new("TextBox")
+amountBox.Size = UDim2.new(1, -20, 0, 34)
+amountBox.Position = UDim2.fromOffset(10, 339)
+amountBox.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
+amountBox.BorderSizePixel = 0
+amountBox.ClearTextOnFocus = false
+amountBox.Text = "1000"
+amountBox.PlaceholderText = "Quantidade de dinheiro LOCAL"
+amountBox.TextColor3 = Color3.fromRGB(240, 240, 245)
+amountBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 130)
+amountBox.Font = Enum.Font.Code
+amountBox.TextSize = 11
+amountBox.Parent = frame
+Instance.new("UICorner", amountBox).CornerRadius = UDim.new(0, 8)
+
+local tpButton = makeButton("TP NO SELECIONADO", 0, 381, 0.5)
+tpButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local killButton = makeButton("KILL LOCAL", 0.5, 381, 0.5, Color3.fromRGB(115, 28, 32))
+killButton.Position = UDim2.new(0.5, 5, 0, 381)
+killButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local giveButton = makeButton("$ LOCAL > SELECIONADO", 0, 423, 0.5)
+giveButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local selfMoneyButton = makeButton("$ LOCAL > EU", 0.5, 423, 0.5)
+selfMoneyButton.Position = UDim2.new(0.5, 5, 0, 423)
+selfMoneyButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local safeButton = makeButton("IR PARA SAFE AGORA", 0, 465, 1, Color3.fromRGB(95, 30, 34))
+safeButton.Size = UDim2.new(1, -20, 0, 30)
 
 local mini = Instance.new("TextButton")
-mini.Size = UDim2.fromOffset(94, 40)
+mini.Size = UDim2.fromOffset(96, 40)
 mini.Position = frame.Position
 mini.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 mini.BorderSizePixel = 0
-mini.Text = "EGG MENU"
+mini.Text = "EGG PLAYER"
 mini.TextColor3 = Color3.new(1, 1, 1)
 mini.Font = Enum.Font.GothamBold
-mini.TextSize = 10
+mini.TextSize = 9
 mini.Visible = false
 mini.Parent = gui
+Instance.new("UICorner", mini).CornerRadius = UDim.new(0, 10)
 
-local miniCorner = Instance.new("UICorner")
-miniCorner.CornerRadius = UDim.new(0, 10)
-miniCorner.Parent = mini
-
-local function clearRows()
+local function clearPlayerRows()
     for _, obj in ipairs(list:GetChildren()) do
         if obj:IsA("TextButton") then
             obj:Destroy()
@@ -721,120 +520,99 @@ local function clearRows()
     end
 end
 
-local function rebuildEggList()
-    if S.busy then
-        return
-    end
+local function rebuildPlayers()
+    clearPlayerRows()
 
-    S.busy = true
-    setStatus("Procurando ovos...")
-    clearRows()
+    local count = 0
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP then
+            count = count + 1
+            local row = Instance.new("TextButton")
+            row.Size = UDim2.new(1, 0, 0, 38)
+            row.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
+            row.BorderSizePixel = 0
+            row.Text = tostring(plr.DisplayName) .. "  (@" .. tostring(plr.Name) .. ")"
+            row.TextColor3 = Color3.fromRGB(235, 235, 240)
+            row.Font = Enum.Font.Gotham
+            row.TextSize = 10
+            row.TextXAlignment = Enum.TextXAlignment.Left
+            row.Parent = list
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
 
-    local ok, eggsOrErr = pcall(scanEggs)
-    if not ok then
-        setStatus("Erro no scanner: " .. tostring(eggsOrErr))
-        S.busy = false
-        return
-    end
+            local pad = Instance.new("UIPadding")
+            pad.PaddingLeft = UDim.new(0, 10)
+            pad.Parent = row
 
-    local eggs = eggsOrErr
-
-    for i, item in ipairs(eggs) do
-        local row = Instance.new("TextButton")
-        row.Name = "Egg_" .. tostring(i)
-        row.Size = UDim2.new(1, 0, 0, 38)
-        row.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
-        row.BorderSizePixel = 0
-        row.Text = string.format("%02d • %s • %.0f studs", i, item.name, item.distance)
-        row.TextColor3 = Color3.fromRGB(235, 235, 240)
-        row.Font = Enum.Font.Gotham
-        row.TextSize = 10
-        row.TextXAlignment = Enum.TextXAlignment.Left
-        row.Parent = list
-
-        local rowCorner = Instance.new("UICorner")
-        rowCorner.CornerRadius = UDim.new(0, 7)
-        rowCorner.Parent = row
-
-        local rowPadding = Instance.new("UIPadding")
-        rowPadding.PaddingLeft = UDim.new(0, 10)
-        rowPadding.Parent = row
-
-        row.MouseButton1Click:Connect(function()
-            if S.busy then
-                return
-            end
-
-            local refreshed, err = refreshItem(item)
-            if not refreshed then
-                setStatus(tostring(err))
-                return
-            end
-
-            S.selected = refreshed
-            local brought, bringErr = bringEggToMe(refreshed)
-            if not brought then
-                setStatus("Selecionado: " .. refreshed.name .. " • trazer falhou: " .. tostring(bringErr))
-            end
-        end)
+            row.MouseButton1Click:Connect(function()
+                S.selected = plr
+                setStatus("Selecionado: " .. tostring(plr.DisplayName) .. " (@" .. tostring(plr.Name) .. ")")
+            end)
+        end
     end
 
     task.wait()
     list.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y + 12)
 
-    if #eggs == 0 then
-        setStatus("Nenhum ovo encontrado.")
+    if count == 0 then
+        setStatus("Nenhum outro jogador online")
     else
-        setStatus(tostring(#eggs) .. " ovos encontrados • toque em um para trazer.")
+        setStatus(tostring(count) .. " jogadores online • selecione um")
     end
-
-    S.busy = false
 end
 
-refreshButton.MouseButton1Click:Connect(function()
-    if not S.busy then
-        task.spawn(rebuildEggList)
+refreshButton.MouseButton1Click:Connect(rebuildPlayers)
+
+godButton.MouseButton1Click:Connect(function()
+    setGod(not S.god)
+end)
+
+tpButton.MouseButton1Click:Connect(function()
+    local ok, err = tpToPlayer(S.selected)
+    if ok then
+        setStatus("TP local concluido")
+    else
+        setStatus("TP falhou: " .. tostring(err))
     end
 end)
 
-nearestButton.MouseButton1Click:Connect(function()
-    if not S.busy then
-        task.spawn(nearestAndSafe)
+killButton.MouseButton1Click:Connect(function()
+    local ok, err = killPlayerLocal(S.selected)
+    if ok then
+        setStatus("KILL LOCAL aplicado em " .. tostring(S.selected and S.selected.Name or "alvo"))
+    else
+        setStatus("Kill local falhou: " .. tostring(err))
     end
 end)
 
-bringButton.MouseButton1Click:Connect(function()
-    if S.busy then
-        return
-    end
-
+giveButton.MouseButton1Click:Connect(function()
     if not S.selected then
-        setStatus("Escolha um ovo primeiro.")
+        setStatus("Selecione um jogador")
         return
     end
 
-    local ok, err = bringEggToMe(S.selected)
-    if not ok then
-        setStatus("Nao foi possivel trazer: " .. tostring(err))
+    local ok, info = addMoneyLocal(S.selected, amountBox.Text)
+    if ok then
+        setStatus("Dinheiro LOCAL alterado • " .. tostring(info))
+    else
+        setStatus("Dinheiro local falhou: " .. tostring(info))
     end
 end)
 
-pickupButton.MouseButton1Click:Connect(function()
-    if not S.busy then
-        task.spawn(pickupAndSafe, S.selected)
+selfMoneyButton.MouseButton1Click:Connect(function()
+    local ok, info = addMoneyLocal(LP, amountBox.Text)
+    if ok then
+        setStatus("Seu dinheiro LOCAL alterado • " .. tostring(info))
+    else
+        setStatus("Seu dinheiro local falhou: " .. tostring(info))
     end
 end)
 
 safeButton.MouseButton1Click:Connect(function()
-    if S.busy then
-        return
-    end
-
-    local ok, err = teleportCharacter(SAFE_CFRAME)
+    local ok, err = teleportSelf(SAFE_CFRAME)
     if ok then
-        setStatus("SAFE ZONE OK")
+        setStatus("SAFE ZONE ✓")
     else
-        setStatus("Falha no TP Safe: " .. tostring(err))
+        setStatus("Safe falhou: " .. tostring(err))
     end
 end)
 
@@ -851,8 +629,8 @@ mini.MouseButton1Click:Connect(function()
 end)
 
 local dragging = false
-local dragStart = nil
-local startPos = nil
+local dragStart
+local startPos
 
 title.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -870,52 +648,38 @@ title.InputEnded:Connect(function(input)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and dragStart and startPos then
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
+UIS.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    if S.selected == plr then
+        S.selected = nil
+        setStatus("Jogador selecionado saiu do servidor")
+    end
+    task.defer(rebuildPlayers)
+end)
+
+Players.PlayerAdded:Connect(function()
+    task.defer(rebuildPlayers)
 end)
 
 task.spawn(function()
     while gui.Parent do
         status.Text = S.status
-
-        if S.busy then
-            nearestButton.Text = "PROCESSANDO..."
-            pickupButton.Text = "PROCESSANDO..."
-        else
-            nearestButton.Text = "MAIS PROXIMO > PEGAR > SAFE"
-
-            if S.selected then
-                pickupButton.Text = "PEGAR " .. tostring(S.selected.name):sub(1, 14) .. " > SAFE"
-            else
-                pickupButton.Text = "PEGAR SELECIONADO > SAFE"
-            end
-        end
-
+        godButton.Text = S.god and "GOD LOCAL: ON" or "GOD LOCAL: OFF"
         task.wait(0.08)
     end
 end)
 
-if game.PlaceId ~= KNOWN_PLACE then
-    setStatus("Menu iniciado • Place atual " .. tostring(game.PlaceId) .. " • mapa conhecido " .. tostring(KNOWN_PLACE))
-else
-    setStatus("Menu iniciado • procurando ovos...")
-end
-
-task.delay(0.35, function()
-    if gui.Parent and not S.busy then
-        rebuildEggList()
-    end
-end)
-
-print("[CAFEINA EGG] CLIENT MENU V3.2 carregado")
+task.defer(rebuildPlayers)
+print("[CAFEINA EGG] CLIENT MENU V4 carregado ✓ • AUTO SAFE ON")
