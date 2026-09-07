@@ -2,8 +2,14 @@ name: Avatar Geometry Smoke
 
 on:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/avatar-geometry-smoke.yml"
+      - "avatar-gateway.js"
+      - "avatar-geometry-routes.js"
+      - "package.json"
+      - "server.js"
   workflow_dispatch:
 
 permissions:
