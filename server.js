@@ -335,7 +335,7 @@ function registerFailure(key) {
     windowStartedAt: blockedUntil ? now : current.windowStartedAt,
     blockedUntil
   };
-  failedAttempts.set(rateKey, next);
+  failedAttempts.set(key, next);
   return next;
 }
 
