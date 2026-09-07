@@ -5,6 +5,7 @@ import crypto from "crypto";
 import http from "http";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
+import { installAvatarGeometryRoutes } from "./avatar-geometry-routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,6 +37,8 @@ let publicServer = null;
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
+
+installAvatarGeometryRoutes(app);
 
 app.post("/api/avatar-dump", express.json({ limit: "4mb", strict: true }), avatarSecurityHeaders, handleAvatarDump);
 app.get("/api/avatar-dump/:userId/latest", avatarSecurityHeaders, handleLatestAvatarDump);
