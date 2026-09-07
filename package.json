@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node avatar-gateway.js",
-    "check": "node --check avatar-gateway.js && node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs && node --check test/avatar-gateway.test.mjs",
+    "check": "node --check avatar-gateway.js && node --check avatar-geometry-routes.js && node --check server.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs && node --check test/avatar-gateway.test.mjs",
     "test": "node --test test/*.test.mjs",
     "hash:download": "node scripts/hash-download-password.mjs"
   },
