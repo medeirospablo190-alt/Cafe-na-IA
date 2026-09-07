@@ -1,0 +1,87 @@
+name: Inventory Trace Sync
+
+on:
+  push:
+    paths:
+      - ".github/workflows/inventory-trace-sync.yml"
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: inventory-trace-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: ${{ !startsWith(github.event.head_commit.message || '', 'Inventory trace sync:') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest inventory trace
+        id: fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLACE_ID="138686218420016"
+          mkdir -p /tmp/inventory-trace-sync
+          URL="https://cafe-na-ia.onrender.com/api/inventory-trace/${PLACE_ID}/latest"
+          CODE="$(curl --silent --show-error --location --max-time 60 --retry 3 --retry-delay 2 --output /tmp/inventory-trace-sync/latest.json --write-out '%{http_code}' "$URL" || true)"
+
+          if [ "$CODE" != "200" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Inventory trace unavailable (HTTP $CODE)."
+            exit 0
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = '/tmp/inventory-trace-sync/latest.json';
+          const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+          if (String(data.placeId) !== '138686218420016') throw new Error('PlaceId inesperado');
+          if (!data.trace || typeof data.trace !== 'object') throw new Error('Campo trace ausente');
+          if (!Array.isArray(data.trace.records)) throw new Error('trace.records ausente');
+          if (!Array.isArray(data.trace.remotes)) throw new Error('trace.remotes ausente');
+          fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\n');
+          NODE
+
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Store latest and history
+        if: steps.fetch.outputs.available == 'true'
+        id: store
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLACE_ID="138686218420016"
+          TARGET_DIR="inventory-traces/${PLACE_ID}"
+          mkdir -p "$TARGET_DIR"
+
+          if [ -f "$TARGET_DIR/latest.json" ] && cmp -s /tmp/inventory-trace-sync/latest.json "$TARGET_DIR/latest.json"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Trace unchanged."
+            exit 0
+          fi
+
+          cp /tmp/inventory-trace-sync/latest.json "$TARGET_DIR/latest.json"
+          STAMP="$(node -e "const d=require('/tmp/inventory-trace-sync/latest.json'); console.log(String(d.serverReceivedAt || d.capturedAt || new Date().toISOString()).replace(/[:.]/g,'-'))")"
+          HASH="$(sha256sum /tmp/inventory-trace-sync/latest.json | cut -c1-12)"
+          cp /tmp/inventory-trace-sync/latest.json "$TARGET_DIR/${STAMP}_${HASH}.json"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit synchronized trace
+        if: steps.store.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory-traces/138686218420016
+          git commit -m "Inventory trace sync: 138686218420016 [skip ci]"
+          git push
