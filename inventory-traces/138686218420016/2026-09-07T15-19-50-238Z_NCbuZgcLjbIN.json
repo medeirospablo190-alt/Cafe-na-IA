@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "type": "inventory_remote_trace",
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-07T15:19:49.000Z",
+  "serverReceivedAt": "2026-09-07T15:19:50.238Z",
+  "placeId": 138686218420016,
+  "gameId": 10532995815,
+  "runId": "9e4c12d9-bfd6-4ac4-a50a-e295b86de4f1",
+  "trace": {
+    "anomalies": [],
+    "pickupSessions": [],
+    "diagnostics": {
+      "counters": {
+        "worldAdded": 1,
+        "inventoryChanged": 2,
+        "firstToolAdded": 1,
+        "worldRemoved": 0,
+        "records": 11,
+        "droppedRecords": 0,
+        "firstPromptAttempts": 1,
+        "toolRemoved": 1,
+        "uploadAttempts": 0,
+        "secondToolAdded": 0,
+        "gemCollected": 1,
+        "secondPromptAttempts": 0
+      },
+      "guards": {
+        "noDropRemoteAutomation": true,
+        "noSpatialPolling": true,
+        "secondUsesSameWorldInstance": true,
+        "noTouchWatcher": true,
+        "maxAutomaticPromptAttempts": 2,
+        "eventDrivenTargeting": true,
+        "noHook": true,
+        "maxRecords": 220,
+        "firstRequiresToolInventoryAndGemCollected": true
+      },
+      "transport": {
+        "endpoint": "https://cafe-na-ia.onrender.com/api/inventory-trace",
+        "retries": 3
+      },
+      "errors": []
+    },
+    "dupeRace": {
+      "firstNewTool": {
+        "path": "Players.capuccino40.Backpack.1.5 kg",
+        "name": "1.5 kg",
+        "attributes": {
+          "Favorited": false,
+          "BagId": 383,
+          "Rarity": "Rare",
+          "GemName": "RadiantGoldenStar",
+          "BaseValue": 960,
+          "Value": 960,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "Kg": 1.5
+        }
+      },
+      "firstNewBagId": 383,
+      "timelineMs": {
+        "toolRemoved_to_dropInventoryChanged": 0.39437499981431756,
+        "dropInventoryChanged_to_worldAdded": 0.1941670002452156,
+        "firstPromptFire_to_firstToolAdded": 125.86807300021974,
+        "toolRemoved_to_worldAdded": 0.5885420000595332,
+        "worldAdded_to_firstPromptReady": 23.622603999683633,
+        "worldAdded_to_firstPromptFire": 23.750780999762355,
+        "firstPromptFire_to_firstInventoryChanged": 128.43140599989056,
+        "firstPromptFire_to_firstGemCollected": 173.0313540001589
+      },
+      "finishReason": "prompt_removed_before_second_attempt",
+      "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+      "finalState": {
+        "oldBagIdPresent": false,
+        "firstNewBagId": 383,
+        "secondToolAddedObserved": false,
+        "secondGemCollectedObserved": false,
+        "secondAttempted": true,
+        "secondInventoryChangedObserved": false,
+        "activeMatchingTools": 1,
+        "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+        "activeMatchingBagIds": 1,
+        "firstPickupConfirmed": true,
+        "activeBagIds": {
+          "383": true
+        },
+        "sameUidWorldCount": 1,
+        "targetStillInWorld": true
+      },
+      "firstPickupConfirmed": {
+        "newBagId": 383,
+        "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+        "inventoryChanged": true,
+        "clock": 43.47804456599988,
+        "gemCollected": true,
+        "targetStillInWorld": true
+      },
+      "world": {
+        "path": "Workspace.DroppedGems.RadiantGoldenStar",
+        "name": "RadiantGoldenStar",
+        "position": "402.73968505859375, 65.30184936523438, -829.9361572265625",
+        "class": "Model",
+        "attributes": {
+          "Kg": 1.5,
+          "Dropped": true,
+          "DropZ": -829.94091796875,
+          "GlowMatch": "golden",
+          "RBX_ReimportId": "43cf7cea-365c-4474-937e-432f14961496",
+          "BaseValue": 960,
+          "Freed": true,
+          "DropX": 402.7431335449219,
+          "GlowColor": "1, 0.792157, 0.196078",
+          "Uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+          "Luck": 0.25181603532675323,
+          "Rarity": "Rare",
+          "Value": 960,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "GemName": "RadiantGoldenStar"
+        }
+      },
+      "selected": {
+        "tool": {
+          "path": "Workspace.capuccino40.1.5 kg",
+          "name": "1.5 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 380,
+            "Rarity": "Rare",
+            "GemName": "RadiantGoldenStar",
+            "BaseValue": 960,
+            "Value": 960,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.5
+          }
+        },
+        "oldBagId": 380,
+        "rarity": "Rare",
+        "kg": 1.5,
+        "gemName": "RadiantGoldenStar",
+        "value": 960,
+        "sizeLetter": "Tiny",
+        "container": "Character"
+      },
+      "secondAttempt": {
+        "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+        "firstNewBagId": 383,
+        "crystalStillPresent": true,
+        "firstNewBagIdPresent": true,
+        "promptStillPresent": false
+      },
+      "departedContainer": "Character"
+    },
+    "records": [
+      {
+        "phase": "armed",
+        "unix": 1788794388,
+        "clock": 42.49942232700005,
+        "selected": {
+          "tool": {
+            "path": "Workspace.capuccino40.1.5 kg",
+            "name": "1.5 kg",
+            "attributes": {
+              "Favorited": false,
+              "BagId": 380,
+              "Rarity": "Rare",
+              "GemName": "RadiantGoldenStar",
+              "BaseValue": 960,
+              "Value": 960,
+              "Mutations": "",
+              "SizeLetter": "Tiny",
+              "Kg": 1.5
+            }
+          },
+          "oldBagId": 380,
+          "rarity": "Rare",
+          "kg": 1.5,
+          "gemName": "RadiantGoldenStar",
+          "value": 960,
+          "sizeLetter": "Tiny",
+          "container": "Character"
+        },
+        "seq": 1,
+        "kind": "race_test_armed"
+      },
+      {
+        "arguments": [
+          5,
+          16.5,
+          1382,
+          22
+        ],
+        "phase": "armed",
+        "unix": 1788794389,
+        "clock": 43.28066940999997,
+        "kind": "inventory_changed",
+        "stage": "drop_transition",
+        "seq": 2
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.RadiantGoldenStar",
+          "name": "RadiantGoldenStar",
+          "position": "402.73968505859375, 65.30184936523438, -829.9361572265625",
+          "class": "Model",
+          "attributes": {
+            "Kg": 1.5,
+            "Dropped": true,
+            "DropZ": -829.94091796875,
+            "GlowMatch": "golden",
+            "RBX_ReimportId": "43cf7cea-365c-4474-937e-432f14961496",
+            "BaseValue": 960,
+            "Freed": true,
+            "DropX": 402.7431335449219,
+            "GlowColor": "1, 0.792157, 0.196078",
+            "Uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+            "Luck": 0.25181603532675323,
+            "Rarity": "Rare",
+            "Value": 960,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "GemName": "RadiantGoldenStar"
+          }
+        },
+        "oldBagId": 380,
+        "phase": "world_seen",
+        "clock": 43.28094029600015,
+        "kind": "target_world_added",
+        "seq": 3,
+        "unix": 1788794389
+      },
+      {
+        "enabled": true,
+        "actionText": "Pick Up",
+        "phase": "world_seen",
+        "unix": 1788794389,
+        "holdDuration": 0,
+        "clock": 43.304584045999945,
+        "prompt": "Workspace.DroppedGems.RadiantGoldenStar.Mesh_0.Pickup",
+        "seq": 4,
+        "kind": "first_pickup_prompt_ready"
+      },
+      {
+        "fireClock": 43.30461435799998,
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "fireDurationMs": 0.13755200006926316,
+        "seq": 5,
+        "success": true,
+        "returnClock": 43.30475191000005,
+        "clock": 43.30477977500004,
+        "prompt": "Workspace.DroppedGems.RadiantGoldenStar.Mesh_0.Pickup",
+        "error": "nil",
+        "kind": "first_automatic_pickup_attempt"
+      },
+      {
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "newBagId": 383,
+        "oldBagId": 380,
+        "seq": 6,
+        "clock": 43.43060993100016,
+        "kind": "first_pickup_tool_added",
+        "tool": {
+          "path": "Players.capuccino40.Backpack.1.5 kg",
+          "name": "1.5 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 383,
+            "Rarity": "Rare",
+            "GemName": "RadiantGoldenStar",
+            "BaseValue": 960,
+            "Value": 960,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.5
+          }
+        },
+        "container": "Backpack"
+      },
+      {
+        "arguments": [
+          6,
+          18,
+          2342,
+          22
+        ],
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "clock": 43.43304576399987,
+        "kind": "inventory_changed",
+        "stage": "after_first_attempt",
+        "seq": 7
+      },
+      {
+        "oldBagId": 380,
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "clock": 43.28027503500016,
+        "kind": "selected_tool_removed_confirmed",
+        "seq": 8,
+        "container": "Character"
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.RadiantGoldenStar",
+          "type": "Instance",
+          "name": "RadiantGoldenStar",
+          "class": "Model"
+        },
+        "player": {
+          "path": "Players.capuccino40",
+          "type": "Instance",
+          "name": "capuccino40",
+          "class": "Player"
+        },
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "clock": 43.47764571200014,
+        "kind": "gem_collected",
+        "stage": "after_first_attempt",
+        "seq": 9
+      },
+      {
+        "phase": "first_pickup_attempt",
+        "unix": 1788794389,
+        "clock": 43.47806336800022,
+        "kind": "first_pickup_confirmed",
+        "seq": 10,
+        "confirmation": {
+          "newBagId": 383,
+          "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+          "inventoryChanged": true,
+          "clock": 43.47804456599988,
+          "gemCollected": true,
+          "targetStillInWorld": true
+        }
+      },
+      {
+        "state": {
+          "uid": "40524140-1abe-436b-9566-ad49e7d935c1",
+          "firstNewBagId": 383,
+          "crystalStillPresent": true,
+          "firstNewBagIdPresent": true,
+          "promptStillPresent": false
+        },
+        "phase": "second_pickup_attempt",
+        "unix": 1788794389,
+        "clock": 43.478759826999976,
+        "kind": "second_pickup_skipped",
+        "seq": 11,
+        "reason": "prompt_removed"
+      }
+    ],
+    "startedAt": 1788794388,
+    "version": "CAFEINA_CRYSTAL_DUP_RACE_TEST_V2_2",
+    "bagMap": [],
+    "finishedAt": 1788794389,
+    "remotes": [
+      {
+        "name": "InventoryChanged",
+        "path": "ReplicatedStorage.GemRemotes.InventoryChanged"
+      },
+      {
+        "name": "GemCollected",
+        "path": "ReplicatedStorage.GemSignals.GemCollected"
+      }
+    ],
+    "runId": "9e4c12d9-bfd6-4ac4-a50a-e295b86de4f1",
+    "purpose": "crystal_drop_immediate_pickup_then_same_instance_retry"
+  }
+}
