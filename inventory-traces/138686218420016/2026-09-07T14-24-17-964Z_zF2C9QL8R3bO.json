@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "type": "inventory_remote_trace",
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-07T14:24:17.000Z",
+  "serverReceivedAt": "2026-09-07T14:24:17.964Z",
+  "placeId": 138686218420016,
+  "gameId": 10532995815,
+  "runId": "40ff30f9-e80c-4277-adb6-befac4200fd5",
+  "trace": {
+    "anomalies": [
+      {
+        "code": "BASELINE_DROP_NO_WORLD",
+        "severity": "critical",
+        "details": {
+          "bagId": 12667
+        },
+        "clock": 1946.2385889450002,
+        "phase": "baseline_drop"
+      }
+    ],
+    "pickupSessions": [],
+    "diagnostics": {
+      "guards": {
+        "noFlood": true,
+        "noTouchWatcher": true,
+        "staleBagIdReplays": 2,
+        "maxControlledDropCalls": 3,
+        "noHook": true,
+        "oneCrystalPerRun": true,
+        "noSpatialPolling": true
+      },
+      "version": "CAFEINA_CRYSTAL_DUP_CONSISTENCY_V1_1",
+      "errors": [],
+      "counters": {
+        "worldAdded": 0,
+        "anomalies": 1,
+        "toolRemoved": 0,
+        "worldRemoved": 0,
+        "records": 3,
+        "droppedRecords": 0,
+        "uploadAttempts": 0,
+        "inventoryChanged": 0,
+        "toolAdded": 0,
+        "dropCalls": 1
+      },
+      "operation": {
+        "durationSeconds": 3,
+        "controlledDropCalls": 1,
+        "startedAt": 1788791054,
+        "finishedAt": 1788791057,
+        "noHook": true,
+        "noTouchWatcher": true,
+        "spatialPolling": false
+      },
+      "health": {
+        "ok": true,
+        "githubMirrorConfigured": true,
+        "checked": true,
+        "httpStatus": 200
+      },
+      "transport": {
+        "endpoint": "https://cafe-na-ia.onrender.com/api/inventory-trace",
+        "retries": 3,
+        "status": "pending_at_send"
+      }
+    },
+    "purpose": "crystal_dupe_consistency_test",
+    "records": [
+      {
+        "phase": "prepare",
+        "unix": 1788791054,
+        "clock": 1942.7333206650005,
+        "selected": {
+          "oldBagId": 12667,
+          "rarity": "Rare",
+          "gemName": "RadiantGoldenStar",
+          "value": 960,
+          "tool": {
+            "path": "Players.capuccino40.Backpack.1.5 kg",
+            "name": "1.5 kg",
+            "attributes": {
+              "Favorited": "false",
+              "BagId": 12667,
+              "Rarity": "Rare",
+              "GemName": "RadiantGoldenStar",
+              "BaseValue": 960,
+              "Value": 960,
+              "Mutations": "",
+              "SizeLetter": "Tiny",
+              "Kg": 1.5
+            }
+          },
+          "kg": 1.5
+        },
+        "seq": 1,
+        "kind": "test_begin"
+      },
+      {
+        "bagId": 12667,
+        "label": "baseline",
+        "phase": "baseline_drop",
+        "unix": 1788791054,
+        "callClock": 1942.7333244670003,
+        "success": true,
+        "returnClock": 1942.7333450400006,
+        "clock": 1942.7333472800005,
+        "kind": "controlled_drop_call",
+        "error": "nil",
+        "seq": 2
+      },
+      {
+        "anomaly": {
+          "code": "BASELINE_DROP_NO_WORLD",
+          "severity": "critical",
+          "details": {
+            "bagId": 12667
+          },
+          "clock": 1946.2385889450002,
+          "phase": "baseline_drop"
+        },
+        "phase": "baseline_drop",
+        "clock": 1946.2385954550004,
+        "kind": "dupe_anomaly",
+        "seq": 3,
+        "unix": 1788791057
+      }
+    ],
+    "startedAt": 1788791054,
+    "version": "CAFEINA_CRYSTAL_DUP_CONSISTENCY_V1_1",
+    "bagMap": [],
+    "finishedAt": 1788791057,
+    "remotes": [
+      {
+        "name": "DropCrystal",
+        "path": "ReplicatedStorage.GemSignals.DropCrystal"
+      },
+      {
+        "name": "InventoryChanged",
+        "path": "ReplicatedStorage.GemRemotes.InventoryChanged"
+      }
+    ],
+    "runId": "40ff30f9-e80c-4277-adb6-befac4200fd5",
+    "dupeTest": {
+      "finishReason": "baseline_no_world",
+      "selected": {
+        "oldBagId": 12667,
+        "rarity": "Rare",
+        "gemName": "RadiantGoldenStar",
+        "value": 960,
+        "tool": {
+          "path": "Players.capuccino40.Backpack.1.5 kg",
+          "name": "1.5 kg",
+          "attributes": {
+            "Favorited": "false",
+            "BagId": 12667,
+            "Rarity": "Rare",
+            "GemName": "RadiantGoldenStar",
+            "BaseValue": 960,
+            "Value": 960,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.5
+          }
+        },
+        "kg": 1.5
+      },
+      "result": "POSSIBLE_INCONSISTENCY",
+      "phases": []
+    }
+  }
+}
