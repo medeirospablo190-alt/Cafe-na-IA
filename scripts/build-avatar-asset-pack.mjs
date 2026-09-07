@@ -9,7 +9,7 @@ const MAX_ASSETS = 240;
 const MAX_ASSET_BYTES = 32 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 220 * 1024 * 1024;
 const CONCURRENCY = 4;
-const USER_AGENT = "GrupoLua-AvatarAssetPack/1.0";
+const USER_AGENT = "GrupoLua-AvatarAssetPack/2.0";
 
 const VISUAL_NUMERIC_KEYS = new Set([
   "assetId", "Head", "LeftArm", "LeftLeg", "RightArm", "RightLeg", "Torso",
@@ -91,7 +91,7 @@ function extFor(buffer, contentType = "") {
   if (buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) return ".png";
   if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return ".jpg";
   if (buffer.length >= 12 && buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP") return ".webp";
-  const head = buffer.subarray(0, Math.min(buffer.length, 256)).toString("utf8").trimStart();
+  const head = buffer.subarray(0, Math.min(buffer.length, 512)).toString("utf8").trimStart();
   if (head.startsWith("<roblox") || head.startsWith("<?xml")) return ".rbxmx";
   if (head.startsWith("version ")) return ".mesh";
   if (head.startsWith("{") || head.startsWith("[")) return ".json";
@@ -103,51 +103,107 @@ function extFor(buffer, contentType = "") {
 }
 
 function discoverDependencies(buffer, contentType, parentId) {
-  const likelyText = /json|xml|text|roblox/i.test(contentType) || extFor(buffer, contentType) === ".rbxmx";
-  if (!likelyText || buffer.length > 4 * 1024 * 1024) return;
+  const likelyText = /json|xml|text|roblox/i.test(contentType) || [".rbxmx", ".json"].includes(extFor(buffer, contentType));
+  if (!likelyText || buffer.length > 5 * 1024 * 1024) return;
   const text = buffer.toString("utf8");
   addRefsFromString(text, `dependency-of:${parentId}`);
 }
 
-async function fetchAsset(id) {
-  const url = `https://assetdelivery.roblox.com/v1/asset/?id=${encodeURIComponent(id)}`;
-  let lastError = null;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    try {
-      const response = await fetch(url, {
-        redirect: "follow",
-        headers: { "User-Agent": USER_AGENT, Accept: "*/*" },
-        signal: AbortSignal.timeout(45_000),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const declared = Number(response.headers.get("content-length") || 0);
-      if (declared > MAX_ASSET_BYTES) throw new Error(`asset too large: ${declared}`);
-      const buffer = Buffer.from(await response.arrayBuffer());
-      if (buffer.length > MAX_ASSET_BYTES) throw new Error(`asset too large: ${buffer.length}`);
-      if (totalBytes + buffer.length > MAX_TOTAL_BYTES) throw new Error("total pack size limit reached");
-      totalBytes += buffer.length;
-      const contentType = response.headers.get("content-type") || "application/octet-stream";
-      const ext = extFor(buffer, contentType);
-      const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
-      const file = `assets/${id}_${sha256.slice(0, 12)}${ext}`;
-      await fs.writeFile(path.join(outDir, file), buffer);
-      discoverDependencies(buffer, contentType, id);
-      return {
-        id,
-        ok: true,
-        file,
-        bytes: buffer.length,
-        sha256,
-        contentType,
-        finalUrl: response.url,
-        reasons: [...(reasons.get(id) || [])].sort(),
-      };
-    } catch (error) {
-      lastError = String(error?.message || error);
-      if (attempt < 4) await new Promise(r => setTimeout(r, 650 * attempt));
+function findLocation(value) {
+  if (!value) return null;
+  if (typeof value === "string" && /^https:\/\//i.test(value)) return value;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findLocation(item);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (typeof value === "object") {
+    for (const key of ["location", "Location", "url", "Url", "locations"]) {
+      if (key in value) {
+        const found = findLocation(value[key]);
+        if (found) return found;
+      }
     }
   }
-  return { id, ok: false, error: lastError || "unknown", reasons: [...(reasons.get(id) || [])].sort() };
+  return null;
+}
+
+async function fetchRaw(url) {
+  const response = await fetch(url, {
+    redirect: "follow",
+    headers: { "User-Agent": USER_AGENT, Accept: "*/*" },
+    signal: AbortSignal.timeout(35_000),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const declared = Number(response.headers.get("content-length") || 0);
+  if (declared > MAX_ASSET_BYTES) throw new Error(`asset too large: ${declared}`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.length > MAX_ASSET_BYTES) throw new Error(`asset too large: ${buffer.length}`);
+  return {
+    buffer,
+    contentType: response.headers.get("content-type") || "application/octet-stream",
+    finalUrl: response.url,
+  };
+}
+
+async function unwrapDelivery(result) {
+  const head = result.buffer.subarray(0, Math.min(result.buffer.length, 1024)).toString("utf8").trimStart();
+  if (/json/i.test(result.contentType) || head.startsWith("{")) {
+    try {
+      const data = JSON.parse(result.buffer.toString("utf8"));
+      const location = findLocation(data);
+      if (location) return await fetchRaw(location);
+    } catch {}
+  }
+  return result;
+}
+
+async function fetchAsset(id) {
+  const endpoints = [
+    `https://assetdelivery.roblox.com/v2/assetId/${encodeURIComponent(id)}`,
+    `https://assetdelivery.roblox.com/v2/asset/?id=${encodeURIComponent(id)}`,
+    `https://assetdelivery.roblox.com/v1/assetId/${encodeURIComponent(id)}`,
+    `https://assetdelivery.roblox.com/v1/asset/?id=${encodeURIComponent(id)}`,
+  ];
+
+  const errors = [];
+  for (const endpoint of endpoints) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const delivered = await unwrapDelivery(await fetchRaw(endpoint));
+        if (totalBytes + delivered.buffer.length > MAX_TOTAL_BYTES) throw new Error("total pack size limit reached");
+        totalBytes += delivered.buffer.length;
+        const ext = extFor(delivered.buffer, delivered.contentType);
+        const sha256 = crypto.createHash("sha256").update(delivered.buffer).digest("hex");
+        const file = `assets/${id}_${sha256.slice(0, 12)}${ext}`;
+        await fs.writeFile(path.join(outDir, file), delivered.buffer);
+        discoverDependencies(delivered.buffer, delivered.contentType, id);
+        return {
+          id,
+          ok: true,
+          file,
+          bytes: delivered.buffer.length,
+          sha256,
+          contentType: delivered.contentType,
+          endpoint,
+          finalUrl: delivered.finalUrl,
+          reasons: [...(reasons.get(id) || [])].sort(),
+        };
+      } catch (error) {
+        errors.push(`${endpoint.replace("https://assetdelivery.roblox.com", "")}: ${String(error?.message || error)}`);
+        if (attempt < 2) await new Promise(r => setTimeout(r, 450));
+      }
+    }
+  }
+
+  return {
+    id,
+    ok: false,
+    error: errors.slice(-6).join(" | ") || "unknown",
+    reasons: [...(reasons.get(id) || [])].sort(),
+  };
 }
 
 let cursor = 0;
@@ -162,10 +218,10 @@ async function worker() {
 }
 
 await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
-
 records.sort((a, b) => Number(a.id) - Number(b.id));
+
 const manifest = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
   userId: String(raw.userId),
   username: raw.username,
