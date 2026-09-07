@@ -1,9 +1,11 @@
 --==============================================================--
--- CAFEINA • STEAL AN EGG • CLIENT MENU V4
+-- CAFEINA • STEAL AN EGG • CLIENT MENU V4.1
 -- Executor/mobile • CLIENT-SIDE ONLY
 --
 -- Funcoes:
---   • ao detectar que voce pegou um ovo -> TP imediato para Safe Zone
+--   • botao AUTO TP OVO: ON/OFF
+--   • com AUTO TP ligado: detectou ovo carregado -> Safe Zone
+--   • botao IR PARA SAFE AGORA
 --   • God Mode local
 --   • lista de jogadores online
 --   • TP ate jogador selecionado
@@ -24,18 +26,33 @@ local RunService = game:GetService("RunService")
 local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
 
--- Centro aproximado da Safe Zone ja mapeada.
 local SAFE_CFRAME = CFrame.new(529, 75, -360)
+
+-- Limpa somente esta versao quando recarregada.
+pcall(function()
+    local old = rawget(ENV, "__CAFEINA_EGG_PLAYER_STATE")
+    if type(old) == "table" and type(old.Cleanup) == "function" then
+        old.Cleanup()
+    end
+end)
+
+pcall(function()
+    local oldGui = rawget(ENV, "__CAFEINA_EGG_PLAYER_MENU_V4")
+    if oldGui and typeof(oldGui) == "Instance" then
+        oldGui:Destroy()
+    end
+end)
 
 local S = {
     selected = nil,
     god = false,
+    autoEggSafe = true,
     lastEggTp = 0,
-    status = "AUTO SAFE ativo • aguardando ovo",
-    eggConnections = {},
+    status = "AUTO TP OVO ON • aguardando ovo",
+    connections = {},
     charConnections = {},
-    godConn = nil,
     originalBreakJoints = nil,
+    gui = nil,
 }
 
 local MONEY_NAMES = {
@@ -59,6 +76,17 @@ local EGG_ATTRS = {
     EggName = true,
 }
 
+local function addConnection(conn, charScoped)
+    if conn then
+        if charScoped then
+            S.charConnections[#S.charConnections + 1] = conn
+        else
+            S.connections[#S.connections + 1] = conn
+        end
+    end
+    return conn
+end
+
 local function setStatus(text)
     S.status = tostring(text or "")
 end
@@ -67,9 +95,7 @@ local function getCharacter(plr)
     plr = plr or LP
     local char = plr.Character
     if not char then return nil, nil, nil end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    return char, hrp, hum
+    return char, char:FindFirstChild("HumanoidRootPart"), char:FindFirstChildOfClass("Humanoid")
 end
 
 local function teleportSelf(cf)
@@ -112,6 +138,10 @@ local function looksLikeEgg(obj)
 end
 
 local function autoSafe(reason)
+    if not S.autoEggSafe then
+        return
+    end
+
     local now = os.clock()
     if now - S.lastEggTp < 0.75 then
         return
@@ -119,6 +149,8 @@ local function autoSafe(reason)
     S.lastEggTp = now
 
     task.defer(function()
+        if not S.autoEggSafe then return end
+
         local ok, err = teleportSelf(SAFE_CFRAME)
         if ok then
             setStatus("OVO DETECTADO > SAFE ZONE ✓ • " .. tostring(reason or "carry"))
@@ -129,8 +161,7 @@ local function autoSafe(reason)
 end
 
 --==============================================================--
--- AUTO SAFE: observa o evento recebido pelo cliente.
--- Nao chama o RemoteEvent.
+-- DETECCAO PASSIVA DO OVO
 --==============================================================--
 
 local connectedRemotes = setmetatable({}, {__mode = "k"})
@@ -141,46 +172,49 @@ local function connectEggRemote(obj)
     if obj.Name ~= "FieldEggCarry" then return end
 
     connectedRemotes[obj] = true
-    local conn = obj.OnClientEvent:Connect(function(...)
+    addConnection(obj.OnClientEvent:Connect(function()
         autoSafe("FieldEggCarry")
-    end)
-    S.eggConnections[#S.eggConnections + 1] = conn
+    end))
 end
 
 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
     connectEggRemote(obj)
 end
 
-S.eggConnections[#S.eggConnections + 1] = ReplicatedStorage.DescendantAdded:Connect(function(obj)
+addConnection(ReplicatedStorage.DescendantAdded:Connect(function(obj)
     connectEggRemote(obj)
-end)
+end))
 
-local function bindLocalContainers()
+local function clearCharacterConnections()
     for _, conn in ipairs(S.charConnections) do
         pcall(function() conn:Disconnect() end)
     end
     table.clear(S.charConnections)
+end
+
+local function bindLocalContainers()
+    clearCharacterConnections()
 
     local char = LP.Character
     local backpack = LP:FindFirstChildOfClass("Backpack")
 
     local function watch(container, label)
         if not container then return end
-        S.charConnections[#S.charConnections + 1] = container.ChildAdded:Connect(function(obj)
+        addConnection(container.ChildAdded:Connect(function(obj)
             if looksLikeEgg(obj) then
                 autoSafe(label .. ":" .. tostring(obj.Name))
             end
-        end)
+        end), true)
     end
 
     watch(char, "Character")
     watch(backpack, "Backpack")
 end
 
-LP.CharacterAdded:Connect(function()
+addConnection(LP.CharacterAdded:Connect(function()
     task.wait(0.25)
     bindLocalContainers()
-end)
+end))
 
 task.defer(bindLocalContainers)
 
@@ -228,10 +262,10 @@ local function setGod(enabled)
     setStatus(S.god and "GOD LOCAL ON" or "GOD LOCAL OFF")
 end
 
-S.godConn = RunService.Heartbeat:Connect(applyGodFrame)
+addConnection(RunService.Heartbeat:Connect(applyGodFrame))
 
 --==============================================================--
--- PLAYER ACTIONS • TODAS LOCAIS
+-- ACOES DE JOGADOR • TODAS LOCAIS
 --==============================================================--
 
 local function tpToPlayer(plr)
@@ -311,8 +345,7 @@ local function addMoneyLocal(plr, amount)
         return false, "valor invalido"
     end
 
-    if amount > 1000000000 then amount = 1000000000 end
-    if amount < -1000000000 then amount = -1000000000 end
+    amount = math.clamp(amount, -1000000000, 1000000000)
 
     local target, path = findMoneyValue(plr)
     if not target then
@@ -348,18 +381,9 @@ end
 -- GUI MOBILE
 --==============================================================--
 
-pcall(function()
-    local old = rawget(ENV, "__CAFEINA_EGG_PLAYER_MENU_V4")
-    if old and typeof(old) == "Instance" then
-        old:Destroy()
-    end
-end)
-
 local parent
 pcall(function()
-    if gethui then
-        parent = gethui()
-    end
+    if gethui then parent = gethui() end
 end)
 
 if not parent then
@@ -372,15 +396,16 @@ if not parent then
 end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "CafeinaEggPlayerMenuV4"
+gui.Name = "CafeinaEggPlayerMenuV41"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = parent
+S.gui = gui
 ENV.__CAFEINA_EGG_PLAYER_MENU_V4 = gui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(315, 505)
-frame.Position = UDim2.new(0, 10, 0.5, -250)
+frame.Size = UDim2.fromOffset(315, 545)
+frame.Position = UDim2.new(0, 10, 0.5, -270)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -391,7 +416,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -78, 0, 30)
 title.Position = UDim2.fromOffset(10, 6)
 title.BackgroundTransparency = 1
-title.Text = "CAFEINA • EGG PLAYER V4"
+title.Text = "CAFEINA • EGG PLAYER V4.1"
 title.TextColor3 = Color3.fromRGB(245, 245, 248)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 12
@@ -445,9 +470,16 @@ local godButton = makeButton("GOD LOCAL: OFF", 0.5, 84, 0.5, Color3.fromRGB(92, 
 godButton.Position = UDim2.new(0.5, 5, 0, 84)
 godButton.Size = UDim2.new(0.5, -15, 0, 34)
 
+local autoSafeButton = makeButton("AUTO TP OVO: ON", 0, 126, 0.5, Color3.fromRGB(110, 30, 34))
+autoSafeButton.Size = UDim2.new(0.5, -15, 0, 34)
+
+local safeButton = makeButton("IR SAFE AGORA", 0.5, 126, 0.5, Color3.fromRGB(70, 45, 48))
+safeButton.Position = UDim2.new(0.5, 5, 0, 126)
+safeButton.Size = UDim2.new(0.5, -15, 0, 34)
+
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -20, 0, 205)
-list.Position = UDim2.fromOffset(10, 126)
+list.Position = UDim2.fromOffset(10, 168)
 list.BackgroundColor3 = Color3.fromRGB(23, 23, 27)
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 3
@@ -469,7 +501,7 @@ listPadding.Parent = list
 
 local amountBox = Instance.new("TextBox")
 amountBox.Size = UDim2.new(1, -20, 0, 34)
-amountBox.Position = UDim2.fromOffset(10, 339)
+amountBox.Position = UDim2.fromOffset(10, 381)
 amountBox.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
 amountBox.BorderSizePixel = 0
 amountBox.ClearTextOnFocus = false
@@ -482,22 +514,19 @@ amountBox.TextSize = 11
 amountBox.Parent = frame
 Instance.new("UICorner", amountBox).CornerRadius = UDim.new(0, 8)
 
-local tpButton = makeButton("TP NO SELECIONADO", 0, 381, 0.5)
+local tpButton = makeButton("TP NO SELECIONADO", 0, 423, 0.5)
 tpButton.Size = UDim2.new(0.5, -15, 0, 34)
 
-local killButton = makeButton("KILL LOCAL", 0.5, 381, 0.5, Color3.fromRGB(115, 28, 32))
-killButton.Position = UDim2.new(0.5, 5, 0, 381)
+local killButton = makeButton("KILL LOCAL", 0.5, 423, 0.5, Color3.fromRGB(115, 28, 32))
+killButton.Position = UDim2.new(0.5, 5, 0, 423)
 killButton.Size = UDim2.new(0.5, -15, 0, 34)
 
-local giveButton = makeButton("$ LOCAL > SELECIONADO", 0, 423, 0.5)
+local giveButton = makeButton("$ LOCAL > SELECIONADO", 0, 465, 0.5)
 giveButton.Size = UDim2.new(0.5, -15, 0, 34)
 
-local selfMoneyButton = makeButton("$ LOCAL > EU", 0.5, 423, 0.5)
-selfMoneyButton.Position = UDim2.new(0.5, 5, 0, 423)
+local selfMoneyButton = makeButton("$ LOCAL > EU", 0.5, 465, 0.5)
+selfMoneyButton.Position = UDim2.new(0.5, 5, 0, 465)
 selfMoneyButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local safeButton = makeButton("IR PARA SAFE AGORA", 0, 465, 1, Color3.fromRGB(95, 30, 34))
-safeButton.Size = UDim2.new(1, -20, 0, 30)
 
 local mini = Instance.new("TextButton")
 mini.Size = UDim2.fromOffset(96, 40)
@@ -527,6 +556,7 @@ local function rebuildPlayers()
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP then
             count = count + 1
+
             local row = Instance.new("TextButton")
             row.Size = UDim2.new(1, 0, 0, 38)
             row.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
@@ -564,6 +594,24 @@ refreshButton.MouseButton1Click:Connect(rebuildPlayers)
 
 godButton.MouseButton1Click:Connect(function()
     setGod(not S.god)
+end)
+
+autoSafeButton.MouseButton1Click:Connect(function()
+    S.autoEggSafe = not S.autoEggSafe
+    if S.autoEggSafe then
+        setStatus("AUTO TP OVO ON • ao pegar ovo vai para Safe Zone")
+    else
+        setStatus("AUTO TP OVO OFF")
+    end
+end)
+
+safeButton.MouseButton1Click:Connect(function()
+    local ok, err = teleportSelf(SAFE_CFRAME)
+    if ok then
+        setStatus("SAFE ZONE ✓")
+    else
+        setStatus("Safe falhou: " .. tostring(err))
+    end
 end)
 
 tpButton.MouseButton1Click:Connect(function()
@@ -607,15 +655,6 @@ selfMoneyButton.MouseButton1Click:Connect(function()
     end
 end)
 
-safeButton.MouseButton1Click:Connect(function()
-    local ok, err = teleportSelf(SAFE_CFRAME)
-    if ok then
-        setStatus("SAFE ZONE ✓")
-    else
-        setStatus("Safe falhou: " .. tostring(err))
-    end
-end)
-
 minButton.MouseButton1Click:Connect(function()
     mini.Position = frame.Position
     frame.Visible = false
@@ -648,7 +687,7 @@ title.InputEnded:Connect(function(input)
     end
 end)
 
-UIS.InputChanged:Connect(function(input)
+addConnection(UIS.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
         or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
@@ -659,27 +698,43 @@ UIS.InputChanged:Connect(function(input)
             startPos.Y.Offset + delta.Y
         )
     end
-end)
+end))
 
-Players.PlayerRemoving:Connect(function(plr)
+addConnection(Players.PlayerRemoving:Connect(function(plr)
     if S.selected == plr then
         S.selected = nil
         setStatus("Jogador selecionado saiu do servidor")
     end
     task.defer(rebuildPlayers)
-end)
+end))
 
-Players.PlayerAdded:Connect(function()
+addConnection(Players.PlayerAdded:Connect(function()
     task.defer(rebuildPlayers)
-end)
+end))
 
-task.spawn(function()
-    while gui.Parent do
+addConnection(RunService.Heartbeat:Connect(function()
+    if gui.Parent then
         status.Text = S.status
         godButton.Text = S.god and "GOD LOCAL: ON" or "GOD LOCAL: OFF"
-        task.wait(0.08)
+        autoSafeButton.Text = S.autoEggSafe and "AUTO TP OVO: ON" or "AUTO TP OVO: OFF"
     end
-end)
+end))
+
+local function cleanup()
+    clearCharacterConnections()
+
+    for _, conn in ipairs(S.connections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    table.clear(S.connections)
+
+    pcall(function()
+        if S.gui then S.gui:Destroy() end
+    end)
+end
+
+S.Cleanup = cleanup
+ENV.__CAFEINA_EGG_PLAYER_STATE = S
 
 task.defer(rebuildPlayers)
-print("[CAFEINA EGG] CLIENT MENU V4 carregado ✓ • AUTO SAFE ON")
+print("[CAFEINA EGG] CLIENT MENU V4.1 carregado ✓ • AUTO TP OVO ON")
