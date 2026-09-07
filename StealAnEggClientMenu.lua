@@ -1,20 +1,7 @@
 --==============================================================--
--- CAFEINA • STEAL AN EGG • CLIENT MENU V4.1
--- Executor/mobile • CLIENT-SIDE ONLY
---
--- Funcoes:
---   • botao AUTO TP OVO: ON/OFF
---   • com AUTO TP ligado: detectou ovo carregado -> Safe Zone
---   • botao IR PARA SAFE AGORA
---   • God Mode local
---   • lista de jogadores online
---   • TP ate jogador selecionado
---   • Kill LOCAL do jogador selecionado
---   • adicionar dinheiro LOCAL ao jogador selecionado
---   • adicionar dinheiro LOCAL a voce
---
--- Nao usa FireServer / InvokeServer.
--- Kill, dinheiro e God sao apenas client-side e nao persistem no servidor.
+-- CAFEINA • STEAL AN EGG • CLIENT MENU V5
+-- Mobile/executor • local-only
+-- Auto Safe + God + Isolamento + Players + Dinheiro visual
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -25,398 +12,368 @@ local RunService = game:GetService("RunService")
 
 local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
+local SAFE_CF = CFrame.new(529.4, 75.1, -360.4)
 
-local SAFE_CFRAME = CFrame.new(529, 75, -360)
-
--- Limpa somente esta versao quando recarregada.
+-- Limpeza da versao anterior
+pcall(function()
+    local old = rawget(ENV, "__CAFEINA_EGG_V5")
+    if type(old) == "table" and type(old.Cleanup) == "function" then old.Cleanup() end
+end)
 pcall(function()
     local old = rawget(ENV, "__CAFEINA_EGG_PLAYER_STATE")
-    if type(old) == "table" and type(old.Cleanup) == "function" then
-        old.Cleanup()
-    end
+    if type(old) == "table" and type(old.Cleanup) == "function" then old.Cleanup() end
 end)
-
 pcall(function()
-    local oldGui = rawget(ENV, "__CAFEINA_EGG_PLAYER_MENU_V4")
-    if oldGui and typeof(oldGui) == "Instance" then
-        oldGui:Destroy()
-    end
+    local old = rawget(ENV, "__CAFEINA_EGG_PLAYER_MENU_V4")
+    if typeof(old) == "Instance" then old:Destroy() end
 end)
 
 local S = {
-    selected = nil,
+    autoSafe = true,
     god = false,
-    autoEggSafe = true,
+    isolate = false,
+    selected = nil,
     lastEggTp = 0,
-    status = "AUTO TP OVO ON • aguardando ovo",
-    connections = {},
-    charConnections = {},
-    originalBreakJoints = nil,
-    gui = nil,
+    status = "Pronto",
+    conns = {},
+    isolateConns = {},
+    savedParts = setmetatable({}, {__mode = "k"}),
+    observedMoney = {},
+    visualOffset = {},
+    moneyTags = {},
+    rows = {},
 }
 
-local MONEY_NAMES = {
-    money = true,
-    cash = true,
-    coin = true,
-    coins = true,
-    dinheiro = true,
-    bucks = true,
-    credits = true,
-    credit = true,
-    currency = true,
-}
-
-local EGG_ATTRS = {
-    EggId = true,
-    EggID = true,
-    FieldEggId = true,
-    FieldEggID = true,
-    EggType = true,
-    EggName = true,
-}
-
-local function addConnection(conn, charScoped)
-    if conn then
-        if charScoped then
-            S.charConnections[#S.charConnections + 1] = conn
-        else
-            S.connections[#S.connections + 1] = conn
-        end
-    end
-    return conn
+local function connect(signal, fn, bucket)
+    local c = signal:Connect(fn)
+    table.insert(bucket or S.conns, c)
+    return c
 end
 
-local function setStatus(text)
-    S.status = tostring(text or "")
-end
+local function status(t) S.status = tostring(t or "") end
 
-local function getCharacter(plr)
+local function character(plr)
     plr = plr or LP
-    local char = plr.Character
-    if not char then return nil, nil, nil end
-    return char, char:FindFirstChild("HumanoidRootPart"), char:FindFirstChildOfClass("Humanoid")
+    local c = plr.Character
+    if not c then return nil, nil, nil end
+    return c, c:FindFirstChild("HumanoidRootPart"), c:FindFirstChildOfClass("Humanoid")
 end
 
-local function teleportSelf(cf)
-    local char, hrp = getCharacter(LP)
-    if not char or not hrp then
-        return false, "personagem local indisponivel"
-    end
-
-    local ok, err = pcall(function()
-        char:PivotTo(cf)
-    end)
-
-    if not ok then
-        ok, err = pcall(function()
-            hrp.CFrame = cf
-        end)
-    end
-
+local function tp(cf)
+    local c, root = character(LP)
+    if not c or not root then return false, "personagem indisponivel" end
+    local ok, err = pcall(function() c:PivotTo(cf) end)
+    if not ok then ok, err = pcall(function() root.CFrame = cf end) end
     return ok, err
 end
 
-local function looksLikeEgg(obj)
+local function fmt(n)
+    n = tonumber(n) or 0
+    local a = math.abs(n)
+    local sign = n < 0 and "-" or ""
+    if a >= 1e12 then return sign .. string.format("%.2fT", a / 1e12) end
+    if a >= 1e9 then return sign .. string.format("%.2fB", a / 1e9) end
+    if a >= 1e6 then return sign .. string.format("%.2fM", a / 1e6) end
+    if a >= 1e3 then return sign .. string.format("%.2fK", a / 1e3) end
+    return sign .. tostring(math.floor(a + 0.5))
+end
+
+local function net(name)
+    local packages = ReplicatedStorage:FindFirstChild("Packages")
+    local networking = packages and packages:FindFirstChild("Networking")
+    return networking and networking:FindFirstChild(name)
+end
+
+--============================ OVO / SAFE ============================--
+local EGG_ATTR = {EggId=true, EggID=true, FieldEggId=true, FieldEggID=true, EggType=true, EggName=true}
+
+local function looksEgg(obj)
     if not obj then return false end
-
-    local lower = string.lower(tostring(obj.Name or ""))
-    if string.find(lower, "egg", 1, true) or string.find(lower, "ovo", 1, true) then
-        return true
+    local n = string.lower(obj.Name)
+    if n:find("egg", 1, true) or n:find("ovo", 1, true) then return true end
+    for k in pairs(EGG_ATTR) do
+        local ok, v = pcall(function() return obj:GetAttribute(k) end)
+        if ok and v ~= nil then return true end
     end
-
-    for attr in pairs(EGG_ATTRS) do
-        local ok, value = pcall(function()
-            return obj:GetAttribute(attr)
-        end)
-        if ok and value ~= nil then
-            return true
-        end
-    end
-
     return false
 end
 
-local function autoSafe(reason)
-    if not S.autoEggSafe then
-        return
-    end
-
+local function goSafe(reason)
+    if not S.autoSafe then return end
     local now = os.clock()
-    if now - S.lastEggTp < 0.75 then
-        return
-    end
+    if now - S.lastEggTp < 0.8 then return end
     S.lastEggTp = now
-
     task.defer(function()
-        if not S.autoEggSafe then return end
+        task.wait(0.02)
+        local ok, err = tp(SAFE_CF)
+        status(ok and ("OVO > SAFE ✓ • " .. tostring(reason or "carry")) or ("TP Safe falhou: " .. tostring(err)))
+    end)
+end
 
-        local ok, err = teleportSelf(SAFE_CFRAME)
-        if ok then
-            setStatus("OVO DETECTADO > SAFE ZONE ✓ • " .. tostring(reason or "carry"))
-        else
-            setStatus("Ovo detectado, TP falhou: " .. tostring(err))
+local function carryIsActive(...)
+    local n = select("#", ...)
+    for i = 1, n do
+        local v = select(i, ...)
+        if type(v) == "table" then
+            if v.CarrierUserId and tonumber(v.CarrierUserId) ~= LP.UserId then return false end
+            if v.IsCarrying == true then return true end
+            if v.IsCarrying == false then return false end
+        end
+    end
+    return false
+end
+
+local function hookCarryRemote(obj)
+    if not obj:IsA("RemoteEvent") or obj.Name ~= "RE/EggWorld/FieldEggCarry" then return end
+    connect(obj.OnClientEvent, function(...)
+        if carryIsActive(...) then goSafe("FieldEggCarry") end
+    end)
+end
+
+for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do hookCarryRemote(obj) end
+connect(ReplicatedStorage.DescendantAdded, hookCarryRemote)
+
+local function watchLocalContainer(container, label)
+    if not container then return end
+    connect(container.ChildAdded, function(obj)
+        if looksEgg(obj) then goSafe(label .. ":" .. obj.Name) end
+    end)
+end
+
+local function bindLocalEggWatch()
+    watchLocalContainer(LP.Character, "Character")
+    watchLocalContainer(LP:FindFirstChildOfClass("Backpack"), "Backpack")
+end
+connect(LP.CharacterAdded, function() task.wait(0.2); bindLocalEggWatch() end)
+task.defer(bindLocalEggWatch)
+
+--========================== DINHEIRO VISUAL ==========================--
+local function deepMoney(t, depth)
+    if type(t) ~= "table" or depth > 3 then return nil end
+    if type(t.Money) == "number" then return t.Money end
+    for _, v in pairs(t) do
+        if type(v) == "table" then
+            local m = deepMoney(v, depth + 1)
+            if m ~= nil then return m end
+        end
+    end
+end
+
+local function effectiveMoney(plr)
+    if not plr then return 0 end
+    local id = plr.UserId
+    return (S.observedMoney[id] or 0) + (S.visualOffset[id] or 0)
+end
+
+local function moneyPopup(amount, plr)
+    local asset = ReplicatedStorage:FindFirstChild("Assets")
+    asset = asset and asset:FindFirstChild("MoneyChange")
+    if not asset or not asset:IsA("GuiObject") then return end
+
+    local host = Instance.new("ScreenGui")
+    host.Name = "CafeinaMoneyPopup"
+    host.ResetOnSpawn = false
+    local parent = LP:FindFirstChildOfClass("PlayerGui") or LP:WaitForChild("PlayerGui")
+    host.Parent = parent
+
+    local ui = asset:Clone()
+    ui.AnchorPoint = Vector2.new(0.5, 0.5)
+    ui.Position = UDim2.fromScale(0.5, 0.78)
+    ui.Size = UDim2.fromScale(0.72, 0.10)
+    ui.Parent = host
+
+    local label = ui:FindFirstChild("Label")
+    if label and label:IsA("TextLabel") then
+        local prefix = amount >= 0 and "+$" or "-$"
+        label.Text = prefix .. fmt(math.abs(amount)) .. (plr and plr ~= LP and ("  @" .. plr.Name) or "")
+        local more, less = label:FindFirstChild("More"), label:FindFirstChild("Less")
+        pcall(function() if more then more.Enabled = amount >= 0 end end)
+        pcall(function() if less then less.Enabled = amount < 0 end end)
+    end
+
+    task.delay(1.35, function() pcall(function() host:Destroy() end) end)
+end
+
+local function updateMoneyTag(plr)
+    if not plr then return end
+    local old = S.moneyTags[plr.UserId]
+    if old then pcall(function() old:Destroy() end) end
+
+    local assets = ReplicatedStorage:FindFirstChild("Assets")
+    local extra = assets and assets:FindFirstChild("Extra")
+    local cash = extra and extra:FindFirstChild("Cash")
+    local _, root = character(plr)
+    if not cash or not cash:IsA("BillboardGui") or not root then return end
+
+    local tag = cash:Clone()
+    tag.Name = "CafeinaLocalCash"
+    tag.AlwaysOnTop = true
+    tag.StudsOffset = Vector3.new(0, 3.8, 0)
+    local label = tag:FindFirstChild("Money")
+    if label and label:IsA("TextLabel") then label.Text = "$" .. fmt(effectiveMoney(plr)) end
+    tag.Parent = root
+    S.moneyTags[plr.UserId] = tag
+end
+
+local function updateRow(plr)
+    local row = plr and S.rows[plr.UserId]
+    if not row then return end
+    local suffix = (S.observedMoney[plr.UserId] ~= nil or S.visualOffset[plr.UserId] ~= nil)
+        and ("  • V$" .. fmt(effectiveMoney(plr))) or ""
+    row.Text = plr.DisplayName .. "  (@" .. plr.Name .. ")" .. suffix
+end
+
+local profileDelta = net("RE/ProfileMirror/ProfileDelta")
+if profileDelta and profileDelta:IsA("RemoteEvent") then
+    connect(profileDelta.OnClientEvent, function(...)
+        local target, money
+        for i = 1, select("#", ...) do
+            local v = select(i, ...)
+            if typeof(v) == "Instance" and v:IsA("Player") then target = v end
+            if money == nil and type(v) == "table" then money = deepMoney(v, 0) end
+        end
+        if money ~= nil then
+            target = target or LP
+            S.observedMoney[target.UserId] = money
+            updateRow(target)
         end
     end)
 end
 
---==============================================================--
--- DETECCAO PASSIVA DO OVO
---==============================================================--
-
-local connectedRemotes = setmetatable({}, {__mode = "k"})
-
-local function connectEggRemote(obj)
-    if not obj or connectedRemotes[obj] then return end
-    if not obj:IsA("RemoteEvent") then return end
-    if obj.Name ~= "FieldEggCarry" then return end
-
-    connectedRemotes[obj] = true
-    addConnection(obj.OnClientEvent:Connect(function()
-        autoSafe("FieldEggCarry")
-    end))
+local function addVisualMoney(plr, amount)
+    if not plr then return false, "selecione um jogador" end
+    amount = tonumber(amount)
+    if not amount then return false, "valor invalido" end
+    amount = math.clamp(amount, -1e12, 1e12)
+    S.visualOffset[plr.UserId] = (S.visualOffset[plr.UserId] or 0) + amount
+    moneyPopup(amount, plr)
+    updateMoneyTag(plr)
+    updateRow(plr)
+    return true, "$" .. fmt(effectiveMoney(plr)) .. " visual"
 end
 
-for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-    connectEggRemote(obj)
-end
-
-addConnection(ReplicatedStorage.DescendantAdded:Connect(function(obj)
-    connectEggRemote(obj)
-end))
-
-local function clearCharacterConnections()
-    for _, conn in ipairs(S.charConnections) do
-        pcall(function() conn:Disconnect() end)
+--========================= GOD / ISOLAMENTO =========================--
+local function saveAndBlock(part)
+    if not part:IsA("BasePart") then return end
+    if not S.savedParts[part] then
+        S.savedParts[part] = {part.CanCollide, part.CanTouch, part.CanQuery}
     end
-    table.clear(S.charConnections)
-end
-
-local function bindLocalContainers()
-    clearCharacterConnections()
-
-    local char = LP.Character
-    local backpack = LP:FindFirstChildOfClass("Backpack")
-
-    local function watch(container, label)
-        if not container then return end
-        addConnection(container.ChildAdded:Connect(function(obj)
-            if looksLikeEgg(obj) then
-                autoSafe(label .. ":" .. tostring(obj.Name))
-            end
-        end), true)
-    end
-
-    watch(char, "Character")
-    watch(backpack, "Backpack")
-end
-
-addConnection(LP.CharacterAdded:Connect(function()
-    task.wait(0.25)
-    bindLocalContainers()
-end))
-
-task.defer(bindLocalContainers)
-
---==============================================================--
--- GOD MODE LOCAL
---==============================================================--
-
-local function applyGodFrame()
-    if not S.god then return end
-
-    local _, _, hum = getCharacter(LP)
-    if not hum then return end
-
     pcall(function()
-        hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+        part.CanCollide = false
+        part.CanTouch = false
+        part.CanQuery = false
     end)
+end
 
-    if hum.MaxHealth > 0 and hum.Health < hum.MaxHealth then
+local function isolateCharacter(char)
+    if not S.isolate or not char or char == LP.Character then return end
+    for _, d in ipairs(char:GetDescendants()) do saveAndBlock(d) end
+    local c = char.DescendantAdded:Connect(function(d)
+        if S.isolate then saveAndBlock(d) end
+    end)
+    table.insert(S.isolateConns, c)
+end
+
+local function restoreIsolation()
+    for _, c in ipairs(S.isolateConns) do pcall(function() c:Disconnect() end) end
+    table.clear(S.isolateConns)
+    for part, old in pairs(S.savedParts) do
+        if part and part.Parent then
+            pcall(function()
+                part.CanCollide, part.CanTouch, part.CanQuery = old[1], old[2], old[3]
+            end)
+        end
+    end
+    table.clear(S.savedParts)
+end
+
+local function setIsolation(on)
+    S.isolate = on == true
+    restoreIsolation()
+    if S.isolate then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LP then isolateCharacter(plr.Character) end
+        end
+    end
+    status(S.isolate and "ISOLAMENTO LOCAL ON" or "ISOLAMENTO LOCAL OFF")
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= LP then
+        connect(plr.CharacterAdded, function(char) task.wait(0.1); isolateCharacter(char) end)
+    end
+end
+connect(RunService.Heartbeat, function()
+    local _, root, hum = character(LP)
+    if hum and (S.god or S.isolate) then
         pcall(function()
-            hum.Health = hum.MaxHealth
+            hum.BreakJointsOnDeath = false
+            hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+            if hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
         end)
     end
-end
-
-local function setGod(enabled)
-    S.god = enabled == true
-
-    local _, _, hum = getCharacter(LP)
-    if hum then
-        if S.god then
-            if S.originalBreakJoints == nil then
-                S.originalBreakJoints = hum.BreakJointsOnDeath
-            end
-            pcall(function() hum.BreakJointsOnDeath = false end)
-            pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false) end)
-            pcall(function() hum.Health = hum.MaxHealth end)
-        else
-            pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead, true) end)
-            if S.originalBreakJoints ~= nil then
-                pcall(function() hum.BreakJointsOnDeath = S.originalBreakJoints end)
-            end
+    if S.isolate and root then
+        local v = root.AssemblyLinearVelocity
+        local h = Vector3.new(v.X, 0, v.Z)
+        if h.Magnitude > 130 then
+            pcall(function() root.AssemblyLinearVelocity = Vector3.new(0, math.clamp(v.Y, -80, 80), 0) end)
+        end
+        if root.AssemblyAngularVelocity.Magnitude > 40 then
+            pcall(function() root.AssemblyAngularVelocity = Vector3.zero end)
         end
     end
+end)
 
-    setStatus(S.god and "GOD LOCAL ON" or "GOD LOCAL OFF")
+--=========================== PLAYER ACTIONS ==========================--
+local function tpPlayer(plr)
+    if not plr or plr == LP then return false, "selecione outro jogador" end
+    local _, root = character(plr)
+    if not root then return false, "alvo sem root" end
+    return tp(root.CFrame * CFrame.new(0, 0, 3))
 end
 
-addConnection(RunService.Heartbeat:Connect(applyGodFrame))
-
---==============================================================--
--- ACOES DE JOGADOR • TODAS LOCAIS
---==============================================================--
-
-local function tpToPlayer(plr)
-    if not plr or plr == LP then
-        return false, "selecione outro jogador"
-    end
-
-    local _, targetRoot = getCharacter(plr)
-    if not targetRoot then
-        return false, "alvo sem HumanoidRootPart"
-    end
-
-    return teleportSelf(targetRoot.CFrame * CFrame.new(0, 0, 3))
-end
-
-local function killPlayerLocal(plr)
-    if not plr or plr == LP then
-        return false, "selecione outro jogador"
-    end
-
-    local _, _, hum = getCharacter(plr)
-    if not hum then
-        return false, "Humanoid do alvo nao encontrado"
-    end
-
-    local ok, err = pcall(function()
+local function killLocal(plr)
+    if not plr or plr == LP then return false, "selecione outro jogador" end
+    local _, _, hum = character(plr)
+    if not hum then return false, "alvo sem Humanoid" end
+    return pcall(function()
         hum.Health = 0
         hum:ChangeState(Enum.HumanoidStateType.Dead)
     end)
-
-    return ok, err
 end
 
-local function normalizeMoneyName(name)
-    return string.lower(tostring(name or "")):gsub("[^%w]", "")
-end
-
-local function findMoneyValue(plr)
-    if not plr then return nil end
-
-    local leaderstats = plr:FindFirstChild("leaderstats")
-    if leaderstats then
-        for _, obj in ipairs(leaderstats:GetChildren()) do
-            if (obj:IsA("IntValue") or obj:IsA("NumberValue"))
-                and MONEY_NAMES[normalizeMoneyName(obj.Name)] then
-                return obj, "leaderstats." .. obj.Name
-            end
-        end
-    end
-
-    for _, obj in ipairs(plr:GetChildren()) do
-        if (obj:IsA("IntValue") or obj:IsA("NumberValue"))
-            and MONEY_NAMES[normalizeMoneyName(obj.Name)] then
-            return obj, obj.Name
-        end
-    end
-
-    for _, attrName in ipairs({"Money", "Cash", "Coins", "Dinheiro", "Credits", "Currency"}) do
-        local ok, value = pcall(function()
-            return plr:GetAttribute(attrName)
-        end)
-        if ok and type(value) == "number" then
-            return {
-                AttributeOwner = plr,
-                AttributeName = attrName,
-                AttributeValue = value,
-            }, "Attribute:" .. attrName
-        end
-    end
-
-    return nil
-end
-
-local function addMoneyLocal(plr, amount)
-    amount = tonumber(amount)
-    if not amount then
-        return false, "valor invalido"
-    end
-
-    amount = math.clamp(amount, -1000000000, 1000000000)
-
-    local target, path = findMoneyValue(plr)
-    if not target then
-        return false, "nenhum valor de dinheiro visivel no cliente"
-    end
-
-    if typeof(target) == "Instance" then
-        local old = target.Value
-        local ok, err = pcall(function()
-            target.Value = old + amount
-        end)
-        if ok then
-            return true, tostring(path) .. " • " .. tostring(old) .. " > " .. tostring(target.Value)
-        end
-        return false, err
-    end
-
-    if type(target) == "table" and target.AttributeOwner then
-        local old = target.AttributeValue
-        local ok, err = pcall(function()
-            target.AttributeOwner:SetAttribute(target.AttributeName, old + amount)
-        end)
-        if ok then
-            return true, tostring(path) .. " • " .. tostring(old) .. " > " .. tostring(old + amount)
-        end
-        return false, err
-    end
-
-    return false, "tipo de dinheiro nao suportado"
-end
-
---==============================================================--
--- GUI MOBILE
---==============================================================--
-
-local parent
+--================================ GUI ================================--
 pcall(function()
-    if gethui then parent = gethui() end
+    local old = rawget(ENV, "__CAFEINA_EGG_V5_GUI")
+    if typeof(old) == "Instance" then old:Destroy() end
 end)
 
-if not parent then
-    local ok, cg = pcall(function() return CoreGui end)
-    if ok then parent = cg end
-end
-
-if not parent then
-    parent = LP:WaitForChild("PlayerGui")
-end
+local parent
+pcall(function() if gethui then parent = gethui() end end)
+if not parent then pcall(function() parent = CoreGui end) end
+if not parent then parent = LP:WaitForChild("PlayerGui") end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "CafeinaEggPlayerMenuV41"
+gui.Name = "CafeinaEggV5"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = parent
-S.gui = gui
-ENV.__CAFEINA_EGG_PLAYER_MENU_V4 = gui
+ENV.__CAFEINA_EGG_V5_GUI = gui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(315, 545)
-frame.Position = UDim2.new(0, 10, 0.5, -270)
+frame.Size = UDim2.fromOffset(308, 438)
+frame.Position = UDim2.new(0, 10, 0.5, -219)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Parent = gui
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 11)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -78, 0, 30)
-title.Position = UDim2.fromOffset(10, 6)
+title.Size = UDim2.new(1, -78, 0, 28)
+title.Position = UDim2.fromOffset(9, 5)
 title.BackgroundTransparency = 1
-title.Text = "CAFEINA • EGG PLAYER V4.1"
+title.Text = "CAFEINA • EGG V5"
 title.TextColor3 = Color3.fromRGB(245, 245, 248)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 12
@@ -424,317 +381,192 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.Active = true
 title.Parent = frame
 
-local minButton = Instance.new("TextButton")
-minButton.Size = UDim2.fromOffset(58, 26)
-minButton.Position = UDim2.new(1, -68, 0, 7)
-minButton.BackgroundColor3 = Color3.fromRGB(42, 42, 48)
-minButton.BorderSizePixel = 0
-minButton.Text = "MIN"
-minButton.TextColor3 = Color3.new(1, 1, 1)
-minButton.Font = Enum.Font.GothamBold
-minButton.TextSize = 10
-minButton.Parent = frame
-Instance.new("UICorner", minButton).CornerRadius = UDim.new(0, 7)
+local min = Instance.new("TextButton")
+min.Size = UDim2.fromOffset(54, 24)
+min.Position = UDim2.new(1, -63, 0, 6)
+min.BackgroundColor3 = Color3.fromRGB(42, 42, 48)
+min.BorderSizePixel = 0
+min.Text = "MIN"
+min.TextColor3 = Color3.new(1,1,1)
+min.Font = Enum.Font.GothamBold
+min.TextSize = 9
+min.Parent = frame
+Instance.new("UICorner", min).CornerRadius = UDim.new(0, 7)
 
-local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, -20, 0, 42)
-status.Position = UDim2.fromOffset(10, 38)
-status.BackgroundTransparency = 1
-status.TextWrapped = true
-status.TextColor3 = Color3.fromRGB(185, 185, 195)
-status.Font = Enum.Font.Gotham
-status.TextSize = 10
-status.TextXAlignment = Enum.TextXAlignment.Left
-status.TextYAlignment = Enum.TextYAlignment.Top
-status.Parent = frame
+local stat = Instance.new("TextLabel")
+stat.Size = UDim2.new(1, -18, 0, 34)
+stat.Position = UDim2.fromOffset(9, 34)
+stat.BackgroundTransparency = 1
+stat.TextWrapped = true
+stat.TextColor3 = Color3.fromRGB(180,180,190)
+stat.Font = Enum.Font.Gotham
+stat.TextSize = 9
+stat.TextXAlignment = Enum.TextXAlignment.Left
+stat.TextYAlignment = Enum.TextYAlignment.Top
+stat.Parent = frame
 
-local function makeButton(text, x, y, w, color)
+local function button(text, x, y, w, color)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(w or 1, -15, 0, 34)
-    b.Position = UDim2.new(x or 0, 10, 0, y)
-    b.BackgroundColor3 = color or Color3.fromRGB(43, 43, 50)
+    b.Size = UDim2.new(w, -12, 0, 30)
+    b.Position = UDim2.new(x, 8, 0, y)
+    b.BackgroundColor3 = color or Color3.fromRGB(43,43,50)
     b.BorderSizePixel = 0
     b.Text = text
-    b.TextColor3 = Color3.new(1, 1, 1)
+    b.TextColor3 = Color3.new(1,1,1)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 10
+    b.TextSize = 8
     b.Parent = frame
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
     return b
 end
 
-local refreshButton = makeButton("ATUALIZAR JOGADORES", 0, 84, 0.5)
-refreshButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local godButton = makeButton("GOD LOCAL: OFF", 0.5, 84, 0.5, Color3.fromRGB(92, 30, 34))
-godButton.Position = UDim2.new(0.5, 5, 0, 84)
-godButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local autoSafeButton = makeButton("AUTO TP OVO: ON", 0, 126, 0.5, Color3.fromRGB(110, 30, 34))
-autoSafeButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local safeButton = makeButton("IR SAFE AGORA", 0.5, 126, 0.5, Color3.fromRGB(70, 45, 48))
-safeButton.Position = UDim2.new(0.5, 5, 0, 126)
-safeButton.Size = UDim2.new(0.5, -15, 0, 34)
+local autoBtn = button("AUTO SAFE: ON", 0, 72, 1/3, Color3.fromRGB(100,30,34))
+autoBtn.Size = UDim2.new(1/3, -10, 0, 30)
+local godBtn = button("GOD: OFF", 1/3, 72, 1/3)
+godBtn.Position = UDim2.new(1/3, 4, 0, 72); godBtn.Size = UDim2.new(1/3, -8, 0, 30)
+local isoBtn = button("ISOLAR: OFF", 2/3, 72, 1/3)
+isoBtn.Position = UDim2.new(2/3, 2, 0, 72); isoBtn.Size = UDim2.new(1/3, -10, 0, 30)
 
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -20, 0, 205)
-list.Position = UDim2.fromOffset(10, 168)
-list.BackgroundColor3 = Color3.fromRGB(23, 23, 27)
+list.Size = UDim2.new(1, -16, 0, 172)
+list.Position = UDim2.fromOffset(8, 108)
+list.BackgroundColor3 = Color3.fromRGB(23,23,27)
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 3
-list.CanvasSize = UDim2.fromOffset(0, 0)
+list.CanvasSize = UDim2.fromOffset(0,0)
 list.Parent = frame
 Instance.new("UICorner", list).CornerRadius = UDim.new(0, 8)
+local layout = Instance.new("UIListLayout", list)
+layout.Padding = UDim.new(0,4)
+local pad = Instance.new("UIPadding", list)
+pad.PaddingTop = UDim.new(0,5); pad.PaddingBottom = UDim.new(0,5); pad.PaddingLeft = UDim.new(0,5); pad.PaddingRight = UDim.new(0,5)
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 5)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = list
+local amount = Instance.new("TextBox")
+amount.Size = UDim2.new(1, -16, 0, 30)
+amount.Position = UDim2.fromOffset(8, 286)
+amount.BackgroundColor3 = Color3.fromRGB(28,28,33)
+amount.BorderSizePixel = 0
+amount.ClearTextOnFocus = false
+amount.Text = "1000"
+amount.PlaceholderText = "Dinheiro visual local"
+amount.TextColor3 = Color3.fromRGB(240,240,245)
+amount.Font = Enum.Font.Code
+amount.TextSize = 10
+amount.Parent = frame
+Instance.new("UICorner", amount).CornerRadius = UDim.new(0,7)
 
-local listPadding = Instance.new("UIPadding")
-listPadding.PaddingTop = UDim.new(0, 6)
-listPadding.PaddingBottom = UDim.new(0, 6)
-listPadding.PaddingLeft = UDim.new(0, 6)
-listPadding.PaddingRight = UDim.new(0, 6)
-listPadding.Parent = list
-
-local amountBox = Instance.new("TextBox")
-amountBox.Size = UDim2.new(1, -20, 0, 34)
-amountBox.Position = UDim2.fromOffset(10, 381)
-amountBox.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
-amountBox.BorderSizePixel = 0
-amountBox.ClearTextOnFocus = false
-amountBox.Text = "1000"
-amountBox.PlaceholderText = "Quantidade de dinheiro LOCAL"
-amountBox.TextColor3 = Color3.fromRGB(240, 240, 245)
-amountBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 130)
-amountBox.Font = Enum.Font.Code
-amountBox.TextSize = 11
-amountBox.Parent = frame
-Instance.new("UICorner", amountBox).CornerRadius = UDim.new(0, 8)
-
-local tpButton = makeButton("TP NO SELECIONADO", 0, 423, 0.5)
-tpButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local killButton = makeButton("KILL LOCAL", 0.5, 423, 0.5, Color3.fromRGB(115, 28, 32))
-killButton.Position = UDim2.new(0.5, 5, 0, 423)
-killButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local giveButton = makeButton("$ LOCAL > SELECIONADO", 0, 465, 0.5)
-giveButton.Size = UDim2.new(0.5, -15, 0, 34)
-
-local selfMoneyButton = makeButton("$ LOCAL > EU", 0.5, 465, 0.5)
-selfMoneyButton.Position = UDim2.new(0.5, 5, 0, 465)
-selfMoneyButton.Size = UDim2.new(0.5, -15, 0, 34)
+local tpBtn = button("TP ALVO", 0, 322, .5)
+tpBtn.Size = UDim2.new(.5,-12,0,30)
+local killBtn = button("KILL LOCAL", .5, 322, .5, Color3.fromRGB(112,28,32))
+killBtn.Position = UDim2.new(.5,4,0,322); killBtn.Size = UDim2.new(.5,-12,0,30)
+local moneyTargetBtn = button("$ VISUAL ALVO", 0, 358, .5)
+moneyTargetBtn.Size = UDim2.new(.5,-12,0,30)
+local moneySelfBtn = button("$ VISUAL EU", .5, 358, .5)
+moneySelfBtn.Position = UDim2.new(.5,4,0,358); moneySelfBtn.Size = UDim2.new(.5,-12,0,30)
+local safeBtn = button("IR SAFE AGORA", 0, 394, 1, Color3.fromRGB(90,30,34))
+safeBtn.Size = UDim2.new(1,-16,0,30)
 
 local mini = Instance.new("TextButton")
-mini.Size = UDim2.fromOffset(96, 40)
+mini.Size = UDim2.fromOffset(88,38)
 mini.Position = frame.Position
-mini.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+mini.BackgroundColor3 = Color3.fromRGB(18,18,22)
 mini.BorderSizePixel = 0
-mini.Text = "EGG PLAYER"
-mini.TextColor3 = Color3.new(1, 1, 1)
+mini.Text = "EGG V5"
+mini.TextColor3 = Color3.new(1,1,1)
 mini.Font = Enum.Font.GothamBold
 mini.TextSize = 9
 mini.Visible = false
 mini.Parent = gui
-Instance.new("UICorner", mini).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", mini).CornerRadius = UDim.new(0,9)
 
-local function clearPlayerRows()
-    for _, obj in ipairs(list:GetChildren()) do
-        if obj:IsA("TextButton") then
-            obj:Destroy()
-        end
-    end
+local function clearRows()
+    S.rows = {}
+    for _, c in ipairs(list:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
 end
 
 local function rebuildPlayers()
-    clearPlayerRows()
-
+    clearRows()
     local count = 0
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LP then
-            count = count + 1
-
+            count += 1
             local row = Instance.new("TextButton")
-            row.Size = UDim2.new(1, 0, 0, 38)
-            row.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
+            row.Size = UDim2.new(1,0,0,32)
+            row.BackgroundColor3 = Color3.fromRGB(36,36,42)
             row.BorderSizePixel = 0
-            row.Text = tostring(plr.DisplayName) .. "  (@" .. tostring(plr.Name) .. ")"
-            row.TextColor3 = Color3.fromRGB(235, 235, 240)
+            row.TextColor3 = Color3.fromRGB(235,235,240)
             row.Font = Enum.Font.Gotham
-            row.TextSize = 10
+            row.TextSize = 9
             row.TextXAlignment = Enum.TextXAlignment.Left
             row.Parent = list
-            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
-
-            local pad = Instance.new("UIPadding")
-            pad.PaddingLeft = UDim.new(0, 10)
-            pad.Parent = row
-
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
+            local rp = Instance.new("UIPadding", row); rp.PaddingLeft = UDim.new(0,8)
+            S.rows[plr.UserId] = row
+            updateRow(plr)
             row.MouseButton1Click:Connect(function()
                 S.selected = plr
-                setStatus("Selecionado: " .. tostring(plr.DisplayName) .. " (@" .. tostring(plr.Name) .. ")")
+                status("Selecionado: " .. plr.DisplayName .. " (@" .. plr.Name .. ")")
             end)
         end
     end
-
     task.wait()
-    list.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y + 12)
-
-    if count == 0 then
-        setStatus("Nenhum outro jogador online")
-    else
-        setStatus(tostring(count) .. " jogadores online • selecione um")
-    end
+    list.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y + 10)
+    if count == 0 then status("Nenhum outro jogador online") end
 end
 
-refreshButton.MouseButton1Click:Connect(rebuildPlayers)
+autoBtn.MouseButton1Click:Connect(function() S.autoSafe = not S.autoSafe; status(S.autoSafe and "AUTO SAFE ON" or "AUTO SAFE OFF") end)
+godBtn.MouseButton1Click:Connect(function() S.god = not S.god; status(S.god and "GOD LOCAL ON" or "GOD LOCAL OFF") end)
+isoBtn.MouseButton1Click:Connect(function() setIsolation(not S.isolate) end)
+tpBtn.MouseButton1Click:Connect(function() local ok,e=tpPlayer(S.selected); status(ok and "TP local concluido" or ("TP falhou: "..tostring(e))) end)
+killBtn.MouseButton1Click:Connect(function() local ok,e=killLocal(S.selected); status(ok and "Kill LOCAL aplicado" or ("Kill falhou: "..tostring(e))) end)
+moneyTargetBtn.MouseButton1Click:Connect(function() local ok,e=addVisualMoney(S.selected,amount.Text); status(ok and ("Alvo: "..e) or e) end)
+moneySelfBtn.MouseButton1Click:Connect(function() local ok,e=addVisualMoney(LP,amount.Text); status(ok and ("Voce: "..e) or e) end)
+safeBtn.MouseButton1Click:Connect(function() local ok,e=tp(SAFE_CF); status(ok and "SAFE ZONE ✓" or ("Safe falhou: "..tostring(e))) end)
+min.MouseButton1Click:Connect(function() mini.Position=frame.Position; frame.Visible=false; mini.Visible=true end)
+mini.MouseButton1Click:Connect(function() frame.Position=mini.Position; mini.Visible=false; frame.Visible=true end)
 
-godButton.MouseButton1Click:Connect(function()
-    setGod(not S.god)
-end)
-
-autoSafeButton.MouseButton1Click:Connect(function()
-    S.autoEggSafe = not S.autoEggSafe
-    if S.autoEggSafe then
-        setStatus("AUTO TP OVO ON • ao pegar ovo vai para Safe Zone")
-    else
-        setStatus("AUTO TP OVO OFF")
-    end
-end)
-
-safeButton.MouseButton1Click:Connect(function()
-    local ok, err = teleportSelf(SAFE_CFRAME)
-    if ok then
-        setStatus("SAFE ZONE ✓")
-    else
-        setStatus("Safe falhou: " .. tostring(err))
-    end
-end)
-
-tpButton.MouseButton1Click:Connect(function()
-    local ok, err = tpToPlayer(S.selected)
-    if ok then
-        setStatus("TP local concluido")
-    else
-        setStatus("TP falhou: " .. tostring(err))
-    end
-end)
-
-killButton.MouseButton1Click:Connect(function()
-    local ok, err = killPlayerLocal(S.selected)
-    if ok then
-        setStatus("KILL LOCAL aplicado em " .. tostring(S.selected and S.selected.Name or "alvo"))
-    else
-        setStatus("Kill local falhou: " .. tostring(err))
-    end
-end)
-
-giveButton.MouseButton1Click:Connect(function()
-    if not S.selected then
-        setStatus("Selecione um jogador")
-        return
-    end
-
-    local ok, info = addMoneyLocal(S.selected, amountBox.Text)
-    if ok then
-        setStatus("Dinheiro LOCAL alterado • " .. tostring(info))
-    else
-        setStatus("Dinheiro local falhou: " .. tostring(info))
-    end
-end)
-
-selfMoneyButton.MouseButton1Click:Connect(function()
-    local ok, info = addMoneyLocal(LP, amountBox.Text)
-    if ok then
-        setStatus("Seu dinheiro LOCAL alterado • " .. tostring(info))
-    else
-        setStatus("Seu dinheiro local falhou: " .. tostring(info))
-    end
-end)
-
-minButton.MouseButton1Click:Connect(function()
-    mini.Position = frame.Position
-    frame.Visible = false
-    mini.Visible = true
-end)
-
-mini.MouseButton1Click:Connect(function()
-    frame.Position = mini.Position
-    mini.Visible = false
-    frame.Visible = true
-end)
-
-local dragging = false
-local dragStart
-local startPos
-
-title.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-    end
-end)
-
-title.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
-addConnection(UIS.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end))
-
-addConnection(Players.PlayerRemoving:Connect(function(plr)
-    if S.selected == plr then
-        S.selected = nil
-        setStatus("Jogador selecionado saiu do servidor")
-    end
+connect(Players.PlayerAdded, function(plr)
+    connect(plr.CharacterAdded, function(char) task.wait(.1); isolateCharacter(char) end)
     task.defer(rebuildPlayers)
-end))
-
-addConnection(Players.PlayerAdded:Connect(function()
+end)
+connect(Players.PlayerRemoving, function(plr)
+    if S.selected == plr then S.selected = nil end
+    local tag = S.moneyTags[plr.UserId]; if tag then pcall(function() tag:Destroy() end) end
     task.defer(rebuildPlayers)
-end))
+end)
 
-addConnection(RunService.Heartbeat:Connect(function()
-    if gui.Parent then
-        status.Text = S.status
-        godButton.Text = S.god and "GOD LOCAL: ON" or "GOD LOCAL: OFF"
-        autoSafeButton.Text = S.autoEggSafe and "AUTO TP OVO: ON" or "AUTO TP OVO: OFF"
+local dragging, dragStart, startPos = false
+connect(title.InputBegan, function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        dragging=true; dragStart=i.Position; startPos=frame.Position
     end
-end))
+end)
+connect(title.InputEnded, function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging=false end
+end)
+connect(UIS.InputChanged, function(i)
+    if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d=i.Position-dragStart
+        frame.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+    end
+end)
+
+connect(RunService.RenderStepped, function()
+    stat.Text = S.status
+    autoBtn.Text = S.autoSafe and "AUTO SAFE: ON" or "AUTO SAFE: OFF"
+    godBtn.Text = S.god and "GOD: ON" or "GOD: OFF"
+    isoBtn.Text = S.isolate and "ISOLAR: ON" or "ISOLAR: OFF"
+end)
 
 local function cleanup()
-    clearCharacterConnections()
-
-    for _, conn in ipairs(S.connections) do
-        pcall(function() conn:Disconnect() end)
-    end
-    table.clear(S.connections)
-
-    pcall(function()
-        if S.gui then S.gui:Destroy() end
-    end)
+    restoreIsolation()
+    for _, c in ipairs(S.conns) do pcall(function() c:Disconnect() end) end
+    for _, tag in pairs(S.moneyTags) do pcall(function() tag:Destroy() end) end
+    pcall(function() gui:Destroy() end)
 end
-
 S.Cleanup = cleanup
-ENV.__CAFEINA_EGG_PLAYER_STATE = S
+ENV.__CAFEINA_EGG_V5 = S
 
 task.defer(rebuildPlayers)
-print("[CAFEINA EGG] CLIENT MENU V4.1 carregado ✓ • AUTO TP OVO ON")
+status("AUTO SAFE ON • cliente local")
+print("[CAFEINA EGG] V5 carregado ✓")
