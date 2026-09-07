@@ -50,3 +50,55 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 6
+
+      - name: Probe Roblox composed avatar 3D
+        id: composed
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/capuccino40-composed
+          URL="https://thumbnails.roblox.com/v1/users/avatar-3d?userId=765329164&useGltf=true"
+          CODE="$(curl --silent --show-error --location --max-time 60 --output /tmp/capuccino40-composed/meta.json --write-out '%{http_code}' "$URL" || true)"
+          echo "Roblox avatar-3d HTTP $CODE"
+          if [ "$CODE" != "200" ]; then
+            cat /tmp/capuccino40-composed/meta.json || true
+            rm -f /tmp/capuccino40-composed/meta.json
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = '/tmp/capuccino40-composed/meta.json';
+          const d = JSON.parse(fs.readFileSync(p, 'utf8'));
+          console.log(JSON.stringify({targetId:d.targetId,state:d.state,hasImageUrl:!!d.imageUrl}, null, 2));
+          if (!d.imageUrl || d.state !== 'Completed') process.exit(2);
+          fs.writeFileSync('/tmp/capuccino40-composed/image-url.txt', d.imageUrl + '\n');
+          NODE
+
+          IMAGE_URL="$(cat /tmp/capuccino40-composed/image-url.txt)"
+          DESC_CODE="$(curl --silent --show-error --location --max-time 60 --output /tmp/capuccino40-composed/descriptor.json --write-out '%{http_code}' "$IMAGE_URL" || true)"
+          echo "Roblox composed descriptor HTTP $DESC_CODE"
+          if [ "$DESC_CODE" != "200" ]; then
+            cat /tmp/capuccino40-composed/descriptor.json || true
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const d = JSON.parse(fs.readFileSync('/tmp/capuccino40-composed/descriptor.json','utf8'));
+          console.log('descriptor keys:', Object.keys(d));
+          console.log(JSON.stringify(d, null, 2).slice(0, 12000));
+          NODE
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Roblox composed avatar probe
+        if: steps.composed.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: capuccino40-roblox-composed-probe
+          path: /tmp/capuccino40-composed
+          if-no-files-found: error
+          retention-days: 2
+          compression-level: 6
