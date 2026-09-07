@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "type": "inventory_remote_trace",
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-07T15:19:59.000Z",
+  "serverReceivedAt": "2026-09-07T15:19:59.893Z",
+  "placeId": 138686218420016,
+  "gameId": 10532995815,
+  "runId": "d4b99c9c-3905-4d7e-b9b5-a9eb2c02cb1d",
+  "trace": {
+    "anomalies": [],
+    "pickupSessions": [],
+    "diagnostics": {
+      "counters": {
+        "worldAdded": 1,
+        "inventoryChanged": 2,
+        "firstToolAdded": 1,
+        "worldRemoved": 0,
+        "records": 10,
+        "droppedRecords": 0,
+        "firstPromptAttempts": 1,
+        "toolRemoved": 0,
+        "uploadAttempts": 0,
+        "secondToolAdded": 0,
+        "gemCollected": 1,
+        "secondPromptAttempts": 0
+      },
+      "guards": {
+        "noDropRemoteAutomation": true,
+        "noSpatialPolling": true,
+        "secondUsesSameWorldInstance": true,
+        "noTouchWatcher": true,
+        "maxAutomaticPromptAttempts": 2,
+        "eventDrivenTargeting": true,
+        "noHook": true,
+        "maxRecords": 220,
+        "firstRequiresToolInventoryAndGemCollected": true
+      },
+      "transport": {
+        "endpoint": "https://cafe-na-ia.onrender.com/api/inventory-trace",
+        "retries": 3
+      },
+      "errors": []
+    },
+    "dupeRace": {
+      "firstNewTool": {
+        "path": "Players.capuccino40.Backpack.1.7 kg",
+        "name": "1.7 kg",
+        "attributes": {
+          "Favorited": false,
+          "BagId": 385,
+          "Rarity": "Common",
+          "GemName": "PinkCrystalObelisk",
+          "BaseValue": 41,
+          "Value": 41,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "Kg": 1.7
+        }
+      },
+      "firstNewBagId": 385,
+      "timelineMs": {
+        "dropInventoryChanged_to_worldAdded": 0.28864600017186604,
+        "firstPromptFire_to_firstToolAdded": 102.27260400006344,
+        "worldAdded_to_firstPromptReady": 28.82468699999663,
+        "worldAdded_to_firstPromptFire": 28.8991139996142,
+        "firstPromptFire_to_firstInventoryChanged": 106.06760400014537,
+        "firstPromptFire_to_firstGemCollected": 135.84536500002287
+      },
+      "finishReason": "prompt_removed_before_second_attempt",
+      "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+      "finalState": {
+        "oldBagIdPresent": false,
+        "firstNewBagId": 385,
+        "secondToolAddedObserved": false,
+        "secondGemCollectedObserved": false,
+        "secondAttempted": true,
+        "secondInventoryChangedObserved": false,
+        "activeMatchingTools": 1,
+        "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+        "activeMatchingBagIds": 1,
+        "firstPickupConfirmed": true,
+        "activeBagIds": {
+          "385": true
+        },
+        "sameUidWorldCount": 1,
+        "targetStillInWorld": true
+      },
+      "firstPickupConfirmed": {
+        "newBagId": 385,
+        "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+        "inventoryChanged": true,
+        "clock": 53.258343260999936,
+        "gemCollected": true,
+        "targetStillInWorld": true
+      },
+      "world": {
+        "path": "Workspace.DroppedGems.PinkCrystalObelisk",
+        "name": "PinkCrystalObelisk",
+        "position": "402.74188232421875, 65.12968444824219, -829.9463500976562",
+        "class": "Model",
+        "attributes": {
+          "Dropped": true,
+          "DropZ": -829.94091796875,
+          "Kg": 1.7,
+          "GemName": "PinkCrystalObelisk",
+          "BaseValue": 41,
+          "Freed": true,
+          "DropX": 402.7431335449219,
+          "GlowColor": "1, 0.431373, 0.784314",
+          "Uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+          "Luck": 0.11438806876246509,
+          "RBX_ReimportId": "31eb7d7f-3c94-486a-90c5-67da13a37b66",
+          "Value": 41,
+          "Mutations": "",
+          "SizeLetter": "Tiny",
+          "Rarity": "Common"
+        }
+      },
+      "selected": {
+        "tool": {
+          "path": "Workspace.capuccino40.1.7 kg",
+          "name": "1.7 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 381,
+            "Rarity": "Common",
+            "GemName": "PinkCrystalObelisk",
+            "BaseValue": 41,
+            "Value": 41,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.7
+          }
+        },
+        "oldBagId": 381,
+        "rarity": "Common",
+        "kg": 1.7,
+        "gemName": "PinkCrystalObelisk",
+        "value": 41,
+        "sizeLetter": "Tiny",
+        "container": "Character"
+      },
+      "secondAttempt": {
+        "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+        "firstNewBagId": 385,
+        "crystalStillPresent": true,
+        "firstNewBagIdPresent": true,
+        "promptStillPresent": false
+      },
+      "departedContainer": "Character"
+    },
+    "records": [
+      {
+        "phase": "armed",
+        "unix": 1788794398,
+        "clock": 52.558338261000245,
+        "selected": {
+          "tool": {
+            "path": "Workspace.capuccino40.1.7 kg",
+            "name": "1.7 kg",
+            "attributes": {
+              "Favorited": false,
+              "BagId": 381,
+              "Rarity": "Common",
+              "GemName": "PinkCrystalObelisk",
+              "BaseValue": 41,
+              "Value": 41,
+              "Mutations": "",
+              "SizeLetter": "Tiny",
+              "Kg": 1.7
+            }
+          },
+          "oldBagId": 381,
+          "rarity": "Common",
+          "kg": 1.7,
+          "gemName": "PinkCrystalObelisk",
+          "value": 41,
+          "sizeLetter": "Tiny",
+          "container": "Character"
+        },
+        "seq": 1,
+        "kind": "race_test_armed"
+      },
+      {
+        "arguments": [
+          5,
+          16.299999999999997,
+          2301,
+          22
+        ],
+        "phase": "armed",
+        "unix": 1788794399,
+        "clock": 53.09326654200004,
+        "kind": "inventory_changed",
+        "stage": "drop_transition",
+        "seq": 2
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.PinkCrystalObelisk",
+          "name": "PinkCrystalObelisk",
+          "position": "402.74188232421875, 65.12968444824219, -829.9463500976562",
+          "class": "Model",
+          "attributes": {
+            "Dropped": true,
+            "DropZ": -829.94091796875,
+            "Kg": 1.7,
+            "GemName": "PinkCrystalObelisk",
+            "BaseValue": 41,
+            "Freed": true,
+            "DropX": 402.7431335449219,
+            "GlowColor": "1, 0.431373, 0.784314",
+            "Uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+            "Luck": 0.11438806876246509,
+            "RBX_ReimportId": "31eb7d7f-3c94-486a-90c5-67da13a37b66",
+            "Value": 41,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Rarity": "Common"
+          }
+        },
+        "oldBagId": 381,
+        "phase": "world_seen",
+        "clock": 53.0936814380002,
+        "kind": "target_world_added",
+        "seq": 3,
+        "unix": 1788794399
+      },
+      {
+        "enabled": true,
+        "actionText": "Pick Up",
+        "phase": "world_seen",
+        "unix": 1788794399,
+        "holdDuration": 0,
+        "clock": 53.1224124270002,
+        "prompt": "Workspace.DroppedGems.PinkCrystalObelisk.Mesh_0.Pickup",
+        "seq": 4,
+        "kind": "first_pickup_prompt_ready"
+      },
+      {
+        "fireClock": 53.122454301999824,
+        "phase": "first_pickup_attempt",
+        "unix": 1788794399,
+        "fireDurationMs": 0.038594000216107816,
+        "seq": 5,
+        "success": true,
+        "returnClock": 53.12249289600004,
+        "clock": 53.12250284399988,
+        "prompt": "Workspace.DroppedGems.PinkCrystalObelisk.Mesh_0.Pickup",
+        "error": "nil",
+        "kind": "first_automatic_pickup_attempt"
+      },
+      {
+        "phase": "first_pickup_attempt",
+        "unix": 1788794399,
+        "newBagId": 385,
+        "oldBagId": 381,
+        "seq": 6,
+        "clock": 53.22487982299981,
+        "kind": "first_pickup_tool_added",
+        "tool": {
+          "path": "Players.capuccino40.Backpack.1.7 kg",
+          "name": "1.7 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 385,
+            "Rarity": "Common",
+            "GemName": "PinkCrystalObelisk",
+            "BaseValue": 41,
+            "Value": 41,
+            "Mutations": "",
+            "SizeLetter": "Tiny",
+            "Kg": 1.7
+          }
+        },
+        "container": "Backpack"
+      },
+      {
+        "arguments": [
+          6,
+          17.999999999999996,
+          2342,
+          22
+        ],
+        "phase": "first_pickup_attempt",
+        "unix": 1788794399,
+        "clock": 53.22852190599997,
+        "kind": "inventory_changed",
+        "stage": "after_first_attempt",
+        "seq": 7
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.PinkCrystalObelisk",
+          "type": "Instance",
+          "name": "PinkCrystalObelisk",
+          "class": "Model"
+        },
+        "player": {
+          "path": "Players.capuccino40",
+          "type": "Instance",
+          "name": "capuccino40",
+          "class": "Player"
+        },
+        "phase": "first_pickup_attempt",
+        "unix": 1788794399,
+        "clock": 53.25829966699985,
+        "kind": "gem_collected",
+        "stage": "after_first_attempt",
+        "seq": 8
+      },
+      {
+        "phase": "first_pickup_attempt",
+        "unix": 1788794399,
+        "clock": 53.258348468999884,
+        "kind": "first_pickup_confirmed",
+        "seq": 9,
+        "confirmation": {
+          "newBagId": 385,
+          "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+          "inventoryChanged": true,
+          "clock": 53.258343260999936,
+          "gemCollected": true,
+          "targetStillInWorld": true
+        }
+      },
+      {
+        "state": {
+          "uid": "91a470c0-75a8-40d3-a4fc-65bea3d13dca",
+          "firstNewBagId": 385,
+          "crystalStillPresent": true,
+          "firstNewBagIdPresent": true,
+          "promptStillPresent": false
+        },
+        "phase": "second_pickup_attempt",
+        "unix": 1788794399,
+        "clock": 53.258460813000056,
+        "kind": "second_pickup_skipped",
+        "seq": 10,
+        "reason": "prompt_removed"
+      }
+    ],
+    "startedAt": 1788794398,
+    "version": "CAFEINA_CRYSTAL_DUP_RACE_TEST_V2_2",
+    "bagMap": [],
+    "finishedAt": 1788794399,
+    "remotes": [
+      {
+        "name": "InventoryChanged",
+        "path": "ReplicatedStorage.GemRemotes.InventoryChanged"
+      },
+      {
+        "name": "GemCollected",
+        "path": "ReplicatedStorage.GemSignals.GemCollected"
+      }
+    ],
+    "runId": "d4b99c9c-3905-4d7e-b9b5-a9eb2c02cb1d",
+    "purpose": "crystal_drop_immediate_pickup_then_same_instance_retry"
+  }
+}
