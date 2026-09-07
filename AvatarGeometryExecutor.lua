@@ -1,42 +1,47 @@
 --==============================================================--
 -- CAFEINA • AVATAR GEOMETRY EXECUTOR
--- Capuccino40 / UserId 765329164
--- Um unico coletor, atualizado in-place.
+-- Target: Capuccino40 / UserId 765329164
 --
--- Coleta: malhas reais, UV/normais, MeshSize/CFrame, SurfaceAppearance,
--- WrapLayer + WrapTarget (cages fonte e runtime quando acessiveis),
--- skinning/ossos e texturas que faltavam (incluindo roupa classica).
--- Nao coleta cookies, tokens, senhas ou credenciais.
+-- MODO INCREMENTAL LEVE
+-- Coleta SOMENTE o que ainda falta para reconstruir layered clothing:
+--   * WrapLayer cage
+--   * WrapLayer reference cage
+--   * WrapTarget body cages
+--   * origins / ordem / bind offset
+--   * bones + skin weights quando disponiveis no EditableMesh
+--
+-- Nao recolhe novamente as 26 render meshes nem as texturas/PBR.
+-- Mantem o mesmo arquivo e o mesmo loadstring.
 --==============================================================--
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local AssetService = game:GetService("AssetService")
 local StarterGui = game:GetService("StarterGui")
-local EncodingService = game:GetService("EncodingService")
 
-local USER_ID = 765329164
+local LocalPlayer = Players.LocalPlayer
+local TARGET_USER_ID = 765329164
 local USERNAME = "Capuccino40"
+
 local ENV = (getgenv and getgenv()) or _G
 local BASE = ENV.GRUPO_LUA_AVATAR_BASE or "https://cafe-na-ia.onrender.com"
-local KEY = ENV.GRUPO_LUA_AVATAR_KEY or ""
-local CHUNK = 320000
-local MAX_RECORDS = 60
-local MAX_MESH_VERTS = 120000
-local MAX_MESH_FACES = 180000
-local MAX_CAGE_VERTS = 16000
-local MAX_CAGE_ENTRIES = 96000
-local MAX_SESSION_TRIES = 3
+local UPLOAD_KEY = ENV.GRUPO_LUA_AVATAR_KEY or ""
 
-local IMAGE_IDS = {
-    "18711605978","18711607797","18711609689","18711640761",
-    "80293630295826","82530105988237","83091105722329","88515799809882",
-    "96472780768407","110426848175524","117649354311112","124249945746431",
-    "127025880258976","137182279278426",
-    "10930362485","137990545486494","18544009756",
-}
-local IMAGE_SET = {}
-for _, id in ipairs(IMAGE_IDS) do IMAGE_SET[id] = true end
+local CHUNK_CHARS = 300000
+local MAX_RECORDS = 60
+local MAX_VERTICES = 120000
+local MAX_FACES = 180000
+local MAX_SESSION_ATTEMPTS = 3
+
+local function notify(text, duration)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Avatar Geometry",
+            Text = text,
+            Duration = duration or 4,
+        })
+    end)
+end
 
 local function safe(fn, fallback)
     local ok, value = pcall(fn)
@@ -44,440 +49,560 @@ local function safe(fn, fallback)
     return fallback
 end
 
-local function notify(text, duration)
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {Title="Avatar Geometry",Text=text,Duration=duration or 4})
-    end)
+local function cf(v)
+    if typeof(v) ~= "CFrame" then return nil end
+    return {v:GetComponents()}
 end
 
-local function v3(v) return {v.X,v.Y,v.Z} end
-local function v2(v) return {v.X,v.Y} end
-local function c3(v) return {v.R,v.G,v.B} end
-local function cframe(v) return {v:GetComponents()} end
-local function div3(a,b)
-    return Vector3.new(
-        math.abs(b.X)>1e-7 and a.X/b.X or 1,
-        math.abs(b.Y)>1e-7 and a.Y/b.Y or 1,
-        math.abs(b.Z)>1e-7 and a.Z/b.Z or 1
-    )
+local function vec3(v)
+    if typeof(v) ~= "Vector3" then return nil end
+    return {v.X, v.Y, v.Z}
 end
-local function assetId(v) return tostring(v or ""):match("(%d+)") or "" end
 
-local function plain(v, depth)
-    depth = depth or 0
-    if depth > 5 then return tostring(v) end
-    local t = typeof(v)
-    if t == "Vector3" then return v3(v) end
-    if t == "Vector2" then return v2(v) end
-    if t == "CFrame" then return cframe(v) end
-    if t == "Color3" then return c3(v) end
-    if type(v) == "number" or type(v) == "string" or type(v) == "boolean" or v == nil then return v end
-    if type(v) == "table" then
-        local out = {}
-        for k,x in pairs(v) do out[k] = plain(x, depth+1) end
-        return out
-    end
-    return tostring(v)
+local function vec2(v)
+    if typeof(v) ~= "Vector2" then return nil end
+    return {v.X, v.Y}
+end
+
+local function assetId(value)
+    return tostring(value or ""):match("(%d+)") or ""
 end
 
 local function requestFunction()
-    for _, fn in ipairs({ENV.request,ENV.http_request,syn and syn.request,http and http.request,fluxus and fluxus.request}) do
+    local candidates = {
+        ENV.request,
+        ENV.http_request,
+        (syn and syn.request),
+        (http and http.request),
+        (fluxus and fluxus.request),
+    }
+    for _, fn in ipairs(candidates) do
         if type(fn) == "function" then return fn end
     end
-end
-local request = requestFunction()
-if not request then error("Executor sem request/http_request") end
-
-local function headers()
-    local h = {["Content-Type"]="application/json",["Accept"]="application/json",["User-Agent"]="Cafeina-AvatarGeometry-Executor/3.0"}
-    if KEY ~= "" then h["x-avatar-dump-key"] = KEY end
-    return h
+    return nil
 end
 
-local function jsonRequest(method, url, data, tries)
+local requestFn = requestFunction()
+if not requestFn then
+    error("Executor sem request/http_request.")
+end
+
+local function requestJson(method, url, payload, tries)
     tries = tries or 3
-    local body = data and HttpService:JSONEncode(data) or nil
-    local last = "falha desconhecida"
-    for i=1,tries do
-        local ok,res = pcall(function()
-            return request({Url=url,Method=method,Headers=headers(),Body=body})
-        end)
-        if ok and res then
-            local status = tonumber(res.StatusCode or res.Status or res.status_code) or 0
-            local txt = tostring(res.Body or res.body or "")
-            if status >= 200 and status < 300 then
-                return safe(function() return HttpService:JSONDecode(txt) end, {}), status, txt
+    local body = payload and HttpService:JSONEncode(payload) or nil
+    local lastError = nil
+
+    for attempt = 1, tries do
+        local ok, response = pcall(function()
+            local headers = {
+                ["Content-Type"] = "application/json",
+                ["Accept"] = "application/json",
+                ["User-Agent"] = "Cafeina-AvatarGeometry-WrapIncremental/1.0",
+            }
+            if UPLOAD_KEY ~= "" then
+                headers["x-avatar-dump-key"] = UPLOAD_KEY
             end
-            last = "HTTP "..status.." - "..txt
+
+            return requestFn({
+                Url = url,
+                Method = method,
+                Headers = headers,
+                Body = body,
+            })
+        end)
+
+        if ok and response then
+            local status = tonumber(response.StatusCode or response.Status or response.status_code) or 0
+            local responseBody = tostring(response.Body or response.body or "")
+            if status >= 200 and status < 300 then
+                return safe(function()
+                    return HttpService:JSONDecode(responseBody)
+                end, {}), status
+            end
+            lastError = "HTTP " .. tostring(status) .. " - " .. responseBody
         else
-            last = tostring(res)
+            lastError = tostring(response)
         end
-        task.wait(0.7*i)
+
+        task.wait(0.6 * attempt)
     end
-    error(last)
+
+    error(lastError or "Falha HTTP")
 end
 
 local function isoNow()
-    return safe(function() return DateTime.now():ToIsoDate() end, os.date("!%Y-%m-%dT%H:%M:%SZ"))
+    return safe(function()
+        return DateTime.now():ToIsoDate()
+    end, os.date("!%Y-%m-%dT%H:%M:%SZ"))
 end
 
-local function accessoryOf(part)
-    local p = part.Parent
-    while p do
-        if p:IsA("Accessory") then return p end
-        p = p.Parent
+local function findAccessory(part)
+    local cursor = part
+    while cursor do
+        if cursor:IsA("Accessory") then return cursor end
+        cursor = cursor.Parent
     end
+    return nil
 end
 
-local function surface(part)
-    local s = part:FindFirstChildOfClass("SurfaceAppearance")
-    if not s then return nil end
+local function parentMetadata(wrap)
+    local part = wrap.Parent
+    local accessory = part and findAccessory(part)
     return {
-        colorMap=safe(function() return tostring(s.ColorMap) end,""),
-        normalMap=safe(function() return tostring(s.NormalMap) end,""),
-        roughnessMap=safe(function() return tostring(s.RoughnessMap) end,""),
-        metalnessMap=safe(function() return tostring(s.MetalnessMap) end,""),
-        alphaMode=safe(function() return tostring(s.AlphaMode) end,""),
+        parentName = part and part.Name or "",
+        parentFullName = part and part:GetFullName() or "",
+        parentCFrame = part and safe(function() return cf(part.CFrame) end, nil) or nil,
+        parentSize = part and safe(function() return vec3(part.Size) end, nil) or nil,
+        parentMeshSize = part and safe(function() return vec3(part.MeshSize) end, nil) or nil,
+        parentMeshId = part and safe(function() return tostring(part.MeshId) end, "") or "",
+        accessory = accessory and {
+            name = accessory.Name,
+            accessoryType = safe(function() return tostring(accessory.AccessoryType) end, ""),
+        } or nil,
     }
 end
 
-local function addCandidate(out, seen, value)
-    if value == nil then return end
-    local key = tostring(value)
-    if key == "" or seen[key] then return end
-    seen[key] = true
-    out[#out+1] = value
+local function wrapMetadata(wrap)
+    local base = {
+        wrapName = wrap.Name,
+        wrapPath = wrap:GetFullName(),
+        wrapClass = wrap.ClassName,
+        cageMeshId = safe(function() return tostring(wrap.CageMeshId) end, ""),
+        cageOrigin = safe(function() return cf(wrap.CageOrigin) end, nil),
+        cageOriginWorld = safe(function() return cf(wrap.CageOriginWorld) end, nil),
+        importOrigin = safe(function() return cf(wrap.ImportOrigin) end, nil),
+        importOriginWorld = safe(function() return cf(wrap.ImportOriginWorld) end, nil),
+    }
+
+    if wrap:IsA("WrapLayer") then
+        base.enabled = safe(function() return wrap.Enabled end, nil)
+        base.order = safe(function() return wrap.Order end, nil)
+        base.puffiness = safe(function() return wrap.Puffiness end, nil)
+        base.autoSkin = safe(function() return tostring(wrap.AutoSkin) end, "")
+        base.bindOffset = safe(function() return cf(wrap.BindOffset) end, nil)
+        base.referenceMeshId = safe(function() return tostring(wrap.ReferenceMeshId) end, "")
+        base.referenceOrigin = safe(function() return cf(wrap.ReferenceOrigin) end, nil)
+        base.referenceOriginWorld = safe(function() return cf(wrap.ReferenceOriginWorld) end, nil)
+    elseif wrap:IsA("WrapTarget") then
+        base.stiffness = safe(function() return wrap.Stiffness end, nil)
+    end
+
+    return base
 end
 
-local function contentCandidates(primary, fallback)
-    local out,seen = {},{}
-    for _, value in ipairs({primary,fallback}) do
-        if value ~= nil then
-            addCandidate(out,seen,value)
-            local s = tostring(value)
-            local id = s:match("(%d+)")
-            if Content then
-                if s ~= "" and type(Content.fromUri)=="function" then
-                    addCandidate(out,seen,safe(function() return Content.fromUri(s) end,nil))
-                end
-                if id and type(Content.fromAssetId)=="function" then
-                    addCandidate(out,seen,safe(function() return Content.fromAssetId(tonumber(id)) end,nil))
-                end
-            end
-        end
+local function contentFromId(idText)
+    local id = tonumber(assetId(idText))
+    if not id or not Content then return nil end
+
+    if type(Content.fromAssetId) == "function" then
+        local content = safe(function() return Content.fromAssetId(id) end, nil)
+        if content ~= nil then return content end
     end
+
+    if type(Content.fromUri) == "function" then
+        return safe(function()
+            return Content.fromUri("rbxassetid://" .. tostring(id))
+        end, nil)
+    end
+
+    return nil
+end
+
+local function candidatesFor(desc)
+    local out = {}
+    local seen = {}
+
+    local function add(value)
+        if value == nil then return end
+        local key = tostring(value)
+        if seen[key] then return end
+        seen[key] = true
+        out[#out + 1] = value
+    end
+
+    if desc.role == "layerReferenceCage" then
+        add(safe(function() return desc.wrap.ReferenceMeshContent end, nil))
+        add(contentFromId(safe(function() return desc.wrap.ReferenceMeshId end, "")))
+    else
+        add(safe(function() return desc.wrap.CageMeshContent end, nil))
+        add(contentFromId(safe(function() return desc.wrap.CageMeshId end, "")))
+    end
+
     return out
 end
 
-local function editableFrom(primary, fallback)
+local function openEditable(desc)
     local errors = {}
-    for _, content in ipairs(contentCandidates(primary,fallback)) do
-        local ok,e = pcall(function() return AssetService:CreateEditableMeshAsync(content,{FixedSize=true}) end)
-        if ok and e then return e end
-        errors[#errors+1] = tostring(e)
+    for _, content in ipairs(candidatesFor(desc)) do
+        local ok, editable = pcall(function()
+            return AssetService:CreateEditableMeshAsync(content, {FixedSize = true})
+        end)
+        if ok and editable then return editable end
+        errors[#errors + 1] = tostring(editable)
     end
-    return nil, table.concat(errors," | "):sub(1,1200)
+    return nil, table.concat(errors, " | "):sub(1, 1000)
 end
 
-local function sourceCage(primary, fallback)
-    local e,err = editableFrom(primary,fallback)
-    if not e then return {available=false,error=err} end
-    local ok,data = pcall(function()
-        local vids, fids = e:GetVertices(), e:GetFaces()
-        if #vids > MAX_CAGE_VERTS then error("cage vertices acima do limite: "..#vids) end
-        if #fids > MAX_CAGE_ENTRIES then error("cage faces acima do limite: "..#fids) end
-        local map,pos = {},table.create(#vids)
-        for i,id in ipairs(vids) do map[tostring(id)]=i; pos[i]=v3(e:GetPosition(id)) end
-        local uvMap,uvs = {},{}
-        local function uvIndex(id)
-            if id==nil then return 0 end
-            local k=tostring(id)
-            if uvMap[k] then return uvMap[k] end
-            local uv=safe(function() return e:GetUV(id) end,nil)
-            if not uv then return 0 end
-            local n=#uvs+1; uvMap[k]=n; uvs[n]=v2(uv); return n
+local function extractCage(desc, recordIndex)
+    local editable, openError = openEditable(desc)
+    if not editable then
+        return nil, "CreateEditableMeshAsync: " .. tostring(openError)
+    end
+
+    local ok, result = pcall(function()
+        local vertexIds = editable:GetVertices()
+        local faceIds = editable:GetFaces()
+        if #vertexIds > MAX_VERTICES then error("vertices acima do limite") end
+        if #faceIds > MAX_FACES then error("faces acima do limite") end
+
+        local vertexMap = {}
+        local positions = table.create(#vertexIds)
+        for i, vertexId in ipairs(vertexIds) do
+            vertexMap[tostring(vertexId)] = i
+            positions[i] = vec3(editable:GetPosition(vertexId))
+            if i % 3000 == 0 then task.wait() end
         end
-        local faces={}
-        for _,fid in ipairs(fids) do
-            local vs=e:GetFaceVertices(fid)
-            if #vs>=3 then
-                local f={v={map[tostring(vs[1])] or 0,map[tostring(vs[2])] or 0,map[tostring(vs[3])] or 0}}
-                local us=safe(function() return e:GetFaceUVs(fid) end,nil)
-                if type(us)=="table" and #us>=3 then f.uv={uvIndex(us[1]),uvIndex(us[2]),uvIndex(us[3])} end
-                faces[#faces+1]=f
+
+        local uvMap, uvs = {}, {}
+        local normalMap, normals = {}, {}
+
+        local function mapUV(id)
+            if id == nil then return 0 end
+            local key = tostring(id)
+            if uvMap[key] then return uvMap[key] end
+            local value = safe(function() return editable:GetUV(id) end, nil)
+            if not value then return 0 end
+            local idx = #uvs + 1
+            uvMap[key] = idx
+            uvs[idx] = vec2(value)
+            return idx
+        end
+
+        local function mapNormal(id)
+            if id == nil then return 0 end
+            local key = tostring(id)
+            if normalMap[key] then return normalMap[key] end
+            local value = safe(function() return editable:GetNormal(id) end, nil)
+            if not value then return 0 end
+            local idx = #normals + 1
+            normalMap[key] = idx
+            normals[idx] = vec3(value)
+            return idx
+        end
+
+        local faces = {}
+        for i, faceId in ipairs(faceIds) do
+            local vids = editable:GetFaceVertices(faceId)
+            if #vids >= 3 then
+                local face = {
+                    v = {
+                        vertexMap[tostring(vids[1])] or 0,
+                        vertexMap[tostring(vids[2])] or 0,
+                        vertexMap[tostring(vids[3])] or 0,
+                    }
+                }
+
+                local uvIds = safe(function() return editable:GetFaceUVs(faceId) end, nil)
+                if type(uvIds) == "table" and #uvIds >= 3 then
+                    face.uv = {mapUV(uvIds[1]), mapUV(uvIds[2]), mapUV(uvIds[3])}
+                end
+
+                local normalIds = safe(function() return editable:GetFaceNormals(faceId) end, nil)
+                if type(normalIds) == "table" and #normalIds >= 3 then
+                    face.n = {mapNormal(normalIds[1]), mapNormal(normalIds[2]), mapNormal(normalIds[3])}
+                end
+
+                faces[#faces + 1] = face
+            end
+            if i % 2000 == 0 then task.wait() end
+        end
+
+        -- Bone hierarchy + sparse per-vertex weights, only if present.
+        local boneIds = safe(function() return editable:GetBones() end, {})
+        local boneIndexById = {}
+        local bones = {}
+        if type(boneIds) == "table" then
+            for i, boneId in ipairs(boneIds) do
+                boneIndexById[tostring(boneId)] = i
+            end
+            for i, boneId in ipairs(boneIds) do
+                local parentId = safe(function() return editable:GetBoneParent(boneId) end, 0)
+                bones[i] = {
+                    name = safe(function() return editable:GetBoneName(boneId) end, ""),
+                    cframe = safe(function() return cf(editable:GetBoneCFrame(boneId)) end, nil),
+                    parent = boneIndexById[tostring(parentId)] or 0,
+                    virtual = safe(function() return editable:GetBoneIsVirtual(boneId) end, false),
+                }
             end
         end
-        return {available=true,vertexCount=#vids,faceCount=#faces,positions=pos,uvs=uvs,faces=faces}
-    end)
-    pcall(function() e:Destroy() end)
-    if ok then return data end
-    return {available=false,error=tostring(data):sub(1,1200)}
-end
 
-local CAGE_INNER = safe(function() return Enum.CageType.Inner end,nil)
-local CAGE_OUTER = safe(function() return Enum.CageType.Outer end,nil)
-local function runtimeCage(wrap, cageType)
-    if cageType==nil then return {available=false,error="Enum.CageType indisponivel"} end
-    local out={available=false}
-    local okV,verts=pcall(function() return wrap:GetVertices(cageType) end)
-    if okV and type(verts)=="table" then
-        if #verts <= MAX_CAGE_VERTS then out.available=true; out.positions=plain(verts); out.vertexCount=#verts
-        else out.error="runtime cage grande demais: "..#verts end
-    else out.vertexError=tostring(verts):sub(1,500) end
-    local okF,faces=pcall(function() return wrap:GetFaces(cageType) end)
-    if okF and type(faces)=="table" and #faces<=MAX_CAGE_ENTRIES then out.faces=plain(faces); out.faceEntryCount=#faces
-    else out.faceError=tostring(faces):sub(1,500) end
-    local okU,uvs=pcall(function() return wrap:GetUVs(cageType) end)
-    if okU and type(uvs)=="table" and #uvs<=MAX_CAGE_ENTRIES then out.uvs=plain(uvs); out.uvEntryCount=#uvs
-    else out.uvError=tostring(uvs):sub(1,500) end
-    return out
-end
-
-local function wrapLayer(part)
-    local w=part:FindFirstChildOfClass("WrapLayer")
-    if not w then return nil end
-    local refContent=safe(function() return w.ReferenceMeshContent end,nil)
-    local cageContent=safe(function() return w.CageMeshContent end,nil)
-    local refId=safe(function() return tostring(w.ReferenceMeshId) end,"")
-    local cageId=safe(function() return tostring(w.CageMeshId) end,"")
-    return {
-        referenceMeshId=refId,cageMeshId=cageId,
-        order=safe(function() return w.Order end,nil),puffiness=safe(function() return w.Puffiness end,nil),enabled=safe(function() return w.Enabled end,nil),
-        autoSkin=safe(function() return tostring(w.AutoSkin) end,""),bindOffset=safe(function() return cframe(w.BindOffset) end,nil),
-        referenceOrigin=safe(function() return cframe(w.ReferenceOrigin) end,nil),referenceOriginWorld=safe(function() return cframe(w.ReferenceOriginWorld) end,nil),
-        cageOrigin=safe(function() return cframe(w.CageOrigin) end,nil),cageOriginWorld=safe(function() return cframe(w.CageOriginWorld) end,nil),
-        importOrigin=safe(function() return cframe(w.ImportOrigin) end,nil),importOriginWorld=safe(function() return cframe(w.ImportOriginWorld) end,nil),
-        cageOffset=safe(function() return v3(w:GetCageOffset()) end,nil),
-        sourceInner=sourceCage(refContent,refId),sourceOuter=sourceCage(cageContent,cageId),
-        runtimeInner=runtimeCage(w,CAGE_INNER),runtimeOuter=runtimeCage(w,CAGE_OUTER),
-    }
-end
-
-local function wrapTarget(part)
-    local w=part:FindFirstChildOfClass("WrapTarget")
-    if not w then return nil end
-    local content=safe(function() return w.CageMeshContent end,nil)
-    local id=safe(function() return tostring(w.CageMeshId) end,"")
-    return {
-        cageMeshId=id,stiffness=safe(function() return w.Stiffness end,nil),
-        cageOrigin=safe(function() return cframe(w.CageOrigin) end,nil),cageOriginWorld=safe(function() return cframe(w.CageOriginWorld) end,nil),
-        importOrigin=safe(function() return cframe(w.ImportOrigin) end,nil),importOriginWorld=safe(function() return cframe(w.ImportOriginWorld) end,nil),
-        cageOffset=safe(function() return v3(w:GetCageOffset()) end,nil),
-        sourceOuter=sourceCage(content,id),runtimeOuter=runtimeCage(w,CAGE_OUTER),
-    }
-end
-
-local function skinning(e, vertexIds)
-    local boneIds=safe(function() return e:GetBones() end,nil)
-    if type(boneIds)~="table" or #boneIds==0 then return nil end
-    local map,bones={},{}
-    for i,id in ipairs(boneIds) do
-        map[tostring(id)]=i
-        bones[i]={
-            id=tostring(id),name=safe(function() return e:GetBoneName(id) end,""),
-            parentId=safe(function() return tostring(e:GetBoneParent(id)) end,"0"),
-            bindCFrame=safe(function() return cframe(e:GetBoneCFrame(id)) end,nil),
-            virtual=safe(function() return e:GetBoneIsVirtual(id) end,false),
-        }
-    end
-    local weighted={}
-    for vi,vid in ipairs(vertexIds) do
-        local bs=safe(function() return e:GetVertexBones(vid) end,nil)
-        local ws=safe(function() return e:GetVertexBoneWeights(vid) end,nil)
-        if type(bs)=="table" and type(ws)=="table" and #bs>0 then
-            local bi,w={},{}
-            for j=1,math.min(#bs,#ws) do bi[j]=map[tostring(bs[j])] or 0; w[j]=ws[j] end
-            weighted[#weighted+1]={vertex=vi,bones=bi,weights=w}
-        end
-        if vi%2500==0 then task.wait() end
-    end
-    return {boneCount=#bones,weightedVertexCount=#weighted,bones=bones,weighted=weighted}
-end
-
-local function partEditable(part)
-    return editableFrom(safe(function() return part.MeshContent end,nil),safe(function() return tostring(part.MeshId) end,""))
-end
-
-local function extractMesh(part,index)
-    local e,err=partEditable(part)
-    if not e then return nil,"CreateEditableMeshAsync: "..tostring(err) end
-    local ok,record=pcall(function()
-        local vids,fids=e:GetVertices(),e:GetFaces()
-        if #vids>MAX_MESH_VERTS then error("vertices acima do limite") end
-        if #fids>MAX_MESH_FACES then error("faces acima do limite") end
-        local editableSize=e:GetSize()
-        local meshSize=safe(function() return part.MeshSize end,editableSize)
-        local scale=div3(part.Size,meshSize)
-        local map,pos={},table.create(#vids)
-        for i,id in ipairs(vids) do map[tostring(id)]=i; pos[i]=v3(e:GetPosition(id)); if i%2500==0 then task.wait() end end
-        local uvMap,uvs,nMap,normals={}, {}, {}, {}
-        local function U(id)
-            if id==nil then return 0 end; local k=tostring(id); if uvMap[k] then return uvMap[k] end
-            local u=safe(function() return e:GetUV(id) end,nil); if not u then return 0 end
-            local n=#uvs+1; uvMap[k]=n; uvs[n]=v2(u); return n
-        end
-        local function N(id)
-            if id==nil then return 0 end; local k=tostring(id); if nMap[k] then return nMap[k] end
-            local nrm=safe(function() return e:GetNormal(id) end,nil); if not nrm then return 0 end
-            local n=#normals+1; nMap[k]=n; normals[n]=v3(nrm); return n
-        end
-        local faces={}
-        for i,fid in ipairs(fids) do
-            local vs=e:GetFaceVertices(fid)
-            if #vs>=3 then
-                local f={v={map[tostring(vs[1])] or 0,map[tostring(vs[2])] or 0,map[tostring(vs[3])] or 0}}
-                local us=safe(function() return e:GetFaceUVs(fid) end,nil); if type(us)=="table" and #us>=3 then f.uv={U(us[1]),U(us[2]),U(us[3])} end
-                local ns=safe(function() return e:GetFaceNormals(fid) end,nil); if type(ns)=="table" and #ns>=3 then f.n={N(ns[1]),N(ns[2]),N(ns[3])} end
-                faces[#faces+1]=f
+        local skin = {}
+        if #bones > 0 then
+            for i, vertexId in ipairs(vertexIds) do
+                local vb = safe(function() return editable:GetVertexBones(vertexId) end, nil)
+                local vw = safe(function() return editable:GetVertexBoneWeights(vertexId) end, nil)
+                if type(vb) == "table" and type(vw) == "table" and #vb > 0 and #vw > 0 then
+                    local mapped = {}
+                    local weights = {}
+                    local count = math.min(#vb, #vw)
+                    for j = 1, count do
+                        mapped[j] = boneIndexById[tostring(vb[j])] or 0
+                        weights[j] = vw[j]
+                    end
+                    skin[#skin + 1] = {vertex = i, bones = mapped, weights = weights}
+                end
+                if i % 3000 == 0 then task.wait() end
             end
-            if i%1500==0 then task.wait() end
         end
-        local a=accessoryOf(part)
-        local wl=wrapLayer(part)
+
+        local meta = wrapMetadata(desc.wrap)
+        local parent = parentMetadata(desc.wrap)
+        local meshId = desc.role == "layerReferenceCage"
+            and safe(function() return tostring(desc.wrap.ReferenceMeshId) end, "")
+            or safe(function() return tostring(desc.wrap.CageMeshId) end, "")
+
         return {
-            schemaVersion=3,kind="mesh",meshIndex=index,partName=part.Name,fullName=part:GetFullName(),
-            meshId=safe(function() return tostring(part.MeshId) end,""),textureId=safe(function() return tostring(part.TextureID) end,""),sourceAssetId=safe(function() return part.SourceAssetId end,-1),
-            partSize=v3(part.Size),partCFrame=cframe(part.CFrame),editableSize=v3(editableSize),meshSize=v3(meshSize),renderScale=v3(scale),renderScaleBasis="MeshPart.Size / MeshPart.MeshSize",
-            color=c3(part.Color),transparency=part.Transparency,material=tostring(part.Material),doubleSided=safe(function() return part.DoubleSided end,false),
-            accessory=a and {name=a.Name,accessoryType=safe(function() return tostring(a.AccessoryType) end,"")} or nil,
-            surfaceAppearance=surface(part),wrapLayer=wl,wrapTarget=wrapTarget(part),skinning=wl and skinning(e,vids) or nil,
-            vertexCount=#vids,faceCount=#faces,uvCount=#uvs,normalCount=#normals,positions=pos,uvs=uvs,normals=normals,faces=faces,
+            schemaVersion = 2,
+            captureMode = "incremental_wrap_cages_only",
+            kind = "wrapCage",
+            meshIndex = recordIndex,
+            role = desc.role,
+            partName = parent.parentName,
+            fullName = meta.wrapPath .. "::" .. desc.role,
+            meshId = meshId,
+            assetId = assetId(meshId),
+            editableSize = safe(function() return vec3(editable:GetSize()) end, nil),
+            vertexCount = #vertexIds,
+            faceCount = #faces,
+            uvCount = #uvs,
+            normalCount = #normals,
+            positions = positions,
+            uvs = uvs,
+            normals = normals,
+            faces = faces,
+            bones = bones,
+            skin = skin,
+            wrap = meta,
+            parent = parent,
         }
     end)
-    pcall(function() e:Destroy() end)
-    if not ok then return nil,tostring(record) end
-    return record
+
+    pcall(function() editable:Destroy() end)
+    if not ok then return nil, tostring(result) end
+    return result
 end
 
-local function cleanAvatar()
-    local model=safe(function() return Players:CreateHumanoidModelFromUserId(USER_ID) end,nil)
-    if model then
-        model.Name="AvatarGeometry_TemporaryModel"
-        model.Parent=workspace
-        safe(function() model:PivotTo(CFrame.new(0,50,0)) end,nil)
-        local root=model:FindFirstChild("HumanoidRootPart")
-        if root and root:IsA("BasePart") then root.Anchored=true end
-        task.wait(5)
-        return model
-    end
-    local lp=Players.LocalPlayer
-    if lp and lp.UserId==USER_ID then task.wait(2); return lp.Character or lp.CharacterAdded:Wait() end
-end
-
-local imageCandidates={}
-local function imageCandidate(id, content)
-    if not IMAGE_SET[id] or content==nil then return end
-    imageCandidates[id]=imageCandidates[id] or {}
-    imageCandidates[id][#imageCandidates[id]+1]=content
-end
-local function collectImages(parts)
-    for _,id in ipairs(IMAGE_IDS) do
-        if Content then
-            if type(Content.fromAssetId)=="function" then imageCandidate(id,safe(function() return Content.fromAssetId(tonumber(id)) end,nil)) end
-            if type(Content.fromUri)=="function" then imageCandidate(id,safe(function() return Content.fromUri("rbxassetid://"..id) end,nil)) end
+local function getCharacter()
+    local character
+    if LocalPlayer and LocalPlayer.UserId == TARGET_USER_ID then
+        character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    else
+        character = safe(function()
+            return Players:CreateHumanoidModelFromUserId(TARGET_USER_ID)
+        end, nil)
+        if character then
+            character.Name = "AvatarGeometry_TemporaryModel"
+            character.Parent = workspace
         end
     end
-    for _,part in ipairs(parts) do
-        local id=assetId(safe(function() return part.TextureID end,"")); if IMAGE_SET[id] then imageCandidate(id,safe(function() return part.TextureContent end,nil)) end
-        local s=part:FindFirstChildOfClass("SurfaceAppearance")
-        if s then
-            for _,pair in ipairs({{"ColorMap","ColorMapContent"},{"NormalMap","NormalMapContent"},{"RoughnessMap","RoughnessMapContent"},{"MetalnessMap","MetalnessMapContent"}}) do
-                local mid=assetId(safe(function() return s[pair[1]] end,""))
-                if IMAGE_SET[mid] then imageCandidate(mid,safe(function() return s[pair[2]] end,nil)) end
-            end
+
+    if not character then return nil end
+
+    -- Aguarda layered clothing terminar de aparecer, sem forcar nada pesado.
+    local deadline = os.clock() + 12
+    repeat
+        local layers, targets = 0, 0
+        for _, obj in ipairs(character:GetDescendants()) do
+            if obj:IsA("WrapLayer") then layers = layers + 1 end
+            if obj:IsA("WrapTarget") then targets = targets + 1 end
+        end
+        if layers >= 5 and targets >= 15 then break end
+        task.wait(0.4)
+    until os.clock() >= deadline
+
+    return character
+end
+
+local function collectDescriptors(character)
+    local descriptors = {}
+
+    for _, obj in ipairs(character:GetDescendants()) do
+        if obj:IsA("WrapLayer") then
+            descriptors[#descriptors + 1] = {wrap = obj, role = "layerCage"}
+            descriptors[#descriptors + 1] = {wrap = obj, role = "layerReferenceCage"}
+        elseif obj:IsA("WrapTarget") then
+            descriptors[#descriptors + 1] = {wrap = obj, role = "targetCage"}
         end
     end
+
+    table.sort(descriptors, function(a, b)
+        local ak = a.wrap:GetFullName() .. "::" .. a.role
+        local bk = b.wrap:GetFullName() .. "::" .. b.role
+        return ak < bk
+    end)
+
+    while #descriptors > MAX_RECORDS do
+        descriptors[#descriptors] = nil
+    end
+
+    return descriptors
 end
 
-local function extractImage(id,index)
-    local errors={}
-    for _,content in ipairs(imageCandidates[id] or {}) do
-        local ok,img=pcall(function() return AssetService:CreateEditableImageAsync(content) end)
-        if ok and img then
-            local ok2,rec=pcall(function()
-                local size=img.Size; local w,h=math.floor(size.X+0.5),math.floor(size.Y+0.5)
-                if w<1 or h<1 or w>4096 or h>4096 then error("dimensao invalida") end
-                local pixels=img:ReadPixelsBuffer(Vector2.zero,Vector2.new(w,h))
-                local z=EncodingService:CompressBuffer(pixels,Enum.CompressionAlgorithm.Zstd,9)
-                local b64=EncodingService:Base64Encode(z)
-                return {schemaVersion=3,kind="image",meshIndex=index,partName="__image_"..id,meshId="",assetId=id,width=w,height=h,pixelFormat="RGBA8",origin="top-left",compression="zstd",uncompressedBytes=w*h*4,compressedBytes=buffer.len(z),dataBase64=buffer.tostring(b64),positions={},faces={},uvs={},normals={}}
-            end)
-            pcall(function() img:Destroy() end)
-            if ok2 then return rec end
-            errors[#errors+1]=tostring(rec)
-        else errors[#errors+1]=tostring(img) end
-    end
-    return nil,table.concat(errors," | "):sub(1,1000)
-end
+local function uploadRecord(uploadId, index, record)
+    local text = HttpService:JSONEncode(record)
+    local totalChunks = math.max(1, math.ceil(#text / CHUNK_CHARS))
 
-local function uploadRecord(uploadId,index,record)
-    local text=HttpService:JSONEncode(record)
-    local total=math.max(1,math.ceil(#text/CHUNK))
-    for ci=1,total do
-        jsonRequest("POST",BASE.."/api/avatar-geometry/"..uploadId.."/chunk",{meshIndex=index,chunkIndex=ci,totalChunks=total,partName=record.partName or "",meshId=record.meshId or "",data=text:sub((ci-1)*CHUNK+1,math.min(#text,ci*CHUNK))},4)
-        if ci%3==0 then task.wait() end
+    for chunkIndex = 1, totalChunks do
+        local first = (chunkIndex - 1) * CHUNK_CHARS + 1
+        local last = math.min(#text, chunkIndex * CHUNK_CHARS)
+        requestJson("POST", BASE .. "/api/avatar-geometry/" .. uploadId .. "/chunk", {
+            meshIndex = index,
+            chunkIndex = chunkIndex,
+            totalChunks = totalChunks,
+            partName = record.fullName or record.partName or "",
+            meshId = record.meshId or "",
+            data = string.sub(text, first, last),
+        }, 4)
+        task.wait()
     end
+
     return #text
 end
-local function openSession(n)
-    local r=jsonRequest("POST",BASE.."/api/avatar-geometry/start",{userId=tostring(USER_ID),username=USERNAME,capturedAt=isoNow(),expectedMeshes=n},4)
-    if type(r.uploadId)~="string" or r.uploadId=="" then error("Servidor sem uploadId") end
-    return r.uploadId
-end
-local function send(records, failed)
-    local last
-    for attempt=1,MAX_SESSION_TRIES do
-        local ok,res=pcall(function()
-            local id=openSession(#records); local bytes=0
-            for i,r in ipairs(records) do
-                notify(r.kind=="image" and ("Enviando imagem "..r.assetId) or ("Enviando "..i.."/"..#records..": "..r.partName),2)
-                bytes=bytes+uploadRecord(id,i,r); task.wait()
-            end
-            local finish=jsonRequest("POST",BASE.."/api/avatar-geometry/"..id.."/finish",{failed=failed},4)
-            return {uploadId=id,bytes=bytes,finish=finish,attempt=attempt}
-        end)
-        if ok then return res end
-        last=tostring(res); if attempt<MAX_SESSION_TRIES then notify("Sessao caiu. Reabrindo...",4); task.wait(1.5*attempt) end
+
+local function openSession(expected)
+    local response = requestJson("POST", BASE .. "/api/avatar-geometry/start", {
+        userId = tostring(TARGET_USER_ID),
+        username = USERNAME,
+        capturedAt = isoNow(),
+        expectedMeshes = expected,
+    }, 4)
+
+    if type(response.uploadId) ~= "string" or response.uploadId == "" then
+        error("Servidor nao retornou uploadId")
     end
-    error(last or "Falha de upload")
+    return response.uploadId
+end
+
+local function runUpload(descriptors)
+    local lastError
+
+    for attempt = 1, MAX_SESSION_ATTEMPTS do
+        local ok, result = pcall(function()
+            local uploadId = openSession(#descriptors)
+            local failed = {}
+            local extracted = 0
+            local bytes = 0
+            local roles = {layerCage = 0, layerReferenceCage = 0, targetCage = 0}
+
+            for index, desc in ipairs(descriptors) do
+                notify(string.format("Cage %d/%d: %s", index, #descriptors, desc.role), 2)
+
+                local record, err = extractCage(desc, index)
+                if record then
+                    bytes = bytes + uploadRecord(uploadId, index, record)
+                    extracted = extracted + 1
+                    roles[desc.role] = (roles[desc.role] or 0) + 1
+                else
+                    failed[#failed + 1] = {
+                        meshIndex = index,
+                        partName = desc.wrap:GetFullName() .. "::" .. desc.role,
+                        meshId = desc.role == "layerReferenceCage"
+                            and safe(function() return tostring(desc.wrap.ReferenceMeshId) end, "")
+                            or safe(function() return tostring(desc.wrap.CageMeshId) end, ""),
+                        error = tostring(err):sub(1, 800),
+                    }
+                end
+
+                -- Nao mantem a malha em memoria: record sai de escopo aqui.
+                record = nil
+                task.wait(0.05)
+            end
+
+            local finish = requestJson("POST", BASE .. "/api/avatar-geometry/" .. uploadId .. "/finish", {
+                failed = failed,
+            }, 4)
+
+            return {
+                uploadId = uploadId,
+                extracted = extracted,
+                failed = #failed,
+                roles = roles,
+                approximateJsonBytes = bytes,
+                server = finish,
+                attempt = attempt,
+            }
+        end)
+
+        if ok then return result end
+        lastError = tostring(result)
+
+        if attempt < MAX_SESSION_ATTEMPTS then
+            notify(string.format("Sessao caiu; repetindo cages (%d/%d)...", attempt + 1, MAX_SESSION_ATTEMPTS), 5)
+            task.wait(attempt)
+        end
+    end
+
+    error(lastError or "Falha ao enviar cages")
 end
 
 local function main()
-    notify("Preparando malhas, cages, skinning e texturas...",5)
-    local char=cleanAvatar(); if not char then error("Nao foi possivel criar o avatar") end
-    local parts={}
-    for _,o in ipairs(char:GetDescendants()) do if o:IsA("MeshPart") then parts[#parts+1]=o end end
-    if #parts>MAX_RECORDS then error("MeshParts acima do limite") end
-    collectImages(parts)
-    local records,failed={},{}
-    for i,p in ipairs(parts) do
-        notify(string.format("Extraindo malha %d/%d: %s",i,#parts,p.Name),2)
-        local r,e=extractMesh(p,i)
-        if r then records[#records+1]=r else failed[#failed+1]={meshIndex=i,partName=p.Name,meshId=safe(function() return tostring(p.MeshId) end,""),error=tostring(e):sub(1,800)} end
-        task.wait()
+    notify("Coleta leve: somente cages/wraps que faltam.", 5)
+
+    local character = getCharacter()
+    if not character then
+        error("Nao foi possivel carregar o avatar Capuccino40")
     end
-    local imageFails={}
-    for _,id in ipairs(IMAGE_IDS) do
-        if #records>=MAX_RECORDS then break end
-        notify("Tentando textura "..id,2)
-        local r,e=extractImage(id,#records+1)
-        if r then records[#records+1]=r else imageFails[#imageFails+1]={assetId=id,error=tostring(e):sub(1,700)} end
-        task.wait()
+
+    local descriptors = collectDescriptors(character)
+    local layerCount, targetCount = 0, 0
+    for _, desc in ipairs(descriptors) do
+        if desc.role == "targetCage" then
+            targetCount = targetCount + 1
+        elseif desc.role == "layerCage" then
+            layerCount = layerCount + 1
+        end
     end
-    local layers,targets,cages,skinned=0,0,0,0
-    for _,r in ipairs(records) do if r.kind=="mesh" then
-        if r.wrapLayer then layers=layers+1; if r.wrapLayer.runtimeInner.available then cages=cages+1 end; if r.wrapLayer.runtimeOuter.available then cages=cages+1 end end
-        if r.wrapTarget then targets=targets+1; if r.wrapTarget.runtimeOuter.available then cages=cages+1 end end
-        if r.skinning and r.skinning.weightedVertexCount>0 then skinned=skinned+1 end
-    end end
-    notify(string.format("Extraido: %d malhas, %d imagens, %d cages runtime. Enviando...",#parts,#records-#parts,cages),5)
-    local sent=send(records,failed)
-    local summary={userId=USER_ID,extractedMeshes=#parts-#failed,geometryFailed=#failed,extractedImages=#records-(#parts-#failed),imageFailed=#imageFails,imageFailures=imageFails,wrapLayerCount=layers,wrapTargetCount=targets,runtimeCageCount=cages,skinnedMeshCount=skinned,totalRecords=#records,approximateUploadedJsonBytes=sent.bytes,uploadId=sent.uploadId,sessionAttempt=sent.attempt,server=sent.finish}
-    if type(writefile)=="function" then safe(function() writefile("Capuccino40_AvatarGeometry_Result.json",HttpService:JSONEncode(summary)) end,nil) end
-    notify(string.format("Concluido: %d malhas, %d imagens, %d cages; falhas de imagem: %d.",summary.extractedMeshes,summary.extractedImages,cages,#imageFails),10)
-    print("[Avatar Geometry]",HttpService:JSONEncode(summary))
+
+    if #descriptors == 0 then
+        error("Nenhum WrapLayer/WrapTarget encontrado")
+    end
+
+    notify(string.format("Encontrado: %d layers, %d targets, %d cages a tentar.", layerCount, targetCount, #descriptors), 6)
+
+    local summary = runUpload(descriptors)
+    summary.userId = TARGET_USER_ID
+    summary.mode = "incremental_wrap_cages_only"
+    summary.descriptors = #descriptors
+    summary.layerCount = layerCount
+    summary.targetCount = targetCount
+
+    if type(writefile) == "function" then
+        safe(function()
+            writefile("Capuccino40_WrapCages_Result.json", HttpService:JSONEncode(summary))
+        end, nil)
+    end
+
+    notify(string.format(
+        "Concluido: %d cages; falhas: %d. Layers %d/%d, referencias %d/%d, targets %d/%d.",
+        summary.extracted,
+        summary.failed,
+        summary.roles.layerCage or 0,
+        layerCount,
+        summary.roles.layerReferenceCage or 0,
+        layerCount,
+        summary.roles.targetCage or 0,
+        targetCount
+    ), 12)
+
+    print("[Avatar Geometry Wrap Incremental]", HttpService:JSONEncode(summary))
     return summary
 end
-local ok,result=pcall(main)
-if not ok then notify("Falhou: "..tostring(result),10); warn("[Avatar Geometry]",result); return nil end
+
+local ok, result = pcall(main)
+if not ok then
+    notify("Falhou: " .. tostring(result), 10)
+    warn("[Avatar Geometry Wrap Incremental]", result)
+    return nil
+end
+
 return result
