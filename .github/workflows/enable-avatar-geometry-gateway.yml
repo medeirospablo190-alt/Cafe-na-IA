@@ -1,0 +1,40 @@
+name: Enable Avatar Geometry Gateway
+
+on:
+  push:
+    paths:
+      - "scripts/enable-avatar-geometry-gateway.mjs"
+      - ".github/workflows/enable-avatar-geometry-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enable-avatar-geometry-gateway
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch gateway
+        run: node scripts/enable-avatar-geometry-gateway.mjs
+
+      - name: Commit gateway update
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- avatar-gateway.js; then
+            echo "Gateway already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add avatar-gateway.js
+          git commit -m "Enable chunked avatar geometry uploads [skip ci]"
+          git push
