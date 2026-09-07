@@ -1,11 +1,10 @@
 --==============================================================--
--- CAFEINA • STEAL AN EGG • CLIENT MENU V3
+-- CAFEINA • STEAL AN EGG • CLIENT MENU V3.1
 -- Executor/mobile • client-side only
 --
 -- Funcoes combinadas:
 --   • atualizar/listar ovos visiveis
---   • selecionar um ovo
---   • trazer o ovo selecionado localmente ate voce
+--   • tocar em um ovo = selecionar + trazer localmente ate voce
 --   • pegar selecionado e ir direto para Safe Zone
 --   • pegar automaticamente o ovo mais proximo e ir para Safe Zone
 --   • ir apenas para Safe Zone
@@ -195,21 +194,22 @@ local function refreshItem(item)
 end
 
 local function bringEggToMe(item)
-    item = refreshItem(item)
-    if not item then return false, "ovo indisponivel" end
+    local refreshed, err = refreshItem(item)
+    if not refreshed then return false, err or "ovo indisponivel" end
+    item = refreshed
 
     local _, hrp = getCharacter()
     if not hrp then return false, "personagem indisponivel" end
 
     local target = hrp.CFrame * CFrame.new(0, 0.8, -3)
-    local ok, err
+    local ok, moveErr
 
     if item.root:IsA("Model") then
-        ok, err = pcall(function()
+        ok, moveErr = pcall(function()
             item.root:PivotTo(target)
         end)
     else
-        ok, err = pcall(function()
+        ok, moveErr = pcall(function()
             item.part.CFrame = target
         end)
     end
@@ -220,7 +220,7 @@ local function bringEggToMe(item)
         return true
     end
 
-    return false, tostring(err)
+    return false, tostring(moveErr)
 end
 
 local function findPrompt(item)
@@ -273,8 +273,9 @@ local function triggerTouch(part)
 end
 
 local function interactEgg(item)
-    item = refreshItem(item)
-    if not item then return false, "ovo indisponivel" end
+    local refreshed, refreshErr = refreshItem(item)
+    if not refreshed then return false, refreshErr or "ovo indisponivel" end
+    item = refreshed
 
     local _, hrp = getCharacter()
     if not hrp then return false, "personagem indisponivel" end
@@ -387,8 +388,9 @@ local function nearestAndSafe()
     pickupAndSafe(eggs[1])
 end
 
+local ENV = (getgenv and getgenv()) or _G
 pcall(function()
-    local old = rawget((getgenv and getgenv()) or _G, "__CAFEINA_EGG_MENU_V3")
+    local old = rawget(ENV, "__CAFEINA_EGG_MENU_V3")
     if old and typeof(old) == "Instance" then old:Destroy() end
 end)
 
@@ -402,8 +404,6 @@ gui.Name = "CafeinaEggClientV3"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = parent
-
-local ENV = (getgenv and getgenv()) or _G
 ENV.__CAFEINA_EGG_MENU_V3 = gui
 
 local frame = Instance.new("Frame")
@@ -419,7 +419,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -78, 0, 30)
 title.Position = UDim2.fromOffset(10, 6)
 title.BackgroundTransparency = 1
-title.Text = "CAFEINA • EGG CLIENT V3"
+title.Text = "CAFEINA • EGG CLIENT V3.1"
 title.TextColor3 = Color3.fromRGB(245, 245, 248)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 13
@@ -543,13 +543,18 @@ local function rebuildEggList()
 
         row.MouseButton1Click:Connect(function()
             if S.busy then return end
+
             local refreshed, err = refreshItem(item)
             if not refreshed then
                 S.status = tostring(err)
                 return
             end
+
             S.selected = refreshed
-            S.status = "Selecionado: " .. refreshed.name .. " • " .. string.format("%.0f studs", refreshed.distance)
+            local okBring, bringErr = bringEggToMe(refreshed)
+            if not okBring then
+                S.status = "Selecionado: " .. refreshed.name .. " • trazer falhou: " .. tostring(bringErr)
+            end
         end)
     end
 
@@ -559,7 +564,7 @@ local function rebuildEggList()
     if #eggs == 0 then
         S.status = "Nenhum ovo encontrado."
     else
-        S.status = tostring(#eggs) .. " ovos encontrados • escolha um ou use MAIS PROXIMO."
+        S.status = tostring(#eggs) .. " ovos encontrados • toque em um para trazer ou use MAIS PROXIMO."
     end
 end
 
@@ -665,4 +670,4 @@ end)
 
 task.spawn(rebuildEggList)
 
-print("[CAFEINA EGG] CLIENT MENU V3 carregado ✓")
+print("[CAFEINA EGG] CLIENT MENU V3.1 carregado ✓")
