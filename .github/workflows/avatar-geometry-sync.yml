@@ -1,0 +1,54 @@
+name: Avatar Geometry Sync
+
+on:
+  push:
+    paths:
+      - ".github/workflows/avatar-geometry-sync.yml"
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+tasks: {}
+
+jobs:
+  geometry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch latest client-extracted geometry
+        id: fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/capuccino40-geometry
+          URL="https://cafe-na-ia.onrender.com/api/avatar-geometry/765329164/latest"
+          CODE="$(curl --silent --show-error --location --max-time 90 --output /tmp/capuccino40-geometry/latest.json --write-out '%{http_code}' "$URL" || true)"
+          if [ "$CODE" != "200" ]; then
+            rm -f /tmp/capuccino40-geometry/latest.json
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Geometria ainda não disponível (HTTP $CODE)."
+            exit 0
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = '/tmp/capuccino40-geometry/latest.json';
+          const d = JSON.parse(fs.readFileSync(p, 'utf8'));
+          if (String(d.userId) !== '765329164') throw new Error('UserId inesperado');
+          if (!Array.isArray(d.meshes)) throw new Error('meshes ausente');
+          console.log(`Geometry package: ${d.meshes.length} meshes, failed=${Array.isArray(d.failed) ? d.failed.length : 0}`);
+          NODE
+
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload geometry package
+        if: steps.fetch.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: capuccino40-avatar-client-geometry
+          path: /tmp/capuccino40-geometry/latest.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
