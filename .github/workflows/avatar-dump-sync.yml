@@ -89,6 +89,17 @@ jobs:
           set -euo pipefail
           node scripts/build-avatar-asset-pack.mjs /tmp/avatar-sync/latest.json /tmp/capuccino40-avatar-assets
 
+      - name: Bundle Draco decoder source
+        if: steps.fetch.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/capuccino40-avatar-assets/tools
+          curl --fail --silent --show-error --location --max-time 60 \
+            "https://raw.githubusercontent.com/google/draco/052a31124c75e64dfbf4f9bc0df066e626aeef41/javascript/draco_decoder.js" \
+            -o /tmp/capuccino40-avatar-assets/tools/draco_decoder.js
+          test -s /tmp/capuccino40-avatar-assets/tools/draco_decoder.js
+
       - name: Upload avatar asset pack
         if: steps.fetch.outputs.available == 'true'
         uses: actions/upload-artifact@v4
