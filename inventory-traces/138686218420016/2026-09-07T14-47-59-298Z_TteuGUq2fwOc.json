@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "type": "inventory_remote_trace",
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-07T14:47:58.000Z",
+  "serverReceivedAt": "2026-09-07T14:47:59.298Z",
+  "placeId": 138686218420016,
+  "gameId": 10532995815,
+  "runId": "e82fc8b0-dc8c-4dbd-8c37-26af7f04b6a4",
+  "trace": {
+    "anomalies": [],
+    "pickupSessions": [],
+    "diagnostics": {
+      "counters": {
+        "worldAdded": 1,
+        "inventoryChanged": 2,
+        "worldRemoved": 0,
+        "records": 9,
+        "droppedRecords": 0,
+        "toolAdded": 1,
+        "uploadAttempts": 0,
+        "promptAttempts": 1,
+        "gemCollected": 1,
+        "toolRemoved": 1
+      },
+      "guards": {
+        "oneAutomaticPromptAttempt": true,
+        "noTouchWatcher": true,
+        "eventDrivenTargeting": true,
+        "noDropRemoteAutomation": true,
+        "noHook": true,
+        "maxRecords": 180,
+        "noSpatialPolling": true
+      },
+      "transport": {
+        "endpoint": "https://cafe-na-ia.onrender.com/api/inventory-trace",
+        "retries": 3
+      },
+      "errors": []
+    },
+    "dupeRace": {
+      "finishReason": "pickup_confirmed",
+      "timelineMs": {
+        "worldAdded_to_promptFire": 0.18901000004234447,
+        "toolRemoved_to_dropInventoryChanged": 148.22463499996275,
+        "dropInventoryChanged_to_worldAdded": 0.2975529999957871,
+        "toolRemoved_to_worldAdded": 148.52218799995853,
+        "worldAdded_to_promptReady": 0.16953100004002408,
+        "promptFire_to_toolAdded": 115.27802099999462,
+        "worldAdded_to_toolAdded": 115.46703100003697,
+        "promptFire_to_gemCollected": 117.41817699999046,
+        "promptFire_to_inventoryChanged": 116.70302099997798
+      },
+      "newTool": {
+        "path": "Players.capuccino40.Backpack.5.2 kg",
+        "name": "5.2 kg",
+        "attributes": {
+          "Favorited": false,
+          "BagId": 228,
+          "Rarity": "Common",
+          "GemName": "MintCrystalCluster",
+          "BaseValue": 125,
+          "Value": 125,
+          "Mutations": "",
+          "SizeLetter": "Small",
+          "Kg": 5.2
+        }
+      },
+      "newBagId": 228,
+      "uid": "d7cb6c0f-979a-4e3d-b3d8-3a7f46167105",
+      "finalState": {
+        "newBagId": 228,
+        "oldBagIdPresent": false,
+        "activeMatchingBagIds": 1,
+        "sameUidWorldCount": 1,
+        "bagIdChanged": true,
+        "uid": "d7cb6c0f-979a-4e3d-b3d8-3a7f46167105",
+        "activeBagIds": {
+          "228": true
+        },
+        "targetStillInWorld": true
+      },
+      "selected": {
+        "tool": {
+          "path": "Workspace.capuccino40.5.2 kg",
+          "name": "5.2 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 224,
+            "Rarity": "Common",
+            "GemName": "MintCrystalCluster",
+            "BaseValue": 125,
+            "Value": 125,
+            "Mutations": "",
+            "SizeLetter": "Small",
+            "Kg": 5.2
+          }
+        },
+        "oldBagId": 224,
+        "rarity": "Common",
+        "kg": 5.2,
+        "gemName": "MintCrystalCluster",
+        "value": 125,
+        "sizeLetter": "Small",
+        "container": "Character"
+      },
+      "world": {
+        "path": "Workspace.DroppedGems.MintCrystalCluster",
+        "name": "MintCrystalCluster",
+        "position": "418.5987548828125, 67.49300384521484, -853.3418579101562",
+        "class": "Model",
+        "attributes": {
+          "Kg": 5.2,
+          "Dropped": true,
+          "DropZ": -853.3418579101562,
+          "GlowMatch": "green",
+          "RBX_ReimportId": "ea331bd6-bcba-4d0b-99b8-02cf2be94f8b",
+          "BaseValue": 125,
+          "Freed": true,
+          "DropX": 418.5987548828125,
+          "GlowColor": "0.596078, 1, 0.698039",
+          "Uid": "d7cb6c0f-979a-4e3d-b3d8-3a7f46167105",
+          "Luck": 0.16917055556685212,
+          "Rarity": "Common",
+          "Value": 125,
+          "Mutations": "",
+          "SizeLetter": "Small",
+          "GemName": "MintCrystalCluster"
+        }
+      },
+      "departedContainer": "Character"
+    },
+    "records": [
+      {
+        "phase": "armed",
+        "unix": 1788792477,
+        "clock": 120.196917923,
+        "selected": {
+          "tool": {
+            "path": "Workspace.capuccino40.5.2 kg",
+            "name": "5.2 kg",
+            "attributes": {
+              "Favorited": false,
+              "BagId": 224,
+              "Rarity": "Common",
+              "GemName": "MintCrystalCluster",
+              "BaseValue": 125,
+              "Value": 125,
+              "Mutations": "",
+              "SizeLetter": "Small",
+              "Kg": 5.2
+            }
+          },
+          "oldBagId": 224,
+          "rarity": "Common",
+          "kg": 5.2,
+          "gemName": "MintCrystalCluster",
+          "value": 125,
+          "sizeLetter": "Small",
+          "container": "Character"
+        },
+        "seq": 1,
+        "kind": "race_test_armed"
+      },
+      {
+        "arguments": [
+          5,
+          12.799999999999999,
+          2217,
+          22
+        ],
+        "phase": "armed",
+        "unix": 1788792478,
+        "clock": 120.769199485,
+        "kind": "inventory_changed",
+        "stage": "drop_transition",
+        "seq": 2
+      },
+      {
+        "oldBagId": 224,
+        "phase": "world_seen",
+        "unix": 1788792478,
+        "clock": 120.62097485000004,
+        "kind": "selected_tool_removed_confirmed",
+        "seq": 3,
+        "container": "Character"
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.MintCrystalCluster",
+          "name": "MintCrystalCluster",
+          "position": "418.5987548828125, 67.49300384521484, -853.3418579101562",
+          "class": "Model",
+          "attributes": {
+            "Kg": 5.2,
+            "Dropped": true,
+            "DropZ": -853.3418579101562,
+            "GlowMatch": "green",
+            "RBX_ReimportId": "ea331bd6-bcba-4d0b-99b8-02cf2be94f8b",
+            "BaseValue": 125,
+            "Freed": true,
+            "DropX": 418.5987548828125,
+            "GlowColor": "0.596078, 1, 0.698039",
+            "Uid": "d7cb6c0f-979a-4e3d-b3d8-3a7f46167105",
+            "Luck": 0.16917055556685212,
+            "Rarity": "Common",
+            "Value": 125,
+            "Mutations": "",
+            "SizeLetter": "Small",
+            "GemName": "MintCrystalCluster"
+          }
+        },
+        "oldBagId": 224,
+        "phase": "world_seen",
+        "clock": 120.76959630800002,
+        "kind": "target_world_added",
+        "seq": 4,
+        "unix": 1788792478
+      },
+      {
+        "enabled": true,
+        "actionText": "Pick Up",
+        "phase": "world_seen",
+        "unix": 1788792478,
+        "holdDuration": 0,
+        "clock": 120.76968084000004,
+        "prompt": "Workspace.DroppedGems.MintCrystalCluster.Mesh_0.Pickup",
+        "seq": 5,
+        "kind": "pickup_prompt_ready"
+      },
+      {
+        "fireClock": 120.76968604800004,
+        "phase": "pickup_fired",
+        "unix": 1788792478,
+        "fireDurationMs": 0.04343699998798911,
+        "seq": 6,
+        "success": true,
+        "returnClock": 120.76972948500003,
+        "clock": 120.76974136000001,
+        "prompt": "Workspace.DroppedGems.MintCrystalCluster.Mesh_0.Pickup",
+        "error": "nil",
+        "kind": "automatic_pickup_attempt"
+      },
+      {
+        "phase": "pickup_fired",
+        "unix": 1788792478,
+        "newBagId": 228,
+        "oldBagId": 224,
+        "seq": 7,
+        "clock": 120.88502719400003,
+        "kind": "pickup_tool_added",
+        "tool": {
+          "path": "Players.capuccino40.Backpack.5.2 kg",
+          "name": "5.2 kg",
+          "attributes": {
+            "Favorited": false,
+            "BagId": 228,
+            "Rarity": "Common",
+            "GemName": "MintCrystalCluster",
+            "BaseValue": 125,
+            "Value": 125,
+            "Mutations": "",
+            "SizeLetter": "Small",
+            "Kg": 5.2
+          }
+        },
+        "container": "Backpack"
+      },
+      {
+        "arguments": [
+          6,
+          18,
+          2342,
+          22
+        ],
+        "phase": "pickup_fired",
+        "unix": 1788792478,
+        "clock": 120.88638906900002,
+        "kind": "inventory_changed",
+        "stage": "after_pickup_attempt",
+        "seq": 8
+      },
+      {
+        "crystal": {
+          "path": "Workspace.DroppedGems.MintCrystalCluster",
+          "type": "Instance",
+          "name": "MintCrystalCluster",
+          "class": "Model"
+        },
+        "player": {
+          "path": "Players.capuccino40",
+          "type": "Instance",
+          "name": "capuccino40",
+          "class": "Player"
+        },
+        "phase": "pickup_fired",
+        "clock": 120.88713709000001,
+        "kind": "gem_collected",
+        "seq": 9,
+        "unix": 1788792478
+      }
+    ],
+    "startedAt": 1788792477,
+    "version": "CAFEINA_CRYSTAL_DUP_RACE_TEST_V2_1",
+    "bagMap": [],
+    "finishedAt": 1788792478,
+    "remotes": [
+      {
+        "name": "InventoryChanged",
+        "path": "ReplicatedStorage.GemRemotes.InventoryChanged"
+      },
+      {
+        "name": "GemCollected",
+        "path": "ReplicatedStorage.GemSignals.GemCollected"
+      }
+    ],
+    "runId": "e82fc8b0-dc8c-4dbd-8c37-26af7f04b6a4",
+    "purpose": "crystal_drop_immediate_pickup_race_timing"
+  }
+}
