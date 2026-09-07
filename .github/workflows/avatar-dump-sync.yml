@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/avatar-dump-sync.yml"
+      - "scripts/build-avatar-asset-pack.mjs"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -51,9 +52,7 @@ jobs:
 
           if (Array.isArray(data.avatar.objects)) {
             for (const object of data.avatar.objects) {
-              if (object && typeof object === 'object') {
-                delete object.attributes;
-              }
+              if (object && typeof object === 'object') delete object.attributes;
             }
           }
 
@@ -78,12 +77,27 @@ jobs:
           fi
 
           cp /tmp/avatar-sync/latest.json "$TARGET_DIR/latest.json"
-
           STAMP="$(node -e "const d=require('/tmp/avatar-sync/latest.json'); console.log(String(d.serverReceivedAt || d.capturedAt || new Date().toISOString()).replace(/[:.]/g,'-'))")"
           HASH="$(sha256sum /tmp/avatar-sync/latest.json | cut -c1-10)"
           cp /tmp/avatar-sync/latest.json "$TARGET_DIR/${STAMP}_${HASH}.json"
-
           echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build exact avatar asset pack
+        if: steps.fetch.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build-avatar-asset-pack.mjs /tmp/avatar-sync/latest.json /tmp/capuccino40-avatar-assets
+
+      - name: Upload avatar asset pack
+        if: steps.fetch.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: capuccino40-avatar-assets
+          path: /tmp/capuccino40-avatar-assets/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
 
       - name: Commit synchronized dump
         if: steps.store.outputs.changed == 'true'
