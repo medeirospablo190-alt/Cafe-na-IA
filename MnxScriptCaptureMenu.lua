@@ -1,192 +1,585 @@
--- CAFEINA • MNX CAPTURE V1 • mobile/executor • PlaceId 138686218420016
--- Captura original -> envia ao Render/GitHub -> altera SOMENTE o final MNX ->
--- envia patched -> executa o decodificador -> captura gnJOnhd0f -> envia deobf.
+--==============================================================--
+-- CAFEINA • UNIVERSAL SCRIPT CAPTURE V2
+-- executor/mobile • pass-through • auto Render/GitHub
+--
+-- Mantem o pipeline ja validado do projeto:
+--   POST /api/inventory-trace -> Render -> mirror GitHub
+--
+-- Captura fontes que passam por loadstring e, quando suportado,
+-- respostas HttpGet que parecem codigo Lua. O codigo original segue
+-- normalmente para execucao; a captura acontece em paralelo.
+--==============================================================--
 
-local Players=game:GetService("Players")
-local HttpService=game:GetService("HttpService")
-local CoreGui=game:GetService("CoreGui")
-local UIS=game:GetService("UserInputService")
-local LP=Players.LocalPlayer or Players.PlayerAdded:Wait()
-local ENV=(getgenv and getgenv()) or _G
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
 
-local C={
- V="CAFEINA_MNX_CAPTURE_V1", PLACE=138686218420016,
- POST="https://cafe-na-ia.onrender.com/api/inventory-trace",
- HEALTH="https://cafe-na-ia.onrender.com/api/inventory-trace/health",
- JSON_MAX=4700000, CHUNK=120000, RETRIES=3,
+local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
+local ENV = (getgenv and getgenv()) or _G
+local ORIGINAL_LOADSTRING = loadstring
+
+local C = {
+    V = "CAFEINA_UNIVERSAL_CAPTURE_V2",
+    POST = "https://cafe-na-ia.onrender.com/api/inventory-trace",
+    HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace/health",
+    SOURCE_CHUNK = 80000,
+    BATCH_CHUNKS = 18,
+    RETRIES = 3,
+    LOCAL_DIR = "CafeinaCaptures",
 }
-if game.PlaceId~=C.PLACE then warn("[MNX] PlaceId bloqueado",game.PlaceId) return end
 
 local function firstfn(...)
- for i=1,select("#",...) do local v=select(i,...); if type(v)=="function" then return v end end
-end
-local synReq,httpReq,fluxReq
-pcall(function() if syn and type(syn.request)=="function" then synReq=syn.request end end)
-pcall(function() if http and type(http.request)=="function" then httpReq=http.request end end)
-pcall(function() if fluxus and type(fluxus.request)=="function" then fluxReq=fluxus.request end end)
-local REQUEST=firstfn(rawget(ENV,"request"),rawget(ENV,"http_request"),httpReq,synReq,fluxReq)
-local WRITE=firstfn(rawget(ENV,"writefile"),writefile)
-local GETCLIP=firstfn(rawget(ENV,"getclipboard"),getclipboard)
-local SETCLIP=firstfn(rawget(ENV,"setclipboard"),setclipboard)
-
-local S={busy=false,render=false,github=false,original=nil,patched=nil,deobf=nil,status="Aguardando script.",err=nil,lastFile=nil}
-local MARK="local yjPoJ8HYWs,art2yjeMs=loadstring(gnJOnhd0f)"
-local SIG="Mnx | Public Enemy"
-local REPL=[=[print("========== MNX PAYLOAD ==========")
-print(gnJOnhd0f)
-print("=================================")
-
-if writefile then
-    writefile(
-        "MNX_DUPE_DEOBF.lua",
-        gnJOnhd0f
-    )
-
-    print(
-        "Payload salvo em MNX_DUPE_DEOBF.lua"
-    )
+    for i = 1, select("#", ...) do
+        local v = select(i, ...)
+        if type(v) == "function" then return v end
+    end
 end
 
-if setclipboard then
-    setclipboard(gnJOnhd0f)
+local synReq, httpReq, fluxReq
+pcall(function() if syn and type(syn.request) == "function" then synReq = syn.request end end)
+pcall(function() if http and type(http.request) == "function" then httpReq = http.request end end)
+pcall(function() if fluxus and type(fluxus.request) == "function" then fluxReq = fluxus.request end end)
 
-    print(
-        "Payload também foi copiado."
-    )
+local REQUEST = firstfn(
+    rawget(ENV, "request"),
+    rawget(ENV, "http_request"),
+    httpReq,
+    synReq,
+    fluxReq
+)
+
+local WRITE = firstfn(rawget(ENV, "writefile"), writefile)
+local MAKEFOLDER = firstfn(rawget(ENV, "makefolder"), makefolder)
+local ISFOLDER = firstfn(rawget(ENV, "isfolder"), isfolder)
+
+pcall(function()
+    local old = rawget(ENV, "__CAFEINA_UNIVERSAL_CAPTURE")
+    if old and type(old.Stop) == "function" then old.Stop() end
+end)
+
+local S = {
+    enabled = true,
+    hookMode = "none",
+    httpHook = false,
+    captures = 0,
+    duplicates = 0,
+    uploaded = 0,
+    failed = 0,
+    queue = {},
+    worker = false,
+    seen = {},
+    items = {},
+    render = false,
+    github = false,
+    last = "Inicializando...",
+}
+
+--==============================================================--
+-- UI DE STATUS: sempre visivel, mesmo se o console do executor
+-- estiver fechado.
+--==============================================================--
+
+pcall(function()
+    local oldGui = rawget(ENV, "__CAFEINA_MNX_CAPTURE_GUI")
+    if oldGui then oldGui:Destroy() end
+end)
+pcall(function()
+    local oldGui = rawget(ENV, "__CAFEINA_UNIVERSAL_CAPTURE_GUI")
+    if oldGui then oldGui:Destroy() end
+end)
+
+local parent = CoreGui
+pcall(function() if gethui then parent = gethui() end end)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "CafeinaUniversalCaptureV2"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = false
+gui.Parent = parent
+ENV.__CAFEINA_MNX_CAPTURE_GUI = gui
+ENV.__CAFEINA_UNIVERSAL_CAPTURE_GUI = gui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(286, 104)
+frame.Position = UDim2.fromOffset(10, 72)
+frame.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 11)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -70, 0, 26)
+title.Position = UDim2.fromOffset(10, 5)
+title.BackgroundTransparency = 1
+title.Text = "CAFEINA • UNIVERSAL CAPTURE"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 11
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = frame
+
+local stopButton = Instance.new("TextButton")
+stopButton.Size = UDim2.fromOffset(54, 24)
+stopButton.Position = UDim2.new(1, -62, 0, 6)
+stopButton.BackgroundColor3 = Color3.fromRGB(100, 30, 35)
+stopButton.BorderSizePixel = 0
+stopButton.Text = "PARAR"
+stopButton.TextColor3 = Color3.new(1, 1, 1)
+stopButton.TextSize = 9
+stopButton.Font = Enum.Font.GothamBold
+stopButton.Parent = frame
+Instance.new("UICorner", stopButton).CornerRadius = UDim.new(0, 7)
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -20, 0, 38)
+statusLabel.Position = UDim2.fromOffset(10, 34)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextWrapped = true
+statusLabel.Text = "Inicializando..."
+statusLabel.TextColor3 = Color3.fromRGB(225, 225, 230)
+statusLabel.TextSize = 10
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+statusLabel.Parent = frame
+
+local countLabel = Instance.new("TextLabel")
+countLabel.Size = UDim2.new(1, -20, 0, 24)
+countLabel.Position = UDim2.fromOffset(10, 75)
+countLabel.BackgroundTransparency = 1
+countLabel.Text = "capturas 0 • enviados 0 • falhas 0"
+countLabel.TextColor3 = Color3.fromRGB(160, 160, 170)
+countLabel.TextSize = 9
+countLabel.Font = Enum.Font.Code
+countLabel.TextXAlignment = Enum.TextXAlignment.Left
+countLabel.Parent = frame
+
+local function refreshCounts()
+    pcall(function()
+        countLabel.Text = string.format(
+            "capturas %d • enviados %d • falhas %d • dup %d",
+            S.captures, S.uploaded, S.failed, S.duplicates
+        )
+    end)
 end
 
-return gnJOnhd0f
-]=]
+local function setStatus(text, toast)
+    S.last = tostring(text)
+    pcall(function() statusLabel.Text = S.last end)
+    refreshCounts()
+    print("[UNIVERSAL CAPTURE] " .. S.last)
+    if toast then
+        task.spawn(function()
+            for _ = 1, 3 do
+                local ok = pcall(function()
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "UNIVERSAL CAPTURE",
+                        Text = S.last,
+                        Duration = 5,
+                    })
+                end)
+                if ok then break end
+                task.wait(0.5)
+            end
+        end)
+    end
+end
+
+--==============================================================--
+-- HTTP / SERVIDOR
+--==============================================================--
+
+local function req(o)
+    if not REQUEST then return false, nil, "request/http_request indisponivel" end
+    local ok, r = pcall(REQUEST, o)
+    if not ok or not r then return false, nil, tostring(r) end
+    local code = tonumber(r.StatusCode or r.Status or r.status_code or r.status) or 0
+    local body = tostring(r.Body or r.body or "")
+    return code >= 200 and code < 300, {status = code, body = body}, nil
+end
+
+local function health()
+    local ok, r, e = req({
+        Url = C.HEALTH,
+        Method = "GET",
+        Headers = {Accept = "application/json", ["Cache-Control"] = "no-cache"},
+    })
+    if not ok then
+        S.render = false
+        S.github = false
+        return false, e or (r and "HTTP " .. tostring(r.status)) or "health falhou"
+    end
+    local d
+    pcall(function() d = HttpService:JSONDecode(r.body) end)
+    S.render = type(d) == "table" and d.ok == true
+    S.github = S.render and d.githubMirrorConfigured == true
+    if not S.render then return false, "health invalido" end
+    if not S.github then return false, "Render OK, mirror GitHub nao configurado" end
+    return true
+end
 
 local function iso()
- local ok,v=pcall(function() return DateTime.now():ToIsoDate() end)
- return ok and v or os.date("!%Y-%m-%dT%H:%M:%SZ")
-end
-local function req(o)
- if not REQUEST then return false,nil,"request/http_request indisponível" end
- local ok,r=pcall(REQUEST,o); if not ok or not r then return false,nil,tostring(r) end
- local code=tonumber(r.StatusCode or r.Status or r.status_code or r.status) or 0
- local body=tostring(r.Body or r.body or "")
- return code>=200 and code<300,{status=code,body=body},nil
-end
-local function health()
- S.status="Verificando Render/GitHub..."
- local ok,r,e=req({Url=C.HEALTH,Method="GET",Headers={Accept="application/json",["Cache-Control"]="no-cache"}})
- if not ok then S.render=false;S.github=false;S.err=e or (r and "HTTP "..r.status) or "health falhou";return false end
- local d;pcall(function() d=HttpService:JSONDecode(r.body) end)
- S.render=type(d)=="table" and d.ok==true
- S.github=S.render and d.githubMirrorConfigured==true
- if not S.render then S.err="Health inválido" return false end
- if not S.github then S.err="GitHub mirror não configurado no Render" return false end
- S.err=nil;S.status="Render OK • GitHub mirror OK";return true
-end
-local function save(kind,src)
- if not WRITE then return end
- local n=kind=="original" and "MNX_DUPE_ORIGINAL.lua" or kind=="patched" and "MNX_DUPE_PATCHED.lua" or "MNX_DUPE_DEOBF.lua"
- pcall(WRITE,n,src)
-end
-local function records(kind,src)
- local out,total={},math.max(1,math.ceil(#src/C.CHUNK))
- for i=1,total do
-  local a=(i-1)*C.CHUNK+1; local b=math.min(#src,i*C.CHUNK)
-  out[#out+1]={kind="script_source_chunk",stage=kind,index=i,total=total,data=src:sub(a,b)}
- end
- return out
-end
-local function send(kind,src)
- local rid=string.format("MNX_CAPTURE_%s_%d_%d",kind:upper(),os.time(),math.random(100000,999999))
- local p={schemaVersion=1,userId=tostring(LP.UserId),username=tostring(LP.Name),capturedAt=iso(),placeId=game.PlaceId,gameId=game.GameId,runId=rid,
-  trace={version=C.V,runId=rid,stage=kind,sourceChars=#src,startedAt=os.time(),finishedAt=os.time(),remotes={},records=records(kind,src)}}
- local ok,j=pcall(function() return HttpService:JSONEncode(p) end);if not ok then return false,"JSONEncode falhou" end
- if #j>C.JSON_MAX then return false,string.format("JSON %.2f MB excede limite seguro %.2f MB",#j/1e6,C.JSON_MAX/1e6) end
- local last="falha HTTP"
- for n=1,C.RETRIES do
-  S.status=string.format("Enviando %s %d/%d...",kind,n,C.RETRIES)
-  local yes,r,e=req({Url=C.POST,Method="POST",Headers={["Content-Type"]="application/json",Accept="application/json",["User-Agent"]="Cafeina-MNX-Capture/1.0"},Body=j})
-  if yes and r then
-   local d;pcall(function() d=HttpService:JSONDecode(r.body) end)
-   if type(d)=="table" and d.ok==true then
-    if type(d.github)=="table" and d.github.mirrored==true then S.lastFile=d.file;return true,d end
-    last="Render recebeu, mas GitHub não confirmou mirror"
-   else last="Resposta do Render sem confirmação" end
-  else last=e or (r and "HTTP "..r.status) or last end
-  if n<C.RETRIES then task.wait(1.25*n) end
- end
- return false,last
+    local ok, v = pcall(function() return DateTime.now():ToIsoDate() end)
+    return ok and v or os.date("!%Y-%m-%dT%H:%M:%SZ")
 end
 
-local function trim(x) return tostring(x or ""):match("^%s*(.-)%s*$") or "" end
-local function sourceFrom(x)
- x=tostring(x or ""); if trim(x)=="" then return nil,"Entrada vazia" end
- local u=trim(x):match("^(https?://.+)$")
-  or x:match('game%s*:%s*HttpGet%s*%(%s*"(https?://[^"]+)"')
-  or x:match("game%s*:%s*HttpGet%s*%(%s*'(https?://[^']+)'")
- if u then
-  S.status="Baixando script original...";local ok,v=pcall(function() return game:HttpGet(u) end)
-  if not ok or type(v)~="string" or v=="" then return nil,"HttpGet falhou: "..tostring(v) end
-  return v
- end
- return x
-end
-local function capture(x)
- if S.busy then return end
- local src,e=sourceFrom(x);if not src then S.err=e;S.status="Falha ao capturar";return end
- S.original=src;S.patched=nil;S.deobf=nil;S.err=nil;save("original",src)
- S.status=string.format("Original capturado • %d chars • final MNX: %s",#src,src:find(MARK,1,true) and "ACHADO" or "NÃO ACHADO")
-end
-local function patch(src)
- local a=src:find(MARK,1,true);if not a then return nil,"Bloco final MNX não encontrado" end
- if src:find(MARK,a+#MARK,true) then return nil,"Marcador final duplicado; cancelado" end
- local tail=src:sub(a);if not tail:find(SIG,1,true) then return nil,"Assinatura MNX ausente no bloco final" end
- local out=src:sub(1,a-1)..REPL
- if out:find("loadstring(gnJOnhd0f)",1,true) then return nil,"loadstring do payload ainda presente" end
- return out
-end
-local function decode(src)
- if type(loadstring)~="function" then return nil,"loadstring indisponível" end
- local f,e=loadstring(src);if not f then return nil,"Patched não compilou: "..tostring(e) end
- local ok,v=pcall(f);if not ok then return nil,"Decodificador falhou: "..tostring(v) end
- if type(v)~="string" or v=="" then return nil,"MNX não retornou gnJOnhd0f como string" end
- return v
-end
-local function process()
- if S.busy then return end;if not S.original then S.status="Capture o script primeiro" return end
- S.busy=true;S.err=nil
- local function fail(e) S.err=tostring(e);S.status="ERRO • "..S.err;S.busy=false end
- if not health() then return fail(S.err or S.status) end
- save("original",S.original)
- local ok,r=send("original",S.original);if not ok then return fail(r) end
- S.status="Original no GitHub ✓ • alterando final..."
- local p,e=patch(S.original);if not p then return fail(e) end;S.patched=p;save("patched",p)
- ok,r=send("patched",p);if not ok then return fail(r) end
- S.status="Patched no GitHub ✓ • executando só o decodificador..."
- local d;d,e=decode(p);if not d then return fail(e) end;S.deobf=d;save("deobfuscated",d)
- ok,r=send("deobfuscated",d);if not ok then return fail(r) end
- if SETCLIP then pcall(SETCLIP,d) end
- S.status=string.format("CONCLUÍDO ✓ • deobf %d chars • GitHub OK",#d);S.err=nil;S.busy=false
+--==============================================================--
+-- CAPTURA / BACKUP
+--==============================================================--
+
+local function hashSource(src)
+    local h = 5381
+    for i = 1, #src do
+        h = (h * 33 + string.byte(src, i)) % 4294967296
+        if i % 250000 == 0 then task.wait() end
+    end
+    return string.format("%08x-%d", h, #src)
 end
 
-pcall(function() local old=rawget(ENV,"__CAFEINA_MNX_CAPTURE_GUI");if old then old:Destroy() end end)
-local parent=CoreGui;pcall(function() if gethui then parent=gethui() end end)
-local gui=Instance.new("ScreenGui");gui.Name="CafeinaMnxCaptureV1";gui.ResetOnSpawn=false;gui.Parent=parent;ENV.__CAFEINA_MNX_CAPTURE_GUI=gui
-local f=Instance.new("Frame");f.Size=UDim2.fromOffset(310,330);f.Position=UDim2.fromOffset(10,72);f.BackgroundColor3=Color3.fromRGB(15,15,18);f.BorderSizePixel=0;f.Active=true;f.Parent=gui;Instance.new("UICorner",f).CornerRadius=UDim.new(0,12)
-local title=Instance.new("TextLabel");title.Size=UDim2.new(1,-72,0,30);title.Position=UDim2.fromOffset(10,6);title.BackgroundTransparency=1;title.Text="CAFEINA • MNX CAPTURE";title.TextColor3=Color3.new(1,1,1);title.TextSize=12;title.Font=Enum.Font.GothamBold;title.TextXAlignment=Enum.TextXAlignment.Left;title.Parent=f
-local min=Instance.new("TextButton");min.Size=UDim2.fromOffset(52,26);min.Position=UDim2.new(1,-60,0,6);min.BackgroundColor3=Color3.fromRGB(42,42,48);min.BorderSizePixel=0;min.Text="MIN";min.TextColor3=Color3.new(1,1,1);min.TextSize=10;min.Font=Enum.Font.GothamBold;min.Parent=f;Instance.new("UICorner",min).CornerRadius=UDim.new(0,7)
-local box=Instance.new("TextBox");box.Size=UDim2.new(1,-20,0,78);box.Position=UDim2.fromOffset(10,40);box.BackgroundColor3=Color3.fromRGB(25,25,30);box.BorderSizePixel=0;box.ClearTextOnFocus=false;box.MultiLine=true;box.TextXAlignment=Enum.TextXAlignment.Left;box.TextYAlignment=Enum.TextYAlignment.Top;box.PlaceholderText="Cole URL, loader HttpGet ou script completo";box.Text="";box.TextColor3=Color3.fromRGB(235,235,235);box.PlaceholderColor3=Color3.fromRGB(125,125,135);box.TextSize=10;box.Font=Enum.Font.Code;box.Parent=f;Instance.new("UICorner",box).CornerRadius=UDim.new(0,8)
-local function btn(txt,x,y,w,bg)local b=Instance.new("TextButton");b.Size=UDim2.new(w,-15,0,34);b.Position=UDim2.new(x,10,0,y);b.BackgroundColor3=bg;b.BorderSizePixel=0;b.Text=txt;b.TextColor3=Color3.new(1,1,1);b.TextSize=10;b.Font=Enum.Font.GothamBold;b.Parent=f;Instance.new("UICorner",b).CornerRadius=UDim.new(0,8);return b end
-local clip=btn("CLIPBOARD",0,126,.5,Color3.fromRGB(45,52,70));clip.Size=UDim2.new(.5,-15,0,34)
-local cap=btn("CAPTURAR CAMPO",.5,126,.5,Color3.fromRGB(55,55,65));cap.Position=UDim2.new(.5,5,0,126);cap.Size=UDim2.new(.5,-15,0,34)
-local go=btn("ENVIAR → PATCH → EXTRAIR",0,168,1,Color3.fromRGB(115,30,35));go.Size=UDim2.new(1,-20,0,34)
-local st=Instance.new("TextLabel");st.Size=UDim2.new(1,-20,0,104);st.Position=UDim2.fromOffset(10,210);st.BackgroundTransparency=1;st.TextWrapped=true;st.TextColor3=Color3.fromRGB(215,215,220);st.TextSize=10;st.Font=Enum.Font.Gotham;st.TextXAlignment=Enum.TextXAlignment.Left;st.TextYAlignment=Enum.TextYAlignment.Top;st.Parent=f
-local mini=Instance.new("TextButton");mini.Size=UDim2.fromOffset(88,40);mini.Position=f.Position;mini.BackgroundColor3=Color3.fromRGB(18,18,22);mini.BorderSizePixel=0;mini.Text="MNX CAPTURE";mini.TextColor3=Color3.new(1,1,1);mini.TextSize=9;mini.Font=Enum.Font.GothamBold;mini.Visible=false;mini.Parent=gui;Instance.new("UICorner",mini).CornerRadius=UDim.new(0,10)
-min.MouseButton1Click:Connect(function() f.Visible=false;mini.Visible=true end);mini.MouseButton1Click:Connect(function() mini.Visible=false;f.Visible=true end)
-clip.MouseButton1Click:Connect(function() if not GETCLIP then S.err="getclipboard indisponível" return end;local ok,v=pcall(GETCLIP);if ok then capture(v) else S.err=tostring(v) end end)
-cap.MouseButton1Click:Connect(function() capture(box.Text) end);go.MouseButton1Click:Connect(function() task.spawn(process) end)
-local dragging=false;local ds,sp;title.Active=true
-title.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.Touch or i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true;ds=i.Position;sp=f.Position end end)
-title.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.Touch or i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
-UIS.InputChanged:Connect(function(i)if dragging and (i.UserInputType==Enum.UserInputType.Touch or i.UserInputType==Enum.UserInputType.MouseMovement) then local d=i.Position-ds;f.Position=UDim2.new(sp.X.Scale,sp.X.Offset+d.X,sp.Y.Scale,sp.Y.Offset+d.Y);mini.Position=f.Position end end)
-task.spawn(function()while gui.Parent do st.Text=string.format("Original: %d • Patched: %d • Deobf: %d\nRender: %s • GitHub: %s\n%s%s%s",S.original and #S.original or 0,S.patched and #S.patched or 0,S.deobf and #S.deobf or 0,S.render and "OK" or "?",S.github and "OK" or "?",S.status,S.lastFile and ("\nArquivo: "..S.lastFile) or "",S.err and ("\nErro: "..S.err) or "");go.Text=S.busy and "PROCESSANDO..." or "ENVIAR → PATCH → EXTRAIR";task.wait(.2) end end)
-ENV.__CAFEINA_MNX_CAPTURE_V1={State=S,Capture=capture,Patch=patch,Process=process,Health=health}
-task.spawn(health)
-print("[MNX CAPTURE] V1 carregado")
+local function saveLocal(item)
+    if not WRITE then return end
+    if MAKEFOLDER then
+        pcall(function()
+            if not ISFOLDER or not ISFOLDER(C.LOCAL_DIR) then MAKEFOLDER(C.LOCAL_DIR) end
+        end)
+    end
+    local file = string.format(
+        "%s/Capture_%04d_%s.lua",
+        C.LOCAL_DIR,
+        item.index,
+        item.hash:sub(1, 8)
+    )
+    pcall(WRITE, file, item.source)
+end
+
+local function looksLikeLua(src, url)
+    if type(src) ~= "string" or #src < 20 then return false end
+    local u = string.lower(tostring(url or ""))
+    if u:find("%.lua", 1, false) or u:find("raw%.githubusercontent%.com", 1, false) then
+        return true
+    end
+    local markers = {
+        "loadstring", "function", "local ", "game:GetService",
+        "FireServer", "InvokeServer", "CreateWindow", "getgenv",
+    }
+    local n = 0
+    for _, marker in ipairs(markers) do
+        if string.find(src, marker, 1, true) then
+            n = n + 1
+            if n >= 2 then return true end
+        end
+    end
+    return false
+end
+
+--==============================================================--
+-- ENVIO EM LOTES. Cada lote preserva index/total globais para
+-- reconstruir exatamente a fonte, inclusive scripts grandes.
+--==============================================================--
+
+local function sendBatch(item, records, batchIndex, batchTotal, totalChunks)
+    local rid = string.format(
+        "SCRIPT_CAPTURE_%d_%s_B%d_%d",
+        item.index,
+        item.hash:sub(1, 8),
+        batchIndex,
+        os.time()
+    )
+
+    local payload = {
+        schemaVersion = 1,
+        userId = tostring(LP.UserId),
+        username = tostring(LP.Name),
+        capturedAt = iso(),
+        placeId = game.PlaceId,
+        gameId = game.GameId,
+        runId = rid,
+        trace = {
+            version = C.V,
+            runId = rid,
+            captureId = item.captureId,
+            stage = "universal_pass_through",
+            origin = item.origin,
+            detail = item.detail,
+            sourceChars = #item.source,
+            sourceHash = item.hash,
+            sourceIndex = item.index,
+            chunkCount = totalChunks,
+            batchIndex = batchIndex,
+            batchTotal = batchTotal,
+            remotes = {},
+            records = records,
+        },
+    }
+
+    local ok, encoded = pcall(function() return HttpService:JSONEncode(payload) end)
+    if not ok then return false, "JSONEncode falhou" end
+
+    local last = "falha HTTP"
+    for attempt = 1, C.RETRIES do
+        local yes, r, e = req({
+            Url = C.POST,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                Accept = "application/json",
+                ["User-Agent"] = "Cafeina-Universal-Capture/2.0",
+            },
+            Body = encoded,
+        })
+
+        if yes and r then
+            local d
+            pcall(function() d = HttpService:JSONDecode(r.body) end)
+            if type(d) == "table" and d.ok == true then
+                if type(d.github) == "table" and d.github.mirrored == true then
+                    return true
+                end
+                last = "Render recebeu, GitHub nao confirmou mirror"
+            else
+                last = "resposta do Render sem confirmacao"
+            end
+        else
+            last = e or (r and "HTTP " .. tostring(r.status)) or last
+        end
+
+        if attempt < C.RETRIES then task.wait(1.25 * attempt) end
+    end
+
+    return false, last
+end
+
+local function uploadItem(item)
+    local totalChunks = math.max(1, math.ceil(#item.source / C.SOURCE_CHUNK))
+    local batchTotal = math.max(1, math.ceil(totalChunks / C.BATCH_CHUNKS))
+
+    for batchIndex = 1, batchTotal do
+        if not S.enabled then return false, "captura parada" end
+
+        local firstChunk = (batchIndex - 1) * C.BATCH_CHUNKS + 1
+        local lastChunk = math.min(totalChunks, batchIndex * C.BATCH_CHUNKS)
+        local records = {}
+
+        for chunkIndex = firstChunk, lastChunk do
+            local a = (chunkIndex - 1) * C.SOURCE_CHUNK + 1
+            local b = math.min(#item.source, chunkIndex * C.SOURCE_CHUNK)
+            records[#records + 1] = {
+                kind = "script_source_chunk",
+                stage = "universal_pass_through",
+                origin = item.origin,
+                index = chunkIndex,
+                total = totalChunks,
+                data = item.source:sub(a, b),
+            }
+        end
+
+        setStatus(string.format(
+            "Enviando captura #%d • lote %d/%d...",
+            item.index, batchIndex, batchTotal
+        ))
+
+        local ok, err = sendBatch(item, records, batchIndex, batchTotal, totalChunks)
+        if not ok then return false, err end
+    end
+
+    return true
+end
+
+local function startWorker()
+    if S.worker then return end
+    S.worker = true
+    task.spawn(function()
+        while S.enabled and #S.queue > 0 do
+            local item = table.remove(S.queue, 1)
+            local ok, err = uploadItem(item)
+            if ok then
+                S.uploaded = S.uploaded + 1
+                setStatus(string.format(
+                    "CAPTURA #%d NO GITHUB ✓ • %d bytes",
+                    item.index, #item.source
+                ), true)
+            else
+                S.failed = S.failed + 1
+                setStatus(string.format(
+                    "CAPTURA #%d PRESERVADA • envio falhou: %s",
+                    item.index, tostring(err)
+                ), true)
+            end
+            refreshCounts()
+        end
+        S.worker = false
+    end)
+end
+
+local function processSource(src, origin, detail)
+    if not S.enabled or type(src) ~= "string" or src == "" then return end
+
+    local hash = hashSource(src)
+    if S.seen[hash] then
+        S.duplicates = S.duplicates + 1
+        refreshCounts()
+        return
+    end
+    S.seen[hash] = true
+
+    S.captures = S.captures + 1
+    local index = S.captures
+    local item = {
+        index = index,
+        source = src,
+        hash = hash,
+        origin = tostring(origin or "unknown"),
+        detail = tostring(detail or ""):sub(1, 500),
+        captureId = string.format(
+            "CAP_%s_%d_%d_%d",
+            tostring(game.PlaceId),
+            LP.UserId,
+            os.time(),
+            index
+        ),
+    }
+
+    S.items[#S.items + 1] = item
+    saveLocal(item)
+    S.queue[#S.queue + 1] = item
+
+    setStatus(string.format(
+        "CAPTURADO #%d • %d bytes • %s",
+        index, #src, item.origin
+    ), true)
+
+    startWorker()
+end
+
+local function observe(src, origin, detail)
+    if not S.enabled or type(src) ~= "string" then return end
+    task.defer(processSource, src, origin, detail)
+end
+
+--==============================================================--
+-- HOOK 1: loadstring. Pass-through: captura e chama o compilador
+-- original sem alterar a fonte.
+--==============================================================--
+
+local loadHookInstalled = false
+
+if type(ORIGINAL_LOADSTRING) == "function" and type(hookfunction) == "function" then
+    local oldLoadstring
+    local wrapper = function(src, chunkName)
+        observe(src, "loadstring", chunkName)
+        return oldLoadstring(src, chunkName)
+    end
+
+    if type(newcclosure) == "function" then
+        local ok, wrapped = pcall(newcclosure, wrapper)
+        if ok and type(wrapped) == "function" then wrapper = wrapped end
+    end
+
+    local ok, old = pcall(function()
+        return hookfunction(ORIGINAL_LOADSTRING, wrapper)
+    end)
+
+    if ok and type(old) == "function" then
+        oldLoadstring = old
+        loadHookInstalled = true
+        S.hookMode = "hookfunction"
+    end
+end
+
+if not loadHookInstalled and type(ORIGINAL_LOADSTRING) == "function" then
+    local replacement = function(src, chunkName)
+        observe(src, "loadstring", chunkName)
+        return ORIGINAL_LOADSTRING(src, chunkName)
+    end
+
+    local ok = pcall(function()
+        ENV.loadstring = replacement
+        _G.loadstring = replacement
+    end)
+
+    if ok and ENV.loadstring == replacement then
+        loadHookInstalled = true
+        S.hookMode = "environment"
+    end
+end
+
+--==============================================================--
+-- HOOK 2: HttpGet/HttpGetAsync, quando o executor suporta.
+-- Isso pega loaders que baixam Lua antes de um segundo estagio.
+-- A resposta original e devolvida intacta.
+--==============================================================--
+
+if type(hookmetamethod) == "function" and type(getnamecallmethod) == "function" then
+    local oldNamecall
+    local hook = function(self, ...)
+        local method = getnamecallmethod()
+        if method == "HttpGet" or method == "HttpGetAsync" then
+            local args = {...}
+            local result = oldNamecall(self, ...)
+            if type(result) == "string" and looksLikeLua(result, args[1]) then
+                observe(result, "httpget", tostring(args[1] or ""))
+            end
+            return result
+        end
+        return oldNamecall(self, ...)
+    end
+
+    if type(newcclosure) == "function" then
+        local ok, wrapped = pcall(newcclosure, hook)
+        if ok and type(wrapped) == "function" then hook = wrapped end
+    end
+
+    local ok, old = pcall(function()
+        return hookmetamethod(game, "__namecall", hook)
+    end)
+
+    if ok and type(old) == "function" then
+        oldNamecall = old
+        S.httpHook = true
+    end
+end
+
+local function stop()
+    S.enabled = false
+    setStatus("PARADO • hooks ficam em pass-through sem coletar", true)
+    stopButton.Text = "PARADO"
+    stopButton.AutoButtonColor = false
+end
+
+stopButton.MouseButton1Click:Connect(function()
+    if S.enabled then stop() end
+end)
+
+ENV.__CAFEINA_UNIVERSAL_CAPTURE = {
+    State = S,
+    Stop = stop,
+    GetCaptures = function() return S.items end,
+}
+
+--==============================================================--
+-- ARRANQUE / DIAGNOSTICO VISIVEL
+--==============================================================--
+
+if not loadHookInstalled and not S.httpHook then
+    setStatus("ERRO • executor nao permitiu instalar nenhum hook", true)
+else
+    setStatus(string.format(
+        "ARMADO ✓ • loadstring=%s • HttpGet=%s • verificando servidor...",
+        S.hookMode,
+        S.httpHook and "ON" or "OFF"
+    ), true)
+
+    task.spawn(function()
+        local ok, err = health()
+        if ok then
+            setStatus(string.format(
+                "ARMADO ✓ • SERVIDOR OK • GITHUB OK • %s / HttpGet %s",
+                S.hookMode,
+                S.httpHook and "ON" or "OFF"
+            ), true)
+        else
+            setStatus("ARMADO LOCALMENTE • servidor: " .. tostring(err), true)
+        end
+    end)
+end
