@@ -1,0 +1,33 @@
+name: Avatar Geometry Smoke
+
+on:
+  push:
+    paths:
+      - ".github/workflows/avatar-geometry-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Render geometry endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://cafe-na-ia.onrender.com/api/avatar-geometry/765329164/status"
+          for i in $(seq 1 20); do
+            CODE="$(curl --silent --show-error --location --max-time 45 --output /tmp/status.json --write-out '%{http_code}' "$URL" || true)"
+            echo "attempt=$i code=$CODE"
+            cat /tmp/status.json 2>/dev/null || true
+            echo
+            if [ "$CODE" = "200" ] && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' /tmp/status.json; then
+              echo "Render geometry endpoint is ready."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Render geometry endpoint did not become ready in time."
+          exit 1
