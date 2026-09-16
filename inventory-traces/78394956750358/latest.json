@@ -1,138 +1,858 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "type": "inventory_remote_trace",
   "userId": "765329164",
   "username": "capuccino40",
-  "capturedAt": "2026-09-16T03:16:50.000Z",
-  "serverReceivedAt": "2026-09-16T03:16:51.733Z",
+  "capturedAt": "2026-09-16T07:58:06.000Z",
+  "serverReceivedAt": "2026-09-16T07:58:08.416Z",
   "placeId": 78394956750358,
   "gameId": 10407853954,
-  "runId": "0f291df2-2cfa-4a26-8e6a-2304836bc87c",
+  "runId": "c05e7427-4792-4912-bfa1-d179d0c10393",
   "trace": {
-    "source": "egg_v17_upload_adapter",
-    "metadata": {
-      "scanner": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-      "passive": true,
-      "gameId": 10407853954,
-      "placeVersion": 409,
-      "outboundHook": false,
-      "records": 4,
-      "placeId": 78394956750358
+    "stats": {
+      "records": 8582,
+      "dropped": 0,
+      "valueWatchers": 650,
+      "staticDone": true,
+      "remotes": 103,
+      "outboundObserver": false,
+      "inboundListeners": 100
     },
-    "records": [
+    "batchKind": "remote_catalog",
+    "batchTotal": 13,
+    "records": [],
+    "placeVersion": 410,
+    "finishedAt": "2026-09-16T07:58:06Z",
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V2_1",
+    "batchIndex": 1,
+    "startedAt": "2026-09-16T07:57:51Z",
+    "remotes": [
       {
-        "source": "session",
-        "placeId": 78394956750358,
-        "unix": 1789528562,
-        "placeVersion": 409,
-        "count": 0,
-        "gameId": 10407853954,
-        "version": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-        "kind": "inbound_observers_ready",
-        "runId": "fe184b8d-7449-48d9-a34c-eea57ff65c1a",
-        "time": 0.001504947998910211
+        "path": "ReplicatedStorage.Drunk",
+        "name": "Drunk",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
       },
       {
-        "capabilities": {
-          "request": true,
-          "outboundHook": false
-        },
-        "source": "session",
-        "placeId": 78394956750358,
-        "unix": 1789528562,
-        "placeVersion": 409,
-        "player": {
-          "state": "Enum.HumanoidStateType.Running",
-          "character": true,
-          "health": 100,
-          "position": {
-            "y": 9.588025093078613,
-            "type": "Vector3",
-            "x": -284.8299255371094,
-            "z": 124.78932189941406
-          },
-          "cframe": {
-            "y": 9.588025093078613,
-            "type": "CFrame",
-            "rx": 1.029710858801991e-7,
-            "z": 124.78932189941406,
-            "x": -284.8299255371094,
-            "ry": -1.5556507110595703,
-            "rz": 2.9317279715002087e-9
-          },
-          "walkSpeed": 8,
-          "linearVelocity": {
-            "y": 0.000025992310838773847,
-            "type": "Vector3",
-            "x": 7.863203563829302e-7,
-            "z": 1.0472843037234725e-8
-          }
-        },
-        "version": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-        "gameId": 10407853954,
-        "kind": "session_started",
-        "runId": "fe184b8d-7449-48d9-a34c-eea57ff65c1a",
-        "time": 0.03510302100039553
+        "path": "ReplicatedStorage.Open.open_dresser",
+        "name": "open_dresser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Open",
+        "source": "ReplicatedStorage",
+        "attributes": []
       },
       {
-        "source": "target_scan",
-        "placeId": 78394956750358,
-        "capped": false,
-        "kind": "target_snapshot_complete",
-        "placeVersion": 409,
-        "recorded": 0,
-        "time": 30.843907279999257,
-        "gameId": 10407853954,
-        "version": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-        "scanned": 22660,
-        "runId": "fe184b8d-7449-48d9-a34c-eea57ff65c1a",
-        "unix": 1789528593
+        "path": "ReplicatedStorage.GiftCash.GiftCashClient",
+        "name": "GiftCashClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftCash",
+        "source": "ReplicatedStorage",
+        "attributes": []
       },
       {
-        "source": "session",
-        "placeId": 78394956750358,
-        "unix": 1789528610,
-        "placeVersion": 409,
-        "player": {
-          "state": "Enum.HumanoidStateType.Running",
-          "character": true,
-          "health": 100,
-          "position": {
-            "y": 5.410678863525391,
-            "type": "Vector3",
-            "x": -261.78363037109375,
-            "z": 118.45796203613281
-          },
-          "cframe": {
-            "y": 5.410678863525391,
-            "type": "CFrame",
-            "rx": 3.271810911087414e-8,
-            "z": 118.45796203613281,
-            "x": -261.78363037109375,
-            "ry": -2.3176345825195312,
-            "rz": -3.255813751934511e-8
-          },
-          "walkSpeed": 8,
-          "linearVelocity": {
-            "y": 1.780061040790315e-7,
-            "type": "Vector3",
-            "x": -7.327837465709308e-7,
-            "z": 2.6182481960290716e-8
-          }
-        },
-        "version": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-        "gameId": 10407853954,
-        "records": 3,
-        "kind": "session_finalized",
-        "runId": "fe184b8d-7449-48d9-a34c-eea57ff65c1a",
-        "time": 47.28720336799961
+        "path": "ReplicatedStorage.GiftCash.GiftCashNotify",
+        "name": "GiftCashNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftCash",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.GiftCash.AcceptGift",
+        "name": "AcceptGift",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftCash",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.GiftCash.OpenGiftGiver",
+        "name": "OpenGiftGiver",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftCash",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Matrix_Effect",
+        "name": "Matrix_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Death_Effect",
+        "name": "Death_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Ghost_Effect",
+        "name": "Ghost_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Lava_Effect",
+        "name": "Lava_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Ghost_Stroke_Effect",
+        "name": "Ghost_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Bubblegum_Effect",
+        "name": "Bubblegum_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Oceanic_Red_Effect",
+        "name": "Oceanic_Red_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Ice_Effect",
+        "name": "Ice_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Shine_Effect",
+        "name": "Shine_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Gold_Stroke_Effect",
+        "name": "Gold_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Firey_Effect",
+        "name": "Firey_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Wavey_Effect",
+        "name": "Wavey_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Gold_Effect",
+        "name": "Gold_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Chrome_Stroke_Effect",
+        "name": "Chrome_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Zebra_Effect",
+        "name": "Zebra_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Rainbow_Effect",
+        "name": "Rainbow_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Purchase.Silver_Stroke_Effect",
+        "name": "Silver_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Purchase",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Oceanic_Red_Effect",
+        "name": "Oceanic_Red_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Ghost_Effect",
+        "name": "Ghost_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Ice_Effect",
+        "name": "Ice_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Shine_Effect",
+        "name": "Shine_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Gold_Stroke_Effect",
+        "name": "Gold_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Firey_Effect",
+        "name": "Firey_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Silver_Stroke_Effect",
+        "name": "Silver_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Death_Effect",
+        "name": "Death_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Matrix_Effect",
+        "name": "Matrix_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Zebra_Effect",
+        "name": "Zebra_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Rainbow_Effect",
+        "name": "Rainbow_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Ghost_Stroke_Effect",
+        "name": "Ghost_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Lava_Effect",
+        "name": "Lava_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Chrome_Stroke_Effect",
+        "name": "Chrome_Stroke_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Wavey_Effect",
+        "name": "Wavey_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Gold_Effect",
+        "name": "Gold_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Use.Bubblegum_Effect",
+        "name": "Bubblegum_Effect",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects.Use",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.Remove_UserEffects",
+        "name": "Remove_UserEffects",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.UserEffects.UnequipAllEffects",
+        "name": "UnequipAllEffects",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.UserEffects",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Admin.KickClient",
+        "name": "KickClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Admin",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Block",
+        "name": "Block",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Block2",
+        "name": "Block2",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Hug.HugClient",
+        "name": "HugClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Hug",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Hug.HugNotify",
+        "name": "HugNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Hug",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Hug.AcceptHug",
+        "name": "AcceptHug",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Hug",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.newplayer",
+        "name": "newplayer",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.CodesReplicatedStorage.RemoteEvent",
+        "name": "RemoteEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.CodesReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Daily_Reward.Display_DR",
+        "name": "Display_DR",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Daily_Reward",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Daily_Reward.Toggle_Claim",
+        "name": "Toggle_Claim",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Daily_Reward",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Daily_Reward.Streak_Lost",
+        "name": "Streak_Lost",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Daily_Reward",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Daily_Reward.Toggle_Close",
+        "name": "Toggle_Close",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Daily_Reward",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.SyncDance.SyncDanceClient",
+        "name": "SyncDanceClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.SyncDance",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Carry.CarryClient",
+        "name": "CarryClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Carry.DismountCarry",
+        "name": "DismountCarry",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Carry.AcceptCarry",
+        "name": "AcceptCarry",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Wave.WaveClient",
+        "name": "WaveClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Wave",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Wave.WaveNotify",
+        "name": "WaveNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Wave",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.SoberUp",
+        "name": "SoberUp",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Cutscenes.Cutscene1",
+        "name": "Cutscene1",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Cutscenes",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Cutscenes.Cutscene2",
+        "name": "Cutscene2",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Cutscenes",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Cutscenes.Cutscene3",
+        "name": "Cutscene3",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Cutscenes",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.PassOutNotify",
+        "name": "PassOutNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.AnnouncementNotify",
+        "name": "AnnouncementNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.GiftDrink.GiftDrinkClient",
+        "name": "GiftDrinkClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.GiftDrink.GiftDrinkNotify",
+        "name": "GiftDrinkNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Fight.FightClient",
+        "name": "FightClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Fight",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Fight.FightNotify",
+        "name": "FightNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Fight",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Fight.AcceptFight",
+        "name": "AcceptFight",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Fight",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.LaughTogether.LaughTogetherClient",
+        "name": "LaughTogetherClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.LaughTogether",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.LaughTogether.LaughTogetherNotify",
+        "name": "LaughTogetherNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.LaughTogether",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.LaughTogether.AcceptLaughTogether",
+        "name": "AcceptLaughTogether",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.LaughTogether",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.ChatCommandsNotify",
+        "name": "ChatCommandsNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Tickle.TickleClient",
+        "name": "TickleClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Tickle",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Tickle.TickleNotify",
+        "name": "TickleNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Tickle",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Tickle.AcceptTickle",
+        "name": "AcceptTickle",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Tickle",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Slap.SlapClient",
+        "name": "SlapClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Slap",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Slap.SlapNotify",
+        "name": "SlapNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Slap",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Slap.AcceptSlap",
+        "name": "AcceptSlap",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Slap",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.InteractionNotify",
+        "name": "InteractionNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.SendRobux.SendRobuxClient",
+        "name": "SendRobuxClient",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.SendRobux",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.SendRobux.RobuxGiftNotify",
+        "name": "RobuxGiftNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.SendRobux",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Events.EventAnnounce",
+        "name": "EventAnnounce",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.Events.EventChatMessage",
+        "name": "EventChatMessage",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.CooldownNotify",
+        "name": "CooldownNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnNewMessage",
+        "name": "OnNewMessage",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnMessageDoneFiltering",
+        "name": "OnMessageDoneFiltering",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnNewSystemMessage",
+        "name": "OnNewSystemMessage",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnChannelJoined",
+        "name": "OnChannelJoined",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnChannelLeft",
+        "name": "OnChannelLeft",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnMuted",
+        "name": "OnMuted",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnUnmuted",
+        "name": "OnUnmuted",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.OnMainChannelSet",
+        "name": "OnMainChannelSet",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.ChannelNameColorUpdated",
+        "name": "ChannelNameColorUpdated",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest",
+        "name": "SayMessageRequest",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.SetBlockedUserIdsRequest",
+        "name": "SetBlockedUserIdsRequest",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.GetInitDataRequest",
+        "name": "GetInitDataRequest",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.MutePlayerRequest",
+        "name": "MutePlayerRequest",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
+      },
+      {
+        "path": "ReplicatedStorage.DefaultChatSystemChatEvents.UnMutePlayerRequest",
+        "name": "UnMutePlayerRequest",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DefaultChatSystemChatEvents",
+        "source": "ReplicatedStorage",
+        "attributes": []
       }
     ],
-    "passive": true,
-    "version": "EGG_DELIVERY_TRACE_V1_7_STREAMING_UPLOAD",
-    "batchIndex": 1,
-    "remotes": [],
-    "runId": "0f291df2-2cfa-4a26-8e6a-2304836bc87c",
-    "purpose": "egg_delivery_trace"
+    "runId": "c05e7427-4792-4912-bfa1-d179d0c10393",
+    "purpose": "universal_game_mapping"
   }
 }
