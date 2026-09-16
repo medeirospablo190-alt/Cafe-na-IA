@@ -1,0 +1,229 @@
+        button.Text = State.TPFollowMode == "Above"
+            and State.TPFollowTarget == target
+            and "SEMPRE EM CIMA: ON"
+            or "SEMPRE EM CIMA: OFF"
+
+        tpFrontButton.Text = State.TPFollowMode == "Front"
+            and State.TPFollowTarget == target
+            and "SEMPRE NA FRENTE: ON"
+            or "SEMPRE NA FRENTE: OFF"
+
+        tpSpamButton.Text = State.TPSpamActive
+            and State.TPSpamTarget == target
+            and "TP SPAM: ON"
+            or "TP SPAM: OFF"
+    end
+)
+tpAboveButton.ZIndex = 21
+
+local _, refreshFollowDistance = stepper(
+    popupContent,
+    "Distância",
+    function()
+        return CFG.TPFollowDistance
+    end,
+    function(v)
+        CFG.TPFollowDistance = clamp(
+            v,
+            CFG.TPFollowDistanceMin,
+            CFG.TPFollowDistanceMax
+        )
+    end,
+    CFG.TPFollowDistanceStep,
+    CFG.TPFollowDistanceStep
+)
+
+local _, refreshRadius = stepper(
+    popupContent,
+    "Raio",
+    function()
+        return CFG.TPSpamRadius
+    end,
+    function(v)
+        CFG.TPSpamRadius = clamp(
+            v,
+            CFG.TPSpamRadiusMin,
+            CFG.TPSpamRadiusMax
+        )
+    end,
+    CFG.TPSpamRadiusStep,
+    CFG.TPSpamRadiusStep
+)
+
+local _, refreshTPSpamSpeed = stepper(
+    popupContent,
+    "Velocidade",
+    function()
+        return CFG.TPSpamSpeed
+    end,
+    function(v)
+        CFG.TPSpamSpeed = clamp(
+            v,
+            CFG.TPSpamSpeedMin,
+            CFG.TPSpamSpeedMax
+        )
+    end,
+    CFG.TPSpamSpeedStep,
+    CFG.TPSpamSpeedStep
+)
+
+track(tpPopupClose.MouseButton1Click:Connect(function()
+    tpPopup.Visible = false
+end))
+
+local tpSearchBox = new("TextBox", {
+    Size = UDim2.new(1, -4, 0, 36),
+    BackgroundColor3 = Color3.fromRGB(24, 24, 24),
+    BorderSizePixel = 0,
+    PlaceholderText = "Pesquisar jogador...",
+    PlaceholderColor3 = Color3.fromRGB(135, 135, 135),
+    Text = "",
+    TextColor3 = Color3.fromRGB(240, 240, 240),
+    ClearTextOnFocus = false,
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+    TextXAlignment = Enum.TextXAlignment.Left,
+}, tpPage)
+addCorner(tpSearchBox, 8)
+
+new("UIPadding", {
+    PaddingLeft = UDim.new(0, 10),
+    PaddingRight = UDim.new(0, 10),
+}, tpSearchBox)
+
+local playerRows = {}
+
+local function clearTPRows()
+    for _, row in ipairs(playerRows) do
+        pcall(function()
+            row:Destroy()
+        end)
+    end
+    playerRows = {}
+end
+
+local function openTPPlus(player)
+    State.SelectedTarget = player
+    tpPopupTitle.Text = "TP+ • " .. player.Name
+    tpSpamButton.Text =
+        State.TPSpamActive and State.TPSpamTarget == player
+        and "TP SPAM: ON"
+        or "TP SPAM: OFF"
+
+    tpFrontButton.Text =
+        State.TPFollowMode == "Front" and State.TPFollowTarget == player
+        and "SEMPRE NA FRENTE: ON"
+        or "SEMPRE NA FRENTE: OFF"
+
+    tpAboveButton.Text =
+        State.TPFollowMode == "Above" and State.TPFollowTarget == player
+        and "SEMPRE EM CIMA: ON"
+        or "SEMPRE EM CIMA: OFF"
+
+    refreshFollowDistance()
+    refreshRadius()
+    refreshTPSpamSpeed()
+
+    tpPopup.Visible = true
+end
+
+local function makePlayerRow(player)
+    if player == LP then
+        return
+    end
+
+    local row = new("Frame", {
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Color3.fromRGB(24, 24, 24),
+        BorderSizePixel = 0,
+    }, tpPage)
+    addCorner(row, 8)
+
+    table.insert(playerRows, row)
+
+    new("TextLabel", {
+        Size = UDim2.new(1, -126, 1, 0),
+        Position = UDim2.fromOffset(9, 0),
+        BackgroundTransparency = 1,
+        Text = player.DisplayName .. "  @" .. player.Name,
+        TextColor3 = Color3.fromRGB(235, 235, 235),
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 10,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+    }, row)
+
+    local tpButton = new("TextButton", {
+        Size = UDim2.fromOffset(50, 30),
+        Position = UDim2.new(1, -112, 0, 6),
+        BackgroundColor3 = Color3.fromRGB(38, 38, 38),
+        BorderSizePixel = 0,
+        Text = "TP",
+        TextColor3 = Color3.new(1, 1, 1),
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+    }, row)
+    addCorner(tpButton, 7)
+
+    local tpPlusButton = new("TextButton", {
+        Size = UDim2.fromOffset(50, 30),
+        Position = UDim2.new(1, -56, 0, 6),
+        BackgroundColor3 = Color3.fromRGB(38, 38, 38),
+        BorderSizePixel = 0,
+        Text = "TP+",
+        TextColor3 = Color3.new(1, 1, 1),
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+    }, row)
+    addCorner(tpPlusButton, 7)
+
+    track(tpButton.MouseButton1Click:Connect(function()
+        stopTPSpam()
+
+        if teleportToPlayer(player) then
+            status.Text = "TP → " .. player.Name
+        else
+            status.Text = "Jogador indisponível"
+        end
+    end))
+
+    track(tpPlusButton.MouseButton1Click:Connect(function()
+        openTPPlus(player)
+    end))
+end
+
+local function refreshTPList()
+    clearTPRows()
+
+    local query = string.lower(State.TPSearchText or "")
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LP then
+            local username = string.lower(player.Name or "")
+            local displayName = string.lower(player.DisplayName or "")
+
+            if query == ""
+                or string.find(username, query, 1, true)
+                or string.find(displayName, query, 1, true) then
+                makePlayerRow(player)
+            end
+        end
+    end
+end
+
+track(tpSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    State.TPSearchText = tpSearchBox.Text or ""
+    refreshTPList()
+end))
+
+refreshTPList()
+
+--============================================================
+-- TAB SWITCH
+--============================================================
+
+local function showMainPage()
+    mainPage.Visible = true
+    tpPage.Visible = false
+
+    mainTabButton.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
