@@ -1,0 +1,233 @@
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+}, heightFrame)
+addCorner(upButton, 8)
+
+local downButton = new("TextButton", {
+    Size = UDim2.new(0.5, -3, 1, 0),
+    Position = UDim2.new(0.5, 3, 0, 0),
+    BackgroundColor3 = Color3.fromRGB(31, 31, 31),
+    BorderSizePixel = 0,
+    Text = "DESCER",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 11,
+}, heightFrame)
+addCorner(downButton, 8)
+
+local function beginVertical(direction)
+    State.VerticalDirection = direction
+end
+
+local function stopVertical()
+    State.VerticalDirection = 0
+end
+
+local function bindHoldButton(button, direction)
+    track(button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            beginVertical(direction)
+        end
+    end))
+
+    track(button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            stopVertical()
+        end
+    end))
+end
+
+bindHoldButton(upButton, 1)
+bindHoldButton(downButton, -1)
+
+section(mainPage, "SPIN")
+
+local spinToggle = toggleButton(
+    mainPage,
+    "SPIN",
+    function()
+        return CFG.Spin
+    end,
+    function(v)
+        CFG.Spin = v
+
+        if v then
+            ensureSpinObjects()
+            status.Text = "Spin ativado"
+        else
+            stopSpin()
+            status.Text = "Spin desligado"
+        end
+    end
+)
+
+stepper(
+    mainPage,
+    "Giro",
+    function()
+        return CFG.SpinSpeed
+    end,
+    function(v)
+        CFG.SpinSpeed = clamp(v, CFG.SpinMin, CFG.SpinMax)
+    end,
+    CFG.SpinStep,
+    CFG.SpinStep
+)
+
+section(mainPage, "ESP")
+
+local espToggle = toggleButton(
+    mainPage,
+    "ESP AMIGOS ROBLOX",
+    function()
+        return CFG.FriendsESP
+    end,
+    function(v)
+        CFG.FriendsESP = v
+        refreshFriendESP()
+        status.Text = v
+            and "ESP somente para amigos do Roblox"
+            or "ESP desligado"
+    end
+)
+
+--============================================================
+-- TP PAGE
+--============================================================
+
+local tpPopup = new("Frame", {
+    Size = UDim2.fromOffset(260, 345),
+    Position = UDim2.new(0.5, -130, 0.5, -172),
+    BackgroundColor3 = Color3.fromRGB(14, 14, 14),
+    BorderSizePixel = 0,
+    Visible = false,
+    ZIndex = 20,
+}, gui)
+addCorner(tpPopup, 12)
+addStroke(tpPopup, 0.45)
+
+local tpPopupTitle = new("TextLabel", {
+    Size = UDim2.new(1, -44, 0, 36),
+    Position = UDim2.fromOffset(10, 0),
+    BackgroundTransparency = 1,
+    Text = "TP+",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 21,
+}, tpPopup)
+
+local tpPopupClose = new("TextButton", {
+    Size = UDim2.fromOffset(30, 26),
+    Position = UDim2.new(1, -36, 0, 5),
+    BackgroundColor3 = Color3.fromRGB(70, 27, 27),
+    BorderSizePixel = 0,
+    Text = "×",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    ZIndex = 21,
+}, tpPopup)
+addCorner(tpPopupClose, 7)
+
+local popupContent = new("Frame", {
+    Size = UDim2.new(1, -16, 1, -46),
+    Position = UDim2.fromOffset(8, 40),
+    BackgroundTransparency = 1,
+    ZIndex = 21,
+}, tpPopup)
+
+new("UIListLayout", {
+    Padding = UDim.new(0, 7),
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+}, popupContent)
+
+local tpFrontButton
+local tpAboveButton
+
+local tpSpamButton = actionButton(
+    popupContent,
+    "TP SPAM: OFF",
+    function(button)
+        local target = State.SelectedTarget
+        if not target then
+            return
+        end
+
+        if State.TPSpamActive and State.TPSpamTarget == target then
+            stopTPSpam("desligado")
+        else
+            startTPSpam(target)
+        end
+
+        button.Text = State.TPSpamActive
+            and State.TPSpamTarget == target
+            and "TP SPAM: ON"
+            or "TP SPAM: OFF"
+
+        if tpFrontButton then
+            tpFrontButton.Text = State.TPFollowMode == "Front"
+                and State.TPFollowTarget == target
+                and "SEMPRE NA FRENTE: ON"
+                or "SEMPRE NA FRENTE: OFF"
+        end
+
+        if tpAboveButton then
+            tpAboveButton.Text = State.TPFollowMode == "Above"
+                and State.TPFollowTarget == target
+                and "SEMPRE EM CIMA: ON"
+                or "SEMPRE EM CIMA: OFF"
+        end
+    end
+)
+tpSpamButton.ZIndex = 21
+
+tpFrontButton = actionButton(
+    popupContent,
+    "SEMPRE NA FRENTE: OFF",
+    function(button)
+        local target = State.SelectedTarget
+        if not target then return end
+
+        if State.TPFollowMode == "Front" and State.TPFollowTarget == target then
+            stopTPFollow("desligado")
+        else
+            startTPFollow(target, "Front")
+        end
+
+        button.Text = State.TPFollowMode == "Front"
+            and State.TPFollowTarget == target
+            and "SEMPRE NA FRENTE: ON"
+            or "SEMPRE NA FRENTE: OFF"
+
+        tpAboveButton.Text = State.TPFollowMode == "Above"
+            and State.TPFollowTarget == target
+            and "SEMPRE EM CIMA: ON"
+            or "SEMPRE EM CIMA: OFF"
+
+        tpSpamButton.Text = State.TPSpamActive
+            and State.TPSpamTarget == target
+            and "TP SPAM: ON"
+            or "TP SPAM: OFF"
+    end
+)
+tpFrontButton.ZIndex = 21
+
+tpAboveButton = actionButton(
+    popupContent,
+    "SEMPRE EM CIMA: OFF",
+    function(button)
+        local target = State.SelectedTarget
+        if not target then return end
+
+        if State.TPFollowMode == "Above" and State.TPFollowTarget == target then
+            stopTPFollow("desligado")
+        else
+            startTPFollow(target, "Above")
+        end
+
