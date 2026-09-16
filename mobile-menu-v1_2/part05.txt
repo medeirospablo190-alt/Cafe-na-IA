@@ -1,0 +1,240 @@
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+
+    track(header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+
+            local c
+            c = input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    if c then
+                        c:Disconnect()
+                    end
+                end
+            end)
+        end
+    end))
+
+    track(header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end))
+
+    track(UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            update(input)
+        end
+    end))
+end
+
+--============================================================
+-- UI BUILDERS
+--============================================================
+
+local function section(parent, text)
+    return new("TextLabel", {
+        Size = UDim2.new(1, -4, 0, 23),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = Color3.fromRGB(165, 165, 165),
+        Font = Enum.Font.GothamBold,
+        TextSize = 10,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    }, parent)
+end
+
+local function actionButton(parent, text, callback, height)
+    local b = new("TextButton", {
+        Size = UDim2.new(1, -4, 0, height or 34),
+        BackgroundColor3 = Color3.fromRGB(31, 31, 31),
+        BorderSizePixel = 0,
+        Text = text,
+        TextColor3 = Color3.new(1, 1, 1),
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 11,
+    }, parent)
+
+    addCorner(b, 8)
+
+    track(b.MouseButton1Click:Connect(function()
+        local ok, err = pcall(callback, b)
+        if not ok then
+            status.Text = "Erro: " .. tostring(err)
+        end
+    end))
+
+    return b
+end
+
+local function toggleButton(parent, label, getter, setter)
+    local b
+
+    local function refresh()
+        setButtonState(b, getter(), label)
+    end
+
+    b = actionButton(parent, "", function()
+        setter(not getter())
+        refresh()
+    end)
+
+    refresh()
+
+    return b
+end
+
+local function stepper(parent, label, getter, setter, minus, plus)
+    local frame = new("Frame", {
+        Size = UDim2.new(1, -4, 0, 36),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+        BorderSizePixel = 0,
+    }, parent)
+    addCorner(frame, 8)
+
+    local minusButton = new("TextButton", {
+        Size = UDim2.fromOffset(40, 28),
+        Position = UDim2.fromOffset(4, 4),
+        BackgroundColor3 = Color3.fromRGB(42, 42, 42),
+        BorderSizePixel = 0,
+        Text = "−",
+        TextColor3 = Color3.new(1, 1, 1),
+        Font = Enum.Font.GothamBold,
+        TextSize = 17,
+    }, frame)
+    addCorner(minusButton, 7)
+
+    local valueLabel = new("TextLabel", {
+        Size = UDim2.new(1, -96, 1, 0),
+        Position = UDim2.fromOffset(48, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(235, 235, 235),
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 11,
+    }, frame)
+
+    local plusButton = new("TextButton", {
+        Size = UDim2.fromOffset(40, 28),
+        Position = UDim2.new(1, -44, 0, 4),
+        BackgroundColor3 = Color3.fromRGB(42, 42, 42),
+        BorderSizePixel = 0,
+        Text = "+",
+        TextColor3 = Color3.new(1, 1, 1),
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+    }, frame)
+    addCorner(plusButton, 7)
+
+    local function refresh()
+        valueLabel.Text = label .. ": " .. tostring(getter())
+    end
+
+    track(minusButton.MouseButton1Click:Connect(function()
+        setter(getter() - minus)
+        refresh()
+    end))
+
+    track(plusButton.MouseButton1Click:Connect(function()
+        setter(getter() + plus)
+        refresh()
+    end))
+
+    refresh()
+
+    return frame, refresh
+end
+
+--============================================================
+-- MAIN PAGE
+--============================================================
+
+section(mainPage, "MOVIMENTO")
+
+local speedToggle = toggleButton(
+    mainPage,
+    "SPEED",
+    function()
+        return CFG.SpeedEnabled
+    end,
+    function(v)
+        CFG.SpeedEnabled = v
+        if not v then
+            restoreSpeed()
+        end
+        status.Text = v and "Speed ativado" or "Speed desligado"
+    end
+)
+
+stepper(
+    mainPage,
+    "Velocidade",
+    function()
+        return CFG.WalkSpeed
+    end,
+    function(v)
+        CFG.WalkSpeed = clamp(v, CFG.WalkSpeedMin, CFG.WalkSpeedMax)
+    end,
+    CFG.WalkSpeedStep,
+    CFG.WalkSpeedStep
+)
+
+local ghostToggle = toggleButton(
+    mainPage,
+    "GHOST",
+    function()
+        return CFG.Ghost
+    end,
+    function(v)
+        CFG.Ghost = v
+
+        if v then
+            applyGhost()
+            status.Text = "Ghost ativado"
+        else
+            restoreGhost()
+            status.Text = "Ghost desligado"
+        end
+    end
+)
+
+local flyToggle = toggleButton(
+    mainPage,
+    "FLY",
+    function()
+        return CFG.Fly
+    end,
+    function(v)
+        CFG.Fly = v
+
+        if v then
+            ensureFlyObjects()
+            status.Text = "Fly: câmera define frente/cima/baixo"
+        else
+            destroyFlyObjects()
+            status.Text = "Fly desligado"
+        end
+    end
+)
+
+section(mainPage, "ALTURA INDEPENDENTE")
+
+local heightFrame = new("Frame", {
+    Size = UDim2.new(1, -4, 0, 40),
+    BackgroundTransparency = 1,
+}, mainPage)
+
+local upButton = new("TextButton", {
+    Size = UDim2.new(0.5, -3, 1, 0),
+    BackgroundColor3 = Color3.fromRGB(31, 31, 31),
+    BorderSizePixel = 0,
+    Text = "SUBIR",
