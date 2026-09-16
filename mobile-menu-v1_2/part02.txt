@@ -1,0 +1,245 @@
+            State.FlyVelocity:Destroy()
+        end)
+        State.FlyVelocity = nil
+    end
+
+    if State.FlyAttachment then
+        pcall(function()
+            State.FlyAttachment:Destroy()
+        end)
+        State.FlyAttachment = nil
+    end
+end
+
+local function ensureFlyObjects()
+    local _, _, root = ensureCharacter()
+
+    if State.FlyVelocity and State.FlyVelocity.Parent == root then
+        return
+    end
+
+    destroyFlyObjects()
+
+    local attachment = Instance.new("Attachment")
+    attachment.Name = "_MobileFlyAttachment"
+    attachment.Parent = root
+
+    local velocity = Instance.new("LinearVelocity")
+    velocity.Name = "_MobileFlyVelocity"
+    velocity.Attachment0 = attachment
+    velocity.RelativeTo = Enum.ActuatorRelativeTo.World
+    velocity.MaxForce = math.huge
+    velocity.VectorVelocity = Vector3.zero
+    velocity.Parent = root
+
+    State.FlyAttachment = attachment
+    State.FlyVelocity = velocity
+end
+
+local function flatUnit(v)
+    local xz = Vector3.new(v.X, 0, v.Z)
+    if xz.Magnitude < 0.001 then
+        return Vector3.new(0, 0, -1)
+    end
+    return xz.Unit
+end
+
+local function updateFly()
+    if not CFG.Fly then
+        return
+    end
+
+    local _, hum, root = ensureCharacter()
+    ensureFlyObjects()
+
+    Camera = workspace.CurrentCamera or Camera
+    if not Camera then
+        return
+    end
+
+    local move = hum.MoveDirection
+
+    if move.Magnitude < 0.02 then
+        State.FlyVelocity.VectorVelocity = Vector3.zero
+        return
+    end
+
+    local camCF = Camera.CFrame
+    local flatForward = flatUnit(camCF.LookVector)
+    local flatRight = flatUnit(camCF.RightVector)
+
+    local forwardAmount = move:Dot(flatForward)
+    local rightAmount = move:Dot(flatRight)
+
+    -- Forward/back segue LookVector completo: olhar para cima/baixo muda a altitude.
+    local desired =
+        (camCF.LookVector * forwardAmount)
+        + (camCF.RightVector * rightAmount)
+
+    if desired.Magnitude > 1 then
+        desired = desired.Unit
+    end
+
+    State.FlyVelocity.VectorVelocity = desired * CFG.FlySpeed
+
+    -- reduz tombos estranhos durante fly
+    root.AssemblyAngularVelocity = Vector3.zero
+end
+
+--============================================================
+-- SUBIR / DESCER SEPARADO DO FLY
+--============================================================
+
+local function updateVerticalMovement()
+    if State.VerticalDirection == 0 then
+        return
+    end
+
+    local _, _, root = ensureCharacter()
+
+    local current = root.AssemblyLinearVelocity
+    root.AssemblyLinearVelocity = Vector3.new(
+        current.X,
+        State.VerticalDirection * CFG.VerticalSpeed,
+        current.Z
+    )
+end
+
+--============================================================
+-- SPIN
+--============================================================
+
+local function destroySpinObjects()
+    if State.SpinAngular then
+        pcall(function()
+            State.SpinAngular:Destroy()
+        end)
+        State.SpinAngular = nil
+    end
+
+    if State.SpinAttachment then
+        pcall(function()
+            State.SpinAttachment:Destroy()
+        end)
+        State.SpinAttachment = nil
+    end
+end
+
+local function ensureSpinObjects()
+    local _, hum, root = ensureCharacter()
+
+    if State.SpinAngular and State.SpinAngular.Parent == root then
+        return
+    end
+
+    destroySpinObjects()
+
+    if State.OriginalAutoRotate == nil then
+        State.OriginalAutoRotate = hum.AutoRotate
+    end
+
+    hum.AutoRotate = false
+
+    local attachment = Instance.new("Attachment")
+    attachment.Name = "_MobileSpinAttachment"
+    attachment.Parent = root
+
+    local angular = Instance.new("AngularVelocity")
+    angular.Name = "_MobileSpinAngular"
+    angular.Attachment0 = attachment
+    angular.RelativeTo = Enum.ActuatorRelativeTo.World
+    angular.MaxTorque = math.huge
+    angular.AngularVelocity = Vector3.new(0, CFG.SpinSpeed, 0)
+    angular.Parent = root
+
+    State.SpinAttachment = attachment
+    State.SpinAngular = angular
+end
+
+local function updateSpin()
+    if not CFG.Spin then
+        return
+    end
+
+    local _, hum = ensureCharacter()
+
+    ensureSpinObjects()
+
+    hum.AutoRotate = false
+
+    if State.SpinAngular then
+        State.SpinAngular.AngularVelocity = Vector3.new(0, CFG.SpinSpeed, 0)
+    end
+end
+
+local function stopSpin()
+    destroySpinObjects()
+
+    local _, hum = ensureCharacter()
+    hum.AutoRotate = State.OriginalAutoRotate ~= nil
+        and State.OriginalAutoRotate
+        or true
+end
+
+--============================================================
+-- SPEED
+--============================================================
+
+local function updateSpeed()
+    local _, hum = ensureCharacter()
+
+    if CFG.SpeedEnabled then
+        if hum.WalkSpeed ~= CFG.WalkSpeed then
+            hum.WalkSpeed = CFG.WalkSpeed
+        end
+    end
+end
+
+local function restoreSpeed()
+    local _, hum = ensureCharacter()
+    hum.WalkSpeed = State.OriginalWalkSpeed or 16
+end
+
+--============================================================
+-- ESP SOMENTE AMIGOS DO ROBLOX
+--============================================================
+
+local function isRobloxFriend(player)
+    if not player or player == LP then
+        return false
+    end
+
+    if State.FriendCache[player.UserId] ~= nil then
+        return State.FriendCache[player.UserId]
+    end
+
+    local ok, result = pcall(function()
+        return LP:IsFriendsWith(player.UserId)
+    end)
+
+    local isFriend = ok and result == true
+    State.FriendCache[player.UserId] = isFriend
+
+    return isFriend
+end
+
+local function removeFriendVisual(player)
+    local visual = State.FriendVisuals[player]
+    if not visual then
+        return
+    end
+
+    for _, obj in pairs(visual) do
+        if typeof(obj) == "Instance" then
+            pcall(function()
+                obj:Destroy()
+            end)
+        elseif typeof(obj) == "RBXScriptConnection" then
+            pcall(function()
+                obj:Disconnect()
+            end)
+        end
+    end
+
+    State.FriendVisuals[player] = nil
+end
