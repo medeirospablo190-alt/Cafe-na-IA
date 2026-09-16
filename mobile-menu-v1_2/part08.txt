@@ -1,0 +1,240 @@
+    tpTabButton.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+end
+
+local function showTPPage()
+    mainPage.Visible = false
+    tpPage.Visible = true
+
+    mainTabButton.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+    tpTabButton.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
+
+    refreshTPList()
+end
+
+track(mainTabButton.MouseButton1Click:Connect(showMainPage))
+track(tpTabButton.MouseButton1Click:Connect(showTPPage))
+
+--============================================================
+-- MINIMIZE
+--============================================================
+
+local mini = new("TextButton", {
+    Name = "Mini",
+    Size = UDim2.fromOffset(48, 48),
+    Position = UDim2.new(0.5, -24, 0.25, 0),
+    BackgroundColor3 = Color3.fromRGB(14, 14, 14),
+    BorderSizePixel = 0,
+    Text = "M",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 17,
+    Active = true,
+    Draggable = true,
+    Visible = false,
+}, gui)
+addCorner(mini, 24)
+addStroke(mini, 0.55)
+
+track(minimize.MouseButton1Click:Connect(function()
+    tpPopup.Visible = false
+    main.Visible = false
+    mini.Visible = true
+end))
+
+track(mini.MouseButton1Click:Connect(function()
+    mini.Visible = false
+    main.Visible = true
+end))
+
+--============================================================
+-- PLAYER EVENTS
+--============================================================
+
+track(Players.PlayerAdded:Connect(function(player)
+    State.FriendCache[player.UserId] = nil
+
+    track(player.CharacterAdded:Connect(function()
+        task.wait(0.35)
+
+        if CFG.FriendsESP and isRobloxFriend(player) then
+            createFriendVisual(player)
+        end
+
+        if tpPage.Visible then
+            refreshTPList()
+        end
+    end))
+
+    if tpPage.Visible then
+        refreshTPList()
+    end
+
+    if CFG.FriendsESP then
+        task.spawn(function()
+            if isRobloxFriend(player) then
+                createFriendVisual(player)
+            end
+        end)
+    end
+end))
+
+track(Players.PlayerRemoving:Connect(function(player)
+    removeFriendVisual(player)
+    State.FriendCache[player.UserId] = nil
+
+    if State.TPSpamTarget == player then
+        stopTPSpam("jogador saiu")
+    end
+
+    if State.TPFollowTarget == player then
+        stopTPFollow("jogador saiu")
+    end
+
+    if State.SelectedTarget == player then
+        State.SelectedTarget = nil
+        tpPopup.Visible = false
+    end
+
+    if tpPage.Visible then
+        task.defer(refreshTPList)
+    end
+end))
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LP then
+        track(player.CharacterAdded:Connect(function()
+            task.wait(0.35)
+
+            if CFG.FriendsESP and isRobloxFriend(player) then
+                createFriendVisual(player)
+            end
+        end))
+    end
+end
+
+track(LP.CharacterAdded:Connect(function(char)
+    stopTPSpam("respawn")
+    stopTPFollow("respawn")
+
+    State.Character = char
+    State.Humanoid = char:WaitForChild("Humanoid")
+    State.Root = char:WaitForChild("HumanoidRootPart")
+
+    State.OriginalWalkSpeed = State.Humanoid.WalkSpeed
+    State.OriginalAutoRotate = State.Humanoid.AutoRotate
+
+    State.GhostOriginal = setmetatable({}, {__mode = "k"})
+
+    destroyFlyObjects()
+    destroySpinObjects()
+
+    task.wait(0.25)
+
+    if CFG.Ghost then
+        applyGhost()
+    end
+
+    if CFG.Fly then
+        ensureFlyObjects()
+    end
+
+    if CFG.Spin then
+        ensureSpinObjects()
+    end
+
+    if CFG.FriendsESP then
+        refreshFriendESP()
+    end
+end))
+
+--============================================================
+-- MAIN LOOP
+--============================================================
+
+track(RunService.Heartbeat:Connect(function(dt)
+    if not State.Alive then
+        return
+    end
+
+    if CFG.SpeedEnabled then
+        updateSpeed()
+    end
+
+    if CFG.Ghost then
+        applyGhost()
+    end
+
+    if CFG.Fly then
+        updateFly()
+    end
+
+    if State.VerticalDirection ~= 0 then
+        updateVerticalMovement()
+    end
+
+    if CFG.Spin then
+        updateSpin()
+    end
+
+    if State.TPSpamActive then
+        updateTPSpam(dt)
+    end
+
+    if State.TPFollowMode then
+        updateTPFollow()
+    end
+end))
+
+--============================================================
+-- CLEANUP
+--============================================================
+
+function Controller:Destroy()
+    if not State.Alive then
+        return
+    end
+
+    State.Alive = false
+
+    stopTPSpam()
+    stopTPFollow()
+
+    CFG.Fly = false
+    CFG.Spin = false
+    CFG.Ghost = false
+    CFG.SpeedEnabled = false
+    CFG.FriendsESP = false
+
+    restoreGhost()
+    restoreSpeed()
+    destroyFlyObjects()
+    stopSpin()
+
+    for player in pairs(State.FriendVisuals) do
+        removeFriendVisual(player)
+    end
+
+    for _, conn in ipairs(State.Connections) do
+        pcall(function()
+            conn:Disconnect()
+        end)
+    end
+
+    if State.Gui then
+        pcall(function()
+            State.Gui:Destroy()
+        end)
+    end
+end
+
+track(close.MouseButton1Click:Connect(function()
+    Controller:Destroy()
+end))
+
+if getgenv then
+    getgenv().__MOBILE_UTILITY_MENU_V1 = Controller
+end
+
+status.Text = "Menu carregado"
+
+return Controller
