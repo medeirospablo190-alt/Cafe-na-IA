@@ -1,0 +1,236 @@
+    return true
+end
+
+local function startTPSpam(player)
+    local targetRoot = getPlayerRoot(player)
+    if not targetRoot then
+        return false
+    end
+
+    stopTPFollow()
+    stopTPSpam()
+
+    State.TPSpamActive = true
+    State.TPSpamTarget = player
+    State.TPSpamAngle = 0
+    State.TPSpamStartedAt = os.clock()
+    State.SuppressTPSpamCancelUntil = os.clock() + 0.45
+
+    setTPSpamNoclip()
+
+    if State.StatusLabel then
+        State.StatusLabel.Text = "TP Spam: " .. player.Name
+    end
+
+    return true
+end
+
+local function updateTPSpam(dt)
+    if not State.TPSpamActive then
+        return
+    end
+
+    local target = State.TPSpamTarget
+    local targetRoot = getPlayerRoot(target)
+
+    if not targetRoot then
+        stopTPSpam("alvo indisponível")
+        return
+    end
+
+    local _, hum, root = ensureCharacter()
+
+    -- Movimento manual cancela.
+    if os.clock() > State.SuppressTPSpamCancelUntil then
+        if hum.MoveDirection.Magnitude > 0.08 then
+            stopTPSpam("você se moveu")
+            return
+        end
+
+        local state = hum:GetState()
+        if hum.Jump == true or state == Enum.HumanoidStateType.Jumping then
+            stopTPSpam("você pulou")
+            return
+        end
+    end
+
+    setTPSpamNoclip()
+
+    State.TPSpamAngle += dt * CFG.TPSpamSpeed
+
+    local radius = CFG.TPSpamRadius
+    local offset = Vector3.new(
+        math.cos(State.TPSpamAngle) * radius,
+        0.5,
+        math.sin(State.TPSpamAngle) * radius
+    )
+
+    local position = targetRoot.Position + offset
+    root.CFrame = CFrame.lookAt(position, targetRoot.Position)
+    root.AssemblyLinearVelocity = Vector3.zero
+end
+
+--============================================================
+-- GUI
+--============================================================
+
+local gui = new("ScreenGui", {
+    Name = GUI_NAME,
+    ResetOnSpawn = false,
+    IgnoreGuiInset = false,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+}, PlayerGui)
+
+State.Gui = gui
+
+local main = new("Frame", {
+    Name = "Main",
+    Size = UDim2.fromOffset(320, 470),
+    Position = UDim2.new(0.5, -160, 0.5, -235),
+    BackgroundColor3 = Color3.fromRGB(12, 12, 12),
+    BackgroundTransparency = 0.04,
+    BorderSizePixel = 0,
+    Active = true,
+}, gui)
+
+addCorner(main, 12)
+addStroke(main, 0.6)
+
+local header = new("Frame", {
+    Name = "Header",
+    Size = UDim2.new(1, 0, 0, 44),
+    BackgroundTransparency = 1,
+    Active = true,
+}, main)
+
+local title = new("TextLabel", {
+    Size = UDim2.new(1, -90, 1, 0),
+    Position = UDim2.fromOffset(12, 0),
+    BackgroundTransparency = 1,
+    Text = "MOBILE MENU",
+    TextColor3 = Color3.fromRGB(240, 240, 240),
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    TextXAlignment = Enum.TextXAlignment.Left,
+}, header)
+
+local minimize = new("TextButton", {
+    Size = UDim2.fromOffset(34, 28),
+    Position = UDim2.new(1, -74, 0, 8),
+    BackgroundColor3 = Color3.fromRGB(32, 32, 32),
+    BorderSizePixel = 0,
+    Text = "—",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 15,
+}, header)
+addCorner(minimize, 8)
+
+local close = new("TextButton", {
+    Size = UDim2.fromOffset(34, 28),
+    Position = UDim2.new(1, -38, 0, 8),
+    BackgroundColor3 = Color3.fromRGB(78, 26, 26),
+    BorderSizePixel = 0,
+    Text = "×",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+}, header)
+addCorner(close, 8)
+
+local tabs = new("Frame", {
+    Size = UDim2.new(1, -16, 0, 34),
+    Position = UDim2.fromOffset(8, 45),
+    BackgroundTransparency = 1,
+}, main)
+
+local mainTabButton = new("TextButton", {
+    Size = UDim2.new(0.5, -3, 1, 0),
+    BackgroundColor3 = Color3.fromRGB(42, 42, 42),
+    BorderSizePixel = 0,
+    Text = "MENU",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 12,
+}, tabs)
+addCorner(mainTabButton, 8)
+
+local tpTabButton = new("TextButton", {
+    Size = UDim2.new(0.5, -3, 1, 0),
+    Position = UDim2.new(0.5, 3, 0, 0),
+    BackgroundColor3 = Color3.fromRGB(27, 27, 27),
+    BorderSizePixel = 0,
+    Text = "TP",
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.GothamBold,
+    TextSize = 12,
+}, tabs)
+addCorner(tpTabButton, 8)
+
+local pages = new("Frame", {
+    Size = UDim2.new(1, -16, 1, -126),
+    Position = UDim2.fromOffset(8, 84),
+    BackgroundTransparency = 1,
+}, main)
+
+local mainPage = new("ScrollingFrame", {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    CanvasSize = UDim2.new(),
+}, pages)
+
+local tpPage = new("ScrollingFrame", {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    CanvasSize = UDim2.new(),
+    Visible = false,
+}, pages)
+
+new("UIListLayout", {
+    Padding = UDim.new(0, 6),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+}, mainPage)
+
+local tpLayout = new("UIListLayout", {
+    Padding = UDim.new(0, 6),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+}, tpPage)
+
+local status = new("TextLabel", {
+    Size = UDim2.new(1, -20, 0, 32),
+    Position = UDim2.new(0, 10, 1, -37),
+    BackgroundColor3 = Color3.fromRGB(22, 22, 22),
+    BorderSizePixel = 0,
+    Text = "Pronto",
+    TextColor3 = Color3.fromRGB(220, 220, 220),
+    TextWrapped = true,
+    Font = Enum.Font.Gotham,
+    TextSize = 10,
+}, main)
+addCorner(status, 8)
+
+State.StatusLabel = status
+
+--============================================================
+-- MOBILE DRAG
+--============================================================
+
+do
+    local dragging = false
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+
+        main.Position = UDim2.new(
+            startPos.X.Scale,
