@@ -1,0 +1,231 @@
+
+local function createFriendVisual(player)
+    removeFriendVisual(player)
+
+    if not CFG.FriendsESP then
+        return
+    end
+
+    if not isRobloxFriend(player) then
+        return
+    end
+
+    local char = player.Character
+    local friendRoot = char and char:FindFirstChild("HumanoidRootPart")
+    local _, _, myRoot = ensureCharacter()
+
+    if not char or not friendRoot or not myRoot then
+        return
+    end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "_FriendESP"
+    highlight.Adornee = char
+    highlight.FillColor = Color3.fromRGB(0, 255, 80)
+    highlight.OutlineColor = Color3.fromRGB(0, 255, 80)
+    highlight.FillTransparency = 0.55
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = char
+
+    local myAttachment = Instance.new("Attachment")
+    myAttachment.Name = "_FriendLineFrom"
+    myAttachment.Parent = myRoot
+
+    local friendAttachment = Instance.new("Attachment")
+    friendAttachment.Name = "_FriendLineTo"
+    friendAttachment.Parent = friendRoot
+
+    local beam = Instance.new("Beam")
+    beam.Name = "_FriendLine"
+    beam.Attachment0 = myAttachment
+    beam.Attachment1 = friendAttachment
+    beam.FaceCamera = true
+    beam.Width0 = 0.06
+    beam.Width1 = 0.06
+    beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 80))
+    beam.Transparency = NumberSequence.new(0.05)
+    beam.LightEmission = 1
+    beam.Parent = myAttachment
+
+    State.FriendVisuals[player] = {
+        Highlight = highlight,
+        MyAttachment = myAttachment,
+        FriendAttachment = friendAttachment,
+        Beam = beam,
+    }
+end
+
+local function refreshFriendESP()
+    for player in pairs(State.FriendVisuals) do
+        removeFriendVisual(player)
+    end
+
+    if not CFG.FriendsESP then
+        return
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LP then
+            task.spawn(function()
+                if isRobloxFriend(player) then
+                    createFriendVisual(player)
+                end
+            end)
+        end
+    end
+end
+
+--============================================================
+-- TP
+--============================================================
+
+local function getPlayerRoot(player)
+    if not player or player == LP then
+        return nil
+    end
+
+    local char = player.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local function stopTPSpam(reason)
+    if not State.TPSpamActive then
+        return
+    end
+
+    State.TPSpamActive = false
+    State.TPSpamTarget = nil
+    State.TPSpamAngle = 0
+
+    for part, old in pairs(State.TPSpamNoclipOriginal) do
+        if part and part.Parent then
+            pcall(function()
+                part.CanCollide = CFG.Ghost and false or old
+            end)
+        end
+    end
+
+    State.TPSpamNoclipOriginal = setmetatable({}, {__mode = "k"})
+
+    if reason and State.StatusLabel then
+        State.StatusLabel.Text = "TP Spam parado: " .. reason
+    end
+end
+
+local function setTPSpamNoclip()
+    local char = ensureCharacter()
+
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            if State.TPSpamNoclipOriginal[obj] == nil then
+                State.TPSpamNoclipOriginal[obj] = obj.CanCollide
+            end
+            obj.CanCollide = false
+        end
+    end
+end
+
+local function stopTPFollow(reason)
+    if not State.TPFollowMode then
+        return
+    end
+
+    State.TPFollowMode = nil
+    State.TPFollowTarget = nil
+
+    for part, old in pairs(State.TPFollowNoclipOriginal) do
+        if part and part.Parent then
+            pcall(function()
+                part.CanCollide = old
+            end)
+        end
+    end
+
+    State.TPFollowNoclipOriginal = setmetatable({}, {__mode = "k"})
+
+    if reason and State.StatusLabel then
+        State.StatusLabel.Text = "TP+ parado: " .. reason
+    end
+end
+
+local function setTPFollowNoclip()
+    local char = ensureCharacter()
+
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            if State.TPFollowNoclipOriginal[obj] == nil then
+                State.TPFollowNoclipOriginal[obj] = obj.CanCollide
+            end
+            obj.CanCollide = false
+        end
+    end
+end
+
+local function startTPFollow(player, mode)
+    local targetRoot = getPlayerRoot(player)
+    if not targetRoot then
+        return false
+    end
+
+    stopTPSpam()
+    stopTPFollow()
+
+    State.TPFollowTarget = player
+    State.TPFollowMode = mode
+    setTPFollowNoclip()
+
+    if State.StatusLabel then
+        State.StatusLabel.Text = mode == "Front"
+            and ("Sempre na frente: " .. player.Name)
+            or ("Sempre em cima: " .. player.Name)
+    end
+
+    return true
+end
+
+local function updateTPFollow()
+    local mode = State.TPFollowMode
+    local target = State.TPFollowTarget
+
+    if not mode or not target then
+        return
+    end
+
+    local targetRoot = getPlayerRoot(target)
+    if not targetRoot then
+        stopTPFollow("alvo indisponível")
+        return
+    end
+
+    local _, _, root = ensureCharacter()
+    setTPFollowNoclip()
+
+    local targetCF = targetRoot.CFrame
+
+    if mode == "Front" then
+        local position = (
+            targetCF * CFrame.new(0, 0, -CFG.TPFollowDistance)
+        ).Position
+        root.CFrame = CFrame.lookAt(position, targetRoot.Position)
+    elseif mode == "Above" then
+        local position = targetRoot.Position
+            + Vector3.new(0, CFG.TPFollowDistance, 0)
+        root.CFrame = CFrame.new(position) * (targetCF - targetCF.Position)
+    end
+
+    root.AssemblyLinearVelocity = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+end
+
+local function teleportToPlayer(player)
+    local _, _, root = ensureCharacter()
+    local targetRoot = getPlayerRoot(player)
+
+    if not targetRoot then
+        return false
+    end
+
+    State.SuppressTPSpamCancelUntil = os.clock() + 0.25
+    root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 3)
+
