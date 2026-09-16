@@ -1,0 +1,250 @@
+--============================================================
+-- MOBILE MENU • BASE DO ZERO
+-- Feito para uso mobile/executor no próprio jogo.
+--============================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local LP = Players.LocalPlayer
+local PlayerGui = LP:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
+
+--============================================================
+-- CLEANUP ANTERIOR
+--============================================================
+
+local GUI_NAME = "MobileUtilityMenuV1"
+
+local oldGui = PlayerGui:FindFirstChild(GUI_NAME)
+if oldGui then
+    oldGui:Destroy()
+end
+
+if getgenv then
+    local oldController = getgenv().__MOBILE_UTILITY_MENU_V1
+    if oldController and type(oldController.Destroy) == "function" then
+        pcall(function()
+            oldController:Destroy()
+        end)
+    end
+end
+
+--============================================================
+-- CONFIG
+--============================================================
+
+local CFG = {
+    SpeedEnabled = false,
+    WalkSpeed = 32,
+    WalkSpeedMin = 16,
+    WalkSpeedMax = 160,
+    WalkSpeedStep = 4,
+
+    Ghost = false,
+
+    Fly = false,
+    FlySpeed = 55,
+
+    VerticalSpeed = 38,
+
+    Spin = false,
+    SpinSpeed = 55,
+    SpinMin = 5,
+    SpinMax = 250,
+    SpinStep = 10,
+
+    FriendsESP = false,
+
+    TPSpamRadius = 6,
+    TPSpamRadiusMin = 2,
+    TPSpamRadiusMax = 20,
+    TPSpamRadiusStep = 1,
+
+    TPSpamSpeed = 7,
+    TPSpamSpeedMin = 1,
+    TPSpamSpeedMax = 25,
+    TPSpamSpeedStep = 1,
+
+    TPFollowDistance = 4,
+    TPFollowDistanceMin = 1,
+    TPFollowDistanceMax = 20,
+    TPFollowDistanceStep = 1,
+}
+
+--============================================================
+-- STATE
+--============================================================
+
+local State = {
+    Alive = true,
+    Connections = {},
+
+    Character = nil,
+    Humanoid = nil,
+    Root = nil,
+
+    OriginalWalkSpeed = nil,
+    OriginalAutoRotate = nil,
+
+    GhostOriginal = setmetatable({}, {__mode = "k"}),
+
+    FlyAttachment = nil,
+    FlyVelocity = nil,
+
+    VerticalDirection = 0,
+
+    SpinAttachment = nil,
+    SpinAngular = nil,
+
+    FriendCache = {},
+    FriendVisuals = {},
+
+    SelectedTarget = nil,
+    TPSearchText = "",
+
+    TPSpamActive = false,
+    TPSpamTarget = nil,
+    TPSpamAngle = 0,
+    TPSpamStartedAt = 0,
+    TPSpamNoclipOriginal = setmetatable({}, {__mode = "k"}),
+
+    TPFollowMode = nil, -- nil / "Front" / "Above"
+    TPFollowTarget = nil,
+    TPFollowNoclipOriginal = setmetatable({}, {__mode = "k"}),
+
+    SuppressTPSpamCancelUntil = 0,
+
+    Gui = nil,
+}
+
+local Controller = {}
+
+local function track(conn)
+    table.insert(State.Connections, conn)
+    return conn
+end
+
+local function clamp(v, a, b)
+    return math.max(a, math.min(b, v))
+end
+
+local function getCharacter()
+    local char = LP.Character or LP.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart") or char:WaitForChild("HumanoidRootPart")
+
+    State.Character = char
+    State.Humanoid = hum
+    State.Root = root
+
+    if State.OriginalWalkSpeed == nil then
+        State.OriginalWalkSpeed = hum.WalkSpeed
+    end
+
+    if State.OriginalAutoRotate == nil then
+        State.OriginalAutoRotate = hum.AutoRotate
+    end
+
+    return char, hum, root
+end
+
+local function ensureCharacter()
+    if not State.Character
+        or not State.Character.Parent
+        or not State.Humanoid
+        or not State.Humanoid.Parent
+        or not State.Root
+        or not State.Root.Parent then
+        getCharacter()
+    end
+    return State.Character, State.Humanoid, State.Root
+end
+
+getCharacter()
+
+--============================================================
+-- HELPERS UI
+--============================================================
+
+local function new(className, props, parent)
+    local obj = Instance.new(className)
+    for k, v in pairs(props or {}) do
+        obj[k] = v
+    end
+    obj.Parent = parent
+    return obj
+end
+
+local function addCorner(obj, radius)
+    return new("UICorner", {
+        CornerRadius = UDim.new(0, radius or 8)
+    }, obj)
+end
+
+local function addStroke(obj, transparency)
+    return new("UIStroke", {
+        Thickness = 1,
+        Transparency = transparency or 0.65,
+        Color = Color3.fromRGB(85, 85, 85),
+    }, obj)
+end
+
+local function setButtonState(button, enabled, label)
+    button.Text = label .. ": " .. (enabled and "ON" or "OFF")
+    button.BackgroundColor3 = enabled
+        and Color3.fromRGB(29, 72, 43)
+        or Color3.fromRGB(31, 31, 31)
+end
+
+--============================================================
+-- GHOST / NOCLIP
+--============================================================
+
+local function applyGhostPart(part)
+    if not part:IsA("BasePart") then
+        return
+    end
+
+    if State.GhostOriginal[part] == nil then
+        State.GhostOriginal[part] = part.CanCollide
+    end
+
+    part.CanCollide = false
+end
+
+local function applyGhost()
+    local char = ensureCharacter()
+
+    if not CFG.Ghost then
+        return
+    end
+
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            applyGhostPart(obj)
+        end
+    end
+end
+
+local function restoreGhost()
+    for part, old in pairs(State.GhostOriginal) do
+        if part and part.Parent then
+            pcall(function()
+                part.CanCollide = CFG.Ghost and false or old
+            end)
+        end
+    end
+
+    State.GhostOriginal = setmetatable({}, {__mode = "k"})
+end
+
+--============================================================
+-- FLY MOBILE DIRECIONADO PELA CÂMERA
+--============================================================
+
+local function destroyFlyObjects()
+    if State.FlyVelocity then
+        pcall(function()
