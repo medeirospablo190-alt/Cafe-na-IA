@@ -1111,7 +1111,7 @@ local function restoreCache(data)
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
     S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
-        correlationsOpened = 0, batchBudgetDrops = 0,
+        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
     }
     S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
     S.focusScore = tonumber(data.focusScore) or 0
@@ -1193,6 +1193,15 @@ local function attachInbound(r)
                 end)
             end
             local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName)
+            if score >= C.FOCUS_SCORE then
+                S.smartStats.highInterestInbound = (S.smartStats.highInterestInbound or 0) + 1
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                investigating = true
+                if score >= S.focusScore then
+                    S.focusRemote = remotePath
+                    S.focusScore = score
+                end
+            end
             local priority = newShape and 98 or (investigating and 88 or math.max(78, score))
             local data = {
                 kind = "remote_inbound",
@@ -1772,6 +1781,7 @@ local function manifestTable()
             outboundObserved = S.smartStats.outboundObserved or 0,
             outboundAccepted = S.smartStats.outboundAccepted or 0,
             highInterestOutbound = S.smartStats.highInterestOutbound or 0,
+            highInterestInbound = S.smartStats.highInterestInbound or 0,
             correlationsOpened = S.smartStats.correlationsOpened or 0,
             batchBudgetDrops = S.smartStats.batchBudgetDrops or 0,
             focusRemote = S.focusRemote,
@@ -1825,7 +1835,7 @@ local function resetRunState()
     S.correlationSeq = 0
     S.smartStats = {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
-        correlationsOpened = 0, batchBudgetDrops = 0,
+        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
     }
     S.focusRemote, S.focusScore = nil, 0
     S.outboundHookRegistry, S.outboundHookReady = nil, false
@@ -2174,7 +2184,8 @@ task.spawn(function()
 
     local ok, health = getJson(C.HEALTH)
     S.serverReady = ok and type(health) == "table" and health.ok == true and
-        health.githubMirrorConfigured == true and tonumber(health.hardSessionBytes) == C.HARD_BYTES
+        health.githubMirrorConfigured == true and tonumber(health.hardSessionBytes) == C.HARD_BYTES and
+        (tonumber(health.maxBatches) or 0) >= C.MAX_BATCHES
 
     loadRemoteProfile(false)
     S.cached = loadCache()
@@ -2217,4 +2228,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.0 carregado • adaptativo • memória por GameId • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.0.1 carregado • bidirecional • correlação inteligente • streaming protegido")
