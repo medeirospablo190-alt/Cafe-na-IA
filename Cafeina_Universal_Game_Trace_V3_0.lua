@@ -2041,7 +2041,7 @@ end
 local function probeYellowTransition(inv, stage, detail)
     if not inv then return end
     local ok, err = pcall(function()
-        appendInvestigatorDiagnostic(stage, detail, inv, true)
+        appendInvestigatorDiagnostic(stage, detail, inv, false)
     end)
     if not ok then
         S.lastInvestigatorError = "yellow_probe:" .. string.sub(tostring(err), 1, 220)
