@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.1
+# CAFEÍNA Universal Game Trace V3.2.2
 
 Arquivos principais:
 
@@ -6,6 +6,40 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## Diagnóstico da V3.2.2
+
+A V3.2.2 não tenta corrigir automaticamente o caso de uma investigação permanecer em AMARELO. Ela adiciona rastreabilidade suficiente para descobrir a causa sem hipótese.
+
+O menu compacto passa a mostrar a etapa interna atual junto da cor, por exemplo:
+
+- `AMARELO • TIMER AGENDADO`
+- `AMARELO • TIMER DISPAROU`
+- `AMARELO • EXECUTANDO`
+- `AMARELO • RISCO OK`
+- `AMARELO • ESTABILIDADE`
+- `AMARELO • AGUARDANDO ESTAB.`
+- `VERMELHO • EXECUTANDO AÇÃO`
+- `AZUL • OBSERVANDO`
+- `AMARELO • ERRO INTERNO`
+
+Enquanto a investigação está ativa, o menu também mostra há quanto tempo a etapa atual está ativa.
+
+Cada troca relevante de etapa gera um registro pequeno `investigator_diag` contendo:
+
+- ID da investigação;
+- etapa e detalhe;
+- estado de cor;
+- modo;
+- pressão atual;
+- frame time médio;
+- Remote relacionado.
+
+O `investigation_bundle` final mantém uma lista limitada desses diagnósticos. O manifesto também inclui a última etapa, último erro, total de marcadores e total de erros.
+
+Os callbacks do primeiro timer amarelo e dos retries de estabilidade agora executam `executeCandidate` dentro de `pcall`. Se houver uma exceção antes da mudança de estado, ela é registrada como `execute_error` em vez de desaparecer sem evidência.
+
+O limite é de 40 marcadores por investigação. Não foram aumentados caps de scan, frequência de coleta, tamanho de snapshot ou orçamento de upload.
 
 ## Ajustes da V3.2.1
 
