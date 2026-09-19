@@ -1,0 +1,961 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0",
+    "purpose": "adaptive_universal_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-19T04:57:56.000Z",
+  "gameId": 10138624079,
+  "placeId": 87413622775071,
+  "placeVersion": 971,
+  "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+  "batchIndex": 24,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 13811,
+  "records": [
+    {
+      "sig": "e2dfc88f5ae8",
+      "corr": 133,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793943,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x76b667f26898b621"
+        ]
+      },
+      "clock": 66.94473549500071,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "0da2e66016c0",
+        "ed329c1c2865",
+        "0d7f3ca0521e",
+        "e2dfc88f5ae8"
+      ],
+      "sig": "798d7f8f8113",
+      "corr": 133,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 104.23291015625,
+          "z": -1814.277587890625
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793943,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 754,
+              "Version": 300,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 301,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21619,
+              "Version": 302,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171114,
+              "Version": 303,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 66.94606195300003,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "43d4b68508eb",
+      "corr": 134,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793943,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x08f79b789a023cad"
+        ]
+      },
+      "clock": 67.34982507800123,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.0008323388174176216,
+        "type": "Vector3",
+        "x": 3.5587683910875967e-9,
+        "z": -3.702812723105353e-9
+      },
+      "unix": 1789793943,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 107.30032348632812,
+          "z": -1814.520751953125
+        },
+        "userId": 765329164
+      },
+      "corr": 135,
+      "clock": 67.5316616400014,
+      "kind": "trajectory",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 26
+    },
+    {
+      "sig": "12beb28dad54",
+      "corr": 135,
+      "unix": 1789793943,
+      "contextRefs": [
+        "e2dfc88f5ae8",
+        "798d7f8f8113",
+        "43d4b68508eb",
+        "36c17c8ca964"
+      ],
+      "name": "DeployablePurchaseCount_PulseTurret",
+      "value": 1,
+      "clock": 67.74460044200168,
+      "kind": "player_attribute_changed",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 82
+    },
+    {
+      "sig": "8cb6fed32927",
+      "corr": 135,
+      "unix": 1789793943,
+      "contextRefs": [
+        "798d7f8f8113",
+        "43d4b68508eb",
+        "36c17c8ca964",
+        "12beb28dad54"
+      ],
+      "name": "DeployableTotalPurchaseCount",
+      "value": 1,
+      "clock": 67.74550783800078,
+      "kind": "player_attribute_changed",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 82
+    },
+    {
+      "contextRefs": [
+        "43d4b68508eb",
+        "36c17c8ca964",
+        "12beb28dad54",
+        "8cb6fed32927"
+      ],
+      "sig": "bffbb8f52950",
+      "corr": 135,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 109.50704193115234,
+          "z": -1815.4586181640625
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793943,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 584,
+              "Version": 304,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 67.75034164000135,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "150c9314ef58",
+      "corr": 135,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793944,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x87441418988d26b4"
+        ]
+      },
+      "clock": 67.94091039000159,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "47ccb27615cb",
+      "corr": 136,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793944,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x9cba7d28f670a189"
+        ]
+      },
+      "clock": 68.37962393199996,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f1312450d3",
+      "corr": 136,
+      "unix": 1789793944,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 43,
+        "attributes": []
+      },
+      "value": 43,
+      "clock": 68.4821118480013,
+      "kind": "value_changed",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 72
+    },
+    {
+      "contextRefs": [
+        "bffbb8f52950",
+        "150c9314ef58",
+        "47ccb27615cb",
+        "d4f1312450d3"
+      ],
+      "sig": "fb4669658cf6",
+      "corr": 137,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 111.05590057373047,
+          "z": -1816.1339111328125
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793944,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 594,
+              "Version": 305,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 306,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21624,
+              "Version": 307,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171124,
+              "Version": 308,
+              "Action": "Increment"
+            },
+            "5": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 604,
+              "Version": 309,
+              "Action": "Increment"
+            },
+            "6": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 310,
+              "Action": "Set"
+            },
+            "7": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21629,
+              "Version": 311,
+              "Action": "Set"
+            },
+            "8": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171134,
+              "Version": 312,
+              "Action": "Increment"
+            },
+            "9": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 614,
+              "Version": 313,
+              "Action": "Increment"
+            },
+            "10": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 314,
+              "Action": "Set"
+            },
+            "11": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21634,
+              "Version": 315,
+              "Action": "Set"
+            },
+            "12": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171144,
+              "Version": 316,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 68.55412361900017,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "969688f21123",
+      "corr": 137,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793944,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x4d021aa5954ac600"
+        ]
+      },
+      "clock": 68.63630372300031,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05ad31ad4dd1",
+      "corr": 137,
+      "unix": 1789793944,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 107,
+        "attributes": []
+      },
+      "value": 107,
+      "clock": 68.71783346300072,
+      "kind": "value_changed",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 72
+    },
+    {
+      "contextRefs": [
+        "d4f1312450d3",
+        "fb4669658cf6",
+        "969688f21123",
+        "05ad31ad4dd1"
+      ],
+      "sig": "3fc14da658cb",
+      "corr": 137,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 111.34553527832031,
+          "z": -1817.060302734375
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793944,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 624,
+              "Version": 317,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 318,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21639,
+              "Version": 319,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171154,
+              "Version": 320,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 68.72379768200153,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "velocity": {
+        "y": 0.033096134662628174,
+        "type": "Vector3",
+        "x": 2.214557647705078,
+        "z": -8.108952522277832
+      },
+      "unix": 1789793944,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.9935302734375,
+          "type": "Vector3",
+          "x": 111.94756317138672,
+          "z": -1819.2191162109375
+        },
+        "userId": 765329164
+      },
+      "corr": 137,
+      "clock": 68.82835424400037,
+      "kind": "trajectory",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 26
+    },
+    {
+      "sig": "2cba3a58ed73",
+      "corr": 137,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793945,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x8303f3c019533886"
+        ]
+      },
+      "clock": 68.97950429600132,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "05ad31ad4dd1",
+        "3fc14da658cb",
+        "5d7bc98d59b4",
+        "2cba3a58ed73"
+      ],
+      "sig": "aa9a4ababb91",
+      "corr": 138,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.994384765625,
+          "type": "Vector3",
+          "x": 111.98881530761719,
+          "z": -1819.3701171875
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793945,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 634,
+              "Version": 321,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 322,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21644,
+              "Version": 323,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171164,
+              "Version": 324,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 69.05144580700107,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "d4f1322450d4",
+      "corr": 138,
+      "unix": 1789793945,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 44,
+        "attributes": []
+      },
+      "value": 44,
+      "clock": 69.33563190000132,
+      "kind": "value_changed",
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "quality": 72
+    },
+    {
+      "contextRefs": [
+        "5d7bc98d59b4",
+        "2cba3a58ed73",
+        "aa9a4ababb91",
+        "d4f1322450d4"
+      ],
+      "sig": "dd012f15c8d0",
+      "corr": 138,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99440002441406,
+          "type": "Vector3",
+          "x": 111.98881530761719,
+          "z": -1819.3701171875
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793945,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 644,
+              "Version": 325,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 326,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21649,
+              "Version": 327,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171174,
+              "Version": 328,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 69.35216403600134,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "81f5ab0aaf3f",
+      "corr": 138,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793945,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x8581a8dd04daf281"
+        ]
+      },
+      "clock": 69.35571611900014,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "aa9a4ababb91",
+        "d4f1322450d4",
+        "dd012f15c8d0",
+        "81f5ab0aaf3f"
+      ],
+      "sig": "ff83daa7bebb",
+      "corr": 139,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "investigating": true,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99440002441406,
+          "type": "Vector3",
+          "x": 110.54154205322266,
+          "z": -1818.929443359375
+        },
+        "userId": 765329164
+      },
+      "unix": 1789793945,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 654,
+              "Version": 329,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 141,
+              "Version": 330,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 21654,
+              "Version": 331,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 171184,
+              "Version": 332,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 69.69439929600048,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 88
+    },
+    {
+      "sig": "4b0eb849c3a0",
+      "corr": 139,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "unix": 1789793945,
+      "investigating": false,
+      "runId": "e71c43c7-c00a-4e1d-8afd-8d0998248d43",
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xa5b3e5167fb28736"
+        ]
+      },
+      "clock": 69.7361945040011,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-09-19T04:59:08.091Z",
+  "contentChecksum": "zDmxiXF8XGMIQ-qOuf-e",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 1927023,
+    "inboundListeners": 88,
+    "ackBytes": 1903221,
+    "queueBytes": 23802
+  }
+}
