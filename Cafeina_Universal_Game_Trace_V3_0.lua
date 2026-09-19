@@ -614,6 +614,127 @@ local function obj(inst, source, cachedAttrs)
 end
 
 --==============================================================--
+-- SMART IMPORTANCE / ARGUMENT SCHEMA / CORRELATION
+--==============================================================--
+
+local IMPORTANT_REMOTE_TERMS = {
+    { "purchase", 20 }, { "buy", 18 }, { "sell", 18 }, { "trade", 20 },
+    { "place", 18 }, { "deploy", 18 }, { "spawn", 14 }, { "upgrade", 16 },
+    { "inventory", 15 }, { "weapon", 12 }, { "equip", 12 }, { "interact", 10 },
+    { "teleport", 18 }, { "revive", 18 }, { "reward", 15 }, { "claim", 15 },
+    { "cash", 12 }, { "currency", 12 }, { "damage", 10 }, { "heal", 10 },
+    { "fire", 8 }, { "reload", 7 },
+}
+local LOW_VALUE_REMOTE_TERMS = {
+    "analytics", "footstep", "particle", "camera", "soundeffect", "console",
+}
+
+local function importanceScore(remotePath, method, newShape, className)
+    local score = method == "InvokeServer" and 50 or (method == "FireServer" and 42 or 34)
+    if newShape then score = score + 22 end
+    if className == "RemoteFunction" then score = score + 8 end
+
+    local lower = string.lower(tostring(remotePath or ""))
+    for _, row in ipairs(IMPORTANT_REMOTE_TERMS) do
+        if string.find(lower, row[1], 1, true) then score = score + row[2] end
+    end
+    for _, term in ipairs(LOW_VALUE_REMOTE_TERMS) do
+        if string.find(lower, term, 1, true) then score = score - 18 end
+    end
+    return math.clamp(score, 0, 100)
+end
+
+local function schemaOf(v, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    local t = typeof(v)
+
+    if t == "table" then
+        if seen[v] then return { type = "table", cycle = true } end
+        if depth >= 3 then return { type = "table", truncated = true } end
+        seen[v] = true
+        local fields, count = {}, 0
+        for k, item in pairs(v) do
+            count = count + 1
+            if count > 16 then break end
+            fields[tostring(k)] = schemaOf(item, depth + 1, seen)
+        end
+        seen[v] = nil
+        return { type = "table", fields = fields, fieldCountAtLeast = count }
+    end
+    if t == "Instance" then return { type = "Instance", className = v.ClassName } end
+    if t == "EnumItem" then return { type = "EnumItem", enum = tostring(v.EnumType) } end
+    return { type = t }
+end
+
+local function packedSchema(args)
+    local n = tonumber(args and args.n) or 0
+    local out = { count = n, args = {} }
+    local lim = math.min(n, C.MAX_ARGS)
+    for i = 1, lim do out.args[i] = schemaOf(args[i], 0, {}) end
+    if n > lim then out.truncated = n - lim end
+    return out
+end
+
+local CORRELATABLE_CATEGORIES = {
+    remote_inbound = true,
+    value_changed = true,
+    runtime_added = true,
+    runtime_remove = true,
+    tool_transition = true,
+    player_attribute = true,
+    prompt_triggered = true,
+    character = true,
+}
+
+local function pruneCorrelationWindows()
+    local now = os.clock()
+    local out = {}
+    for _, window in ipairs(S.correlationWindows) do
+        if window.expiresAt > now then out[#out + 1] = window end
+    end
+    S.correlationWindows = out
+end
+
+local function correlationCandidates(category)
+    if not CORRELATABLE_CATEGORIES[category] then return nil end
+    pruneCorrelationWindows()
+    if #S.correlationWindows == 0 then return nil end
+
+    local now, out = os.clock(), {}
+    local first = math.max(1, #S.correlationWindows - 2)
+    for i = first, #S.correlationWindows do
+        local w = S.correlationWindows[i]
+        out[#out + 1] = {
+            id = w.id, remote = w.remote, method = w.method, shape = w.shape,
+            importance = w.importance, age = math.max(0, now - w.startedAt),
+        }
+    end
+    return out
+end
+
+local function openCorrelationWindow(remotePath, method, shapeHash, importance)
+    local now = os.clock()
+    local last = S.lastCorrelationByRemote[remotePath] or 0
+    if now - last < C.CORRELATION_MIN_GAP then return end
+    S.lastCorrelationByRemote[remotePath] = now
+    pruneCorrelationWindows()
+
+    S.correlationSeq = S.correlationSeq + 1
+    S.correlationWindows[#S.correlationWindows + 1] = {
+        id = S.correlationSeq,
+        remote = remotePath,
+        method = method,
+        shape = shapeHash,
+        importance = importance,
+        startedAt = now,
+        expiresAt = now + C.CORRELATION_SECONDS,
+    }
+    while #S.correlationWindows > C.MAX_CORRELATION_WINDOWS do table.remove(S.correlationWindows, 1) end
+    S.smartStats.correlationsOpened = (S.smartStats.correlationsOpened or 0) + 1
+end
+
+--==============================================================--
 -- STREAMING QUEUE
 --==============================================================--
 
