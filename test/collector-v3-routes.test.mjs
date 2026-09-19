@@ -111,10 +111,11 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(health.hardSessionBytes, 150 * 1024 * 1024);
   assert.equal(health.maxBatches, 260);
   assert.equal(health.profileCaps.semanticHashes, 12000);
+  assert.equal(health.profileCaps.investigationKnowledge, 800);
 
   const common = {
     schemaVersion: 3,
-    collector: { version: "CAFEINA_UNIVERSAL_GAME_TRACE_V3_1_0" },
+    collector: { version: "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_0" },
     userId: "765329164",
     username: "tester",
     capturedAt: "2026-09-19T04:00:00.000Z",
@@ -182,6 +183,18 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
         knownShapeHashes: ["abcdef654321"],
         knownSemanticHashes: ["fedcba123456"],
         knownRemoteHashes: ["123456abcdef"],
+        investigationKnowledge: [{
+          key: "aa11bb22cc33",
+          observations: 2,
+          activeTests: 1,
+          completed: 1,
+          passiveOnly: 0,
+          cancelled: 0,
+          status: "tested",
+          lastReason: "active_test_complete",
+          lastImpact: 42.35,
+          lastOutcome: "bb22cc33dd44",
+        }],
         frontier: ["Workspace.Test"],
       },
       strategyDelta: {
@@ -200,6 +213,19 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(profile.sessions, 1);
   assert.deepEqual(profile.knownRemoteHashes, ["123456abcdef"]);
   assert.deepEqual(profile.knownSemanticHashes, ["fedcba123456"]);
+  assert.equal(profile.investigationKnowledge.length, 1);
+  assert.deepEqual(profile.investigationKnowledge[0], {
+    key: "aa11bb22cc33",
+    observations: 2,
+    activeTests: 1,
+    completed: 1,
+    passiveOnly: 0,
+    cancelled: 0,
+    status: "tested",
+    lastReason: "active_test_complete",
+    lastImpact: 42.35,
+    lastOutcome: "bb22cc33dd44",
+  });
   assert.equal(profile.strategy.remote_inbound.sampleN, 2);
 
   const batch2Path = `inventory-traces-v3/${common.gameId}/${common.placeId}/${common.runId}/0002-data.json`;
