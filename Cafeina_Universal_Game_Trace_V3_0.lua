@@ -214,7 +214,7 @@ local function bufferFingerprint(v)
     if not len then return { type = "buffer", readable = false, repr = tostring(v) } end
     local sampleTarget = math.min(len, C.BUFFER_SAMPLE_BYTES)
     local h1, h2, sampled, zeros = 216613, 131071, 0, 0
-    local sampleHex = {}
+    local sampleHex, byteFreq = {}, {}
     for i = 1, sampleTarget do
         local index = sampleTarget <= 1 and 0 or math.floor(((i - 1) * math.max(0, len - 1)) / (sampleTarget - 1))
         local b = bufferByte(v, index)
@@ -224,8 +224,18 @@ local function bufferFingerprint(v)
             h1 = (h1 * 131 + b + (index % 251)) % 16777213
             h2 = (h2 * 137 + b + (index % 241)) % 16777199
             sampleHex[#sampleHex + 1] = string.format("%02x", b)
+            byteFreq[b] = (byteFreq[b] or 0) + 1
         end
     end
+    local distinct, entropy = 0, 0
+    if sampled > 0 then
+        for _, freq in pairs(byteFreq) do
+            distinct = distinct + 1
+            local p = freq / sampled
+            entropy = entropy - (p * (math.log(p) / math.log(2)))
+        end
+    end
+    local maxEntropy = sampled > 1 and (math.log(math.min(256, sampled)) / math.log(2)) or 0
     local edge = math.min(len, C.BUFFER_EDGE_BYTES)
     local head, tail = {}, {}
     for i = 0, edge - 1 do
@@ -241,6 +251,9 @@ local function bufferFingerprint(v)
         sampleHash = string.format("%06x%06x", h1, h2), sampledBytes = sampled,
         sampleHex = table.concat(sampleHex), headHex = table.concat(head), tailHex = table.concat(tail),
         zeroRatio = sampled > 0 and math.floor((zeros / sampled) * 1000 + 0.5) / 1000 or 0,
+        distinctRatio = sampled > 0 and math.floor((distinct / sampled) * 1000 + 0.5) / 1000 or 0,
+        sampleEntropy = math.floor(entropy * 1000 + 0.5) / 1000,
+        normalizedEntropy = maxEntropy > 0 and math.floor((entropy / maxEntropy) * 1000 + 0.5) / 1000 or 0,
     }
 end
 
@@ -2256,7 +2269,7 @@ end
 
 local function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance)
     if not S.running or S.stopping or pressureLevel() >= 2 then return end
-    if S.investigationCount >= C.INVESTIGATOR_MAX_PER_SESSION then return end
+    if S.investigationCount + #S.investigationQueue >= C.INVESTIGATOR_MAX_PER_SESSION then return end
     if method ~= "FireServer" or remote.ClassName ~= "RemoteEvent" then return end
     local replayArgs, cloneErr = cloneReplayArgs(args)
     if not replayArgs then return end
@@ -2416,7 +2429,7 @@ end
 --==============================================================--
 
 local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
-local OUTBOUND_HOOK_VERSION = 3
+local OUTBOUND_HOOK_VERSION = 4
 
 local function installOutboundObserver()
     if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
