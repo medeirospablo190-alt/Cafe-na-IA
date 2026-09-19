@@ -997,6 +997,112 @@ kickUpload = function()
 end
 
 --==============================================================--
+-- PASSIVE OUTBOUND REMOTE OBSERVER
+--==============================================================--
+
+local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
+
+local function installOutboundObserver()
+    if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
+        S.coverage.outboundObserver = "unavailable"
+        S.outboundHookReady = false
+        return false
+    end
+
+    local registry = rawget(ENV, OUTBOUND_HOOK_KEY)
+    if type(registry) ~= "table" or registry.installed ~= true then
+        registry = { installed = false, callback = nil }
+        local oldNamecall
+        local function wrapper(self, ...)
+            local method = GETNAMECALLMETHOD()
+            local callback = registry.callback
+            if callback and (method == "FireServer" or method == "InvokeServer") and typeof(self) == "Instance" and isRemote(self) then
+                local args = table.pack(...)
+                pcall(callback, self, method, args)
+            end
+            return oldNamecall(self, ...)
+        end
+
+        local wrapped = NEWCLOSURE and NEWCLOSURE(wrapper) or wrapper
+        local ok, old = pcall(HOOKMETAMETHOD, game, "__namecall", wrapped)
+        if not ok or type(old) ~= "function" then
+            S.coverage.outboundObserver = "hook_failed"
+            S.outboundHookReady = false
+            return false
+        end
+        oldNamecall = old
+        registry.installed = true
+        rawset(ENV, OUTBOUND_HOOK_KEY, registry)
+    end
+
+    registry.callback = function(remote, method, args)
+        if not S.running or S.stopping then return end
+        task.defer(function()
+            if not S.running or S.stopping then return end
+
+            local remotePath = pathOf(remote)
+            registerRemote(remote, "outbound")
+
+            local shapeHash = hashText("remote_out_shape\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, true))
+            local exactHash = hashText("remote_out_value\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, false))
+            local newShape = not S.profileShape[shapeHash]
+            local score = importanceScore(remotePath, method, newShape, remote.ClassName)
+            local focused = score >= C.FOCUS_SCORE
+
+            S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
+            if focused then
+                S.smartStats.highInterestOutbound = (S.smartStats.highInterestOutbound or 0) + 1
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                if score >= S.focusScore then
+                    S.focusRemote = remotePath
+                    S.focusScore = score
+                end
+            end
+            if newShape then
+                bump(S.coverage, "newOutboundShapes")
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                task.defer(function()
+                    if S.running and not S.stopping then focusedRemoteContext(remote, shapeHash) end
+                end)
+            end
+
+            local accepted = enqueue("record", "remote_outbound", {
+                kind = "remote_outbound",
+                method = method,
+                remote = remoteDesc(remote),
+                payload = packed(args),
+                schema = (newShape or focused) and packedSchema(args) or nil,
+                newShape = newShape,
+                investigating = focused,
+                importance = score,
+                player = (newShape or focused) and playerContext(false) or nil,
+            }, math.clamp(math.max(82, score), 0, 100), newShape,
+                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
+                focused or newShape)
+
+            if accepted then
+                S.smartStats.outboundAccepted = (S.smartStats.outboundAccepted or 0) + 1
+            end
+            if focused or newShape then
+                openCorrelationWindow(remotePath, method, shapeHash, score)
+            end
+        end)
+    end
+
+    S.outboundHookRegistry = registry
+    S.outboundHookReady = true
+    S.coverage.outboundObserver = "active"
+    return true
+end
+
+local function disableOutboundObserver()
+    local registry = S.outboundHookRegistry
+    if type(registry) == "table" then registry.callback = nil end
+    S.outboundHookRegistry = nil
+    S.outboundHookReady = false
+end
+
+--==============================================================--
 -- PERSISTENT CACHE FOR UNSENT QUEUE
 --==============================================================--
 
