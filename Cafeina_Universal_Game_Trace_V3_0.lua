@@ -1360,16 +1360,16 @@ end
 
 local function relationStageForCandidate(remotePath, shapeHash, semanticHash)
     local rank = { weak_context = 0, candidate = 1, repeated = 2, confirmed = 3 }
-    local best = "candidate"
+    local best = nil
     for _, row in pairs(S.correlationEvidence) do
         if row.remote == remotePath and
             (row.semantic == semanticHash or row.shape == shapeHash) then
             local stage = correlationMetrics(row).stage
-            if (rank[stage] or 0) > (rank[best] or 0) then best = stage end
+            if best == nil or (rank[stage] or 0) > (rank[best] or 0) then best = stage end
             if best == "confirmed" then break end
         end
     end
-    return best
+    return best or "candidate"
 end
 
 local function correlationCandidates(category, object, priority)
