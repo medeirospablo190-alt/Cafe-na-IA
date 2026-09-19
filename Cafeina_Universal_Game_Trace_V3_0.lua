@@ -634,6 +634,7 @@ local S = {
     lastUploadDiagSignature = nil,
     cacheSchemaVersion = nil,
     inflightRestored = false,
+    legacyRecoveryEligible = false,
 
     profile = nil,
     profileLow = {},
@@ -1900,11 +1901,16 @@ kickUpload = function()
                 acknowledgeBatch(batch)
                 S.serverReady = true
             else
-                S.serverReady = false
-                U.noteUploadError("data_batch", err, batch.index)
-                if not S.uploadBlocked then S.nextRetryClock = os.clock() + 5 end
-                if U.saveCache and U.cacheSnapshot then U.saveCache(U.cacheSnapshot()) end
-                break
+                local recovered = U.tryLegacyAckRecovery and U.tryLegacyAckRecovery(err, batch)
+                if recovered then
+                    S.serverReady = true
+                else
+                    S.serverReady = false
+                    U.noteUploadError("data_batch", err, batch.index)
+                    if not S.uploadBlocked then S.nextRetryClock = os.clock() + 5 end
+                    if U.saveCache and U.cacheSnapshot then U.saveCache(U.cacheSnapshot()) end
+                    break
+                end
             end
             if S.running and not S.finalizing and not shouldFlushQueue(false) then break end
             task.wait()
@@ -1995,6 +2001,7 @@ U.cacheSnapshot = function()
     end
     return {
         schemaVersion = 4, collectorVersion = C.VERSION,
+        legacyRecoveryEligible = S.legacyRecoveryEligible == true,
         gameId = S.runGameId, placeId = S.runPlaceId,
         placeVersion = S.runPlaceVersion, runId = S.runId, startIso = S.startIso,
         batchIndex = S.batchIndex, totalBytes = S.totalBytes, ackBytes = S.ackBytes,
@@ -2065,6 +2072,7 @@ local function restoreCache(data)
     S.startClock = os.clock()
     S.batchIndex = tonumber(data.batchIndex) or 0
     S.cacheSchemaVersion = tonumber(data.schemaVersion) or 0
+    S.legacyRecoveryEligible = data.legacyRecoveryEligible == true or S.cacheSchemaVersion < 4
     S.finalManifest = type(data.finalManifest) == "table" and data.finalManifest or nil
     S.pendingManifestBody = type(data.pendingManifestBody) == "string" and data.pendingManifestBody or nil
     S.pendingManifestIndex = tonumber(data.pendingManifestIndex)
@@ -2181,6 +2189,105 @@ U.restoreInflight = function(data)
         body = data.body,
     }
     S.inflightRestored = true
+    return true
+end
+
+U.decodeApiError = function(err)
+    local raw = tostring(err or "")
+    local first = string.find(raw, "{", 1, true)
+    if not first then return nil end
+    local ok, data = pcall(HttpService.JSONDecode, HttpService, string.sub(raw, first))
+    if not ok or type(data) ~= "table" then return nil end
+    return data
+end
+
+U.resumeTokenFromJson = function(json)
+    local ok, row = pcall(HttpService.JSONDecode, HttpService, tostring(json or ""))
+    if not ok or type(row) ~= "table" then return nil end
+    local remote = type(row.remote) == "table" and row.remote or {}
+    local object = type(row.object) == "table" and row.object or {}
+    return table.concat({
+        tostring(row.kind or ""),
+        tostring(row.sig or ""),
+        tostring(row.semanticHash or ""),
+        tostring(row.shapeHash or ""),
+        tostring(remote.path or object.path or row.path or ""),
+    }, "\31")
+end
+
+U.legacyPrefixFor = function(existing)
+    if type(existing) ~= "table" or tostring(existing.batchKind or "") ~= "data" then return nil end
+    local wantRecords = tonumber(existing.recordCount)
+    local wantRemotes = tonumber(existing.remoteCount)
+    local wantBytes = tonumber(existing.payloadBytes)
+    if not wantRecords or not wantRemotes or not wantBytes then return nil end
+    wantRecords = math.max(0, math.floor(wantRecords))
+    wantRemotes = math.max(0, math.floor(wantRemotes))
+
+    local records, remotes = {}, {}
+    local countR, countM, bytes = 0, 0, 0
+    local stop = S.queueHead - 1
+
+    for i = S.queueHead, #S.queue do
+        local item = S.queue[i]
+        if item.channel == "remote" then
+            if countM >= wantRemotes then return nil end
+            local token = U.resumeTokenFromJson(item.json)
+            if not token then return nil end
+            remotes[#remotes + 1] = token
+            countM = countM + 1
+        else
+            if countR >= wantRecords then return nil end
+            local token = U.resumeTokenFromJson(item.json)
+            if not token then return nil end
+            records[#records + 1] = token
+            countR = countR + 1
+        end
+        bytes = bytes + (tonumber(item.bytes) or (#tostring(item.json or "") + 1))
+        stop = i
+        if countR == wantRecords and countM == wantRemotes then break end
+    end
+
+    if countR ~= wantRecords or countM ~= wantRemotes or bytes ~= wantBytes then return nil end
+    if tostring(existing.recordsHash or "") ~= hashText(table.concat(records, "\30")) then return nil end
+    if tostring(existing.remotesHash or "") ~= hashText(table.concat(remotes, "\30")) then return nil end
+
+    return {
+        index = tonumber(existing.batchIndex),
+        start = S.queueHead,
+        stop = stop,
+        bytes = bytes,
+    }
+end
+
+U.tryLegacyAckRecovery = function(err, attemptedBatch)
+    if not S.legacyRecoveryEligible then return false end
+    if S.inflightRestored then return false end
+
+    local data = U.decodeApiError(err)
+    local existing = data and data.existing
+    local expectedIndex = S.batchIndex + 1
+    if not data or tostring(data.runId or "") ~= tostring(S.runId or "") or
+        tonumber(data.batchIndex) ~= expectedIndex or tonumber(existing and existing.batchIndex) ~= expectedIndex then
+        return false
+    end
+
+    local recovered = U.legacyPrefixFor(existing)
+    if not recovered then return false end
+
+    S.pendingSend = nil
+    S.legacyRecoveryEligible = false
+    S.inflightRestored = false
+    S.uploadBlocked = false
+    U.clearActiveUploadError()
+    U.clearInflight()
+    acknowledgeBatch(recovered)
+
+    if U.saveCache and U.cacheSnapshot then
+        local snap = U.cacheSnapshot()
+        if U.saveCache(snap) then S.cached = snap end
+    end
+
     return true
 end
 
@@ -4195,6 +4302,7 @@ local function resetRunState()
     S.lastUploadDiagSignature = nil
     S.cacheSchemaVersion = nil
     S.inflightRestored = false
+    S.legacyRecoveryEligible = false
     S.manifestConfirmed = false
     if U.clearInflight then U.clearInflight() end
     S.sessionExact, S.remoteSeen = {}, {}
