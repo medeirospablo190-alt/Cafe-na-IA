@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.1
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.2
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_1",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_2",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -122,6 +122,7 @@ local C = {
     INVESTIGATOR_BLUE_MAX = 5.5,
     INVESTIGATOR_BLUE_IDLE = 0.9,
     INVESTIGATOR_COOLDOWN = 8.0,
+    INVESTIGATOR_DIAGNOSTIC_CAP = 40,
     ACTIVE_TEST_MAX_IMPORTANCE = 86,
     ACTIVE_TEST_MAX_ARGS = 12,
     INPUT_LOCK_PRIORITY = 10000,
@@ -666,6 +667,10 @@ local S = {
     investigatorState = "GREEN",
     investigatorReason = "livre",
     investigatorStateSince = 0,
+    investigatorStage = "idle",
+    investigatorStageDetail = "livre",
+    investigatorStageSince = 0,
+    lastInvestigatorError = nil,
     activeInvestigation = nil,
     investigationQueue = {},
     investigationQueuedKeys = {},
@@ -697,6 +702,8 @@ local S = {
         investigationsCancelled = 0,
         investigationsBlocked = 0,
         inputQuarantines = 0,
+        investigatorDiagnostics = 0,
+        investigatorErrors = 0,
         batchBudgetDrops = 0,
     },
     focusRemote = nil,
@@ -1768,7 +1775,8 @@ local function restoreCache(data)
         opaqueSamples = 0, deepProbes = 0,
         investigationsQueued = 0, investigationsCompleted = 0, investigationsActive = 0,
         investigationsPassive = 0, investigationsCancelled = 0, investigationsBlocked = 0,
-        inputQuarantines = 0, batchBudgetDrops = 0,
+        inputQuarantines = 0, investigatorDiagnostics = 0, investigatorErrors = 0,
+        batchBudgetDrops = 0,
     }
     S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
     S.focusScore = tonumber(data.focusScore) or 0
@@ -1989,6 +1997,63 @@ local function setInvestigatorState(state, reason)
     if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
 end
 
+local function setInvestigatorStage(stage, detail, inv, emitRecord)
+    stage = tostring(stage or "unknown")
+    detail = tostring(detail or "")
+    local now = os.clock()
+    S.investigatorStage = stage
+    S.investigatorStageDetail = detail
+    S.investigatorStageSince = now
+
+    if inv then
+        inv.stage = stage
+        inv.stageDetail = detail
+        inv.stageSince = now
+        inv.diagSeq = (tonumber(inv.diagSeq) or 0) + 1
+        inv.diagnostics = type(inv.diagnostics) == "table" and inv.diagnostics or {}
+
+        local row = {
+            seq = inv.diagSeq,
+            stage = stage,
+            detail = string.sub(detail, 1, 180),
+            clock = math.floor((now - S.startClock) * 1000 + 0.5) / 1000,
+            state = S.investigatorState,
+            mode = inv.mode,
+            pressure = pressureLevel(),
+            frameDtMs = math.floor((S.frameDt or 0) * 100000 + 0.5) / 100,
+        }
+        inv.diagnostics[#inv.diagnostics + 1] = row
+        while #inv.diagnostics > C.INVESTIGATOR_DIAGNOSTIC_CAP do
+            table.remove(inv.diagnostics, 1)
+        end
+
+        if emitRecord ~= false and S.running and not S.stopping then
+            S.smartStats.investigatorDiagnostics = (S.smartStats.investigatorDiagnostics or 0) + 1
+            enqueue("record", "investigator_diag", {
+                kind = "investigator_diag",
+                investigationId = inv.id,
+                stage = row.stage,
+                detail = row.detail,
+                state = row.state,
+                mode = row.mode,
+                pressure = row.pressure,
+                frameDtMs = row.frameDtMs,
+                remote = inv.candidate and inv.candidate.remote and remoteDesc(inv.candidate.remote) or nil,
+            }, 97, true, nil, nil,
+                hashText("investigator_diag|" .. tostring(inv.id) .. "|" .. tostring(inv.diagSeq) .. "|" .. stage), true)
+        end
+    end
+
+    if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
+end
+
+local function markInvestigatorError(inv, source, err)
+    local message = string.sub(tostring(err or "unknown_error"), 1, 260)
+    S.lastInvestigatorError = tostring(source or "unknown") .. ": " .. message
+    S.smartStats.investigatorErrors = (S.smartStats.investigatorErrors or 0) + 1
+    setInvestigatorStage("execute_error", S.lastInvestigatorError, inv, true)
+end
+
 local function rememberGuiChange(kind, inst, state)
     local row = {
         kind = tostring(kind), path = pathOf(inst), className = inst.ClassName,
@@ -2176,6 +2241,7 @@ local function finishActiveInvestigation(status, reason)
         return
     end
     S.investigationEpoch = S.investigationEpoch + 1
+    setInvestigatorStage(status == "cancelled" and "cancelled" or "finishing", tostring(reason or ""), inv, true)
     local after = compactDeepState()
     local diff = stateDiff(inv.beforeState or inv.detectedState, after, inv.startedRelative)
     local impact = investigationImpact(diff)
@@ -2206,9 +2272,15 @@ local function finishActiveInvestigation(status, reason)
         before = inv.beforeState, middle = inv.middleState, after = after,
         diff = diff, impact = impact, timeline = timelineSnapshot(inv.startedRelative),
         execution = inv.execution,
+        diagnostics = inv.diagnostics,
+        finalStage = inv.stage,
+        finalStageDetail = inv.stageDetail,
     }
     S.activeInvestigation = nil
     setInvestigatorState("GREEN", status == "cancelled" and "cancelado" or "livre")
+    S.investigatorStage = "idle"
+    S.investigatorStageDetail = status == "cancelled" and "cancelado" or "livre"
+    S.investigatorStageSince = os.clock()
     if S.running and not S.stopping then
         enqueue("record", "investigation_bundle", bundle, 100, true, nil, nil,
             hashText("bundle|" .. tostring(inv.id) .. "|" .. tostring(status)), true)
@@ -2237,6 +2309,7 @@ local function beginBluePhase(inv, reason)
     inv.blueStarted = os.clock()
     inv.lastRelevantClock = os.clock()
     setInvestigatorState("BLUE", reason or "observando resultado")
+    setInvestigatorStage("blue_observing", reason or "observando resultado", inv, true)
     task.delay(1.0, function()
         if S.activeInvestigation == inv then inv.middleState = compactDeepState() end
     end)
@@ -2256,8 +2329,11 @@ end
 
 local function executeCandidate(inv)
     if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
+    setInvestigatorStage("execute_entered", "avaliando risco", inv, true)
+
     local risk = sideEffectReason(inv.candidate)
     if risk then
+        setInvestigatorStage("risk_blocked", risk, inv, true)
         inv.mode = "passive"
         S.smartStats.investigationsPassive = (S.smartStats.investigationsPassive or 0) + 1
         S.smartStats.investigationsBlocked = (S.smartStats.investigationsBlocked or 0) + 1
@@ -2266,14 +2342,27 @@ local function executeCandidate(inv)
         return
     end
 
+    setInvestigatorStage("risk_clear", "avaliando estabilidade", inv, true)
     local stable, why = investigatorStable()
     local yellowElapsed = os.clock() - inv.yellowStarted
+    setInvestigatorStage("stability_checked",
+        stable and "estável" or ("instável:" .. tostring(why or "unknown")),
+        inv, true)
     if not stable and yellowElapsed < C.INVESTIGATOR_YELLOW_MAX then
         S.investigatorReason = "aguardando estabilidade"
+        setInvestigatorStage("yellow_retry_wait", tostring(why or "instável"), inv, true)
         if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
-        task.delay(0.25, function() if S.activeInvestigation == inv then executeCandidate(inv) end end)
+        task.delay(0.25, function()
+            if S.activeInvestigation ~= inv then return end
+            setInvestigatorStage("yellow_retry_fired", "retry disparou", inv, true)
+            local ok, err = pcall(function() executeCandidate(inv) end)
+            if not ok and S.activeInvestigation == inv then
+                markInvestigatorError(inv, "yellow_retry", err)
+            end
+        end)
         return
     elseif not stable then
+        setInvestigatorStage("passive_selected", "ambiente instável:" .. tostring(why or "unknown"), inv, true)
         inv.mode = "passive"
         S.smartStats.investigationsPassive = (S.smartStats.investigationsPassive or 0) + 1
         S.smartStats.investigationsBlocked = (S.smartStats.investigationsBlocked or 0) + 1
@@ -2285,9 +2374,11 @@ local function executeCandidate(inv)
     inv.mode = "active"
     inv.beforeState = compactDeepState()
     inv.startedRelative = os.clock() - S.startClock
+    setInvestigatorStage("red_prepare", "entrando no teste", inv, true)
     setInvestigatorState("RED", "teste automático")
     task.delay(C.INVESTIGATOR_RED_SETTLE, function()
         if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
+        setInvestigatorStage("red_settle_fired", "preparando chamada", inv, true)
         local remote = inv.candidate.remote
         if typeof(remote) ~= "Instance" or remote.Parent == nil or remote.ClassName ~= "RemoteEvent" then
             inv.execution = { ok = false, error = "remote_unavailable" }
@@ -2296,11 +2387,13 @@ local function executeCandidate(inv)
         end
         local registry = S.outboundHookRegistry
         if type(registry) == "table" then registry.syntheticToken = inv.id end
+        setInvestigatorStage("fire_call_started", "FireServer controlado", inv, true)
         local ok, err = pcall(function()
             remote:FireServer(table.unpack(inv.candidate.replayArgs, 1, inv.candidate.replayArgs.n))
         end)
         if type(registry) == "table" then registry.syntheticToken = nil end
         inv.execution = { ok = ok, error = ok and nil or tostring(err) }
+        setInvestigatorStage("fire_call_finished", ok and "chamada concluída" or ("falha:" .. tostring(err)), inv, true)
         S.smartStats.investigationsActive = (S.smartStats.investigationsActive or 0) + 1
         recordKnowledge(inv.candidate, "activeTests", 1, { status = ok and "tested" or "error" })
         task.delay(0.12, function()
@@ -2317,12 +2410,19 @@ local function startInvestigationCandidate(candidate)
         id = S.investigationSeq, candidate = candidate, mode = "pending",
         yellowStarted = os.clock(), startedRelative = os.clock() - S.startClock,
         prelude = timelineSnapshot(), detectedState = compactDeepState(),
-        lastRelevantClock = os.clock(),
+        lastRelevantClock = os.clock(), diagnostics = {}, diagSeq = 0,
     }
     S.activeInvestigation = inv
     setInvestigatorState("YELLOW", "nova interação • pare de mexer")
+    setInvestigatorStage("yellow_timer_scheduled",
+        "aguardando " .. tostring(C.INVESTIGATOR_YELLOW_SECONDS) .. "s", inv, true)
     task.delay(C.INVESTIGATOR_YELLOW_SECONDS, function()
-        if S.activeInvestigation == inv then executeCandidate(inv) end
+        if S.activeInvestigation ~= inv then return end
+        setInvestigatorStage("yellow_timer_fired", "timer disparou", inv, true)
+        local ok, err = pcall(function() executeCandidate(inv) end)
+        if not ok and S.activeInvestigation == inv then
+            markInvestigatorError(inv, "yellow_timer", err)
+        end
     end)
 end
 
@@ -3365,6 +3465,11 @@ local function manifestTable()
             argumentFields = argumentFieldSummary(),
             investigator = {
                 state = S.investigatorState,
+                stage = S.investigatorStage,
+                stageDetail = S.investigatorStageDetail,
+                lastError = S.lastInvestigatorError,
+                diagnosticMarkers = S.smartStats.investigatorDiagnostics or 0,
+                errors = S.smartStats.investigatorErrors or 0,
                 queued = S.smartStats.investigationsQueued or 0,
                 active = S.smartStats.investigationsActive or 0,
                 passive = S.smartStats.investigationsPassive or 0,
@@ -3435,6 +3540,8 @@ local function resetRunState()
     S.toolSignals = setmetatable({}, { __mode = "k" })
     S.guiSignals = setmetatable({}, { __mode = "k" })
     S.investigatorState, S.investigatorReason, S.investigatorStateSince = "GREEN", "livre", os.clock()
+    S.investigatorStage, S.investigatorStageDetail, S.investigatorStageSince = "idle", "livre", os.clock()
+    S.lastInvestigatorError = nil
     S.activeInvestigation, S.investigationQueue, S.investigationQueuedKeys = nil, {}, {}
     S.investigationSeq, S.investigationCount, S.investigationEpoch = 0, 0, S.investigationEpoch + 1
     S.investigationLastByKey, S.investigationKnowledgeDelta, S.actionSeenCounts = {}, {}, {}
@@ -3777,10 +3884,31 @@ iconStroke.Thickness = 1
 iconStroke.Parent = miniIcon
 
 local stateVisuals = {
-    GREEN = { color = Color3.fromRGB(55, 190, 105), label = "VERDE • LIVRE", icon = "✓" },
-    YELLOW = { color = Color3.fromRGB(235, 190, 55), label = "AMARELO • PARE DE MEXER", icon = "!" },
-    RED = { color = Color3.fromRGB(235, 72, 72), label = "VERMELHO • TESTE AUTOMÁTICO", icon = "●" },
-    BLUE = { color = Color3.fromRGB(72, 145, 235), label = "AZUL • OBSERVANDO", icon = "…" },
+    GREEN = { color = Color3.fromRGB(55, 190, 105), label = "VERDE", icon = "✓" },
+    YELLOW = { color = Color3.fromRGB(235, 190, 55), label = "AMARELO", icon = "!" },
+    RED = { color = Color3.fromRGB(235, 72, 72), label = "VERMELHO", icon = "●" },
+    BLUE = { color = Color3.fromRGB(72, 145, 235), label = "AZUL", icon = "…" },
+}
+
+local stageLabels = {
+    idle = "LIVRE",
+    yellow_timer_scheduled = "TIMER AGENDADO",
+    yellow_timer_fired = "TIMER DISPAROU",
+    execute_entered = "EXECUTANDO",
+    risk_blocked = "RISCO BLOQUEOU",
+    risk_clear = "RISCO OK",
+    stability_checked = "ESTABILIDADE",
+    yellow_retry_wait = "AGUARDANDO ESTAB.",
+    yellow_retry_fired = "RETRY DISPAROU",
+    passive_selected = "MODO PASSIVO",
+    red_prepare = "PREPARANDO TESTE",
+    red_settle_fired = "TESTE LIBERADO",
+    fire_call_started = "EXECUTANDO AÇÃO",
+    fire_call_finished = "AÇÃO CONCLUÍDA",
+    blue_observing = "OBSERVANDO",
+    execute_error = "ERRO INTERNO",
+    cancelled = "CANCELANDO",
+    finishing = "FINALIZANDO",
 }
 
 local minimized = false
@@ -3798,8 +3926,10 @@ investigatorUiRefresh = function()
     stateDot.BackgroundColor3 = visual.color
     miniIcon.BackgroundColor3 = visual.color
     miniIcon.Text = visual.icon
-    local reason = tostring(S.investigatorReason or "")
-    stateLabel.Text = visual.label .. (reason ~= "" and (" • " .. reason) or "")
+    local stage = stageLabels[S.investigatorStage] or string.upper(tostring(S.investigatorStage or "?"))
+    local elapsed = math.max(0, os.clock() - (tonumber(S.investigatorStageSince) or os.clock()))
+    local suffix = S.investigatorState ~= "GREEN" and string.format(" • %.1fs", elapsed) or ""
+    stateLabel.Text = visual.label .. " • " .. stage .. suffix
 end
 
 uiRefresh = function()
@@ -4021,4 +4151,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.1 carregado • investigador adaptativo • estados coloridos • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.2 carregado • investigador adaptativo • estados coloridos • streaming protegido")
