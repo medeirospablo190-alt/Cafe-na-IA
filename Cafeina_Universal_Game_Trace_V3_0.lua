@@ -2771,10 +2771,30 @@ local function runtimeWatchers()
 
     local pg = LP:FindFirstChildOfClass("PlayerGui")
     if pg then
-        for _, x in ipairs(pg:GetDescendants()) do attachGuiSignals(x) end
-        for _, x in ipairs(pg:GetChildren()) do attachGuiSignals(x) end
         S.conns[#S.conns + 1] = pg.DescendantAdded:Connect(function(x)
             if S.running and not S.stopping then attachGuiSignals(x) end
+        end)
+        task.spawn(function()
+            local roots = pg:GetChildren()
+            local stack = {}
+            for i = math.min(#roots, C.GUI_NODE_CAP), 1, -1 do stack[#stack + 1] = roots[i] end
+            local visited, sliceStart = 0, os.clock()
+            while #stack > 0 and visited < C.GUI_NODE_CAP and S.running and not S.stopping do
+                local x = stack[#stack]
+                stack[#stack] = nil
+                visited = visited + 1
+                attachGuiSignals(x)
+                local ok, children = pcall(function() return x:GetChildren() end)
+                if ok and #children > 0 then
+                    local room = math.max(0, C.GUI_NODE_CAP - visited - #stack)
+                    local take = math.min(#children, room)
+                    for i = take, 1, -1 do stack[#stack + 1] = children[i] end
+                end
+                if visited % 80 == 0 or os.clock() - sliceStart >= C.SCAN_SLICE_MS then
+                    task.wait()
+                    sliceStart = os.clock()
+                end
+            end
         end)
     end
 
