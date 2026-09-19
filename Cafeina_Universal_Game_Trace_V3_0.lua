@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.0
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.1
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_0",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_1",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -105,9 +105,13 @@ local C = {
     DEEP_PROBE_COOLDOWN = 1.25,
     DEEP_PROBE_DELAYS = { 0.20, 1.25, 3.00 },
     RECENT_VALUE_CAP = 32,
+    RECENT_VALUE_SNAPSHOT_CAP = 16,
+    RECENT_VALUE_BACKGROUND_CAP = 4,
+    RECENT_VALUE_NOISY_AFTER = 4,
     RECENT_GUI_CAP = 32,
     TIMELINE_SECONDS = 7.0,
     TIMELINE_CAP = 180,
+    INTERACTION_CONTEXT_SECONDS = 0.5,
 
     INVESTIGATOR_QUEUE_CAP = 10,
     INVESTIGATOR_MAX_PER_SESSION = 18,
@@ -468,7 +472,10 @@ local function semanticCanon(v, depth, seen)
     if t == "string" then return semanticString(v) end
     if t == "buffer" then return bufferSemanticToken(v) end
     if t == "EnumItem" then return "E:" .. tostring(v) end
-    if t == "Instance" then return "I:" .. v.ClassName .. ":" .. v.Name end
+    if t == "Instance" then
+        if v.ClassName == "Player" then return "I:Player" end
+        return "I:" .. v.ClassName .. ":" .. v.Name
+    end
     if t == "Vector2" then return "V2" end
     if t == "Vector3" then return "V3" end
     if t == "CFrame" then return "CF" end
@@ -645,6 +652,7 @@ local S = {
     behaviorTransitionCount = 0,
     lastBehavior = nil,
     recentValueChanges = {},
+    valueActivity = {},
     deepProbeCount = 0,
     lastDeepProbeByRemote = {},
     opaquePrevious = {},
@@ -837,6 +845,26 @@ local function timelineSnapshot(sinceClock)
         if (row.clock or 0) >= since then out[#out + 1] = row end
     end
     return out
+end
+
+local function recentDirectInteraction(maxAge)
+    local now = os.clock() - S.startClock
+    local limit = tonumber(maxAge) or C.INTERACTION_CONTEXT_SECONDS
+    for i = #S.recentTimeline, 1, -1 do
+        local row = S.recentTimeline[i]
+        local age = now - (tonumber(row.clock) or 0)
+        if age > limit then break end
+        local direct = (row.category == "gui_interaction" and row.kind == "gui_activated") or
+            (row.category == "tool_signal" and row.kind == "tool_activated") or
+            row.category == "prompt_triggered"
+        if direct then
+            return {
+                category = row.category, kind = row.kind, path = row.path,
+                age = math.floor(math.max(0, age) * 1000 + 0.5) / 1000,
+            }
+        end
+    end
+    return nil
 end
 
 local function modelProtocol(direction, remotePath, method, shapeHash, semanticHash)
@@ -1779,9 +1807,12 @@ local function addFrontier(path)
 end
 
 local function rememberRecentValue(path, eventValue, observedAfterValue)
+    path = tostring(path)
+    local activity = (tonumber(S.valueActivity[path]) or 0) + 1
+    S.valueActivity[path] = activity
     S.recentValueChanges[#S.recentValueChanges + 1] = {
-        path = tostring(path), eventValue = eventValue, observedAfterValue = observedAfterValue,
-        clock = os.clock() - S.startClock,
+        path = path, eventValue = eventValue, observedAfterValue = observedAfterValue,
+        clock = os.clock() - S.startClock, activityCount = activity,
     }
     while #S.recentValueChanges > C.RECENT_VALUE_CAP do table.remove(S.recentValueChanges, 1) end
 end
@@ -1805,9 +1836,34 @@ local function compactToolState()
 end
 
 local function compactDeepState()
+    local rare, background = {}, {}
+    for i = #S.recentValueChanges, 1, -1 do
+        local row = S.recentValueChanges[i]
+        local currentActivity = tonumber(S.valueActivity[row.path]) or tonumber(row.activityCount) or 0
+        if currentActivity <= C.RECENT_VALUE_NOISY_AFTER then
+            rare[#rare + 1] = row
+        elseif #background < C.RECENT_VALUE_BACKGROUND_CAP then
+            background[#background + 1] = row
+        end
+        if #rare >= C.RECENT_VALUE_SNAPSHOT_CAP then break end
+    end
+
+    local selected = {}
+    for _, row in ipairs(rare) do selected[#selected + 1] = row end
+    for _, row in ipairs(background) do
+        if #selected >= C.RECENT_VALUE_SNAPSHOT_CAP then break end
+        selected[#selected + 1] = row
+    end
+    table.sort(selected, function(a, b) return (a.clock or 0) < (b.clock or 0) end)
+
     local recent = {}
-    local first = math.max(1, #S.recentValueChanges - 15)
-    for i = first, #S.recentValueChanges do recent[#recent + 1] = S.recentValueChanges[i] end
+    local first = math.max(1, #selected - C.RECENT_VALUE_SNAPSHOT_CAP + 1)
+    for i = first, #selected do recent[#recent + 1] = selected[i] end
+    if #recent == 0 then
+        local fallbackFirst = math.max(1, #S.recentValueChanges - C.RECENT_VALUE_SNAPSHOT_CAP + 1)
+        for i = fallbackFirst, #S.recentValueChanges do recent[#recent + 1] = S.recentValueChanges[i] end
+    end
+
     local guiRecent = {}
     local guiFirst = math.max(1, #S.recentGuiChanges - 15)
     for i = guiFirst, #S.recentGuiChanges do guiRecent[#guiRecent + 1] = S.recentGuiChanges[i] end
@@ -2143,6 +2199,7 @@ local function finishActiveInvestigation(status, reason)
             key = inv.candidate.key, remote = remoteDesc(inv.candidate.remote),
             method = inv.candidate.method, shapeHash = inv.candidate.shapeHash,
             semanticHash = inv.candidate.semanticHash, importance = inv.candidate.importance,
+            triggerContext = inv.candidate.triggerContext,
             payload = packed(inv.candidate.replayArgs),
         },
         prelude = inv.prelude, detectedState = inv.detectedState,
@@ -2269,7 +2326,7 @@ local function startInvestigationCandidate(candidate)
     end)
 end
 
-local function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance)
+local function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance, triggerContext)
     if not S.running or S.stopping or pressureLevel() >= 2 then return end
     if S.investigationCount + #S.investigationQueue >= C.INVESTIGATOR_MAX_PER_SESSION then return end
     if method ~= "FireServer" or remote.ClassName ~= "RemoteEvent" then return end
@@ -2289,7 +2346,7 @@ local function queueInvestigationCandidate(remote, method, args, shapeHash, sema
     local candidate = {
         key = key, remote = remote, remotePath = remotePath, method = method,
         replayArgs = replayArgs, shapeHash = shapeHash, semanticHash = semanticHash,
-        importance = importance, cloneError = cloneErr,
+        importance = importance, cloneError = cloneErr, triggerContext = triggerContext,
     }
     S.investigationLastByKey[key] = os.clock()
     local starter
@@ -2527,6 +2584,7 @@ local function installOutboundObserver()
                 if results then observeArgumentFields(remotePath, method, results, "return") end
             end
             local focused = score >= C.FOCUS_SCORE
+            local interactionContext = syntheticToken == nil and recentDirectInteraction(C.INTERACTION_CONTEXT_SECONDS) or nil
             local deep = syntheticToken ~= nil or focused or newShape or newSemantic or newResponseShape or newResponseSemantic
             S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
             if focused then
@@ -2553,6 +2611,7 @@ local function installOutboundObserver()
                 newShape = newShape, investigating = deep, importance = score,
                 automatedInvestigation = syntheticToken ~= nil,
                 investigationId = syntheticToken,
+                triggerContext = interactionContext,
                 player = deep and playerContext(false) or nil,
             }
             local accepted = enqueue("record", "remote_outbound", record,
@@ -2576,9 +2635,11 @@ local function installOutboundObserver()
                     end)
                 end
             end
-            if deep then openCorrelationWindow(remotePath, method, shapeHash, score, semanticHash) end
-            if accepted and deep and not syntheticToken then
-                queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, score)
+            if deep or interactionContext then
+                openCorrelationWindow(remotePath, method, shapeHash, score, semanticHash)
+            end
+            if not syntheticToken and ((accepted and deep) or interactionContext) then
+                queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, score, interactionContext)
             end
         end)
     end
@@ -3366,7 +3427,7 @@ local function resetRunState()
     S.correlationEvidenceCount = 0
     S.behaviorTransitions, S.lastBehavior = {}, nil
     S.behaviorTransitionCount = 0
-    S.recentValueChanges = {}
+    S.recentValueChanges, S.valueActivity = {}, {}
     S.deepProbeCount, S.lastDeepProbeByRemote = 0, {}
     S.opaquePrevious, S.opaqueCounters = {}, {}
     S.runtimePatternCounts, S.runtimePatternSeen = {}, {}
@@ -3960,4 +4021,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.0 carregado • investigador adaptativo • estados coloridos • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.1 carregado • investigador adaptativo • estados coloridos • streaming protegido")
