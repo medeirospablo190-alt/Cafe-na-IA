@@ -1,59 +1,86 @@
-# CAFEÍNA Universal Game Trace V3.0
+# CAFEÍNA Universal Game Trace V3.0.1
 
-Arquivos:
+Arquivos principais:
 
 - `Cafeina_Universal_Game_Trace_V3_0.lua`: coletor cliente/executor.
-- `collector-v3-routes.js`: rotas V3 do gateway, separadas da API V2.1.
+- `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
-- `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação do Luau.
+- `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
 
-## Regras implementadas
+## O que mudou no V3.0.1
 
-1. Coleta passiva: não dispara remotes desconhecidos.
-2. Deduplicação por assinatura exata durante a sessão; repetições viram contadores em vez de cópias completas.
-3. Memória persistente por `game.GameId`, carregada antes da coleta.
-4. Um jogo diferente começa com perfil independente; voltar ao mesmo jogo reutiliza o perfil conhecido.
-5. Dados estáticos/baixo valor usam fingerprints de estado: se nada mudou, não são coletados novamente; se o estado realmente mudou, voltam a ser novidade.
-6. Remotes e formatos de payload novos recebem uma janela curta de investigação aprofundada e um snapshot contextual do sistema ao redor.
-7. Estratégia adaptativa por categoria, com amostragem baseada na taxa real de novidade; o código não se auto-modifica.
-8. Correlação leve por `corr` e referências recentes, sem buffer de replay.
-9. Motor de cobertura/lacunas: scans limitados registram fronteiras não visitadas e priorizam essas áreas em sessões futuras do mesmo jogo.
-10. Varredura incremental em fatias de tempo para não monopolizar frames no celular.
-11. Backpressure por fila, FPS e orçamento total; dados de menor prioridade são reduzidos primeiro.
-12. Streaming para o servidor em lotes de ~1,75 MiB; o cliente não precisa manter 150 MB na RAM.
-13. Orçamento total: 96 MiB normal, 128 MiB proteção, 150 MiB teto rígido.
-14. O lote só é reconhecido no cliente quando a API confirma que o GitHub possui exatamente aquele lote.
-15. Retry é realmente idempotente: índice, `capturedAt` e manifesto ficam estáveis até a confirmação; uma resposta perdida não muda o conteúdo do retry.
-16. Lotes usam caminho determinístico por `gameId/placeId/runId/batch`, permitindo retry idempotente e detectando conflito de conteúdo.
-17. O perfil do jogo é atualizado apenas no manifesto final e protegido contra reaplicação do mesmo `runId`.
-18. Cache local guarda apenas dados ainda não confirmados quando o executor oferece `writefile`; sem `writefile`, o retry continua disponível em memória enquanto a sessão existir.
-19. UI compacta: MB coletados, porcentagem confirmada e um único botão.
-20. UI usa `CoreUISafeInsets`, uma raiz de área segura, drag só pelo cabeçalho e posição limitada à área utilizável do celular.
-21. Nenhum replay detalhado e nenhum painel explicador/verboso.
+1. O coletor continua passivo quanto a ações próprias, mas agora pode observar tráfego nos dois sentidos quando o executor oferece `hookmetamethod` + `getnamecallmethod`.
+2. Chamadas reais feitas pelo cliente via `FireServer` e `InvokeServer` são registradas como `remote_outbound` sem alterar os argumentos nem repetir a chamada.
+3. Cada chamada outbound recebe assinatura de formato, assinatura exata, esquema dos argumentos e uma pontuação de importância.
+4. Remotes de maior interesse abrem automaticamente uma janela curta de investigação aprofundada.
+5. Eventos recebidos, mudanças de valores, inventário, objetos e atributos ocorridos logo depois carregam `causeCandidates`. Isso é correlação temporal, não afirmação de causalidade.
+6. O formato dos argumentos é inferido apenas de chamadas observadas; o coletor não inventa argumentos.
+7. Formatos outbound novos entram na mesma memória persistente de shapes do `GameId`, evitando reaprender a mesma estrutura em toda sessão.
+8. O manifesto final contém um bloco `intelligence` com quantidade de outbound observados/aceitos, candidatos de alto interesse, correlações abertas e foco mais importante da sessão.
+
+## Correção do travamento em “ENVIANDO”
+
+A V3.0 original podia enviar lotes muito pequenos porque o loop da UI tentava esvaziar qualquer fila a cada 0,25 s. Em coleta longa isso podia consumir os 179 lotes de dados e deixar o lote 180 reservado ao manifesto enquanto ainda existiam poucos KB na fila, criando um deadlock.
+
+A V3.0.1 corrige isso em duas camadas:
+
+- durante a coleta, o envio normal espera aproximadamente 70% do alvo de 1,75 MiB ou até 10 s de latência;
+- durante a finalização, a fila restante é drenada imediatamente;
+- o último slot continua reservado ao manifesto;
+- se o orçamento de lotes for atingido mesmo assim, apenas a cauda ainda não enviada é contabilizada como `batch_budget_bytes` e descartada, permitindo que o manifesto seja concluído em vez de ficar preso;
+- `acknowledgedDataBytes` não é mais forçado artificialmente para o total coletado, então o manifesto informa corretamente qualquer cauda não confirmada.
+
+Isso também permite que um cache antigo preso no lote 179 seja finalizado na próxima execução: a V3.0.1 preserva os 179 lotes já confirmados, registra a cauda não enviada e tenta usar o slot 180 para o manifesto.
+
+## Regras gerais
+
+1. Deduplicação exata por sessão; repetições viram contadores.
+2. Memória persistente por `game.GameId`.
+3. Um jogo diferente usa perfil independente.
+4. Dados estáticos de baixo valor só voltam a ser coletados quando o fingerprint muda.
+5. Remotes e payloads novos recebem investigação contextual.
+6. Estratégia adaptativa por categoria com amostragem baseada em novidade.
+7. Scans incrementais e limitados por tempo para proteger FPS no celular.
+8. Backpressure reduz dados menos importantes antes da fila crescer demais.
+9. 96 MiB = orçamento suave, 128 MiB = proteção, 150 MiB = teto rígido de coleta.
+10. Lotes só são reconhecidos depois que a API confirma o espelho no GitHub.
+11. Retry mantém índice e conteúdo estáveis.
+12. Histórico é append-only/idempotente por `gameId/placeId/runId/batch`.
+13. Perfil só é atualizado pelo manifesto final e não reaplica o mesmo `runId`.
+14. Cache local guarda apenas a parte ainda não confirmada quando `writefile` está disponível.
+15. UI permanece compacta: MB, porcentagem e um único botão.
+
+## Observação outbound
+
+Quando suportado pelo executor, o coletor instala um único dispatcher de `__namecall` reutilizável entre reinicializações do script. Ele observa somente:
+
+- `RemoteEvent:FireServer(...)`
+- `RemoteFunction:InvokeServer(...)`
+
+A chamada original continua pelo `__namecall` original. O CAFEÍNA não muda os argumentos, não cancela a chamada e não dispara uma segunda chamada.
+
+Se o executor não oferecer as funções necessárias, a coleta continua funcionando normalmente e o manifesto registra `outboundObserver = "unavailable"`.
 
 ## Integração do servidor
 
-1. `collector-v3-routes.js` fica na raiz ao lado de `gateway-main.js`.
-2. `gateway-main.js` importa e instala `installCollectorV3Routes(app)`.
-3. O módulo reutiliza as variáveis já existentes do GitHub:
-   - `AVATAR_DUMP_GITHUB_TOKEN`
-   - `AVATAR_DUMP_GITHUB_REPO`
-   - `AVATAR_DUMP_GITHUB_BRANCH`
-4. Opcionalmente configure:
-   - `INVENTORY_TRACE_V3_GITHUB_PATH=inventory-traces-v3`
-   - `INVENTORY_TRACE_V3_MAX_PER_WINDOW=220`
-   - `INVENTORY_TRACE_V3_WINDOW_SECONDS=600`
-   - `INVENTORY_TRACE_V3_BODY_LIMIT=3mb`
-   - `INVENTORY_TRACE_V3_MAX_RECORDS=6000`
-   - `INVENTORY_TRACE_V3_MAX_REMOTES=1000`
-   - `INVENTORY_TRACE_V3_MAX_BATCHES=180`
-5. A leitura de arquivos de lote no GitHub usa o media type `raw`, necessário para arquivos entre 1 e 100 MB; isso mantém a detecção de conflito funcionando mesmo com lotes acima de 1 MB.
-6. Faça deploy e confirme `/api/inventory-trace-v3/health` com `githubMirrorConfigured: true`.
-7. Só então execute o Lua V3.
+A rota permanece `/api/inventory-trace-v3` e o schema HTTP continua na versão 3, portanto não é necessária migração do backend para aceitar os novos registros.
+
+Variáveis relevantes:
+
+- `AVATAR_DUMP_GITHUB_TOKEN`
+- `AVATAR_DUMP_GITHUB_REPO`
+- `AVATAR_DUMP_GITHUB_BRANCH`
+- `INVENTORY_TRACE_V3_GITHUB_PATH=inventory-traces-v3`
+- `INVENTORY_TRACE_V3_MAX_PER_WINDOW=220`
+- `INVENTORY_TRACE_V3_WINDOW_SECONDS=600`
+- `INVENTORY_TRACE_V3_BODY_LIMIT=3mb`
+- `INVENTORY_TRACE_V3_MAX_RECORDS=6000`
+- `INVENTORY_TRACE_V3_MAX_REMOTES=1000`
+- `INVENTORY_TRACE_V3_MAX_BATCHES=180`
 
 ## Estrutura persistente
 
-Histórico append-only/idempotente:
+Histórico:
 
 `inventory-traces-v3/<gameId>/<placeId>/<runId>/<batch>.json`
 
@@ -61,19 +88,17 @@ Manifesto mais recente:
 
 `inventory-traces-v3/<gameId>/<placeId>/latest.json`
 
-Memória compacta por jogo:
+Memória compacta do jogo:
 
 `inventory-traces-v3/profiles/<gameId>.json`
 
-Assim o cliente não precisa reler o histórico bruto. Ele baixa apenas a memória compacta do mesmo `GameId` e envia somente novidade útil/estado novo.
+## Validação
 
-## Validação feita antes da entrega
+O workflow `CAFEINA Trace V3 CI`:
 
-- `collector-v3-routes.js`: `node --check` aprovado.
-- `test/collector-v3-routes.test.mjs`: teste de idempotência, conflito, perfil e leitura raw de lote acima de 1 MB.
-- Teste local com GitHub simulado: lote inicial `201`, retry idêntico `201`, conflito do mesmo lote `409`, manifesto `201`, retry de manifesto idempotente e perfil aplicado uma única vez.
-- O coletor Lua passou por checagem lexical/estrutural local. O workflow `CAFEINA Trace V3 CI` baixa o compilador oficial Luau 0.739 e compila o arquivo antes do merge; depois do deploy, a validação final ainda inclui uma execução real no executor/mobile.
+- verifica sintaxe Node;
+- executa os testes da rota V3;
+- baixa o compilador oficial Luau 0.739;
+- compila `Cafeina_Universal_Game_Trace_V3_0.lua`.
 
-## Importante
-
-A V3 foi desenhada para coexistir com a rota V2.1 (`/api/inventory-trace`). A nova rota usa `/api/inventory-trace-v3`, então o coletor antigo continua disponível durante a transição.
+A validação real final continua sendo uma execução no executor/mobile, porque disponibilidade de hooks de `__namecall` varia por executor.

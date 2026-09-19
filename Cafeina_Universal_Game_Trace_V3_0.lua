@@ -1,22 +1,25 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.0
--- Passive, adaptive, persistent-per-game collector.
+-- CAFEINA • UNIVERSAL GAME TRACE V3.0.1
+-- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
---  1) Never actively fire unknown server remotes. Observe only.
---  2) Exact duplicates are suppressed; repeated noise is counted, not stored.
---  3) Knowledge is scoped by game.GameId. A different game starts fresh.
---  4) Returning to the same game loads its persistent knowledge profile.
---  5) New remote/payload shapes receive temporary deeper observation.
---  6) Collection adapts to novelty yield instead of self-modifying code.
---  7) Static scans are incremental and time-budgeted to protect mobile FPS.
---  8) Backpressure reduces low-value collection before memory can grow.
---  9) Data streams in bounded batches; the client does not hold 150 MB in RAM.
--- 10) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
--- 11) A batch is acknowledged only after the server confirms GitHub mirroring.
--- 12) Historical batches are append-only/idempotent on the V3 server route.
--- 13) The UI stays compact: MB collected + upload % + one action button.
--- 14) No replay buffer and no verbose analysis UI.
+--  1) Observe inbound AND client->server remote calls without changing their arguments.
+--  2) Never generate unknown remote calls; outbound observation is passive.
+--  3) Exact duplicates are suppressed; repeated noise is counted, not stored.
+--  4) Knowledge is scoped by game.GameId. A different game starts fresh.
+--  5) New/high-interest remote shapes receive temporary deeper observation.
+--  6) Important outbound calls open bounded cause/effect correlation windows.
+--  7) Argument schemas are inferred from observed calls, never guessed.
+--  8) Collection adapts to novelty yield instead of self-modifying code.
+--  9) Static scans are incremental and time-budgeted to protect mobile FPS.
+-- 10) Backpressure reduces low-value collection before memory can grow.
+-- 11) Uploads are coalesced; tiny batches are not flushed every UI tick.
+-- 12) One manifest slot is always reserved; batch exhaustion cannot deadlock finalization.
+-- 13) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
+-- 14) A batch is acknowledged only after the server confirms GitHub mirroring.
+-- 15) Historical batches are append-only/idempotent on the V3 server route.
+-- 16) The UI stays compact: MB collected + upload % + one action button.
+-- 17) No replay buffer and no verbose analysis UI.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -34,8 +37,8 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0",
-    PURPOSE = "adaptive_universal_game_mapping",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0_1",
+    PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
     HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health",
@@ -45,6 +48,8 @@ local C = {
     SOFT_BYTES = 96 * MB,
 
     BATCH_TARGET_BYTES = math.floor(1.75 * MB),
+    BATCH_MIN_FLUSH_BYTES = math.floor(1.75 * MB * 0.70),
+    BATCH_MAX_LATENCY = 10.0,
     QUEUE_SOFT_BYTES = 4 * MB,
     QUEUE_HARD_BYTES = 8 * MB,
 
@@ -74,6 +79,10 @@ local C = {
     TRAJECTORY_MOVE_STUDS = 5.0,
 
     INVESTIGATION_SECONDS = 8.0,
+    CORRELATION_SECONDS = 5.0,
+    CORRELATION_MIN_GAP = 0.75,
+    MAX_CORRELATION_WINDOWS = 10,
+    FOCUS_SCORE = 72,
     MIN_SEND_INTERVAL = 1.25,
     RETRIES = 4,
     RETRY_BASE = 0.8,
@@ -106,6 +115,9 @@ local WRITEFILE = pick(rawget(ENV, "writefile"), writefile)
 local READFILE = pick(rawget(ENV, "readfile"), readfile)
 local ISFILE = pick(rawget(ENV, "isfile"), isfile)
 local DELFILE = pick(rawget(ENV, "delfile"), delfile)
+local HOOKMETAMETHOD = pick(rawget(ENV, "hookmetamethod"), hookmetamethod)
+local GETNAMECALLMETHOD = pick(rawget(ENV, "getnamecallmethod"), getnamecallmethod)
+local NEWCLOSURE = pick(rawget(ENV, "newcclosure"), newcclosure)
 
 --==============================================================--
 -- SAFE SERIALIZATION + STABLE SIGNATURES
@@ -358,8 +370,10 @@ local S = {
     batchIndex = 0,
     pendingSend = nil,
     finalManifest = nil,
+    firstQueuedClock = 0,
     lastSendClock = 0,
     nextRetryClock = 0,
+    lastUploadError = nil,
 
     profile = nil,
     profileLow = {},
@@ -388,6 +402,20 @@ local S = {
     coverage = {},
     investigation = {},
     recentRefs = {},
+    correlationWindows = {},
+    correlationSeq = 0,
+    lastCorrelationByRemote = {},
+    smartStats = {
+        outboundObserved = 0,
+        outboundAccepted = 0,
+        highInterestOutbound = 0,
+        correlationsOpened = 0,
+        batchBudgetDrops = 0,
+    },
+    focusRemote = nil,
+    focusScore = 0,
+    outboundHookRegistry = nil,
+    outboundHookReady = false,
 
     frameDt = 1 / 60,
     lastTrajectoryAt = 0,
@@ -586,6 +614,127 @@ local function obj(inst, source, cachedAttrs)
 end
 
 --==============================================================--
+-- SMART IMPORTANCE / ARGUMENT SCHEMA / CORRELATION
+--==============================================================--
+
+local IMPORTANT_REMOTE_TERMS = {
+    { "purchase", 20 }, { "buy", 18 }, { "sell", 18 }, { "trade", 20 },
+    { "place", 18 }, { "deploy", 18 }, { "spawn", 14 }, { "upgrade", 16 },
+    { "inventory", 15 }, { "weapon", 12 }, { "equip", 12 }, { "interact", 10 },
+    { "teleport", 18 }, { "revive", 18 }, { "reward", 15 }, { "claim", 15 },
+    { "cash", 12 }, { "currency", 12 }, { "damage", 10 }, { "heal", 10 },
+    { "fire", 8 }, { "reload", 7 },
+}
+local LOW_VALUE_REMOTE_TERMS = {
+    "analytics", "footstep", "particle", "camera", "soundeffect", "console",
+}
+
+local function importanceScore(remotePath, method, newShape, className)
+    local score = method == "InvokeServer" and 50 or (method == "FireServer" and 42 or 34)
+    if newShape then score = score + 22 end
+    if className == "RemoteFunction" then score = score + 8 end
+
+    local lower = string.lower(tostring(remotePath or ""))
+    for _, row in ipairs(IMPORTANT_REMOTE_TERMS) do
+        if string.find(lower, row[1], 1, true) then score = score + row[2] end
+    end
+    for _, term in ipairs(LOW_VALUE_REMOTE_TERMS) do
+        if string.find(lower, term, 1, true) then score = score - 18 end
+    end
+    return math.clamp(score, 0, 100)
+end
+
+local function schemaOf(v, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    local t = typeof(v)
+
+    if t == "table" then
+        if seen[v] then return { type = "table", cycle = true } end
+        if depth >= 3 then return { type = "table", truncated = true } end
+        seen[v] = true
+        local fields, count = {}, 0
+        for k, item in pairs(v) do
+            count = count + 1
+            if count > 16 then break end
+            fields[tostring(k)] = schemaOf(item, depth + 1, seen)
+        end
+        seen[v] = nil
+        return { type = "table", fields = fields, fieldCountAtLeast = count }
+    end
+    if t == "Instance" then return { type = "Instance", className = v.ClassName } end
+    if t == "EnumItem" then return { type = "EnumItem", enum = tostring(v.EnumType) } end
+    return { type = t }
+end
+
+local function packedSchema(args)
+    local n = tonumber(args and args.n) or 0
+    local out = { count = n, args = {} }
+    local lim = math.min(n, C.MAX_ARGS)
+    for i = 1, lim do out.args[i] = schemaOf(args[i], 0, {}) end
+    if n > lim then out.truncated = n - lim end
+    return out
+end
+
+local CORRELATABLE_CATEGORIES = {
+    remote_inbound = true,
+    value_changed = true,
+    runtime_added = true,
+    runtime_remove = true,
+    tool_transition = true,
+    player_attribute = true,
+    prompt_triggered = true,
+    character = true,
+}
+
+local function pruneCorrelationWindows()
+    local now = os.clock()
+    local out = {}
+    for _, window in ipairs(S.correlationWindows) do
+        if window.expiresAt > now then out[#out + 1] = window end
+    end
+    S.correlationWindows = out
+end
+
+local function correlationCandidates(category)
+    if not CORRELATABLE_CATEGORIES[category] then return nil end
+    pruneCorrelationWindows()
+    if #S.correlationWindows == 0 then return nil end
+
+    local now, out = os.clock(), {}
+    local first = math.max(1, #S.correlationWindows - 2)
+    for i = first, #S.correlationWindows do
+        local w = S.correlationWindows[i]
+        out[#out + 1] = {
+            id = w.id, remote = w.remote, method = w.method, shape = w.shape,
+            importance = w.importance, age = math.max(0, now - w.startedAt),
+        }
+    end
+    return out
+end
+
+local function openCorrelationWindow(remotePath, method, shapeHash, importance)
+    local now = os.clock()
+    local last = S.lastCorrelationByRemote[remotePath] or 0
+    if now - last < C.CORRELATION_MIN_GAP then return end
+    S.lastCorrelationByRemote[remotePath] = now
+    pruneCorrelationWindows()
+
+    S.correlationSeq = S.correlationSeq + 1
+    S.correlationWindows[#S.correlationWindows + 1] = {
+        id = S.correlationSeq,
+        remote = remotePath,
+        method = method,
+        shape = shapeHash,
+        importance = importance,
+        startedAt = now,
+        expiresAt = now + C.CORRELATION_SECONDS,
+    }
+    while #S.correlationWindows > C.MAX_CORRELATION_WINDOWS do table.remove(S.correlationWindows, 1) end
+    S.smartStats.correlationsOpened = (S.smartStats.correlationsOpened or 0) + 1
+end
+
+--==============================================================--
 -- STREAMING QUEUE
 --==============================================================--
 
@@ -643,6 +792,8 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
     object.quality = math.clamp(priority + (novelty and 5 or 0), 0, 100)
     object.corr = math.floor(object.clock * 2)
     if priority >= 80 then object.contextRefs = contextRefs() end
+    local causeCandidates = correlationCandidates(category)
+    if causeCandidates then object.causeCandidates = causeCandidates end
 
     local ok, json = pcall(HttpService.JSONEncode, HttpService, object)
     if not ok or type(json) ~= "string" then
@@ -666,9 +817,11 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         return false
     end
 
+    local wasEmpty = S.queueBytes <= 0
     S.queue[#S.queue + 1] = { channel = channel, json = json, bytes = bytes }
     S.queueBytes = S.queueBytes + bytes
     S.totalBytes = S.totalBytes + bytes
+    if wasEmpty then S.firstQueuedClock = os.clock() end
     markExact(exactHash)
 
     local st = strategyFor(category)
@@ -688,8 +841,30 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         addBoundedDelta(S.deltaRemote, S.deltaRemoteSet, persistentHash, C.DELTA_REMOTE_CAP)
     end
 
-    if S.queueBytes >= C.BATCH_TARGET_BYTES * 0.70 and kickUpload then kickUpload() end
+    if S.queueBytes >= C.BATCH_MIN_FLUSH_BYTES and kickUpload then kickUpload() end
     return true
+end
+
+local function shouldFlushQueue(force)
+    if S.queueHead > #S.queue or S.queueBytes <= 0 then return false end
+    if force then return true end
+    if S.queueBytes >= C.BATCH_MIN_FLUSH_BYTES then return true end
+    if S.queueBytes >= C.QUEUE_SOFT_BYTES then return true end
+    if S.firstQueuedClock > 0 and os.clock() - S.firstQueuedClock >= C.BATCH_MAX_LATENCY then return true end
+    return false
+end
+
+local function dropPendingForBatchBudget()
+    if S.queueBytes > 0 then
+        bump(S.dropped, "batch_budget_bytes", S.queueBytes)
+        bump(S.dropped, "batch_budget_events")
+        S.smartStats.batchBudgetDrops = (S.smartStats.batchBudgetDrops or 0) + 1
+    end
+    S.queue = {}
+    S.queueHead = 1
+    S.queueBytes = 0
+    S.firstQueuedClock = 0
+    S.pendingSend = nil
 end
 
 local function compactQueue()
@@ -726,6 +901,9 @@ local function buildDataBatch()
 
     if stop < S.queueHead then return nil end
     if S.batchIndex + 2 > C.MAX_BATCHES then
+        -- Keep the final manifest slot. If this guard is ever reached, discard only
+        -- the still-pending tail and record its byte count instead of deadlocking.
+        dropPendingForBatchBudget()
         S.stopping = true
         task.defer(function() if S.finishCallback then S.finishCallback(true) end end)
         return nil
@@ -782,15 +960,23 @@ local function acknowledgeBatch(batch)
     S.queueBytes = math.max(0, S.queueBytes - batch.bytes)
     S.ackBytes = S.ackBytes + batch.bytes
     S.pendingSend = nil
+    S.lastUploadError = nil
     compactQueue()
+    if S.queueHead > #S.queue or S.queueBytes <= 0 then
+        S.firstQueuedClock = 0
+    else
+        S.firstQueuedClock = os.clock()
+    end
 end
 
 kickUpload = function()
     if S.uploading or os.clock() < S.nextRetryClock then return end
-    if S.queueHead > #S.queue then return end
+    if not shouldFlushQueue(S.finalizing or S.stopping) then return end
     S.uploading = true
     task.spawn(function()
         while (S.running or S.finalizing) and S.queueHead <= #S.queue do
+            local force = S.finalizing or S.stopping
+            if not shouldFlushQueue(force) then break end
             local batch = buildDataBatch()
             if not batch then break end
             local ok, err = sendDataBatch(batch)
@@ -799,9 +985,11 @@ kickUpload = function()
                 S.serverReady = true
             else
                 S.serverReady = false
+                S.lastUploadError = tostring(err)
                 S.nextRetryClock = os.clock() + 5
                 break
             end
+            if S.running and not S.finalizing and not shouldFlushQueue(false) then break end
             task.wait()
         end
         S.uploading = false
@@ -838,7 +1026,7 @@ end
 
 local function cacheSnapshot()
     return {
-        schemaVersion = 1, gameId = S.runGameId, placeId = S.runPlaceId,
+        schemaVersion = 2, gameId = S.runGameId, placeId = S.runPlaceId,
         placeVersion = S.runPlaceVersion, runId = S.runId, startIso = S.startIso,
         batchIndex = S.batchIndex, totalBytes = S.totalBytes, ackBytes = S.ackBytes,
         finalManifest = S.finalManifest,
@@ -846,6 +1034,7 @@ local function cacheSnapshot()
         deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaRemote = S.deltaRemote,
         strategy = strategySnapshot(), coverage = S.coverage, frontier = S.frontier,
         suppressed = S.suppressed, dropped = S.dropped, repeatCounts = S.repeatCounts,
+        smartStats = S.smartStats, focusRemote = S.focusRemote, focusScore = S.focusScore,
     }
 end
 
@@ -895,6 +1084,7 @@ local function restoreCache(data)
             S.queueBytes = S.queueBytes + bytes
         end
     end
+    S.firstQueuedClock = S.queueBytes > 0 and os.clock() or 0
     S.deltaLow = type(data.deltaLow) == "table" and data.deltaLow or {}
     S.deltaShape = type(data.deltaShape) == "table" and data.deltaShape or {}
     S.deltaRemote = type(data.deltaRemote) == "table" and data.deltaRemote or {}
@@ -919,6 +1109,14 @@ local function restoreCache(data)
     S.uploading = false
     S.suppressed = type(data.suppressed) == "table" and data.suppressed or {}
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
+    S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
+        outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
+        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
+    }
+    S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
+    S.focusScore = tonumber(data.focusScore) or 0
+    S.correlationWindows, S.lastCorrelationByRemote = {}, {}
+    S.correlationSeq = 0
     S.repeatCounts = type(data.repeatCounts) == "table" and data.repeatCounts or {}
     S.repeatKeyCount = 0
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
@@ -994,14 +1192,30 @@ local function attachInbound(r)
                     if S.running and not S.stopping then focusedRemoteContext(r, shapeHash) end
                 end)
             end
-            local priority = newShape and 98 or (investigating and 88 or 78)
+            local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName)
+            if score >= C.FOCUS_SCORE then
+                S.smartStats.highInterestInbound = (S.smartStats.highInterestInbound or 0) + 1
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                investigating = true
+                if score >= S.focusScore then
+                    S.focusRemote = remotePath
+                    S.focusScore = score
+                end
+            end
+            local priority = newShape and 98 or (investigating and 88 or math.max(78, score))
             local data = {
                 kind = "remote_inbound",
-                remote = remoteDesc(r), payload = packed(args),                newShape = newShape, investigating = investigating,
-                player = (newShape or investigating) and playerContext(false) or nil,
+                remote = remoteDesc(r),
+                payload = packed(args),
+                schema = (newShape or investigating or score >= C.FOCUS_SCORE) and packedSchema(args) or nil,
+                newShape = newShape,
+                investigating = investigating,
+                importance = score,
+                player = (newShape or investigating or score >= C.FOCUS_SCORE) and playerContext(false) or nil,
             }
-            enqueue("record", "remote_inbound", data, priority, newShape, newShape and "shape" or nil,
-                newShape and shapeHash or nil, exactHash, investigating)
+            enqueue("record", "remote_inbound", data, math.clamp(priority, 0, 100), newShape,
+                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
+                investigating or score >= C.FOCUS_SCORE)
         end)
     end)
     S.conns[#S.conns + 1] = connection
@@ -1024,6 +1238,112 @@ local function attachValue(v)
         }, 72, false, nil, nil, exact, false)
     end)
     S.conns[#S.conns + 1] = connection
+end
+
+--==============================================================--
+-- PASSIVE OUTBOUND REMOTE OBSERVER
+--==============================================================--
+
+local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
+
+local function installOutboundObserver()
+    if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
+        S.coverage.outboundObserver = "unavailable"
+        S.outboundHookReady = false
+        return false
+    end
+
+    local registry = rawget(ENV, OUTBOUND_HOOK_KEY)
+    if type(registry) ~= "table" or registry.installed ~= true then
+        registry = { installed = false, callback = nil }
+        local oldNamecall
+        local function wrapper(self, ...)
+            local method = GETNAMECALLMETHOD()
+            local callback = registry.callback
+            if callback and (method == "FireServer" or method == "InvokeServer") and typeof(self) == "Instance" and isRemote(self) then
+                local args = table.pack(...)
+                pcall(callback, self, method, args)
+            end
+            return oldNamecall(self, ...)
+        end
+
+        local wrapped = NEWCLOSURE and NEWCLOSURE(wrapper) or wrapper
+        local ok, old = pcall(HOOKMETAMETHOD, game, "__namecall", wrapped)
+        if not ok or type(old) ~= "function" then
+            S.coverage.outboundObserver = "hook_failed"
+            S.outboundHookReady = false
+            return false
+        end
+        oldNamecall = old
+        registry.installed = true
+        rawset(ENV, OUTBOUND_HOOK_KEY, registry)
+    end
+
+    registry.callback = function(remote, method, args)
+        if not S.running or S.stopping then return end
+        task.defer(function()
+            if not S.running or S.stopping then return end
+
+            local remotePath = pathOf(remote)
+            registerRemote(remote, "outbound")
+
+            local shapeHash = hashText("remote_out_shape\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, true))
+            local exactHash = hashText("remote_out_value\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, false))
+            local newShape = not S.profileShape[shapeHash]
+            local score = importanceScore(remotePath, method, newShape, remote.ClassName)
+            local focused = score >= C.FOCUS_SCORE
+
+            S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
+            if focused then
+                S.smartStats.highInterestOutbound = (S.smartStats.highInterestOutbound or 0) + 1
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                if score >= S.focusScore then
+                    S.focusRemote = remotePath
+                    S.focusScore = score
+                end
+            end
+            if newShape then
+                bump(S.coverage, "newOutboundShapes")
+                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
+                task.defer(function()
+                    if S.running and not S.stopping then focusedRemoteContext(remote, shapeHash) end
+                end)
+            end
+
+            local accepted = enqueue("record", "remote_outbound", {
+                kind = "remote_outbound",
+                method = method,
+                remote = remoteDesc(remote),
+                payload = packed(args),
+                schema = (newShape or focused) and packedSchema(args) or nil,
+                newShape = newShape,
+                investigating = focused,
+                importance = score,
+                player = (newShape or focused) and playerContext(false) or nil,
+            }, math.clamp(math.max(82, score), 0, 100), newShape,
+                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
+                focused or newShape)
+
+            if accepted then
+                S.smartStats.outboundAccepted = (S.smartStats.outboundAccepted or 0) + 1
+            end
+            if focused or newShape then
+                openCorrelationWindow(remotePath, method, shapeHash, score)
+            end
+        end)
+    end
+
+    S.outboundHookRegistry = registry
+    S.outboundHookReady = true
+    S.coverage.outboundObserver = "active"
+    return true
+end
+
+local function disableOutboundObserver()
+    local registry = S.outboundHookRegistry
+    if type(registry) == "table" then registry.callback = nil end
+    S.outboundHookRegistry = nil
+    S.outboundHookReady = false
 end
 
 local toolState = {}
@@ -1054,6 +1374,8 @@ local function watchContainer(container, label)
 end
 
 local function runtimeWatchers()
+    installOutboundObserver()
+
     local ra = ReplicatedStorage.DescendantAdded:Connect(function(x)
         if not S.running or S.stopping then return end
         if isRemote(x) then
@@ -1125,6 +1447,7 @@ local function runtimeWatchers()
 end
 
 local function disconnect()
+    disableOutboundObserver()
     for _, c in ipairs(S.conns) do pcall(function() c:Disconnect() end) end
     table.clear(S.conns)
     S.inbound = setmetatable({}, { __mode = "k" })
@@ -1453,6 +1776,17 @@ local function manifestTable()
         },
         strategyDelta = strategySnapshot(),
         coverage = S.coverage,
+        intelligence = {
+            outboundObserver = S.coverage.outboundObserver,
+            outboundObserved = S.smartStats.outboundObserved or 0,
+            outboundAccepted = S.smartStats.outboundAccepted or 0,
+            highInterestOutbound = S.smartStats.highInterestOutbound or 0,
+            highInterestInbound = S.smartStats.highInterestInbound or 0,
+            correlationsOpened = S.smartStats.correlationsOpened or 0,
+            batchBudgetDrops = S.smartStats.batchBudgetDrops or 0,
+            focusRemote = S.focusRemote,
+            focusScore = S.focusScore,
+        },
     }
 end
 
@@ -1488,6 +1822,8 @@ local function resetRunState()
     S.totalBytes, S.ackBytes, S.batchIndex = 0, 0, 0
     S.pendingSend = nil
     S.finalManifest = nil
+    S.firstQueuedClock = 0
+    S.lastUploadError = nil
     S.manifestConfirmed = false
     S.sessionExact, S.remoteSeen = {}, {}
     S.sessionExactCount = 0
@@ -1495,6 +1831,14 @@ local function resetRunState()
     S.deltaLowSet, S.deltaShapeSet, S.deltaRemoteSet = {}, {}, {}
     S.strategy, S.suppressed, S.dropped, S.repeatCounts, S.coverage, S.investigation, S.recentRefs = {}, {}, {}, {}, {}, {}, {}
     S.frontier, S.frontierSet = {}, {}
+    S.correlationWindows, S.lastCorrelationByRemote = {}, {}
+    S.correlationSeq = 0
+    S.smartStats = {
+        outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
+        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
+    }
+    S.focusRemote, S.focusScore = nil, 0
+    S.outboundHookRegistry, S.outboundHookReady = nil, false
     S.repeatKeyCount = 0
     S.inboundCount, S.valueCount = 0, 0
     S.lastTrajectoryAt, S.lastTrajectoryPos, S.lastTrajectoryState = 0, nil, nil
@@ -1524,7 +1868,6 @@ local function finalize(auto)
             return
         end
 
-        S.ackBytes = S.totalBytes
         local ok = false
         local err
         for attempt = 1, C.RETRIES do
@@ -1574,7 +1917,13 @@ local function begin()
         gameId = game.GameId, placeId = game.PlaceId, placeVersion = game.PlaceVersion,
         profileRevision = tonumber(S.profile and S.profile.revision) or 0,
         profileSessions = tonumber(S.profile and S.profile.sessions) or 0,
-        capabilities = { request = REQUEST ~= nil, writefile = WRITEFILE ~= nil },
+        capabilities = {
+            request = REQUEST ~= nil,
+            writefile = WRITEFILE ~= nil,
+            outboundHook = S.outboundHookReady,
+            hookmetamethod = HOOKMETAMETHOD ~= nil,
+            getnamecallmethod = GETNAMECALLMETHOD ~= nil,
+        },
         player = playerContext(true),
     }, 100, true, nil, nil, nil, true)
 
@@ -1598,7 +1947,6 @@ local function retryCached()
             if mainButton then mainButton.Text = "REENVIAR" end
             return
         end
-        S.ackBytes = S.totalBytes
         local ok = false
         for attempt = 1, C.RETRIES do
             ok = sendManifest()
@@ -1731,7 +2079,8 @@ task.spawn(function()
     while gui.Parent do
         uiRefresh()
         if S.running then maybeTrajectory() end
-        if (S.running or S.finalizing) and not S.uploading and S.queueHead <= #S.queue and os.clock() >= S.nextRetryClock then
+        if (S.running or S.finalizing) and not S.uploading and os.clock() >= S.nextRetryClock and
+            shouldFlushQueue(S.finalizing or S.stopping) then
             kickUpload()
         end
         task.wait(0.25)
@@ -1835,7 +2184,8 @@ task.spawn(function()
 
     local ok, health = getJson(C.HEALTH)
     S.serverReady = ok and type(health) == "table" and health.ok == true and
-        health.githubMirrorConfigured == true and tonumber(health.hardSessionBytes) == C.HARD_BYTES
+        health.githubMirrorConfigured == true and tonumber(health.hardSessionBytes) == C.HARD_BYTES and
+        (tonumber(health.maxBatches) or 0) >= C.MAX_BATCHES
 
     loadRemoteProfile(false)
     S.cached = loadCache()
@@ -1878,4 +2228,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.0 carregado • adaptativo • memória por GameId • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.0.1 carregado • bidirecional • correlação inteligente • streaming protegido")
