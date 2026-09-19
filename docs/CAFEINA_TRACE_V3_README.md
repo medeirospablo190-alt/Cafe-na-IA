@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.3
+# CAFEÍNA Universal Game Trace V3.2.4
 
 Arquivos principais:
 
@@ -6,6 +6,24 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## V3.2.4 — fila segura e autodiagnóstico leve
+
+A V3.2.4 corrige a causa localizada pela V3.2.3 sem alterar o hook outbound v4: o callback derivado do observer **não inicia mais diretamente a investigação/UI**. Ele apenas valida e enfileira o candidato. O início real da investigação acontece no loop normal do menu, fora do contexto derivado do hook, evitando que `setInputQuarantine`/GUI herdem uma capability inadequada.
+
+O autodiagnóstico foi adicionado como uma camada separada e limitada:
+
+- reutiliza o loop já existente de 0,25 s; a checagem de saúde só roda a cada 1,5 s;
+- mantém no máximo 160 eventos compactos em memória;
+- registra mudanças de estado/etapa sem fazer upload de cada mudança;
+- envia `menu_health_diag` apenas quando encontra uma anomalia/erro novo;
+- observa consistência entre investigação ativa, cor, etapa, fila e quarentena de input;
+- detecta YELLOW/RED/BLUE presos além das janelas esperadas;
+- protege o refresh visual com `pcall` e guarda traceback quando disponível;
+- inclui uma cauda curta do diagnóstico no `investigation_bundle` e no manifesto final;
+- não faz autocorreção silenciosa de estado, para não esconder a causa de um problema.
+
+Não foram alterados: hook outbound v4, scans, frequência de scans, snapshots, limites de upload, orçamento de memória, gates de risco dos testes ativos ou formato da API.
 
 ## Diagnóstico fino da V3.2.3
 
