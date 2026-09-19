@@ -995,6 +995,8 @@ local function normalizeDynamicSegment(segment)
     return string.gsub(text, "%d%d%d%d+", "<n>")
 end
 
+local NORMALIZED_CHARACTER_ROOT = setmetatable({}, { __mode = "k" })
+
 local function normalizedPath(inst)
     if typeof(inst) ~= "Instance" then return tostring(inst) end
     local raw = pathOf(inst)
@@ -1005,8 +1007,13 @@ local function normalizedPath(inst)
         guard = guard + 1
     end
     if top and top.Parent == Workspace then
-        local ok, player = pcall(function() return Players:GetPlayerFromCharacter(top) end)
-        if ok and player then
+        local cached = NORMALIZED_CHARACTER_ROOT[top]
+        if cached == nil then
+            local ok, player = pcall(function() return Players:GetPlayerFromCharacter(top) end)
+            cached = ok and player ~= nil
+            NORMALIZED_CHARACTER_ROOT[top] = cached
+        end
+        if cached then
             local prefix = pathOf(top)
             if string.sub(raw, 1, #prefix) == prefix then
                 raw = "Workspace.<Character>" .. string.sub(raw, #prefix + 1)
@@ -1663,6 +1670,10 @@ local function clearCache()
 end
 
 local function restoreCache(data)
+    setInputQuarantine(false)
+    S.investigatorState, S.investigatorReason = "GREEN", "cache"
+    S.activeInvestigation, S.investigationQueue, S.investigationQueuedKeys = nil, {}, {}
+    S.investigationEpoch = S.investigationEpoch + 1
     S.runGameId = tonumber(data.gameId) or game.GameId
     S.runPlaceId = tonumber(data.placeId) or game.PlaceId
     S.runPlaceVersion = tonumber(data.placeVersion) or game.PlaceVersion
@@ -2487,6 +2498,10 @@ local function installOutboundObserver()
                 exactParts[#exactParts + 1] = "\31return\31"
                 exactParts[#exactParts + 1] = packedCanon(results, false)
             end
+            if syntheticToken then
+                exactParts[#exactParts + 1] = "|investigation|"
+                exactParts[#exactParts + 1] = tostring(syntheticToken)
+            end
             local exactHash = hashText(table.concat(exactParts))
             local newShape = not S.profileShape[shapeHash]
             local score = importanceScore(remotePath, method, newShape, remote.ClassName,
@@ -2497,7 +2512,7 @@ local function installOutboundObserver()
                 if results then observeArgumentFields(remotePath, method, results, "return") end
             end
             local focused = score >= C.FOCUS_SCORE
-            local deep = focused or newShape or newSemantic or newResponseShape or newResponseSemantic
+            local deep = syntheticToken ~= nil or focused or newShape or newSemantic or newResponseShape or newResponseSemantic
             S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
             if focused then
                 S.smartStats.highInterestOutbound = (S.smartStats.highInterestOutbound or 0) + 1
@@ -3031,7 +3046,7 @@ local function scanGui(epoch)
                 }, 45, true, "low", h, nil, false)
                 captured = captured + 1
             end
-        elseif x:IsA("TextLabel") or x:IsA("TextButton") or x:IsA("TextBox") or x:IsA("ImageButton") then
+        elseif x:IsA("TextLabel") or x:IsA("TextButton") or x:IsA("TextBox") then
             attachGuiSignals(x)
             local h = signature("gui_text", pathOf(x), {
                 className = x.ClassName, text = x.Text, visible = x.Visible, position = x.Position, size = x.Size,
@@ -3678,6 +3693,9 @@ end
 
 investigatorUiRefresh = function()
     local visual = stateVisuals[S.investigatorState] or stateVisuals.GREEN
+    if (S.investigatorState == "RED" or S.investigatorState == "BLUE") and not minimized then
+        setMinimized(true)
+    end
     stateDot.BackgroundColor3 = visual.color
     miniIcon.BackgroundColor3 = visual.color
     miniIcon.Text = visual.icon
