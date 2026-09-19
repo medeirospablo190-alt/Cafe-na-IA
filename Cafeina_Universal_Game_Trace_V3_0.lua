@@ -4372,7 +4372,7 @@ local function retryCached()
             clearCache(); S.cached = nil; resetRunState()
             if mainButton then mainButton.Text = "INICIAR" end
         else
-            S.cached = U.cacheSnapshot(); saveCache(S.cached); S.finalizing = false
+            S.cached = U.cacheSnapshot(); U.saveCache(S.cached); S.finalizing = false
             if mainButton then mainButton.Text = "REENVIAR" end
         end
     end)
@@ -5021,7 +5021,7 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
 }
 
 gui.Destroying:Connect(function()
-    if S.running and not S.finalizing then saveCache() end
+    if S.running and not S.finalizing then U.saveCache() end
     setInputQuarantine(false)
     S.stopping = true
     S.running = false
