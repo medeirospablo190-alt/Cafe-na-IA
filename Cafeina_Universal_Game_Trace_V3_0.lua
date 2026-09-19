@@ -745,6 +745,8 @@ local function tuneStrategy(state)
     end
 end
 
+local setInputQuarantine
+
 local function pressureLevel()
     if S.totalBytes >= C.HARD_BYTES or S.queueBytes >= C.QUEUE_HARD_BYTES then return 3 end
     if S.totalBytes >= C.PROTECT_BYTES or S.queueBytes >= C.QUEUE_SOFT_BYTES or S.frameDt > 0.055 then return 2 end
@@ -1899,7 +1901,7 @@ local INPUT_LOCK_KEYS = {
     Enum.KeyCode.ButtonA, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
 }
 
-local function setInputQuarantine(enabled)
+setInputQuarantine = function(enabled)
     enabled = enabled == true
     if S.inputQuarantine == enabled then
         if inputShield then inputShield.Visible = enabled end
