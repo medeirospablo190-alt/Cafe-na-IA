@@ -793,7 +793,13 @@ local function classifyUploadError(err)
 end
 
 local function noteUploadError(phase, err, batchIndex)
+    phase = tostring(phase or "upload")
     local info = classifyUploadError(err)
+    if phase == "orphan_inflight" or phase == "inflight_sequence" or phase == "inflight_restore" then
+        info.kind = "recovery_state"
+        info.label = "ESTADO DE RECUPERAÇÃO"
+        info.retryable = false
+    end
     S.uploadFailureCount = (tonumber(S.uploadFailureCount) or 0) + 1
     local signature = table.concat({
         tostring(phase or "?"), tostring(batchIndex or "?"), tostring(info.code or 0),
@@ -807,7 +813,7 @@ local function noteUploadError(phase, err, batchIndex)
         S.uploadDiagSeq = (tonumber(S.uploadDiagSeq) or 0) + 1
         local row = {
             seq = S.uploadDiagSeq,
-            phase = tostring(phase or "upload"),
+            phase = phase,
             batchIndex = tonumber(batchIndex),
             code = info.code,
             kind = info.kind,
@@ -2014,11 +2020,21 @@ end
 
 saveCache = function(snap)
     snap = snap or cacheSnapshot()
-    if not WRITEFILE then return false, "writefile_unavailable" end
+    if not WRITEFILE then
+        noteUploadError("cache_write", "writefile_unavailable", S.batchIndex)
+        return false, "writefile_unavailable"
+    end
     local ok, text = pcall(HttpService.JSONEncode, HttpService, snap)
-    if not ok then return false, "cache_encode_failed" end
+    if not ok then
+        noteUploadError("cache_write", "cache_encode_failed", S.batchIndex)
+        return false, "cache_encode_failed"
+    end
     local wrote, err = pcall(WRITEFILE, cacheFile(), text)
-    return wrote, wrote and nil or tostring(err)
+    if not wrote then
+        noteUploadError("cache_write", tostring(err), S.batchIndex)
+        return false, tostring(err)
+    end
+    return true, nil
 end
 
 local function loadCache()
@@ -4632,6 +4648,8 @@ local function diagnosticText()
         string.format("ACK/total: %.2f / %.2f MB", (S.ackBytes or 0) / MB, (S.totalBytes or 0) / MB),
         "Cache schema: " .. tostring(S.cacheSchemaVersion or "-") ..
             " | lote exato: " .. (pendingExact and "SIM" or "NÃO"),
+        "Cache legado: " .. tostring(S.cacheSchemaVersion ~= nil and S.cacheSchemaVersion < 4) ..
+            " | inflight restaurado: " .. tostring(S.inflightRestored == true),
         "Enviando/finalizando: " .. tostring(S.uploading == true) .. " / " .. tostring(S.finalizing == true),
         "Bloqueado: " .. tostring(S.uploadBlocked == true),
         "Investigador: " .. tostring(S.investigatorState) .. " • " .. tostring(S.investigatorStage),
