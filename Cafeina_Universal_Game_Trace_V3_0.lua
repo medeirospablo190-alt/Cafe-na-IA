@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.6
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.7
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -30,6 +30,8 @@
 -- 25) RED/BLUE quarantine player input without changing Humanoid/Camera state; the CAFEINA icon remains an emergency escape.
 -- 26) Controlled active tests are bounded, one-at-a-time, and skipped when side-effect evidence or pressure makes replay unsafe.
 -- 27) Each investigation emits one action bundle with prelude, before/mid/after state and a compact diff.
+-- 28) Upload retries preserve the exact in-flight body so a lost ACK cannot rebuild a conflicting batch.
+-- 29) Upload/cache failures are classified and surfaced by a compact on-screen diagnostic panel.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -48,7 +50,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_6",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_7",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -137,6 +139,8 @@ local C = {
     MENU_HEALTH_RED_STUCK = 4.0,
     MENU_HEALTH_BLUE_STUCK = 7.0,
     MENU_HEALTH_QUEUE_STUCK = 2.0,
+    UPLOAD_DIAGNOSTIC_CAP = 20,
+    UPLOAD_ERROR_TEXT_MAX = 900,
     ACTIVE_TEST_MAX_IMPORTANCE = 86,
     ACTIVE_TEST_MAX_ARGS = 12,
     INPUT_LOCK_PRIORITY = 10000,
@@ -615,11 +619,21 @@ local S = {
     ackBytes = 0,
     batchIndex = 0,
     pendingSend = nil,
+    pendingManifestBody = nil,
+    pendingManifestIndex = nil,
     finalManifest = nil,
     firstQueuedClock = 0,
     lastSendClock = 0,
     nextRetryClock = 0,
     lastUploadError = nil,
+    uploadBlocked = false,
+    uploadError = nil,
+    uploadDiagnostics = {},
+    uploadDiagSeq = 0,
+    uploadFailureCount = 0,
+    lastUploadDiagSignature = nil,
+    cacheSchemaVersion = nil,
+    inflightRestored = false,
 
     profile = nil,
     profileLow = {},
@@ -751,6 +765,80 @@ local S = {
     manifestConfirmed = false,
     finishCallback = nil,
 }
+
+local function classifyUploadError(err)
+    local raw = string.sub(tostring(err or "unknown"), 1, C.UPLOAD_ERROR_TEXT_MAX)
+    local code = tonumber(string.match(raw, "HTTP%s+(%d%d%d)"))
+    local kind, label, retryable = "network", "FALHA DE REDE", true
+
+    if code == 409 or string.find(string.lower(raw), "conteúdo diferente", 1, true) then
+        kind, label, retryable = "ack_conflict", "CONFLITO ACK/LOTE", false
+    elseif code == 400 then
+        kind, label, retryable = "bad_request", "REQUISIÇÃO INVÁLIDA", false
+    elseif code == 413 then
+        kind, label, retryable = "payload_too_large", "LOTE GRANDE DEMAIS", false
+    elseif code == 429 then
+        kind, label, retryable = "rate_limit", "LIMITE DA API", true
+    elseif code and code >= 500 then
+        kind, label, retryable = "server_error", "SERVIDOR/GITHUB", true
+    elseif string.find(raw, "invalid_api_response", 1, true) then
+        kind, label, retryable = "invalid_response", "RESPOSTA INVÁLIDA", true
+    elseif string.find(raw, "github_not_confirmed", 1, true) then
+        kind, label, retryable = "github_unconfirmed", "GITHUB NÃO CONFIRMOU", true
+    elseif string.find(raw, "meta_encode_failed", 1, true) then
+        kind, label, retryable = "encode_error", "ERRO AO MONTAR LOTE", false
+    end
+
+    return { raw = raw, code = code, kind = kind, label = label, retryable = retryable }
+end
+
+local function noteUploadError(phase, err, batchIndex)
+    local info = classifyUploadError(err)
+    S.uploadFailureCount = (tonumber(S.uploadFailureCount) or 0) + 1
+    local signature = table.concat({
+        tostring(phase or "?"), tostring(batchIndex or "?"), tostring(info.code or 0),
+        tostring(info.kind), string.sub(info.raw, 1, 180),
+    }, "|")
+
+    if S.uploadError and signature == S.lastUploadDiagSignature then
+        S.uploadError.attempts = (tonumber(S.uploadError.attempts) or 1) + 1
+        S.uploadError.clock = os.clock() - (S.startClock or os.clock())
+    else
+        S.uploadDiagSeq = (tonumber(S.uploadDiagSeq) or 0) + 1
+        local row = {
+            seq = S.uploadDiagSeq,
+            phase = tostring(phase or "upload"),
+            batchIndex = tonumber(batchIndex),
+            code = info.code,
+            kind = info.kind,
+            label = info.label,
+            retryable = info.retryable,
+            raw = info.raw,
+            attempts = 1,
+            clock = os.clock() - (S.startClock or os.clock()),
+        }
+        S.uploadError = row
+        S.uploadDiagnostics[#S.uploadDiagnostics + 1] = row
+        while #S.uploadDiagnostics > C.UPLOAD_DIAGNOSTIC_CAP do
+            table.remove(S.uploadDiagnostics, 1)
+        end
+        S.lastUploadDiagSignature = signature
+    end
+
+    S.lastUploadError = info.raw
+    if not info.retryable then
+        S.uploadBlocked = true
+        S.nextRetryClock = math.huge
+    end
+    return S.uploadError
+end
+
+local function clearActiveUploadError()
+    S.uploadError = nil
+    S.lastUploadDiagSignature = nil
+    S.uploadFailureCount = 0
+    if not S.uploadBlocked then S.lastUploadError = nil end
+end
 
 local function bump(tbl, key, amount)
     tbl[key] = (tbl[key] or 0) + (amount or 1)
@@ -1713,6 +1801,11 @@ local function buildDataBatch()
     return S.pendingSend
 end
 
+local saveCache
+local cacheSnapshot
+local saveInflight
+local clearInflight
+
 local function encodeBatchBody(batch, isManifest, manifest)
     local meta = {
         schemaVersion = 3,
@@ -1744,26 +1837,49 @@ end
 local function sendDataBatch(batch)
     local since = os.clock() - S.lastSendClock
     if since < C.MIN_SEND_INTERVAL then task.wait(C.MIN_SEND_INTERVAL - since) end
-    local body, err = encodeBatchBody(batch, false, nil)
-    if not body then return false, err end
+
+    local body = batch.body
+    if type(body) ~= "string" then
+        local encoded, err = encodeBatchBody(batch, false, nil)
+        if not encoded then return false, err end
+        body = encoded
+        batch.body = body
+    end
+
+    if WRITEFILE and saveInflight then
+        local persisted, persistErr = saveInflight(batch, body)
+        if not persisted then
+            noteUploadError("outbox_write", persistErr, batch.index)
+        end
+    end
+
     local ok, data, postErr = postRaw(C.BASE .. "/batch", body)
     S.lastSendClock = os.clock()
     return ok, ok and data or postErr
 end
 
 local function acknowledgeBatch(batch)
+    local recoveryMode = S.cached ~= nil
     S.batchIndex = batch.index
     S.queueHead = batch.stop + 1
     S.queueBytes = math.max(0, S.queueBytes - batch.bytes)
     S.ackBytes = S.ackBytes + batch.bytes
     S.pendingSend = nil
-    S.lastUploadError = nil
+    S.uploadBlocked = false
+    clearActiveUploadError()
     compactQueue()
     if S.queueHead > #S.queue or S.queueBytes <= 0 then
         S.firstQueuedClock = 0
     else
         S.firstQueuedClock = os.clock()
     end
+
+    if recoveryMode and saveCache and cacheSnapshot then
+        local snap = cacheSnapshot()
+        local saved = saveCache(snap)
+        if saved then S.cached = snap end
+    end
+    if clearInflight then clearInflight() end
 end
 
 kickUpload = function()
@@ -1782,8 +1898,9 @@ kickUpload = function()
                 S.serverReady = true
             else
                 S.serverReady = false
-                S.lastUploadError = tostring(err)
-                S.nextRetryClock = os.clock() + 5
+                noteUploadError("data_batch", err, batch.index)
+                if not S.uploadBlocked then S.nextRetryClock = os.clock() + 5 end
+                if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
                 break
             end
             if S.running and not S.finalizing and not shouldFlushQueue(false) then break end
@@ -1799,6 +1916,48 @@ end
 
 local function cacheFile()
     return tostring(game.GameId) .. "_" .. C.CACHE_SUFFIX
+end
+
+local function inflightFile()
+    return tostring(game.GameId) .. "_CafeinaUniversalTraceV30_inflight.json"
+end
+
+saveInflight = function(batch, body)
+    if not WRITEFILE then return false, "writefile_unavailable" end
+    local payload = {
+        schemaVersion = 1,
+        gameId = S.runGameId,
+        placeId = S.runPlaceId,
+        placeVersion = S.runPlaceVersion,
+        runId = S.runId,
+        startIso = S.startIso,
+        batchIndex = batch.index,
+        payloadBytes = batch.bytes or 0,
+        itemCount = math.max(0, (tonumber(batch.stop) or 0) - (tonumber(batch.start) or 1) + 1),
+        body = body,
+    }
+    local ok, text = pcall(HttpService.JSONEncode, HttpService, payload)
+    if not ok then return false, "inflight_encode_failed" end
+    local wrote, err = pcall(WRITEFILE, inflightFile(), text)
+    return wrote, wrote and nil or tostring(err)
+end
+
+local function loadInflight()
+    if not READFILE or not ISFILE then return nil end
+    local ok, exists = pcall(ISFILE, inflightFile())
+    if not ok or not exists then return nil end
+    local readOk, text = pcall(READFILE, inflightFile())
+    if not readOk or type(text) ~= "string" then return nil end
+    local decodeOk, data = pcall(HttpService.JSONDecode, HttpService, text)
+    if not decodeOk or type(data) ~= "table" or tonumber(data.gameId) ~= game.GameId then return nil end
+    return data
+end
+
+clearInflight = function()
+    if DELFILE and ISFILE then
+        local ok, exists = pcall(ISFILE, inflightFile())
+        if ok and exists then pcall(DELFILE, inflightFile()) end
+    end
 end
 
 local function queueForCache()
@@ -1821,12 +1980,26 @@ local function strategySnapshot()
     return out
 end
 
-local function cacheSnapshot()
+cacheSnapshot = function()
+    local pending = nil
+    if type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string" then
+        pending = {
+            index = S.pendingSend.index,
+            bytes = S.pendingSend.bytes,
+            itemCount = math.max(0, (tonumber(S.pendingSend.stop) or 0) - (tonumber(S.pendingSend.start) or 1) + 1),
+            body = S.pendingSend.body,
+        }
+    end
     return {
-        schemaVersion = 3, gameId = S.runGameId, placeId = S.runPlaceId,
+        schemaVersion = 4, collectorVersion = C.VERSION,
+        gameId = S.runGameId, placeId = S.runPlaceId,
         placeVersion = S.runPlaceVersion, runId = S.runId, startIso = S.startIso,
         batchIndex = S.batchIndex, totalBytes = S.totalBytes, ackBytes = S.ackBytes,
         finalManifest = S.finalManifest,
+        pendingSend = pending,
+        pendingManifestBody = S.pendingManifestBody,
+        pendingManifestIndex = S.pendingManifestIndex,
+        lastUploadError = S.lastUploadError,
         queue = queueForCache(),
         deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaSemantic = S.deltaSemantic, deltaRemote = S.deltaRemote,
         strategy = strategySnapshot(), coverage = S.coverage, frontier = S.frontier,
@@ -1839,7 +2012,7 @@ local function cacheSnapshot()
     }
 end
 
-local function saveCache(snap)
+saveCache = function(snap)
     snap = snap or cacheSnapshot()
     if not WRITEFILE then return false, "writefile_unavailable" end
     local ok, text = pcall(HttpService.JSONEncode, HttpService, snap)
@@ -1878,7 +2051,11 @@ local function restoreCache(data)
     S.startIso = tostring(data.startIso or iso())
     S.startClock = os.clock()
     S.batchIndex = tonumber(data.batchIndex) or 0
+    S.cacheSchemaVersion = tonumber(data.schemaVersion) or 0
     S.finalManifest = type(data.finalManifest) == "table" and data.finalManifest or nil
+    S.pendingManifestBody = type(data.pendingManifestBody) == "string" and data.pendingManifestBody or nil
+    S.pendingManifestIndex = tonumber(data.pendingManifestIndex)
+    S.lastUploadError = type(data.lastUploadError) == "string" and data.lastUploadError or nil
     S.totalBytes = tonumber(data.totalBytes) or 0
     S.ackBytes = tonumber(data.ackBytes) or 0
     S.queue, S.queueHead, S.queueBytes = {}, 1, 0
@@ -1912,8 +2089,24 @@ local function restoreCache(data)
     S.frontier = type(data.frontier) == "table" and data.frontier or {}
     S.frontierSet = arrayToSet(S.frontier)
     S.pendingSend = nil
+    local savedPending = type(data.pendingSend) == "table" and data.pendingSend or nil
+    if savedPending and type(savedPending.body) == "string" then
+        local itemCount = math.max(0, math.floor(tonumber(savedPending.itemCount) or 0))
+        if itemCount > 0 and itemCount <= #S.queue and tonumber(savedPending.index) == S.batchIndex + 1 then
+            S.pendingSend = {
+                index = tonumber(savedPending.index),
+                start = 1,
+                stop = itemCount,
+                bytes = tonumber(savedPending.bytes) or 0,
+                body = savedPending.body,
+            }
+            S.inflightRestored = true
+        end
+    end
     S.nextRetryClock = 0
     S.uploading = false
+    S.uploadBlocked = false
+    S.uploadError = nil
     S.suppressed = type(data.suppressed) == "table" and data.suppressed or {}
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
     S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
@@ -1948,6 +2141,34 @@ local function restoreCache(data)
     S.repeatCounts = type(data.repeatCounts) == "table" and data.repeatCounts or {}
     S.repeatKeyCount = 0
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
+end
+
+local function restoreInflight(data)
+    if type(data) ~= "table" or tostring(data.runId or "") ~= tostring(S.runId or "") then return false end
+    local index = tonumber(data.batchIndex)
+    if not index then return false end
+    if index <= S.batchIndex then
+        clearInflight()
+        return false
+    end
+    if index ~= S.batchIndex + 1 then
+        noteUploadError("inflight_sequence", "inflight_index_mismatch", index)
+        return false
+    end
+    local itemCount = math.max(0, math.floor(tonumber(data.itemCount) or 0))
+    if itemCount < 1 or itemCount > #S.queue or type(data.body) ~= "string" then
+        noteUploadError("inflight_restore", "inflight_cache_mismatch", index)
+        return false
+    end
+    S.pendingSend = {
+        index = index,
+        start = 1,
+        stop = itemCount,
+        bytes = tonumber(data.payloadBytes) or 0,
+        body = data.body,
+    }
+    S.inflightRestored = true
+    return true
 end
 
 --==============================================================--
@@ -3896,22 +4117,44 @@ local function manifestTable()
 end
 
 local function sendManifest()
-    if S.batchIndex + 1 > C.MAX_BATCHES then return false, "max_batches_reached" end
+    if S.batchIndex + 1 > C.MAX_BATCHES and not S.pendingManifestBody then
+        return false, "max_batches_reached"
+    end
     if not S.finalManifest then S.finalManifest = manifestTable() end
-    local batch = { index = S.batchIndex + 1, bytes = 0, records = {}, remotes = {} }
-    local body, err = encodeBatchBody(batch, true, S.finalManifest)
-    if not body then return false, err end
+
+    local index = tonumber(S.pendingManifestIndex) or (S.batchIndex + 1)
+    local body = S.pendingManifestBody
+    if type(body) ~= "string" then
+        local batch = { index = index, bytes = 0, records = {}, remotes = {} }
+        local encoded, err = encodeBatchBody(batch, true, S.finalManifest)
+        if not encoded then return false, err end
+        body = encoded
+        S.pendingManifestBody = body
+        S.pendingManifestIndex = index
+        if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
+    end
+
     local since = os.clock() - S.lastSendClock
     if since < C.MIN_SEND_INTERVAL then task.wait(C.MIN_SEND_INTERVAL - since) end
     local ok, data, postErr = postRaw(C.BASE .. "/batch", body)
     S.lastSendClock = os.clock()
-    if ok then S.batchIndex = batch.index end
+    if ok then
+        S.batchIndex = index
+        S.pendingManifestBody = nil
+        S.pendingManifestIndex = nil
+        S.uploadBlocked = false
+        clearActiveUploadError()
+    else
+        noteUploadError("manifest", postErr, index)
+        if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
+    end
     return ok, ok and data or postErr
 end
 
 local function drainQueue(timeoutSeconds)
     local deadline = os.clock() + (timeoutSeconds or 120)
     while S.queueHead <= #S.queue and os.clock() < deadline do
+        if S.uploadBlocked then return false end
         if not S.uploading and os.clock() >= S.nextRetryClock then kickUpload() end
         task.wait(0.15)
     end
@@ -3927,10 +4170,20 @@ local function resetRunState()
     S.queue, S.queueHead, S.queueBytes = {}, 1, 0
     S.totalBytes, S.ackBytes, S.batchIndex = 0, 0, 0
     S.pendingSend = nil
+    S.pendingManifestBody, S.pendingManifestIndex = nil, nil
     S.finalManifest = nil
     S.firstQueuedClock = 0
     S.lastUploadError = nil
+    S.uploadBlocked = false
+    S.uploadError = nil
+    S.uploadDiagnostics = {}
+    S.uploadDiagSeq = 0
+    S.uploadFailureCount = 0
+    S.lastUploadDiagSignature = nil
+    S.cacheSchemaVersion = nil
+    S.inflightRestored = false
     S.manifestConfirmed = false
+    if clearInflight then clearInflight() end
     S.sessionExact, S.remoteSeen = {}, {}
     S.sessionExactCount = 0
     S.sessionSemantic, S.semanticCountByRemote = {}, {}
@@ -4014,7 +4267,7 @@ local function finalize(auto)
         local err
         for attempt = 1, C.RETRIES do
             ok, err = sendManifest()
-            if ok then break end
+            if ok or S.uploadBlocked then break end
             task.wait(C.RETRY_BASE * attempt)
         end
 
@@ -4092,9 +4345,10 @@ local function retryCached()
             return
         end
         local ok = false
+        local err
         for attempt = 1, C.RETRIES do
-            ok = sendManifest()
-            if ok then break end
+            ok, err = sendManifest()
+            if ok or S.uploadBlocked then break end
             task.wait(C.RETRY_BASE * attempt)
         end
         if ok then
@@ -4386,7 +4640,7 @@ task.spawn(function()
             maybeTrajectory()
         end
         menuHealthWatchdogTick()
-        if (S.running or S.finalizing) and not S.uploading and os.clock() >= S.nextRetryClock and
+        if (S.running or S.finalizing) and not S.uploadBlocked and not S.uploading and os.clock() >= S.nextRetryClock and
             shouldFlushQueue(S.finalizing or S.stopping) then
             kickUpload()
         end
@@ -4548,11 +4802,16 @@ task.spawn(function()
 
     loadRemoteProfile(false)
     S.cached = loadCache()
+    local inflight = loadInflight()
     S.preflightReady = true
 
     if S.cached then
         restoreCache(S.cached)
+        if inflight then restoreInflight(inflight) end
         mainButton.Text = "REENVIAR"
+    elseif inflight then
+        noteUploadError("orphan_inflight", "lote_em_voo_sem_cache_da_fila", tonumber(inflight.batchIndex))
+        mainButton.Text = "ERRO • DIAGNÓSTICO"
     else
         mainButton.Text = S.serverReady and "INICIAR" or "RETESTAR"
     end
@@ -4568,6 +4827,24 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
                 kind = "external_marker", label = tostring(label or "marker"), player = playerContext(false),
             }, 100, true, nil, nil, nil, true)
         end
+    end,
+    Diagnostic = function()
+        return {
+            version = C.VERSION,
+            runId = S.runId,
+            gameId = S.runGameId,
+            placeId = S.runPlaceId,
+            currentPlaceId = game.PlaceId,
+            batchIndex = S.batchIndex,
+            queueBytes = S.queueBytes,
+            ackBytes = S.ackBytes,
+            totalBytes = S.totalBytes,
+            uploadBlocked = S.uploadBlocked,
+            uploadError = S.uploadError,
+            lastUploadError = S.lastUploadError,
+            cacheSchemaVersion = S.cacheSchemaVersion,
+            pendingExactBody = type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string",
+        }
     end,
     Finish = function() finalize(false) end,
     Stop = function()
@@ -4590,4 +4867,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.6 carregado • correlação qualificada • contexto de condição • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.7 carregado • upload durável • diagnóstico automático • streaming protegido")
