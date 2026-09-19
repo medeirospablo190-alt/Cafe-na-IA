@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.0.1
+# CAFEÍNA Universal Game Trace V3.1.0
 
 Arquivos principais:
 
@@ -7,7 +7,24 @@ Arquivos principais:
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
 
-## O que mudou no V3.0.1
+## O que mudou no V3.1.0
+
+A V3.1 continua sendo um coletor universal. Não há nomes de jogos, remotes, itens, armas, moedas ou mecânicas específicas codificados para uma experiência.
+
+1. **Novidade semântica universal:** além do formato dos argumentos, o coletor cria uma assinatura semântica compacta. Strings, pequenos inteiros, faixas numéricas, enums, instâncias, tabelas e buffers podem revelar um comportamento novo mesmo quando o schema é idêntico.
+2. **Memória semântica por GameId:** padrões semânticos aceitos entram em `knownSemanticHashes` e deixam de ser reaprendidos como novidade em toda sessão.
+3. **Buffers opacos:** buffers passam a registrar comprimento/faixa, amostra limitada, hash, início/fim em hexadecimal e comparação com a amostra anterior. Não existe decoder específico de jogo.
+4. **Retorno de InvokeServer:** quando o executor permite o hook atual, o retorno real é preservado byte a byte na semântica Lua (inclusive múltiplos valores/nils) e registrado junto com schema, sem repetir a chamada.
+5. **Lupa automática:** eventos novos/importantes podem abrir até três snapshots curtos do estado cliente depois da ação, com limites e desativação sob pressão.
+6. **Correlação por evidência:** `causeCandidates` agora inclui suporte, baseline e confiança. É evidência temporal acumulada, nunca prova de causalidade.
+7. **Sequências comportamentais:** transições entre ações/eventos importantes são resumidas por frequência e intervalo.
+8. **Ciclo de vida e ruído de runtime:** objetos adicionados/removidos ganham duração quando observável; padrões repetitivos passam a ser amostrados em vez de ocupar o fluxo inteiro.
+9. **ValueBase sem ambiguidade:** cada mudança guarda `eventValue` e `observedAfterValue` separadamente.
+10. A rota HTTP continua `/api/inventory-trace-v3`, o histórico continua append-only/idempotente e o mesmo arquivo de coletor continua sendo usado.
+
+## Compatibilidade com V3.0.1
+
+As garantias da V3.0.1 abaixo continuam válidas:
 
 1. O coletor continua passivo quanto a ações próprias, mas agora pode observar tráfego nos dois sentidos quando o executor oferece `hookmetamethod` + `getnamecallmethod`.
 2. Chamadas reais feitas pelo cliente via `FireServer` e `InvokeServer` são registradas como `remote_outbound` sem alterar os argumentos nem repetir a chamada.
@@ -18,11 +35,11 @@ Arquivos principais:
 7. Formatos outbound novos entram na mesma memória persistente de shapes do `GameId`, evitando reaprender a mesma estrutura em toda sessão.
 8. O manifesto final contém um bloco `intelligence` com quantidade de outbound observados/aceitos, candidatos de alto interesse, correlações abertas e foco mais importante da sessão.
 
-## Correção do travamento em “ENVIANDO”
+## Correção herdada do travamento em “ENVIANDO”
 
 A V3.0 original podia enviar lotes muito pequenos porque o loop da UI tentava esvaziar qualquer fila a cada 0,25 s. Em coleta longa isso podia consumir os 179 lotes de dados e deixar o lote final reservado ao manifesto enquanto ainda existiam poucos KB na fila, criando um deadlock.
 
-A V3.0.1 corrige isso em duas camadas:
+A correção introduzida na V3.0.1 e preservada na V3.1 funciona em duas camadas:
 
 - durante a coleta, o envio normal espera aproximadamente 70% do alvo de 1,75 MiB ou até 10 s de latência;
 - durante a finalização, a fila restante é drenada imediatamente;
@@ -77,6 +94,7 @@ Variáveis relevantes:
 - `INVENTORY_TRACE_V3_MAX_RECORDS=6000`
 - `INVENTORY_TRACE_V3_MAX_REMOTES=1000`
 - `INVENTORY_TRACE_V3_MAX_BATCHES=260`
+- `INVENTORY_TRACE_V3_PROFILE_SEMANTIC_MAX=12000`
 
 ## Estrutura persistente
 

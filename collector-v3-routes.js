@@ -27,6 +27,7 @@ const MAX_REMOTES_PER_BATCH = clampInt(process.env.INVENTORY_TRACE_V3_MAX_REMOTE
 const MAX_BATCH_TOTAL = clampInt(process.env.INVENTORY_TRACE_V3_MAX_BATCHES, 20, 520, 260);
 const MAX_PROFILE_LOW = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_LOW_MAX, 2000, 30000, 20000);
 const MAX_PROFILE_SHAPES = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_SHAPE_MAX, 1000, 20000, 12000);
+const MAX_PROFILE_SEMANTIC = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_SEMANTIC_MAX, 1000, 20000, 12000);
 const MAX_PROFILE_REMOTES = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_REMOTE_MAX, 500, 8000, 4000);
 const MAX_PROFILE_FRONTIER = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_FRONTIER_MAX, 10, 300, 100);
 const BODY_LIMIT = process.env.INVENTORY_TRACE_V3_BODY_LIMIT || "3mb";
@@ -52,6 +53,7 @@ export function installCollectorV3Routes(app) {
       profileCaps: {
         lowValueHashes: MAX_PROFILE_LOW,
         shapeHashes: MAX_PROFILE_SHAPES,
+        semanticHashes: MAX_PROFILE_SEMANTIC,
         remoteHashes: MAX_PROFILE_REMOTES,
       },
     });
@@ -287,6 +289,11 @@ async function mergeAndSaveProfile(gameId, runId, profileDelta, strategyDelta, c
       delta?.knownShapeHashes,
       MAX_PROFILE_SHAPES
     );
+    current.knownSemanticHashes = mergeBoundedHashes(
+      current.knownSemanticHashes,
+      delta?.knownSemanticHashes,
+      MAX_PROFILE_SEMANTIC
+    );
     current.knownRemoteHashes = mergeBoundedHashes(
       current.knownRemoteHashes,
       delta?.knownRemoteHashes,
@@ -384,6 +391,7 @@ function emptyProfile(gameId) {
     updatedAt: null,
     knownLowValueHashes: [],
     knownShapeHashes: [],
+    knownSemanticHashes: [],
     knownRemoteHashes: [],
     frontier: [],
     strategy: {},

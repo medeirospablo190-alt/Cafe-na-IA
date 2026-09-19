@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.0.1
+-- CAFEINA • UNIVERSAL GAME TRACE V3.1.0
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -20,6 +20,11 @@
 -- 15) Historical batches are append-only/idempotent on the V3 server route.
 -- 16) The UI stays compact: MB collected + upload % + one action button.
 -- 17) No replay buffer and no verbose analysis UI.
+-- 18) Semantic novelty is learned independently from raw argument shapes.
+-- 19) Opaque buffers are fingerprinted generically without game-specific decoders.
+-- 20) New/high-impact behavior opens bounded delayed deep-state probes.
+-- 21) Correlation confidence is evidence-based and never treated as proven causality.
+-- 22) Compact behavior transitions are learned as a universal session graph.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -37,7 +42,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0_1",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_1_0",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -62,6 +67,12 @@ local C = {
     MAX_DEPTH = 5,
     MAX_ARGS = 28,
 
+    BUFFER_SAMPLE_BYTES = 24,
+    BUFFER_EDGE_BYTES = 8,
+    SEMANTIC_MAX_STRING = 96,
+    SEMANTIC_TABLE_FIELDS = 16,
+    MAX_SEMANTIC_PER_REMOTE = 96,
+
     MAX_INBOUND = 1100,
     MAX_VALUES = 850,
     MAX_GUI = 1200,
@@ -82,6 +93,14 @@ local C = {
     CORRELATION_SECONDS = 5.0,
     CORRELATION_MIN_GAP = 0.75,
     MAX_CORRELATION_WINDOWS = 10,
+    CORRELATION_EVIDENCE_CAP = 1200,
+    BEHAVIOR_TRANSITION_CAP = 800,
+    DEEP_PROBE_MAX = 36,
+    DEEP_PROBE_COOLDOWN = 1.25,
+    DEEP_PROBE_DELAYS = { 0.20, 1.25, 3.00 },
+    RECENT_VALUE_CAP = 32,
+    RUNTIME_BURST_FIRST = 3,
+    RUNTIME_BURST_EVERY = 16,
     FOCUS_SCORE = 72,
     MIN_SEND_INTERVAL = 1.25,
     RETRIES = 4,
@@ -89,6 +108,7 @@ local C = {
 
     DELTA_LOW_CAP = 6000,
     DELTA_SHAPE_CAP = 4000,
+    DELTA_SEMANTIC_CAP = 4000,
     DELTA_REMOTE_CAP = 1500,
     EXACT_SESSION_CAP = 50000,
 
@@ -134,6 +154,81 @@ local function pathOf(x)
     return ok and value or (x.ClassName .. ":" .. x.Name)
 end
 
+local function bufferLength(v)
+    if typeof(v) ~= "buffer" or type(buffer) ~= "table" or type(buffer.len) ~= "function" then return nil end
+    local ok, n = pcall(buffer.len, v)
+    if not ok or type(n) ~= "number" or n < 0 then return nil end
+    return math.floor(n)
+end
+
+local function bufferByte(v, index)
+    if type(buffer) ~= "table" or type(buffer.readu8) ~= "function" then return nil end
+    local ok, b = pcall(buffer.readu8, v, index)
+    if not ok or type(b) ~= "number" then return nil end
+    return math.clamp(math.floor(b), 0, 255)
+end
+
+local function bufferLengthBucket(n)
+    n = tonumber(n)
+    if not n then return "unknown" end
+    if n <= 8 then return "0-8" end
+    if n <= 16 then return "9-16" end
+    if n <= 32 then return "17-32" end
+    if n <= 64 then return "33-64" end
+    if n <= 128 then return "65-128" end
+    if n <= 256 then return "129-256" end
+    if n <= 512 then return "257-512" end
+    if n <= 1024 then return "513-1024" end
+    return "1025+"
+end
+
+local function bufferFingerprint(v)
+    local len = bufferLength(v)
+    if not len then return { type = "buffer", readable = false, repr = tostring(v) } end
+    local sampleTarget = math.min(len, C.BUFFER_SAMPLE_BYTES)
+    local h1, h2, sampled, zeros = 216613, 131071, 0, 0
+    for i = 1, sampleTarget do
+        local index = sampleTarget <= 1 and 0 or math.floor(((i - 1) * math.max(0, len - 1)) / (sampleTarget - 1))
+        local b = bufferByte(v, index)
+        if b ~= nil then
+            sampled = sampled + 1
+            if b == 0 then zeros = zeros + 1 end
+            h1 = (h1 * 131 + b + (index % 251)) % 16777213
+            h2 = (h2 * 137 + b + (index % 241)) % 16777199
+        end
+    end
+    local edge = math.min(len, C.BUFFER_EDGE_BYTES)
+    local head, tail = {}, {}
+    for i = 0, edge - 1 do
+        local b = bufferByte(v, i)
+        if b ~= nil then head[#head + 1] = string.format("%02x", b) end
+    end
+    for i = math.max(0, len - edge), len - 1 do
+        local b = bufferByte(v, i)
+        if b ~= nil then tail[#tail + 1] = string.format("%02x", b) end
+    end
+    return {
+        type = "buffer", length = len, lengthBucket = bufferLengthBucket(len),
+        sampleHash = string.format("%06x%06x", h1, h2), sampledBytes = sampled,
+        headHex = table.concat(head), tailHex = table.concat(tail),
+        zeroRatio = sampled > 0 and math.floor((zeros / sampled) * 1000 + 0.5) / 1000 or 0,
+    }
+end
+
+local function bufferShallow(v)
+    local len = bufferLength(v)
+    if len then return { type = "buffer", length = len, lengthBucket = bufferLengthBucket(len) } end
+    return { type = "buffer", readable = false, repr = tostring(v) }
+end
+
+local function bufferSemanticToken(v)
+    local len = bufferLength(v)
+    if not len then return "BUF:unknown" end
+    local b0 = bufferByte(v, 0) or 0
+    local b1 = len > 1 and (bufferByte(v, 1) or 0) or 0
+    return string.format("BUF:%s:%02x%02x", bufferLengthBucket(len), b0, b1)
+end
+
 local function ser(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
@@ -151,6 +246,7 @@ local function ser(v, depth, seen)
         if #v > C.MAX_STRING then return string.sub(v, 1, C.MAX_STRING) .. "...[truncated]" end
         return v
     end
+    if t == "buffer" then return bufferShallow(v) end
     if t == "Vector2" then return { type = "Vector2", x = v.X, y = v.Y } end
     if t == "Vector3" then return { type = "Vector3", x = v.X, y = v.Y, z = v.Z } end
     if t == "CFrame" then
@@ -201,6 +297,11 @@ local function canon(v, depth, seen, shapeOnly)
         if shapeOnly then return "S" end
         local text = #v > C.MAX_STRING and string.sub(v, 1, C.MAX_STRING) or v
         return "S:" .. text
+    end
+    if t == "buffer" then
+        if shapeOnly then return "BUF" end
+        local info = bufferFingerprint(v)
+        return "BUF:" .. tostring(info.length or "?") .. ":" .. tostring(info.sampleHash or info.repr or "?")
     end
     if t == "EnumItem" then return shapeOnly and "E" or ("E:" .. tostring(v)) end
     if t == "Instance" then
@@ -282,6 +383,87 @@ local function packedCanon(args, shapeOnly)
     local lim = math.min(n, C.MAX_ARGS)
     for i = 1, lim do
         parts[#parts + 1] = canon(args[i], 0, {}, shapeOnly)
+        parts[#parts + 1] = ";"
+    end
+    if n > lim then parts[#parts + 1] = "+" .. tostring(n - lim) end
+    parts[#parts + 1] = "]"
+    return table.concat(parts)
+end
+
+local function semanticNumber(v)
+    if v ~= v then return "N:nan" end
+    if v == math.huge then return "N:inf" end
+    if v == -math.huge then return "N:-inf" end
+    if v == 0 then return "N:0" end
+    if v == math.floor(v) and math.abs(v) <= 32 then return "N:i:" .. tostring(v) end
+    local a = math.abs(v)
+    local bucket
+    if a < 1 then bucket = "lt1"
+    elseif a < 10 then bucket = "1-9"
+    elseif a < 100 then bucket = "10-99"
+    elseif a < 1000 then bucket = "100-999"
+    elseif a < 10000 then bucket = "1k-9k"
+    elseif a < 1000000 then bucket = "10k-999k"
+    else bucket = "1m+"
+    end
+    return "N:" .. (v < 0 and "-" or "+") .. bucket
+end
+
+local function semanticString(v)
+    local text = tostring(v)
+    if #text <= C.SEMANTIC_MAX_STRING then return "S:" .. text end
+    return "S:" .. string.sub(text, 1, math.floor(C.SEMANTIC_MAX_STRING / 2)) .. "#len=" .. tostring(#text)
+end
+
+local function semanticCanon(v, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    if depth > 3 then return "D" end
+    local t = typeof(v)
+    if v == nil then return "Z" end
+    if t == "boolean" then return v and "B1" or "B0" end
+    if t == "number" then return semanticNumber(v) end
+    if t == "string" then return semanticString(v) end
+    if t == "buffer" then return bufferSemanticToken(v) end
+    if t == "EnumItem" then return "E:" .. tostring(v) end
+    if t == "Instance" then return "I:" .. v.ClassName .. ":" .. v.Name end
+    if t == "Vector2" then return "V2" end
+    if t == "Vector3" then return "V3" end
+    if t == "CFrame" then return "CF" end
+    if t == "Color3" then return "C3" end
+    if t == "UDim2" then return "U2" end
+    if t == "table" then
+        if seen[v] then return "T:<cycle>" end
+        seen[v] = true
+        local keys = {}
+        for k in pairs(v) do
+            keys[#keys + 1] = tostring(k)
+            if #keys >= C.SEMANTIC_TABLE_FIELDS then break end
+        end
+        table.sort(keys)
+        local parts = { "T{" }
+        for _, key in ipairs(keys) do
+            local item = v[key]
+            if item == nil then
+                for realKey, realValue in pairs(v) do
+                    if tostring(realKey) == key then item = realValue break end
+                end
+            end
+            parts[#parts + 1] = key .. "=" .. semanticCanon(item, depth + 1, seen) .. ";"
+        end
+        parts[#parts + 1] = "}"
+        seen[v] = nil
+        return table.concat(parts)
+    end
+    return "X:" .. t
+end
+
+local function packedSemantic(args)
+    local n = tonumber(args and args.n) or 0
+    local parts = { tostring(n), "[" }
+    local lim = math.min(n, C.MAX_ARGS)
+    for i = 1, lim do
+        parts[#parts + 1] = semanticCanon(args[i], 0, {})
         parts[#parts + 1] = ";"
     end
     if n > lim then parts[#parts + 1] = "+" .. tostring(n - lim) end
@@ -378,15 +560,19 @@ local S = {
     profile = nil,
     profileLow = {},
     profileShape = {},
+    profileSemantic = {},
     profileRemote = {},
     profileFrontier = {},
     frontier = {}, frontierSet = {},
     deltaLow = {}, deltaLowSet = {},
     deltaShape = {}, deltaShapeSet = {},
+    deltaSemantic = {}, deltaSemanticSet = {},
     deltaRemote = {}, deltaRemoteSet = {},
 
     sessionExact = {},
     sessionExactCount = 0,
+    sessionSemantic = {},
+    semanticCountByRemote = {},
     remoteSeen = {},
     inbound = setmetatable({}, { __mode = "k" }),
     values = setmetatable({}, { __mode = "k" }),
@@ -405,11 +591,30 @@ local S = {
     correlationWindows = {},
     correlationSeq = 0,
     lastCorrelationByRemote = {},
+    effectTotals = {},
+    effectBaseline = {},
+    correlationEvidence = {},
+    correlationEvidenceCount = 0,
+    remoteImpact = {},
+    behaviorTransitions = {},
+    behaviorTransitionCount = 0,
+    lastBehavior = nil,
+    recentValueChanges = {},
+    deepProbeCount = 0,
+    lastDeepProbeByRemote = {},
+    opaquePrevious = {},
+    opaqueCounters = {},
+    runtimePatternCounts = {},
+    runtimePatternSeen = {},
+    objectBorn = setmetatable({}, { __mode = "k" }),
     smartStats = {
         outboundObserved = 0,
         outboundAccepted = 0,
         highInterestOutbound = 0,
         correlationsOpened = 0,
+        semanticNovel = 0,
+        opaqueSamples = 0,
+        deepProbes = 0,
         batchBudgetDrops = 0,
     },
     focusRemote = nil,
@@ -514,9 +719,36 @@ local function applyProfile(profile)
     S.profile = profile
     S.profileLow = arrayToSet(profile.knownLowValueHashes)
     S.profileShape = arrayToSet(profile.knownShapeHashes)
+    S.profileSemantic = arrayToSet(profile.knownSemanticHashes)
     S.profileRemote = arrayToSet(profile.knownRemoteHashes)
     S.profileFrontier = arrayToSet(profile.frontier)
     S.profileReady = true
+end
+
+local function semanticStatus(remotePath, method, args, namespace)
+    namespace = tostring(namespace or "call")
+    local semanticHash = hashText("semantic\31" .. namespace .. "\31" .. tostring(remotePath) .. "\31" ..
+        tostring(method) .. "\31" .. packedSemantic(args))
+    local remoteKey = namespace .. "\31" .. tostring(remotePath) .. "\31" .. tostring(method)
+    local count = tonumber(S.semanticCountByRemote[remoteKey]) or 0
+    local isNew = not S.profileSemantic[semanticHash] and not S.sessionSemantic[semanticHash] and
+        count < C.MAX_SEMANTIC_PER_REMOTE
+    return semanticHash, isNew, remoteKey
+end
+
+local function rememberSemantic(semanticHash, remoteKey)
+    if not semanticHash or S.sessionSemantic[semanticHash] then return end
+    S.sessionSemantic[semanticHash] = true
+    S.profileSemantic[semanticHash] = true
+    S.semanticCountByRemote[remoteKey] = (tonumber(S.semanticCountByRemote[remoteKey]) or 0) + 1
+    addBoundedDelta(S.deltaSemantic, S.deltaSemanticSet, semanticHash, C.DELTA_SEMANTIC_CAP)
+    S.smartStats.semanticNovel = (S.smartStats.semanticNovel or 0) + 1
+end
+
+local function rememberShape(shapeHash)
+    if not shapeHash or S.profileShape[shapeHash] then return end
+    S.profileShape[shapeHash] = true
+    addBoundedDelta(S.deltaShape, S.deltaShapeSet, shapeHash, C.DELTA_SHAPE_CAP)
 end
 
 local function loadRemoteProfile(preserveOnFailure)
@@ -629,10 +861,14 @@ local LOW_VALUE_REMOTE_TERMS = {
     "analytics", "footstep", "particle", "camera", "soundeffect", "console",
 }
 
-local function importanceScore(remotePath, method, newShape, className)
+local function importanceScore(remotePath, method, newShape, className, newSemantic, newResponseShape, newResponseSemantic)
     local score = method == "InvokeServer" and 50 or (method == "FireServer" and 42 or 34)
     if newShape then score = score + 22 end
+    if newSemantic then score = score + 14 end
+    if newResponseShape then score = score + 12 end
+    if newResponseSemantic then score = score + 10 end
     if className == "RemoteFunction" then score = score + 8 end
+    score = score + math.min(18, math.floor(tonumber(S.remoteImpact[remotePath]) or 0))
 
     local lower = string.lower(tostring(remotePath or ""))
     for _, row in ipairs(IMPORTANT_REMOTE_TERMS) do
@@ -648,6 +884,11 @@ local function schemaOf(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
     local t = typeof(v)
+
+    if t == "buffer" then
+        local len = bufferLength(v)
+        return { type = "buffer", length = len, lengthBucket = bufferLengthBucket(len) }
+    end
 
     if t == "table" then
         if seen[v] then return { type = "table", cycle = true } end
@@ -687,6 +928,15 @@ local CORRELATABLE_CATEGORIES = {
     character = true,
 }
 
+local BEHAVIOR_CATEGORIES = {
+    remote_outbound = true,
+    remote_inbound = true,
+    tool_transition = true,
+    player_attribute = true,
+    prompt_triggered = true,
+    character = true,
+}
+
 local function pruneCorrelationWindows()
     local now = os.clock()
     local out = {}
@@ -696,42 +946,146 @@ local function pruneCorrelationWindows()
     S.correlationWindows = out
 end
 
-local function correlationCandidates(category)
+local function effectIdentity(category, object)
+    object = type(object) == "table" and object or {}
+    if category == "remote_inbound" then
+        return "remote:" .. tostring(object.remote and object.remote.path or "?")
+    elseif category == "value_changed" then
+        return "value:" .. tostring(object.object and object.object.path or "?")
+    elseif category == "runtime_added" or category == "runtime_remove" then
+        local o = object.object or {}
+        return category .. ":" .. tostring(o.className or object.className or "?") .. ":" ..
+            tostring(o.name or object.name or o.path or object.path or "?")
+    elseif category == "tool_transition" then
+        return "tool:" .. tostring(object.kind or "?") .. ":" .. tostring(object.tool and object.tool.name or "?")
+    elseif category == "player_attribute" then
+        return "attribute:" .. tostring(object.name or "?")
+    elseif category == "prompt_triggered" then
+        return "prompt:" .. tostring(object.prompt and object.prompt.path or "?")
+    elseif category == "character" then
+        return "character:" .. tostring(object.kind or "?")
+    end
+    return tostring(category) .. ":" .. tostring(object.kind or "?")
+end
+
+local function correlationCandidates(category, object, priority)
     if not CORRELATABLE_CATEGORIES[category] then return nil end
     pruneCorrelationWindows()
-    if #S.correlationWindows == 0 then return nil end
-
+    local effectLabel = string.sub(effectIdentity(category, object), 1, 220)
+    local effectHash = hashText("effect\31" .. effectLabel)
+    S.effectTotals[effectHash] = (S.effectTotals[effectHash] or 0) + 1
+    if #S.correlationWindows == 0 then
+        S.effectBaseline[effectHash] = (S.effectBaseline[effectHash] or 0) + 1
+        return nil
+    end
     local now, out = os.clock(), {}
     local first = math.max(1, #S.correlationWindows - 2)
     for i = first, #S.correlationWindows do
         local w = S.correlationWindows[i]
+        local age = math.max(0, now - w.startedAt)
+        local actionKey = tostring(w.semantic or w.shape or w.remote)
+        local pairKey = hashText("corr\31" .. actionKey .. "\31" .. effectHash)
+        local evidence = S.correlationEvidence[pairKey]
+        if not evidence and S.correlationEvidenceCount < C.CORRELATION_EVIDENCE_CAP then
+            evidence = {
+                remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
+                effect = effectLabel, effectHash = effectHash, support = 0, weighted = 0,
+            }
+            S.correlationEvidence[pairKey] = evidence
+            S.correlationEvidenceCount = S.correlationEvidenceCount + 1
+        end
+        local confidence, support = 0, 0
+        local baseline = S.effectBaseline[effectHash] or 0
+        local total = S.effectTotals[effectHash] or 1
+        if evidence then
+            local recency = math.max(0.05, 1 - (age / math.max(0.001, C.CORRELATION_SECONDS)))
+            evidence.support = evidence.support + 1
+            evidence.weighted = evidence.weighted + recency
+            evidence.lastAge = age
+            support = evidence.support
+            local consistency = support / math.max(1, total)
+            local separation = support / math.max(1, support + baseline + 2)
+            local meanRecency = evidence.weighted / math.max(1, support)
+            confidence = math.floor(math.clamp(consistency * separation * meanRecency * 100, 0, 99) + 0.5)
+            if support >= 2 and (tonumber(priority) or 0) >= 72 then
+                S.remoteImpact[w.remote] = math.max(tonumber(S.remoteImpact[w.remote]) or 0, confidence * 0.18)
+            end
+        end
         out[#out + 1] = {
-            id = w.id, remote = w.remote, method = w.method, shape = w.shape,
-            importance = w.importance, age = math.max(0, now - w.startedAt),
+            id = w.id, remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
+            importance = w.importance, age = age, effect = effectLabel,
+            support = support, baseline = baseline, effectTotal = total, confidence = confidence,
         }
     end
     return out
 end
 
-local function openCorrelationWindow(remotePath, method, shapeHash, importance)
+local function openCorrelationWindow(remotePath, method, shapeHash, importance, semanticHash)
     local now = os.clock()
-    local last = S.lastCorrelationByRemote[remotePath] or 0
+    local correlationKey = tostring(remotePath) .. "\31" .. tostring(semanticHash or shapeHash or "")
+    local last = S.lastCorrelationByRemote[correlationKey] or 0
     if now - last < C.CORRELATION_MIN_GAP then return end
-    S.lastCorrelationByRemote[remotePath] = now
+    S.lastCorrelationByRemote[correlationKey] = now
     pruneCorrelationWindows()
-
     S.correlationSeq = S.correlationSeq + 1
     S.correlationWindows[#S.correlationWindows + 1] = {
-        id = S.correlationSeq,
-        remote = remotePath,
-        method = method,
-        shape = shapeHash,
-        importance = importance,
-        startedAt = now,
+        id = S.correlationSeq, remote = remotePath, method = method, shape = shapeHash,
+        semantic = semanticHash, importance = importance, startedAt = now,
         expiresAt = now + C.CORRELATION_SECONDS,
     }
     while #S.correlationWindows > C.MAX_CORRELATION_WINDOWS do table.remove(S.correlationWindows, 1) end
     S.smartStats.correlationsOpened = (S.smartStats.correlationsOpened or 0) + 1
+end
+
+local function behaviorIdentity(category, object)
+    object = type(object) == "table" and object or {}
+    if category == "remote_outbound" or category == "remote_inbound" then
+        local path = tostring(object.remote and object.remote.path or "?")
+        local semantic = tostring(object.semanticHash or object.responseSemanticHash or "")
+        local key = category .. ":" .. path .. ":" .. semantic
+        local label = category .. ":" .. path
+        return hashText(key), string.sub(label, 1, 220)
+    elseif category == "tool_transition" then
+        local label = "tool:" .. tostring(object.kind or "?") .. ":" .. tostring(object.tool and object.tool.name or "?")
+        return hashText(label), string.sub(label, 1, 220)
+    elseif category == "player_attribute" then
+        local label = "attribute:" .. tostring(object.name or "?")
+        return hashText(label), label
+    elseif category == "prompt_triggered" then
+        local label = "prompt:" .. tostring(object.prompt and object.prompt.path or "?")
+        return hashText(label), string.sub(label, 1, 220)
+    elseif category == "character" then
+        local label = "character:" .. tostring(object.kind or "?")
+        return hashText(label), label
+    end
+    return nil, nil
+end
+
+local function observeBehavior(category, object, priority)
+    if not BEHAVIOR_CATEGORIES[category] or (tonumber(priority) or 0) < 72 then return end
+    local key, label = behaviorIdentity(category, object)
+    if not key then return end
+    local now = tonumber(object and object.clock) or (os.clock() - S.startClock)
+    local last = S.lastBehavior
+    if last and last.key ~= key then
+        local gap = math.max(0, now - last.clock)
+        if gap <= 8 then
+            local pairKey = hashText("transition\31" .. last.key .. "\31" .. key)
+            local row = S.behaviorTransitions[pairKey]
+            if not row and S.behaviorTransitionCount < C.BEHAVIOR_TRANSITION_CAP then
+                row = { from = last.label, to = label, count = 0, totalGap = 0, minGap = gap, maxGap = gap }
+                S.behaviorTransitions[pairKey] = row
+                S.behaviorTransitionCount = S.behaviorTransitionCount + 1
+            end
+            if row then
+                row.count = row.count + 1
+                row.totalGap = row.totalGap + gap
+                row.minGap = math.min(row.minGap, gap)
+                row.maxGap = math.max(row.maxGap, gap)
+            end
+        end
+    end
+    S.lastBehavior = { key = key, label = label, clock = now }
 end
 
 --==============================================================--
@@ -792,8 +1146,11 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
     object.quality = math.clamp(priority + (novelty and 5 or 0), 0, 100)
     object.corr = math.floor(object.clock * 2)
     if priority >= 80 then object.contextRefs = contextRefs() end
-    local causeCandidates = correlationCandidates(category)
-    if causeCandidates then object.causeCandidates = causeCandidates end
+    local causeCandidates = correlationCandidates(category, object, priority)
+    if causeCandidates then
+        object.causeCandidates = causeCandidates
+        object.correlationModel = "evidence_v2"
+    end
 
     local ok, json = pcall(HttpService.JSONEncode, HttpService, object)
     if not ok or type(json) ~= "string" then
@@ -829,6 +1186,7 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
 
     local ref = exactHash or persistentHash or hashText(json)
     rememberRecent(ref)
+    observeBehavior(category, object, priority)
 
     if persistentKind == "low" and persistentHash then
         S.profileLow[persistentHash] = true
@@ -1026,15 +1384,17 @@ end
 
 local function cacheSnapshot()
     return {
-        schemaVersion = 2, gameId = S.runGameId, placeId = S.runPlaceId,
+        schemaVersion = 3, gameId = S.runGameId, placeId = S.runPlaceId,
         placeVersion = S.runPlaceVersion, runId = S.runId, startIso = S.startIso,
         batchIndex = S.batchIndex, totalBytes = S.totalBytes, ackBytes = S.ackBytes,
         finalManifest = S.finalManifest,
         queue = queueForCache(),
-        deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaRemote = S.deltaRemote,
+        deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaSemantic = S.deltaSemantic, deltaRemote = S.deltaRemote,
         strategy = strategySnapshot(), coverage = S.coverage, frontier = S.frontier,
         suppressed = S.suppressed, dropped = S.dropped, repeatCounts = S.repeatCounts,
         smartStats = S.smartStats, focusRemote = S.focusRemote, focusScore = S.focusScore,
+        correlationEvidence = S.correlationEvidence, effectTotals = S.effectTotals, effectBaseline = S.effectBaseline,
+        remoteImpact = S.remoteImpact, behaviorTransitions = S.behaviorTransitions,
     }
 end
 
@@ -1087,8 +1447,10 @@ local function restoreCache(data)
     S.firstQueuedClock = S.queueBytes > 0 and os.clock() or 0
     S.deltaLow = type(data.deltaLow) == "table" and data.deltaLow or {}
     S.deltaShape = type(data.deltaShape) == "table" and data.deltaShape or {}
+    S.deltaSemantic = type(data.deltaSemantic) == "table" and data.deltaSemantic or {}
     S.deltaRemote = type(data.deltaRemote) == "table" and data.deltaRemote or {}
-    S.deltaLowSet, S.deltaShapeSet, S.deltaRemoteSet = arrayToSet(S.deltaLow), arrayToSet(S.deltaShape), arrayToSet(S.deltaRemote)
+    S.deltaLowSet, S.deltaShapeSet, S.deltaSemanticSet, S.deltaRemoteSet =
+        arrayToSet(S.deltaLow), arrayToSet(S.deltaShape), arrayToSet(S.deltaSemantic), arrayToSet(S.deltaRemote)
     S.strategy = {}
     if type(data.strategy) == "table" then
         for category, value in pairs(data.strategy) do
@@ -1111,12 +1473,22 @@ local function restoreCache(data)
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
     S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
-        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
+        highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
+        opaqueSamples = 0, deepProbes = 0, batchBudgetDrops = 0,
     }
     S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
     S.focusScore = tonumber(data.focusScore) or 0
     S.correlationWindows, S.lastCorrelationByRemote = {}, {}
     S.correlationSeq = 0
+    S.correlationEvidence = type(data.correlationEvidence) == "table" and data.correlationEvidence or {}
+    S.correlationEvidenceCount = 0
+    for _ in pairs(S.correlationEvidence) do S.correlationEvidenceCount = S.correlationEvidenceCount + 1 end
+    S.effectTotals = type(data.effectTotals) == "table" and data.effectTotals or {}
+    S.effectBaseline = type(data.effectBaseline) == "table" and data.effectBaseline or {}
+    S.remoteImpact = type(data.remoteImpact) == "table" and data.remoteImpact or {}
+    S.behaviorTransitions = type(data.behaviorTransitions) == "table" and data.behaviorTransitions or {}
+    S.behaviorTransitionCount = 0
+    for _ in pairs(S.behaviorTransitions) do S.behaviorTransitionCount = S.behaviorTransitionCount + 1 end
     S.repeatCounts = type(data.repeatCounts) == "table" and data.repeatCounts or {}
     S.repeatKeyCount = 0
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
@@ -1133,7 +1505,105 @@ local function addFrontier(path)
     S.frontier[#S.frontier + 1] = path
 end
 
-local function focusedRemoteContext(r, shapeHash)
+local function rememberRecentValue(path, eventValue, observedAfterValue)
+    S.recentValueChanges[#S.recentValueChanges + 1] = {
+        path = tostring(path), eventValue = eventValue, observedAfterValue = observedAfterValue,
+        clock = os.clock() - S.startClock,
+    }
+    while #S.recentValueChanges > C.RECENT_VALUE_CAP do table.remove(S.recentValueChanges, 1) end
+end
+
+local function compactToolState()
+    local out = {}
+    local function add(container, label)
+        if not container then return end
+        local ok, children = pcall(function() return container:GetChildren() end)
+        if not ok then return end
+        for _, x in ipairs(children) do
+            if x:IsA("Tool") then
+                out[#out + 1] = { container = label, name = x.Name, attributes = attrs(x) }
+                if #out >= 20 then return end
+            end
+        end
+    end
+    add(LP:FindFirstChildOfClass("Backpack"), "Backpack")
+    if #out < 20 then add(LP.Character, "Character") end
+    return out
+end
+
+local function compactDeepState()
+    local recent = {}
+    local first = math.max(1, #S.recentValueChanges - 15)
+    for i = first, #S.recentValueChanges do recent[#recent + 1] = S.recentValueChanges[i] end
+    local ch = LP.Character
+    return {
+        player = playerContext(true), playerAttributes = attrs(LP),
+        characterAttributes = ch and attrs(ch) or nil, tools = compactToolState(),
+        recentValues = recent, recentRefs = contextRefs(),
+    }
+end
+
+local function opaqueDiagnostics(args, streamKey, force)
+    local n = tonumber(args and args.n) or 0
+    local hasBuffer = false
+    for i = 1, math.min(n, C.MAX_ARGS) do
+        if typeof(args[i]) == "buffer" then hasBuffer = true break end
+    end
+    if not hasBuffer then return nil end
+    local count = (S.opaqueCounters[streamKey] or 0) + 1
+    S.opaqueCounters[streamKey] = count
+    if not force and count > 3 and count % 32 ~= 0 then return nil end
+    local rows = {}
+    for i = 1, math.min(n, C.MAX_ARGS) do
+        if typeof(args[i]) == "buffer" then
+            local info = bufferFingerprint(args[i])
+            local key = streamKey .. "\31" .. tostring(i)
+            local previous = S.opaquePrevious[key]
+            rows[#rows + 1] = {
+                index = i, fingerprint = info,
+                previous = previous and {
+                    sameLength = previous.length == info.length,
+                    sameSample = previous.sampleHash == info.sampleHash,
+                    headChanged = previous.headHex ~= info.headHex,
+                    tailChanged = previous.tailHex ~= info.tailHex,
+                } or nil,
+                observation = count,
+            }
+            S.opaquePrevious[key] = {
+                length = info.length, sampleHash = info.sampleHash, headHex = info.headHex, tailHex = info.tailHex,
+            }
+        end
+    end
+    if #rows > 0 then S.smartStats.opaqueSamples = (S.smartStats.opaqueSamples or 0) + 1 end
+    return #rows > 0 and rows or nil
+end
+
+local function scheduleDeepProbe(r, triggerHash, triggerKind, semanticHash)
+    if not S.running or S.stopping or pressureLevel() >= 2 then return end
+    if S.deepProbeCount >= C.DEEP_PROBE_MAX then return end
+    local remotePath = pathOf(r)
+    local now = os.clock()
+    local last = S.lastDeepProbeByRemote[remotePath] or 0
+    if now - last < C.DEEP_PROBE_COOLDOWN then return end
+    S.lastDeepProbeByRemote[remotePath] = now
+    S.deepProbeCount = S.deepProbeCount + 1
+    S.smartStats.deepProbes = (S.smartStats.deepProbes or 0) + 1
+    S.coverage.deepProbes = (S.coverage.deepProbes or 0) + 1
+    local probeId = S.deepProbeCount
+    for phase, delaySeconds in ipairs(C.DEEP_PROBE_DELAYS) do
+        task.delay(delaySeconds, function()
+            if not S.running or S.stopping then return end
+            enqueue("record", "deep_snapshot", {
+                kind = "deep_snapshot", probeId = probeId, phase = phase, delay = delaySeconds,
+                triggerKind = triggerKind, triggerHash = triggerHash, semanticHash = semanticHash,
+                remote = remoteDesc(r), state = compactDeepState(),
+            }, 98, false, nil, nil,
+                hashText("deep\31" .. tostring(probeId) .. "\31" .. tostring(phase)), true)
+        end)
+    end
+end
+
+local function focusedRemoteContext(r, shapeHash, triggerKind, semanticHash)
     local parent = r.Parent
     local siblings = {}
     if parent then
@@ -1146,10 +1616,13 @@ local function focusedRemoteContext(r, shapeHash)
         end
     end
     enqueue("record", "investigation_context", {
-        kind = "investigation_context", triggerShape = shapeHash, remote = remoteDesc(r),
+        kind = "investigation_context", triggerShape = shapeHash, triggerKind = triggerKind or "shape",
+        semanticHash = semanticHash, remote = remoteDesc(r),
         parent = parent and { path = pathOf(parent), attributes = attrs(parent), children = siblings } or nil,
         player = playerContext(true),
-    }, 99, true, nil, nil, hashText("investigation\31" .. tostring(shapeHash)), true)
+    }, 99, true, nil, nil,
+        hashText("investigation\31" .. tostring(triggerKind or "shape") .. "\31" .. tostring(shapeHash)), true)
+    scheduleDeepProbe(r, shapeHash, triggerKind or "shape", semanticHash)
 end
 
 local function registerRemote(r, source)
@@ -1183,39 +1656,43 @@ local function attachInbound(r)
             local remotePath = pathOf(r)
             local shapeHash = hashText("remote_shape\31" .. remotePath .. "\31" .. packedCanon(args, true))
             local exactHash = hashText("remote_value\31" .. remotePath .. "\31" .. packedCanon(args, false))
+            local semanticHash, newSemantic, semanticKey = semanticStatus(remotePath, "OnClientEvent", args, "in")
             local newShape = not S.profileShape[shapeHash]
             local investigating = (S.investigation[remotePath] or 0) > os.clock()
-            if newShape then
-                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
-                bump(S.coverage, "newShapes")
-                task.defer(function()
-                    if S.running and not S.stopping then focusedRemoteContext(r, shapeHash) end
-                end)
-            end
-            local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName)
-            if score >= C.FOCUS_SCORE then
-                S.smartStats.highInterestInbound = (S.smartStats.highInterestInbound or 0) + 1
+            local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName, newSemantic)
+            if newShape then bump(S.coverage, "newShapes") end
+            if newSemantic then bump(S.coverage, "newSemanticPatterns") end
+            if newShape or newSemantic or score >= C.FOCUS_SCORE then
                 S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
                 investigating = true
-                if score >= S.focusScore then
-                    S.focusRemote = remotePath
-                    S.focusScore = score
+            end
+            if score >= C.FOCUS_SCORE then
+                S.smartStats.highInterestInbound = (S.smartStats.highInterestInbound or 0) + 1
+                if score >= S.focusScore then S.focusRemote, S.focusScore = remotePath, score end
+            end
+            local deep = newShape or newSemantic or score >= C.FOCUS_SCORE
+            local priority = newShape and 98 or (newSemantic and 94 or (investigating and 88 or math.max(78, score)))
+            local data = {
+                kind = "remote_inbound", remote = remoteDesc(r), payload = packed(args),
+                schema = deep and packedSchema(args) or nil, semanticHash = semanticHash,
+                newSemantic = newSemantic, opaque = opaqueDiagnostics(args, "in:" .. remotePath, deep),
+                newShape = newShape, investigating = investigating, importance = score,
+                player = deep and playerContext(false) or nil,
+            }
+            local accepted = enqueue("record", "remote_inbound", data, math.clamp(priority, 0, 100),
+                newShape or newSemantic, newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
+                deep or investigating)
+            if accepted then
+                if newSemantic then rememberSemantic(semanticHash, semanticKey) end
+                if deep then
+                    task.defer(function()
+                        if S.running and not S.stopping then
+                            focusedRemoteContext(r, newShape and shapeHash or semanticHash,
+                                newShape and (newSemantic and "shape+semantic" or "shape") or "semantic", semanticHash)
+                        end
+                    end)
                 end
             end
-            local priority = newShape and 98 or (investigating and 88 or math.max(78, score))
-            local data = {
-                kind = "remote_inbound",
-                remote = remoteDesc(r),
-                payload = packed(args),
-                schema = (newShape or investigating or score >= C.FOCUS_SCORE) and packedSchema(args) or nil,
-                newShape = newShape,
-                investigating = investigating,
-                importance = score,
-                player = (newShape or investigating or score >= C.FOCUS_SCORE) and playerContext(false) or nil,
-            }
-            enqueue("record", "remote_inbound", data, math.clamp(priority, 0, 100), newShape,
-                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
-                investigating or score >= C.FOCUS_SCORE)
         end)
     end)
     S.conns[#S.conns + 1] = connection
@@ -1233,8 +1710,13 @@ local function attachValue(v)
         if state then state.last = nowCanon end
         local path = pathOf(v)
         local exact = hashText("value\31" .. path .. "\31" .. nowCanon)
+        local eventValue = ser(newValue)
+        local observedAfterValue = nil
+        pcall(function() observedAfterValue = ser(v.Value) end)
+        rememberRecentValue(path, eventValue, observedAfterValue)
         enqueue("record", "value_changed", {
-            kind = "value_changed", object = valueSnap(v), value = ser(newValue),
+            kind = "value_changed", object = valueSnap(v), value = eventValue,
+            eventValue = eventValue, observedAfterValue = observedAfterValue,
         }, 72, false, nil, nil, exact, false)
     end)
     S.conns[#S.conns + 1] = connection
@@ -1245,7 +1727,7 @@ end
 --==============================================================--
 
 local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
-local OUTBOUND_HOOK_VERSION = 2
+local OUTBOUND_HOOK_VERSION = 3
 
 local function installOutboundObserver()
     if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
@@ -1274,13 +1756,18 @@ local function installOutboundObserver()
             local outboundRemote =
                 className == "RemoteEvent" or className == "RemoteFunction" or className == "UnreliableRemoteEvent"
 
-            if callback and outboundRemote and (method == "FireServer" or method == "InvokeServer") then
+            if callback and outboundRemote and method == "InvokeServer" then
                 local args = table.pack(...)
-                -- Do zero Instance method calls before the original namecall.
-                -- Observation runs deferred and cannot block damage, votes, purchases, etc.
-                task.defer(function()
-                    pcall(callback, self, method, args)
-                end)
+                local startedAt = os.clock()
+                local results = table.pack(oldNamecall(self, ...))
+                local latencyMs = math.max(0, (os.clock() - startedAt) * 1000)
+                task.defer(function() pcall(callback, self, method, args, results, latencyMs) end)
+                return table.unpack(results, 1, results.n)
+            end
+
+            if callback and outboundRemote and method == "FireServer" then
+                local args = table.pack(...)
+                task.defer(function() pcall(callback, self, method, args, nil, nil) end)
             end
 
             return oldNamecall(self, ...)
@@ -1300,57 +1787,79 @@ local function installOutboundObserver()
         rawset(ENV, OUTBOUND_HOOK_KEY, registry)
     end
 
-    registry.callback = function(remote, method, args)
+    registry.callback = function(remote, method, args, results, latencyMs)
         if not S.running or S.stopping then return end
         task.defer(function()
             if not S.running or S.stopping then return end
-
             local remotePath = pathOf(remote)
             registerRemote(remote, "outbound")
-
             local shapeHash = hashText("remote_out_shape\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, true))
-            local exactHash = hashText("remote_out_value\31" .. remotePath .. "\31" .. method .. "\31" .. packedCanon(args, false))
+            local semanticHash, newSemantic, semanticKey = semanticStatus(remotePath, method, args, "out")
+            local responseShapeHash, newResponseShape = nil, false
+            local responseSemanticHash, newResponseSemantic, responseSemanticKey = nil, false, nil
+            if results then
+                responseShapeHash = hashText("remote_return_shape\31" .. remotePath .. "\31" .. packedCanon(results, true))
+                newResponseShape = not S.profileShape[responseShapeHash]
+                responseSemanticHash, newResponseSemantic, responseSemanticKey = semanticStatus(remotePath, method, results, "return")
+            end
+            local exactParts = { "remote_out_value\31", remotePath, "\31", method, "\31", packedCanon(args, false) }
+            if results then
+                exactParts[#exactParts + 1] = "\31return\31"
+                exactParts[#exactParts + 1] = packedCanon(results, false)
+            end
+            local exactHash = hashText(table.concat(exactParts))
             local newShape = not S.profileShape[shapeHash]
-            local score = importanceScore(remotePath, method, newShape, remote.ClassName)
+            local score = importanceScore(remotePath, method, newShape, remote.ClassName,
+                newSemantic, newResponseShape, newResponseSemantic)
             local focused = score >= C.FOCUS_SCORE
-
+            local deep = focused or newShape or newSemantic or newResponseShape or newResponseSemantic
             S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
             if focused then
                 S.smartStats.highInterestOutbound = (S.smartStats.highInterestOutbound or 0) + 1
-                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
-                if score >= S.focusScore then
-                    S.focusRemote = remotePath
-                    S.focusScore = score
-                end
+                if score >= S.focusScore then S.focusRemote, S.focusScore = remotePath, score end
             end
-            if newShape then
-                bump(S.coverage, "newOutboundShapes")
-                S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS
-                task.defer(function()
-                    if S.running and not S.stopping then focusedRemoteContext(remote, shapeHash) end
-                end)
-            end
+            if newShape then bump(S.coverage, "newOutboundShapes") end
+            if newSemantic then bump(S.coverage, "newSemanticPatterns") end
+            if newResponseShape then bump(S.coverage, "newOutboundResponseShapes") end
+            if newResponseSemantic then bump(S.coverage, "newResponseSemanticPatterns") end
+            if deep then S.investigation[remotePath] = os.clock() + C.INVESTIGATION_SECONDS end
 
-            local accepted = enqueue("record", "remote_outbound", {
-                kind = "remote_outbound",
-                method = method,
-                remote = remoteDesc(remote),
-                payload = packed(args),
-                schema = (newShape or focused) and packedSchema(args) or nil,
-                newShape = newShape,
-                investigating = focused,
-                importance = score,
-                player = (newShape or focused) and playerContext(false) or nil,
-            }, math.clamp(math.max(82, score), 0, 100), newShape,
-                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
-                focused or newShape)
-
+            local record = {
+                kind = "remote_outbound", method = method, remote = remoteDesc(remote),
+                payload = packed(args), schema = deep and packedSchema(args) or nil,
+                semanticHash = semanticHash, newSemantic = newSemantic,
+                response = results and packed(results) or nil,
+                responseSchema = results and packedSchema(results) or nil,
+                responseShapeHash = responseShapeHash, newResponseShape = newResponseShape,
+                responseSemanticHash = responseSemanticHash, newResponseSemantic = newResponseSemantic,
+                invokeLatencyMs = latencyMs and math.floor(latencyMs * 100 + 0.5) / 100 or nil,
+                opaque = opaqueDiagnostics(args, "out:" .. remotePath, deep),
+                responseOpaque = results and opaqueDiagnostics(results, "return:" .. remotePath, deep) or nil,
+                newShape = newShape, investigating = deep, importance = score,
+                player = deep and playerContext(false) or nil,
+            }
+            local accepted = enqueue("record", "remote_outbound", record,
+                math.clamp(math.max(82, score), 0, 100), newShape or newSemantic or newResponseShape or newResponseSemantic,
+                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash, deep)
             if accepted then
                 S.smartStats.outboundAccepted = (S.smartStats.outboundAccepted or 0) + 1
+                if newSemantic then rememberSemantic(semanticHash, semanticKey) end
+                if newResponseShape then rememberShape(responseShapeHash) end
+                if newResponseSemantic then rememberSemantic(responseSemanticHash, responseSemanticKey) end
+                if deep then
+                    local triggerHash = newShape and shapeHash or
+                        (newSemantic and semanticHash or (newResponseShape and responseShapeHash or responseSemanticHash))
+                    local triggerKind = newShape and (newSemantic and "shape+semantic" or "shape") or
+                        (newSemantic and "semantic" or (newResponseShape and "response_shape" or
+                            (newResponseSemantic and "response_semantic" or "focus")))
+                    task.defer(function()
+                        if S.running and not S.stopping then
+                            focusedRemoteContext(remote, triggerHash or shapeHash, triggerKind, semanticHash)
+                        end
+                    end)
+                end
             end
-            if focused or newShape then
-                openCorrelationWindow(remotePath, method, shapeHash, score)
-            end
+            if deep then openCorrelationWindow(remotePath, method, shapeHash, score, semanticHash) end
         end)
     end
 
@@ -1395,6 +1904,46 @@ local function watchContainer(container, label)
     S.conns[#S.conns + 1] = removed
 end
 
+local function runtimePatternDecision(x, source)
+    local patternHash = signature("runtime_pattern", tostring(source) .. ":" .. pathOf(x), {
+        className = x.ClassName, name = x.Name,
+    }, true)
+    local count = (S.runtimePatternCounts[patternHash] or 0) + 1
+    S.runtimePatternCounts[patternHash] = count
+    local firstThisRun = not S.runtimePatternSeen[patternHash]
+    S.runtimePatternSeen[patternHash] = true
+    pruneCorrelationWindows()
+    local active = #S.correlationWindows > 0
+    local keep = firstThisRun or count <= C.RUNTIME_BURST_FIRST or count % C.RUNTIME_BURST_EVERY == 0 or
+        (active and count % 4 == 0)
+    local newPattern = firstThisRun and not S.profileLow[patternHash]
+    return keep, newPattern, patternHash, count, active
+end
+
+local function recordRuntimeAdded(x, source, kind, priority)
+    S.objectBorn[x] = os.clock()
+    local keep, newPattern, patternHash, count, active = runtimePatternDecision(x, source)
+    if not keep then bump(S.suppressed, "runtime_pattern"); return end
+    local snapshot = obj(x, source)
+    enqueue("record", "runtime_added", {
+        kind = kind, object = snapshot,
+        runtimePattern = { hash = patternHash, count = count, newPattern = newPattern },
+    }, priority, newPattern, newPattern and "low" or nil, newPattern and patternHash or nil,
+        signature("runtime_event", pathOf(x), snapshot, false), newPattern or active)
+end
+
+local function recordRuntimeRemoving(x, source, kind)
+    local born = S.objectBorn[x]
+    local lifetime = born and math.max(0, os.clock() - born) or nil
+    S.objectBorn[x] = nil
+    local exact = hashText("remove\31" .. tostring(source) .. "\31" .. pathOf(x) .. "\31" .. x.ClassName ..
+        "\31" .. tostring(math.floor((lifetime or 0) * 10)))
+    enqueue("record", "runtime_remove", {
+        kind = kind, source = source, path = pathOf(x), name = x.Name, className = x.ClassName,
+        attributes = attrs(x), lifetimeSeconds = lifetime and math.floor(lifetime * 1000 + 0.5) / 1000 or nil,
+    }, 80, false, nil, nil, exact, false)
+end
+
 local function runtimeWatchers()
     installOutboundObserver()
 
@@ -1405,24 +1954,26 @@ local function runtimeWatchers()
             if x:IsA("RemoteEvent") or x:IsA("UnreliableRemoteEvent") then attachInbound(x) end
         elseif x:IsA("ValueBase") then
             attachValue(x)
-            local h = signature("static", pathOf(x), obj(x, "fingerprint"), false)
-            enqueue("record", "runtime_added", { kind = "replicated_added", object = obj(x, "runtime_added") }, 82,
-                not S.profileLow[h], "low", h, nil, true)
+            recordRuntimeAdded(x, "ReplicatedStorage", "replicated_added", 82)
         elseif x:IsA("Tool") or x:IsA("ProximityPrompt") then
-            local h = signature("static", pathOf(x), obj(x, "fingerprint"), false)
-            enqueue("record", "runtime_added", { kind = "replicated_added", object = obj(x, "runtime_added") }, 85,
-                not S.profileLow[h], "low", h, nil, true)
+            recordRuntimeAdded(x, "ReplicatedStorage", "replicated_added", 85)
         end
     end)
     S.conns[#S.conns + 1] = ra
+
+    local rr = ReplicatedStorage.DescendantRemoving:Connect(function(x)
+        if not S.running or S.stopping then return end
+        if x:IsA("ValueBase") or x:IsA("Tool") or x:IsA("ProximityPrompt") then
+            recordRuntimeRemoving(x, "ReplicatedStorage", "replicated_removing")
+        end
+    end)
+    S.conns[#S.conns + 1] = rr
 
     local wa = Workspace.DescendantAdded:Connect(function(x)
         if not S.running or S.stopping then return end
         if x:IsA("ValueBase") then attachValue(x) end
         if x:IsA("ValueBase") or x:IsA("Tool") or x:IsA("ProximityPrompt") or x:IsA("ClickDetector") then
-            local h = signature("static", pathOf(x), obj(x, "fingerprint"), false)
-            enqueue("record", "runtime_added", { kind = "workspace_added", object = obj(x, "runtime_added") }, 82,
-                not S.profileLow[h], "low", h, nil, true)
+            recordRuntimeAdded(x, "Workspace", "workspace_added", 82)
         end
     end)
     S.conns[#S.conns + 1] = wa
@@ -1430,11 +1981,7 @@ local function runtimeWatchers()
     local wr = Workspace.DescendantRemoving:Connect(function(x)
         if not S.running or S.stopping then return end
         if x:IsA("ValueBase") or x:IsA("Tool") or x:IsA("ProximityPrompt") or x:IsA("ClickDetector") then
-            local exact = hashText("remove\31" .. pathOf(x) .. "\31" .. x.ClassName)
-            enqueue("record", "runtime_remove", {
-                kind = "workspace_removing", path = pathOf(x), name = x.Name,
-                className = x.ClassName, attributes = attrs(x),
-            }, 80, false, nil, nil, exact, false)
+            recordRuntimeRemoving(x, "Workspace", "workspace_removing")
         end
     end)
     S.conns[#S.conns + 1] = wr
@@ -1783,6 +2330,67 @@ local function repeatSummary()
     return out
 end
 
+local function correlationEvidenceSummary()
+    local rows = {}
+    for _, row in pairs(S.correlationEvidence) do
+        local baseline = S.effectBaseline[row.effectHash] or 0
+        local total = S.effectTotals[row.effectHash] or row.support or 1
+        local consistency = (row.support or 0) / math.max(1, total)
+        local separation = (row.support or 0) / math.max(1, (row.support or 0) + baseline + 2)
+        local meanRecency = (row.weighted or 0) / math.max(1, row.support or 0)
+        local confidence = math.floor(math.clamp(consistency * separation * meanRecency * 100, 0, 99) + 0.5)
+        rows[#rows + 1] = {
+            remote = row.remote, method = row.method, shape = row.shape, semantic = row.semantic,
+            effect = row.effect, support = row.support, baseline = baseline, effectTotal = total, confidence = confidence,
+        }
+    end
+    table.sort(rows, function(a, b)
+        if a.confidence == b.confidence then return (a.support or 0) > (b.support or 0) end
+        return a.confidence > b.confidence
+    end)
+    local out = {}
+    for i = 1, math.min(#rows, 60) do out[i] = rows[i] end
+    return out
+end
+
+local function behaviorSummary()
+    local rows = {}
+    for _, row in pairs(S.behaviorTransitions) do
+        rows[#rows + 1] = {
+            from = row.from, to = row.to, count = row.count,
+            avgGap = row.count > 0 and math.floor((row.totalGap / row.count) * 1000 + 0.5) / 1000 or 0,
+            minGap = math.floor((row.minGap or 0) * 1000 + 0.5) / 1000,
+            maxGap = math.floor((row.maxGap or 0) * 1000 + 0.5) / 1000,
+        }
+    end
+    table.sort(rows, function(a, b) return a.count > b.count end)
+    local out = {}
+    for i = 1, math.min(#rows, 60) do out[i] = rows[i] end
+    return out
+end
+
+local function impactSummary()
+    local rows = {}
+    for remote, score in pairs(S.remoteImpact) do rows[#rows + 1] = { remote = remote, score = score } end
+    table.sort(rows, function(a, b) return a.score > b.score end)
+    local out = {}
+    for i = 1, math.min(#rows, 30) do
+        out[i] = { remote = rows[i].remote, score = math.floor(rows[i].score * 100 + 0.5) / 100 }
+    end
+    return out
+end
+
+local function runtimePatternSummary()
+    local rows = {}
+    for hash, count in pairs(S.runtimePatternCounts) do
+        if count > 1 then rows[#rows + 1] = { hash = hash, count = count } end
+    end
+    table.sort(rows, function(a, b) return a.count > b.count end)
+    local out = {}
+    for i = 1, math.min(#rows, 50) do out[i] = rows[i] end
+    return out
+end
+
 local function manifestTable()
     return {
         version = C.VERSION, purpose = C.PURPOSE,
@@ -1793,6 +2401,7 @@ local function manifestTable()
         profileDelta = {
             knownLowValueHashes = S.deltaLow,
             knownShapeHashes = S.deltaShape,
+            knownSemanticHashes = S.deltaSemantic,
             knownRemoteHashes = S.deltaRemote,
             frontier = S.frontier,
         },
@@ -1805,9 +2414,16 @@ local function manifestTable()
             highInterestOutbound = S.smartStats.highInterestOutbound or 0,
             highInterestInbound = S.smartStats.highInterestInbound or 0,
             correlationsOpened = S.smartStats.correlationsOpened or 0,
+            semanticNovel = S.smartStats.semanticNovel or 0,
+            opaqueSamples = S.smartStats.opaqueSamples or 0,
+            deepProbes = S.smartStats.deepProbes or 0,
             batchBudgetDrops = S.smartStats.batchBudgetDrops or 0,
             focusRemote = S.focusRemote,
             focusScore = S.focusScore,
+            correlationEvidence = correlationEvidenceSummary(),
+            behaviorTransitions = behaviorSummary(),
+            impactRemotes = impactSummary(),
+            runtimePatterns = runtimePatternSummary(),
         },
     }
 end
@@ -1849,15 +2465,26 @@ local function resetRunState()
     S.manifestConfirmed = false
     S.sessionExact, S.remoteSeen = {}, {}
     S.sessionExactCount = 0
-    S.deltaLow, S.deltaShape, S.deltaRemote = {}, {}, {}
-    S.deltaLowSet, S.deltaShapeSet, S.deltaRemoteSet = {}, {}, {}
+    S.sessionSemantic, S.semanticCountByRemote = {}, {}
+    S.deltaLow, S.deltaShape, S.deltaSemantic, S.deltaRemote = {}, {}, {}, {}
+    S.deltaLowSet, S.deltaShapeSet, S.deltaSemanticSet, S.deltaRemoteSet = {}, {}, {}, {}
     S.strategy, S.suppressed, S.dropped, S.repeatCounts, S.coverage, S.investigation, S.recentRefs = {}, {}, {}, {}, {}, {}, {}
     S.frontier, S.frontierSet = {}, {}
     S.correlationWindows, S.lastCorrelationByRemote = {}, {}
     S.correlationSeq = 0
+    S.effectTotals, S.effectBaseline, S.correlationEvidence, S.remoteImpact = {}, {}, {}, {}
+    S.correlationEvidenceCount = 0
+    S.behaviorTransitions, S.lastBehavior = {}, nil
+    S.behaviorTransitionCount = 0
+    S.recentValueChanges = {}
+    S.deepProbeCount, S.lastDeepProbeByRemote = 0, {}
+    S.opaquePrevious, S.opaqueCounters = {}, {}
+    S.runtimePatternCounts, S.runtimePatternSeen = {}, {}
+    S.objectBorn = setmetatable({}, { __mode = "k" })
     S.smartStats = {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
-        highInterestInbound = 0, correlationsOpened = 0, batchBudgetDrops = 0,
+        highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
+        opaqueSamples = 0, deepProbes = 0, batchBudgetDrops = 0,
     }
     S.focusRemote, S.focusScore = nil, 0
     S.outboundHookRegistry, S.outboundHookReady = nil, false
@@ -2250,4 +2877,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.0.1 carregado • bidirecional • correlação inteligente • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.1.0 carregado • semântica adaptativa • lupa automática • streaming protegido")
