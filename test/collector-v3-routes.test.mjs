@@ -109,6 +109,7 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(health.ok, true);
   assert.equal(health.githubMirrorConfigured, true);
   assert.equal(health.hardSessionBytes, 150 * 1024 * 1024);
+  assert.equal(health.maxBatches, 260);
 
   const common = {
     schemaVersion: 3,

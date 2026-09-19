@@ -20,7 +20,7 @@ Arquivos principais:
 
 ## Correção do travamento em “ENVIANDO”
 
-A V3.0 original podia enviar lotes muito pequenos porque o loop da UI tentava esvaziar qualquer fila a cada 0,25 s. Em coleta longa isso podia consumir os 179 lotes de dados e deixar o lote 180 reservado ao manifesto enquanto ainda existiam poucos KB na fila, criando um deadlock.
+A V3.0 original podia enviar lotes muito pequenos porque o loop da UI tentava esvaziar qualquer fila a cada 0,25 s. Em coleta longa isso podia consumir os 179 lotes de dados e deixar o lote final reservado ao manifesto enquanto ainda existiam poucos KB na fila, criando um deadlock.
 
 A V3.0.1 corrige isso em duas camadas:
 
@@ -30,7 +30,7 @@ A V3.0.1 corrige isso em duas camadas:
 - se o orçamento de lotes for atingido mesmo assim, apenas a cauda ainda não enviada é contabilizada como `batch_budget_bytes` e descartada, permitindo que o manifesto seja concluído em vez de ficar preso;
 - `acknowledgedDataBytes` não é mais forçado artificialmente para o total coletado, então o manifesto informa corretamente qualquer cauda não confirmada.
 
-Isso também permite que um cache antigo preso no lote 179 seja finalizado na próxima execução: a V3.0.1 preserva os 179 lotes já confirmados, registra a cauda não enviada e tenta usar o slot 180 para o manifesto.
+Isso também permite que um cache antigo preso no lote 179 seja finalizado na próxima execução: a V3.0.1 preserva os 179 lotes já confirmados e agora ainda possui folga para enviar a cauda pendente antes do manifesto.
 
 ## Regras gerais
 
@@ -76,7 +76,7 @@ Variáveis relevantes:
 - `INVENTORY_TRACE_V3_BODY_LIMIT=3mb`
 - `INVENTORY_TRACE_V3_MAX_RECORDS=6000`
 - `INVENTORY_TRACE_V3_MAX_REMOTES=1000`
-- `INVENTORY_TRACE_V3_MAX_BATCHES=180`
+- `INVENTORY_TRACE_V3_MAX_BATCHES=260`
 
 ## Estrutura persistente
 
