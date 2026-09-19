@@ -3393,6 +3393,8 @@ end
 
 local uiRefresh
 local mainButton
+local gui
+local disconnectUi
 
 local function finalize(auto)
     if S.finalizing then return end
@@ -3522,6 +3524,7 @@ end
 -- COMPACT MOBILE UI + INVESTIGATION STATUS ICON
 --==============================================================--
 
+local function buildCompactUi()
 local GUI_NAME = "CafeinaUniversalGameTraceV30"
 local parent = CoreGui
 pcall(function() if type(gethui) == "function" then parent = gethui() end end)
@@ -3890,6 +3893,12 @@ uiConnect(mainButton.Activated, function()
 end)
 
 investigatorUiRefresh()
+
+
+    return gui, disconnectUi
+end
+
+gui, disconnectUi = buildCompactUi()
 
 --==============================================================--
 -- PREFLIGHT
