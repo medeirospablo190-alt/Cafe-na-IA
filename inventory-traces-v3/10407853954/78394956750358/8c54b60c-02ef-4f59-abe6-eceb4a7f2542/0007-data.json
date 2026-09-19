@@ -1,0 +1,1324 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_4",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-19T19:07:51.000Z",
+  "gameId": 10407853954,
+  "placeId": 78394956750358,
+  "placeVersion": 413,
+  "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+  "batchIndex": 7,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 22432,
+  "records": [
+    {
+      "semanticHash": "6c1427b9d51d",
+      "unix": 1789844948,
+      "newSemantic": false,
+      "sig": "5c7d443ca50e",
+      "corr": 155,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.GiftDrinkNotify",
+        "name": "GiftDrinkNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "path": "Players.ItzXaDeee",
+            "type": "Instance",
+            "name": "ItzXaDeee",
+            "className": "Player"
+          }
+        ]
+      },
+      "clock": 77.53333528300027,
+      "kind": "remote_inbound",
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.00003905466655851342,
+        "type": "Vector3",
+        "x": 0.013274861499667168,
+        "z": -7.999988555908203
+      },
+      "unix": 1789844949,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.825437068939209,
+          "type": "Vector3",
+          "x": -271.21539306640625,
+          "z": 125.93400573730469
+        },
+        "userId": 765329164
+      },
+      "corr": 156,
+      "clock": 78.05560642900127,
+      "kind": "trajectory",
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 26
+    },
+    {
+      "corr": 158,
+      "unix": 1789844950,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.83053731918335,
+          "type": "Vector3",
+          "x": -270.15960693359375,
+          "z": 123.70538330078125
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "65557faa768a",
+        "ab9343d52971",
+        "5c7d443ca50e",
+        "7057b69f9e09"
+      ],
+      "quality": 94,
+      "clock": 79.32886101100121,
+      "kind": "gui_activated",
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "gui": {
+        "name": "Accept",
+        "path": "Players.capuccino40.PlayerGui.Notification.GiftDrink_Frame.Accept",
+        "source": "PlayerGui",
+        "className": "TextButton",
+        "parent": "Players.capuccino40.PlayerGui.Notification.GiftDrink_Frame",
+        "attributes": [],
+        "gui": {
+          "visible": true,
+          "text": "Accept",
+          "size": {
+            "type": "UDim2",
+            "ys": 0.18689221143722534,
+            "xs": 0.33872395753860474,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": 0.7065930962562561,
+            "xs": 0.09941127896308899,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    },
+    {
+      "corr": 158,
+      "contextRefs": [
+        "ab9343d52971",
+        "5c7d443ca50e",
+        "7057b69f9e09",
+        "2475ec1797df"
+      ],
+      "unix": 1789844950,
+      "importance": 42,
+      "clock": 79.32973976100038,
+      "newSemantic": false,
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 82,
+      "semanticHash": "032af080d86d",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "f8ebe0404616",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "newShape": false,
+      "triggerContext": {
+        "path": "Players.capuccino40.PlayerGui.Notification.GiftDrink_Frame.Accept",
+        "kind": "gui_activated",
+        "age": 0.001,
+        "category": "gui_interaction"
+      },
+      "payload": {
+        "count": 0,
+        "values": []
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "diagnostic": {
+        "pressure": 0,
+        "severity": "error",
+        "uploading": false,
+        "inputQuarantine": false,
+        "frameDtMs": 31.56,
+        "state": "GREEN",
+        "queueDepth": 1,
+        "stageAgeMs": 79368,
+        "stage": "idle",
+        "clock": 79.368,
+        "kind": "health_anomaly",
+        "seq": 12,
+        "detail": "queue_waiting_without_active"
+      },
+      "sig": "2a519b6b41b2",
+      "corr": 158,
+      "unix": 1789844950,
+      "contextRefs": [
+        "5c7d443ca50e",
+        "7057b69f9e09",
+        "2475ec1797df",
+        "f8ebe0404616"
+      ],
+      "clock": 79.36832856300134,
+      "kind": "menu_health_diag",
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "7057b69f9e09",
+        "2475ec1797df",
+        "f8ebe0404616",
+        "2a519b6b41b2"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "aca199a6d1c5",
+      "corr": 158,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 31.56,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1789844950,
+      "mode": "pending",
+      "clock": 79.36909220900088,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_scheduled",
+      "detail": "aguardando 1.6s"
+    },
+    {
+      "contextRefs": [
+        "2475ec1797df",
+        "f8ebe0404616",
+        "2a519b6b41b2",
+        "aca199a6d1c5"
+      ],
+      "corr": 159,
+      "unix": 1789844950,
+      "quality": 90,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.83053731918335,
+          "type": "Vector3",
+          "x": -270.15960693359375,
+          "z": 123.70538330078125
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_added:Whiskey",
+          "id": 1,
+          "confidence": 32,
+          "remote": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+          "support": 1,
+          "effectTotal": 1,
+          "age": 0.19985671900030866,
+          "importance": 42,
+          "shape": "71a7d9d1738b",
+          "semantic": "032af080d86d"
+        }
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 79.52963465700122,
+      "kind": "tool_added",
+      "tool": {
+        "attributes": [],
+        "path": "Players.capuccino40.Backpack.Whiskey",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Players.capuccino40.Backpack",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Whiskey"
+      },
+      "container": "Backpack"
+    },
+    {
+      "contextRefs": [
+        "f8ebe0404616",
+        "2a519b6b41b2",
+        "aca199a6d1c5",
+        "f1b844bb4252"
+      ],
+      "corr": 159,
+      "unix": 1789844950,
+      "quality": 90,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.83053731918335,
+          "type": "Vector3",
+          "x": -270.15960693359375,
+          "z": 123.70538330078125
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_removed:Whiskey",
+          "id": 1,
+          "confidence": 32,
+          "remote": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+          "support": 1,
+          "effectTotal": 1,
+          "age": 0.20155020800120838,
+          "importance": 42,
+          "shape": "71a7d9d1738b",
+          "semantic": "032af080d86d"
+        }
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 79.5313350739998,
+      "kind": "tool_removed",
+      "tool": {
+        "name": "Whiskey",
+        "path": "Workspace.capuccino40.Whiskey"
+      },
+      "container": "Backpack"
+    },
+    {
+      "contextRefs": [
+        "2a519b6b41b2",
+        "aca199a6d1c5",
+        "f1b844bb4252",
+        "c6d856f62b15"
+      ],
+      "corr": 159,
+      "unix": 1789844950,
+      "quality": 90,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.83053731918335,
+          "type": "Vector3",
+          "x": -270.15960693359375,
+          "z": 123.70538330078125
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_added:Whiskey",
+          "id": 1,
+          "confidence": 48,
+          "remote": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+          "support": 2,
+          "effectTotal": 2,
+          "age": 0.20244796900078654,
+          "importance": 42,
+          "shape": "71a7d9d1738b",
+          "semantic": "032af080d86d"
+        }
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 79.5322439800002,
+      "kind": "tool_added",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Whiskey",
+        "source": "Character",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Whiskey"
+      },
+      "container": "Character"
+    },
+    {
+      "sig": "3c08fa0b1e4f",
+      "corr": 159,
+      "unix": 1789844950,
+      "contextRefs": [
+        "aca199a6d1c5",
+        "f1b844bb4252",
+        "c6d856f62b15",
+        "c25d2444442d"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.83053731918335,
+          "type": "Vector3",
+          "x": -270.15960693359375,
+          "z": 123.70538330078125
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 79.53327674000138,
+      "kind": "tool_equipped",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Whiskey",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Whiskey"
+      },
+      "container": "Backpack"
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "f1b844bb4252",
+        "c6d856f62b15",
+        "c25d2444442d",
+        "3c08fa0b1e4f"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "ac85c5170ca6",
+      "corr": 162,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 32.36,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1789844952,
+      "mode": "pending",
+      "clock": 81.0031255419999,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_fired",
+      "detail": "timer disparou"
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "c6d856f62b15",
+        "c25d2444442d",
+        "3c08fa0b1e4f",
+        "ac85c5170ca6"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "b473cfdd2e3f",
+      "corr": 162,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 32.36,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1789844952,
+      "mode": "pending",
+      "clock": 81.00343965700085,
+      "kind": "investigator_diag",
+      "stage": "execute_entered",
+      "detail": "avaliando risco"
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "c25d2444442d",
+        "3c08fa0b1e4f",
+        "ac85c5170ca6",
+        "b473cfdd2e3f"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "e11b41efcfdb",
+      "corr": 162,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 32.36,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1789844952,
+      "mode": "pending",
+      "clock": 81.00368924000031,
+      "kind": "investigator_diag",
+      "stage": "risk_blocked",
+      "detail": "stateful_effect"
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "3c08fa0b1e4f",
+        "ac85c5170ca6",
+        "b473cfdd2e3f",
+        "e11b41efcfdb"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "d6f1d0603fd4",
+      "corr": 162,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 32.36,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1789844952,
+      "mode": "passive",
+      "clock": 81.00521377100085,
+      "kind": "investigator_diag",
+      "stage": "blue_observing",
+      "detail": "observação segura"
+    },
+    {
+      "investigationId": 1,
+      "contextRefs": [
+        "ac85c5170ca6",
+        "b473cfdd2e3f",
+        "e11b41efcfdb",
+        "d6f1d0603fd4"
+      ],
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 100,
+      "sig": "94a0d15c04fa",
+      "corr": 166,
+      "remote": {
+        "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+        "name": "AcceptGiftDrink",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.GiftDrink",
+        "attributes": []
+      },
+      "frameDtMs": 32.99,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1789844954,
+      "mode": "passive",
+      "clock": 83.43494022900086,
+      "kind": "investigator_diag",
+      "stage": "finishing",
+      "detail": "passive_observation_complete"
+    },
+    {
+      "finalStageDetail": "passive_observation_complete",
+      "finalStage": "finishing",
+      "reason": "passive_observation_complete",
+      "diff": {
+        "recentValues": [],
+        "playerAttributes": [],
+        "toolsRemoved": [],
+        "characterAttributes": [],
+        "healthAfter": 100,
+        "healthBefore": 100,
+        "toolsAdded": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Character"
+          }
+        ],
+        "positionDelta": 0.001,
+        "stateBefore": "Enum.HumanoidStateType.Running",
+        "stateAfter": "Enum.HumanoidStateType.Running",
+        "recentGui": []
+      },
+      "diagnostics": [
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_state_set",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 1,
+          "detail": "estado YELLOW definido"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_before_quarantine",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 2,
+          "detail": "antes de setInputQuarantine(false)"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_after_quarantine",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 3,
+          "detail": "setInputQuarantine(false) retornou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_before_ui_defer",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 4,
+          "detail": "antes de task.defer(UI)"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_after_ui_defer",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 5,
+          "detail": "task.defer(UI) retornou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 31.56,
+          "stage": "yellow_timer_scheduled",
+          "clock": 79.369,
+          "mode": "pending",
+          "seq": 6,
+          "detail": "aguardando 1.6s"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 32.36,
+          "stage": "yellow_timer_fired",
+          "clock": 81.003,
+          "mode": "pending",
+          "seq": 7,
+          "detail": "timer disparou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 32.36,
+          "stage": "execute_entered",
+          "clock": 81.003,
+          "mode": "pending",
+          "seq": 8,
+          "detail": "avaliando risco"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 32.36,
+          "stage": "risk_blocked",
+          "clock": 81.004,
+          "mode": "pending",
+          "seq": 9,
+          "detail": "stateful_effect"
+        },
+        {
+          "state": "BLUE",
+          "pressure": 0,
+          "frameDtMs": 32.36,
+          "stage": "blue_observing",
+          "clock": 81.005,
+          "mode": "passive",
+          "seq": 10,
+          "detail": "observação segura"
+        },
+        {
+          "state": "BLUE",
+          "pressure": 0,
+          "frameDtMs": 32.99,
+          "stage": "finishing",
+          "clock": 83.435,
+          "mode": "passive",
+          "seq": 11,
+          "detail": "passive_observation_complete"
+        }
+      ],
+      "status": "completed",
+      "mode": "passive",
+      "middle": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Fabric",
+          "velocity": {
+            "y": -0.000013124958059052005,
+            "type": "Vector3",
+            "x": 4.80643677747139e-7,
+            "z": 6.613363439100794e-7
+          },
+          "angularVelocity": {
+            "y": -5.496380701107157e-15,
+            "type": "Vector3",
+            "x": -6.978744977459428e-7,
+            "z": 5.071987629889918e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.830539226531982,
+            "type": "Vector3",
+            "x": -270.15899658203125,
+            "z": 123.70527648925781
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "ac85c5170ca6",
+          "b473cfdd2e3f",
+          "e11b41efcfdb",
+          "d6f1d0603fd4"
+        ],
+        "recentGui": []
+      },
+      "quality": 100,
+      "investigationId": 1,
+      "after": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Fabric",
+          "velocity": {
+            "y": -0.000013543643035518471,
+            "type": "Vector3",
+            "x": 0.0000011666265891108196,
+            "z": 0.0000011968132866968517
+          },
+          "angularVelocity": {
+            "y": 1.4621754844838038e-15,
+            "type": "Vector3",
+            "x": -0.0000012629596994884196,
+            "z": 0.000001231104988619336
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.830539226531982,
+            "type": "Vector3",
+            "x": -270.15899658203125,
+            "z": 123.70527648925781
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "b473cfdd2e3f",
+          "e11b41efcfdb",
+          "d6f1d0603fd4",
+          "94a0d15c04fa"
+        ],
+        "recentGui": []
+      },
+      "contextRefs": [
+        "b473cfdd2e3f",
+        "e11b41efcfdb",
+        "d6f1d0603fd4",
+        "94a0d15c04fa"
+      ],
+      "sig": "e9a2c04a35d8",
+      "corr": 166,
+      "unix": 1789844954,
+      "impact": 8,
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 83.43805476000125,
+      "candidate": {
+        "semanticHash": "032af080d86d",
+        "triggerContext": {
+          "path": "Players.capuccino40.PlayerGui.Notification.GiftDrink_Frame.Accept",
+          "kind": "gui_activated",
+          "age": 0.001,
+          "category": "gui_interaction"
+        },
+        "key": "4c1205d739d6",
+        "payload": {
+          "count": 0,
+          "values": []
+        },
+        "importance": 42,
+        "method": "FireServer",
+        "remote": {
+          "path": "ReplicatedStorage.GiftDrink.AcceptGiftDrink",
+          "name": "AcceptGiftDrink",
+          "className": "RemoteEvent",
+          "parent": "ReplicatedStorage.GiftDrink",
+          "attributes": []
+        },
+        "shapeHash": "71a7d9d1738b"
+      },
+      "menuHealth": [
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 23.31,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 109,
+          "stage": "idle",
+          "clock": 0.109,
+          "kind": "status_change",
+          "seq": 1,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 31.93,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 11618,
+          "stage": "idle",
+          "clock": 11.618,
+          "kind": "status_change",
+          "seq": 2,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 32.92,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 13214,
+          "stage": "idle",
+          "clock": 13.214,
+          "kind": "status_change",
+          "seq": 3,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 26.58,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 24692,
+          "stage": "idle",
+          "clock": 24.692,
+          "kind": "status_change",
+          "seq": 4,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 28.84,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 26330,
+          "stage": "idle",
+          "clock": 26.33,
+          "kind": "status_change",
+          "seq": 5,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 31.44,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 52024,
+          "stage": "idle",
+          "clock": 52.024,
+          "kind": "status_change",
+          "seq": 6,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 29.73,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 53629,
+          "stage": "idle",
+          "clock": 53.629,
+          "kind": "status_change",
+          "seq": 7,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 30.78,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 63439,
+          "stage": "idle",
+          "clock": 63.439,
+          "kind": "status_change",
+          "seq": 8,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 33.89,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 65000,
+          "stage": "idle",
+          "clock": 65,
+          "kind": "status_change",
+          "seq": 9,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 29.6,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 77774,
+          "stage": "idle",
+          "clock": 77.774,
+          "kind": "status_change",
+          "seq": 10,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 31.56,
+          "state": "GREEN",
+          "queueDepth": 1,
+          "stageAgeMs": 79368,
+          "stage": "idle",
+          "clock": 79.368,
+          "kind": "status_change",
+          "seq": 11,
+          "detail": "state=GREEN stage=idle active=false queue=1 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "error",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 31.56,
+          "state": "GREEN",
+          "queueDepth": 1,
+          "stageAgeMs": 79368,
+          "stage": "idle",
+          "clock": 79.368,
+          "kind": "health_anomaly",
+          "seq": 12,
+          "detail": "queue_waiting_without_active"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 31.56,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 79368,
+          "stage": "idle",
+          "clock": 79.368,
+          "kind": "queue_start",
+          "seq": 13,
+          "detail": "remote=ReplicatedStorage.GiftDrink.AcceptGiftDrink"
+        },
+        {
+          "activeInvestigationId": 1,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": true,
+          "frameDtMs": 32.36,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 2,
+          "stage": "blue_observing",
+          "clock": 81.007,
+          "kind": "status_change",
+          "seq": 14,
+          "detail": "state=BLUE stage=blue_observing active=true queue=0 quarantine=true"
+        },
+        {
+          "activeInvestigationId": 1,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": true,
+          "frameDtMs": 32.36,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 2,
+          "stage": "blue_observing",
+          "clock": 81.007,
+          "kind": "health_recovered",
+          "seq": 15,
+          "detail": "queue_waiting_without_active"
+        }
+      ],
+      "timeline": [
+        {
+          "clock": 79.52961075100029,
+          "kind": "tool_added",
+          "path": "Players.capuccino40.Backpack.Whiskey",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 79.53131970899994,
+          "kind": "tool_removed",
+          "path": "Workspace.capuccino40.Whiskey",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 79.53223314700153,
+          "kind": "tool_added",
+          "path": "Workspace.capuccino40.Whiskey",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 79.53325976100132,
+          "kind": "tool_equipped",
+          "path": "Workspace.capuccino40.Whiskey",
+          "category": "tool_signal"
+        }
+      ],
+      "kind": "investigation_bundle",
+      "detectedState": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Fabric",
+          "velocity": {
+            "y": 0.000039002283301670104,
+            "type": "Vector3",
+            "x": -4.522088090652687e-7,
+            "z": 0.0000020303043584135594
+          },
+          "angularVelocity": {
+            "y": -5.07929845915394e-14,
+            "type": "Vector3",
+            "x": -0.000002199589289375581,
+            "z": -4.899138161817973e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.83053731918335,
+            "type": "Vector3",
+            "x": -270.15960693359375,
+            "z": 123.70538330078125
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "7057b69f9e09",
+          "2475ec1797df",
+          "f8ebe0404616",
+          "2a519b6b41b2"
+        ],
+        "recentGui": []
+      },
+      "prelude": [
+        {
+          "semanticHash": "6c1427b9d51d",
+          "category": "remote_inbound",
+          "clock": 77.53331247000096,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.GiftDrink.GiftDrinkNotify"
+        },
+        {
+          "clock": 79.3288443450001,
+          "kind": "gui_activated",
+          "path": "Players.capuccino40.PlayerGui.Notification.GiftDrink_Frame.Accept",
+          "category": "gui_interaction"
+        },
+        {
+          "semanticHash": "032af080d86d",
+          "method": "FireServer",
+          "category": "remote_outbound",
+          "clock": 79.32972533400061,
+          "kind": "remote_outbound",
+          "remote": "ReplicatedStorage.GiftDrink.AcceptGiftDrink"
+        }
+      ]
+    },
+    {
+      "semanticHash": "5f90c3a22ffe",
+      "unix": 1789844956,
+      "newSemantic": false,
+      "sig": "69a00db7d5ce",
+      "corr": 171,
+      "remote": {
+        "path": "ReplicatedStorage.Hug.HugNotify",
+        "name": "HugNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Hug",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "path": "Players.memeiscool7095",
+            "type": "Instance",
+            "name": "memeiscool7095",
+            "className": "Player"
+          }
+        ]
+      },
+      "clock": 85.81488705100128,
+      "kind": "remote_inbound",
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "quality": 78
+    },
+    {
+      "sig": "57b7acc14a3b",
+      "corr": 174,
+      "unix": 1789844958,
+      "contextRefs": [
+        "d6f1d0603fd4",
+        "94a0d15c04fa",
+        "e9a2c04a35d8",
+        "69a00db7d5ce"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.825437068939209,
+          "type": "Vector3",
+          "x": -265.124267578125,
+          "z": 120.8992919921875
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 87.27869236200058,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Whiskey",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Whiskey"
+      },
+      "container": "Backpack"
+    },
+    {
+      "sig": "57b827c14abc",
+      "corr": 175,
+      "unix": 1789844959,
+      "contextRefs": [
+        "94a0d15c04fa",
+        "e9a2c04a35d8",
+        "69a00db7d5ce",
+        "57b7acc14a3b"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.825437068939209,
+          "type": "Vector3",
+          "x": -265.124267578125,
+          "z": 120.8992919921875
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "8c54b60c-02ef-4f59-abe6-eceb4a7f2542",
+      "clock": 87.9898636120015,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Whiskey",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Whiskey"
+      },
+      "container": "Backpack"
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-09-19T19:09:19.964Z",
+  "contentChecksum": "4YjVcs8UXcVRJZHLYH7Q",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 779132,
+    "inboundListeners": 100,
+    "ackBytes": 756700,
+    "queueBytes": 22432
+  }
+}
