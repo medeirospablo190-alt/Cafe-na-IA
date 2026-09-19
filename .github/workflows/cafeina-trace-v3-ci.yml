@@ -1,0 +1,53 @@
+name: CAFEINA Trace V3 CI
+
+on:
+  push:
+    paths:
+      - "Cafeina_Universal_Game_Trace_V3_0.lua"
+      - "collector-v3-routes.js"
+      - "gateway-main.js"
+      - "test/collector-v3-routes.test.mjs"
+      - "package.json"
+      - "docs/CAFEINA_TRACE_V3_README.md"
+      - ".github/workflows/cafeina-trace-v3-ci.yml"
+  pull_request:
+    paths:
+      - "Cafeina_Universal_Game_Trace_V3_0.lua"
+      - "collector-v3-routes.js"
+      - "gateway-main.js"
+      - "test/collector-v3-routes.test.mjs"
+      - "package.json"
+      - "docs/CAFEINA_TRACE_V3_README.md"
+      - ".github/workflows/cafeina-trace-v3-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Node dependencies
+        run: npm install --ignore-scripts
+      - name: Check gateway and V3 route syntax
+        run: |
+          node --check gateway-main.js
+          node --check collector-v3-routes.js
+          node --check test/collector-v3-routes.test.mjs
+      - name: Run V3 integration tests
+        run: node --test test/collector-v3-routes.test.mjs
+      - name: Download pinned Luau compiler
+        run: |
+          mkdir -p /tmp/luau
+          curl --fail --location --retry 3 \
+            https://github.com/luau-lang/luau/releases/download/0.739/luau-ubuntu.zip \
+            --output /tmp/luau.zip
+          unzip -q /tmp/luau.zip -d /tmp/luau
+      - name: Compile collector with Luau
+        run: |
+          LUAU_COMPILE="$(find /tmp/luau -maxdepth 2 -type f -name 'luau-compile' -print -quit)"
+          test -n "$LUAU_COMPILE"
+          chmod +x "$LUAU_COMPILE"
+          "$LUAU_COMPILE" Cafeina_Universal_Game_Trace_V3_0.lua >/dev/null

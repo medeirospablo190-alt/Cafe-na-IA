@@ -6,6 +6,7 @@ import http from "http";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { installAvatarGeometryRoutes } from "./avatar-geometry-routes.js";
+import { installCollectorV3Routes } from "./collector-v3-routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +48,7 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 installAvatarGeometryRoutes(app);
+installCollectorV3Routes(app);
 
 app.post("/api/avatar-dump", express.json({ limit: "4mb", strict: true }), securityHeaders, handleAvatarDump);
 app.get("/api/avatar-dump/:userId/latest", securityHeaders, handleLatestAvatarDump);
