@@ -2262,7 +2262,6 @@ end
 
 U.tryLegacyAckRecovery = function(err, attemptedBatch)
     if not S.legacyRecoveryEligible then return false end
-    if S.inflightRestored then return false end
 
     local data = U.decodeApiError(err)
     local existing = data and data.existing
@@ -5114,6 +5113,8 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
             uploadError = S.uploadError,
             lastUploadError = S.lastUploadError,
             cacheSchemaVersion = S.cacheSchemaVersion,
+            legacyRecoveryEligible = S.legacyRecoveryEligible,
+            inflightRestored = S.inflightRestored,
             pendingExactBody = type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string",
         }
     end,
