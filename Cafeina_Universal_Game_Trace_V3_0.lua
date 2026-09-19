@@ -1288,14 +1288,21 @@ local function attachInbound(r)
                     if S.running and not S.stopping then focusedRemoteContext(r, shapeHash) end
                 end)
             end
-            local priority = newShape and 98 or (investigating and 88 or 78)
+            local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName)
+            local priority = newShape and 98 or (investigating and 88 or math.max(78, score))
             local data = {
                 kind = "remote_inbound",
-                remote = remoteDesc(r), payload = packed(args),                newShape = newShape, investigating = investigating,
-                player = (newShape or investigating) and playerContext(false) or nil,
+                remote = remoteDesc(r),
+                payload = packed(args),
+                schema = (newShape or investigating or score >= C.FOCUS_SCORE) and packedSchema(args) or nil,
+                newShape = newShape,
+                investigating = investigating,
+                importance = score,
+                player = (newShape or investigating or score >= C.FOCUS_SCORE) and playerContext(false) or nil,
             }
-            enqueue("record", "remote_inbound", data, priority, newShape, newShape and "shape" or nil,
-                newShape and shapeHash or nil, exactHash, investigating)
+            enqueue("record", "remote_inbound", data, math.clamp(priority, 0, 100), newShape,
+                newShape and "shape" or nil, newShape and shapeHash or nil, exactHash,
+                investigating or score >= C.FOCUS_SCORE)
         end)
     end)
     S.conns[#S.conns + 1] = connection
@@ -1348,6 +1355,8 @@ local function watchContainer(container, label)
 end
 
 local function runtimeWatchers()
+    installOutboundObserver()
+
     local ra = ReplicatedStorage.DescendantAdded:Connect(function(x)
         if not S.running or S.stopping then return end
         if isRemote(x) then
@@ -1419,6 +1428,7 @@ local function runtimeWatchers()
 end
 
 local function disconnect()
+    disableOutboundObserver()
     for _, c in ipairs(S.conns) do pcall(function() c:Disconnect() end) end
     table.clear(S.conns)
     S.inbound = setmetatable({}, { __mode = "k" })
