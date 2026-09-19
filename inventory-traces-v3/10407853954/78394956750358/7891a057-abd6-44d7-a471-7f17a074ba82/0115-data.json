@@ -1,0 +1,922 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_1_0",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-19T15:29:51.000Z",
+  "gameId": 10407853954,
+  "placeId": 78394956750358,
+  "placeVersion": 413,
+  "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+  "batchIndex": 115,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 18533,
+  "records": [
+    {
+      "path": "Workspace.Vallerrinacapuchina4.Animate.dance.Animation1.Weight",
+      "source": "Workspace",
+      "sig": "84d35ccbf113",
+      "corr": 3334,
+      "unix": 1789833458,
+      "contextRefs": [
+        "9d9c2f4b712f",
+        "fe83f4d096ca",
+        "5a5ef33bb169",
+        "ac1f3069cdad"
+      ],
+      "attributes": [],
+      "name": "Weight",
+      "className": "NumberValue",
+      "clock": 1667.4329642599987,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.Vallerrinacapuchina4.Animate.toollunge",
+      "source": "Workspace",
+      "sig": "659f153e701b",
+      "corr": 3334,
+      "unix": 1789833458,
+      "contextRefs": [
+        "fe83f4d096ca",
+        "5a5ef33bb169",
+        "ac1f3069cdad",
+        "84d35ccbf113"
+      ],
+      "attributes": [],
+      "name": "toollunge",
+      "className": "StringValue",
+      "clock": 1667.4347360300017,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.Vallerrinacapuchina4.Humanoid.HeadScale",
+      "source": "Workspace",
+      "sig": "6295f91d8acd",
+      "corr": 3334,
+      "unix": 1789833458,
+      "contextRefs": [
+        "5a5ef33bb169",
+        "ac1f3069cdad",
+        "84d35ccbf113",
+        "659f153e701b"
+      ],
+      "attributes": [],
+      "name": "HeadScale",
+      "className": "NumberValue",
+      "clock": 1667.4373788949997,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "corr": 3347,
+      "investigating": true,
+      "clock": 1673.6406241010009,
+      "newSemantic": true,
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 99,
+      "semanticHash": "be2fdc77dc79",
+      "sig": "18ce578957d5",
+      "remote": {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "attributes": []
+      },
+      "contextRefs": [
+        "ac1f3069cdad",
+        "84d35ccbf113",
+        "659f153e701b",
+        "6295f91d8acd"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037498474121,
+          "type": "Vector3",
+          "x": -301.0876159667969,
+          "z": 145.41128540039062
+        },
+        "userId": 765329164
+      },
+      "unix": 1789833464,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "path": "Players.jaysnnnn4",
+            "type": "Instance",
+            "name": "jaysnnnn4",
+            "className": "Player"
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "className": "Player",
+            "type": "Instance"
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "be2fdc77dc79",
+      "triggerShape": "be2fdc77dc79",
+      "parent": {
+        "path": "ReplicatedStorage.Carry",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Carry.CarryClient",
+            "name": "CarryClient",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Carry.CarryNotify",
+            "name": "CarryNotify",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Carry.DismountCarry",
+            "name": "DismountCarry",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Carry.AcceptCarry",
+            "name": "AcceptCarry",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 3347,
+      "remote": {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "attributes": []
+      },
+      "contextRefs": [
+        "84d35ccbf113",
+        "659f153e701b",
+        "6295f91d8acd",
+        "18ce578957d5"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": 0.00002602289714559447,
+          "type": "Vector3",
+          "x": 7.169241484916711e-7,
+          "z": 0.000001712215407678741
+        },
+        "angularVelocity": {
+          "y": -2.4614352236670446e-14,
+          "type": "Vector3",
+          "x": -0.0000024297646632476244,
+          "z": 0.0000010173700957238907
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037498474121,
+          "type": "Vector3",
+          "x": -301.0876159667969,
+          "z": 145.41128540039062
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "8dc76277487a",
+      "unix": 1789833464,
+      "clock": 1673.6412014449998,
+      "kind": "investigation_context",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 100
+    },
+    {
+      "semanticHash": "be2fdc77dc79",
+      "contextRefs": [
+        "659f153e701b",
+        "6295f91d8acd",
+        "18ce578957d5",
+        "8dc76277487a"
+      ],
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 3347,
+      "remote": {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "attributes": []
+      },
+      "unix": 1789833465,
+      "triggerHash": "be2fdc77dc79",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1650.5214129119995,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1650.5215197350008,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 8,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1655.5192647850017,
+            "eventValue": 8
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "clock": 1655.5194682750007,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1655.5195925449989,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1655.5197152539986,
+            "eventValue": 3
+          },
+          {
+            "observedAfterValue": 24,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1660.5959198870005,
+            "eventValue": 24
+          },
+          {
+            "observedAfterValue": 2,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1660.596062438999,
+            "eventValue": 2
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1660.5961567099985,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1660.5962766060002,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 16,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1665.5714520729998,
+            "eventValue": 16
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "clock": 1665.5716743640005,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1665.5718224890006,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1670.5979450919986,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1670.5984923830001,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1670.6000787900011,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000026022898964583874,
+            "type": "Vector3",
+            "x": 9.399063856108114e-7,
+            "z": 0.000002244743882329203
+          },
+          "angularVelocity": {
+            "y": -2.7238760156927597e-14,
+            "type": "Vector3",
+            "x": -0.000002431530219837441,
+            "z": 0.0000010181166771872086
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037498474121,
+            "type": "Vector3",
+            "x": -301.0876159667969,
+            "z": 145.41128540039062
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "characterAttributes": [],
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          }
+        ],
+        "recentRefs": [
+          "659f153e701b",
+          "6295f91d8acd",
+          "18ce578957d5",
+          "8dc76277487a"
+        ],
+        "playerAttributes": []
+      },
+      "sig": "fb440076856b",
+      "probeId": 19,
+      "clock": 1673.8673702990018,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "semanticHash": "be2fdc77dc79",
+      "contextRefs": [
+        "6295f91d8acd",
+        "18ce578957d5",
+        "8dc76277487a",
+        "fb440076856b"
+      ],
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 3349,
+      "remote": {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "attributes": []
+      },
+      "unix": 1789833466,
+      "triggerHash": "be2fdc77dc79",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1650.5214129119995,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1650.5215197350008,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 8,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1655.5192647850017,
+            "eventValue": 8
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "clock": 1655.5194682750007,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1655.5195925449989,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1655.5197152539986,
+            "eventValue": 3
+          },
+          {
+            "observedAfterValue": 24,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1660.5959198870005,
+            "eventValue": 24
+          },
+          {
+            "observedAfterValue": 2,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1660.596062438999,
+            "eventValue": 2
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1660.5961567099985,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1660.5962766060002,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 16,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1665.5714520729998,
+            "eventValue": 16
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "clock": 1665.5716743640005,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1665.5718224890006,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1670.5979450919986,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1670.5984923830001,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1670.6000787900011,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000026022918973467313,
+            "type": "Vector3",
+            "x": -6.564715704371338e-7,
+            "z": -0.0000015677720739404322
+          },
+          "angularVelocity": {
+            "y": 7.96883260469278e-15,
+            "type": "Vector3",
+            "x": 0.0000016982268107312848,
+            "z": -7.110968454071553e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037498474121,
+            "type": "Vector3",
+            "x": -301.0876159667969,
+            "z": 145.41128540039062
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "characterAttributes": [],
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          }
+        ],
+        "recentRefs": [
+          "6295f91d8acd",
+          "18ce578957d5",
+          "8dc76277487a",
+          "fb440076856b"
+        ],
+        "playerAttributes": []
+      },
+      "sig": "fb440176856c",
+      "probeId": 19,
+      "clock": 1674.8966461320015,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "be2fdc77dc79",
+      "contextRefs": [
+        "18ce578957d5",
+        "8dc76277487a",
+        "fb440076856b",
+        "fb440176856c"
+      ],
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 3353,
+      "remote": {
+        "path": "ReplicatedStorage.Carry.CarryNotify",
+        "name": "CarryNotify",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Carry",
+        "attributes": []
+      },
+      "unix": 1789833467,
+      "triggerHash": "be2fdc77dc79",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1655.5195925449989,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1655.5197152539986,
+            "eventValue": 3
+          },
+          {
+            "observedAfterValue": 24,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1660.5959198870005,
+            "eventValue": 24
+          },
+          {
+            "observedAfterValue": 2,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1660.596062438999,
+            "eventValue": 2
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "clock": 1660.5961567099985,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1660.5962766060002,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 16,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1665.5714520729998,
+            "eventValue": 16
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "clock": 1665.5716743640005,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1665.5718224890006,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1670.5979450919986,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1670.5984923830001,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1670.6000787900011,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": 15,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "clock": 1675.6138827460018,
+            "eventValue": 15
+          },
+          {
+            "observedAfterValue": 2,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "clock": 1675.6140669650013,
+            "eventValue": 2
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "clock": 1675.6142184230011,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "clock": 1675.6143612880005,
+            "eventValue": 3
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000026022918973467313,
+            "type": "Vector3",
+            "x": -6.378116381711152e-7,
+            "z": -0.0000015231007637339644
+          },
+          "angularVelocity": {
+            "y": 4.723363610366306e-15,
+            "type": "Vector3",
+            "x": 0.0000016498702279932331,
+            "z": -6.908975933583861e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037498474121,
+            "type": "Vector3",
+            "x": -301.0876159667969,
+            "z": 145.41128540039062
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "characterAttributes": [],
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          }
+        ],
+        "recentRefs": [
+          "18ce578957d5",
+          "8dc76277487a",
+          "fb440076856b",
+          "fb440176856c"
+        ],
+        "playerAttributes": []
+      },
+      "sig": "fb440276856d",
+      "probeId": 19,
+      "clock": 1676.6487900889988,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "path": "Workspace.jjkkxsx55.RightLowerArm.OriginalSize",
+      "source": "Workspace",
+      "sig": "ccb2f8478822",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "8dc76277487a",
+        "fb440076856b",
+        "fb440176856c",
+        "fb440276856d"
+      ],
+      "attributes": [],
+      "name": "OriginalSize",
+      "className": "Vector3Value",
+      "clock": 1677.3775668599992,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.LeftLowerLeg.OriginalSize",
+      "source": "Workspace",
+      "sig": "76d39bac2683",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "fb440076856b",
+        "fb440176856c",
+        "fb440276856d",
+        "ccb2f8478822"
+      ],
+      "attributes": [],
+      "name": "OriginalSize",
+      "className": "Vector3Value",
+      "clock": 1677.3793892559988,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.RightFoot.RightAnkleRigAttachment.OriginalPosition",
+      "source": "Workspace",
+      "sig": "b5757d5120fd",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "fb440176856c",
+        "fb440276856d",
+        "ccb2f8478822",
+        "76d39bac2683"
+      ],
+      "attributes": [],
+      "name": "OriginalPosition",
+      "className": "Vector3Value",
+      "clock": 1677.3811124329986,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.RightUpperLeg.OriginalSize",
+      "source": "Workspace",
+      "sig": "8bd2f17d659c",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "fb440276856d",
+        "ccb2f8478822",
+        "76d39bac2683",
+        "b5757d5120fd"
+      ],
+      "attributes": [],
+      "name": "OriginalSize",
+      "className": "Vector3Value",
+      "clock": 1677.3827073290013,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.Animate.cheer",
+      "source": "Workspace",
+      "sig": "57c2d10830fd",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "ccb2f8478822",
+        "76d39bac2683",
+        "b5757d5120fd",
+        "8bd2f17d659c"
+      ],
+      "attributes": [],
+      "name": "cheer",
+      "className": "StringValue",
+      "clock": 1677.3848635789982,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.Animate.fall",
+      "source": "Workspace",
+      "sig": "2ef31982e1df",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "76d39bac2683",
+        "b5757d5120fd",
+        "8bd2f17d659c",
+        "57c2d10830fd"
+      ],
+      "attributes": [],
+      "name": "fall",
+      "className": "StringValue",
+      "clock": 1677.3864685269982,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    },
+    {
+      "path": "Workspace.jjkkxsx55.Animate.idle.Animation1.Weight",
+      "source": "Workspace",
+      "sig": "b1b5e3a5e79a",
+      "corr": 3354,
+      "unix": 1789833468,
+      "contextRefs": [
+        "b5757d5120fd",
+        "8bd2f17d659c",
+        "57c2d10830fd",
+        "2ef31982e1df"
+      ],
+      "attributes": [],
+      "name": "Weight",
+      "className": "NumberValue",
+      "clock": 1677.3877797249988,
+      "kind": "workspace_removing",
+      "runId": "7891a057-abd6-44d7-a471-7f17a074ba82",
+      "quality": 80
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-09-19T15:57:49.737Z",
+  "contentChecksum": "EzVZDmDqoT9jkFIzV-W_",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 11798891,
+    "inboundListeners": 100,
+    "ackBytes": 11780358,
+    "queueBytes": 18533
+  }
+}
