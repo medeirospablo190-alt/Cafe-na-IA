@@ -766,7 +766,9 @@ local S = {
     finishCallback = nil,
 }
 
-local function classifyUploadError(err)
+local U = {}
+
+U.classifyUploadError = function(err)
     local raw = string.sub(tostring(err or "unknown"), 1, C.UPLOAD_ERROR_TEXT_MAX)
     local code = tonumber(string.match(raw, "HTTP%s+(%d%d%d)"))
     local kind, label, retryable = "network", "FALHA DE REDE", true
@@ -792,9 +794,9 @@ local function classifyUploadError(err)
     return { raw = raw, code = code, kind = kind, label = label, retryable = retryable }
 end
 
-local function noteUploadError(phase, err, batchIndex)
+U.noteUploadError = function(phase, err, batchIndex)
     phase = tostring(phase or "upload")
-    local info = classifyUploadError(err)
+    local info = U.classifyUploadError(err)
     if phase == "orphan_inflight" or phase == "inflight_sequence" or phase == "inflight_restore" then
         info.kind = "recovery_state"
         info.label = "ESTADO DE RECUPERAÇÃO"
@@ -839,7 +841,7 @@ local function noteUploadError(phase, err, batchIndex)
     return S.uploadError
 end
 
-local function clearActiveUploadError()
+U.clearActiveUploadError = function()
     S.uploadError = nil
     S.lastUploadDiagSignature = nil
     S.uploadFailureCount = 0
@@ -1807,11 +1809,6 @@ local function buildDataBatch()
     return S.pendingSend
 end
 
-local saveCache
-local cacheSnapshot
-local saveInflight
-local clearInflight
-
 local function encodeBatchBody(batch, isManifest, manifest)
     local meta = {
         schemaVersion = 3,
@@ -1852,10 +1849,10 @@ local function sendDataBatch(batch)
         batch.body = body
     end
 
-    if WRITEFILE and saveInflight then
-        local persisted, persistErr = saveInflight(batch, body)
+    if WRITEFILE and U.saveInflight then
+        local persisted, persistErr = U.saveInflight(batch, body)
         if not persisted then
-            noteUploadError("outbox_write", persistErr, batch.index)
+            U.noteUploadError("outbox_write", persistErr, batch.index)
         end
     end
 
@@ -1872,7 +1869,7 @@ local function acknowledgeBatch(batch)
     S.ackBytes = S.ackBytes + batch.bytes
     S.pendingSend = nil
     S.uploadBlocked = false
-    clearActiveUploadError()
+    U.clearActiveUploadError()
     compactQueue()
     if S.queueHead > #S.queue or S.queueBytes <= 0 then
         S.firstQueuedClock = 0
@@ -1880,12 +1877,12 @@ local function acknowledgeBatch(batch)
         S.firstQueuedClock = os.clock()
     end
 
-    if recoveryMode and saveCache and cacheSnapshot then
-        local snap = cacheSnapshot()
-        local saved = saveCache(snap)
+    if recoveryMode and U.saveCache and U.cacheSnapshot then
+        local snap = U.cacheSnapshot()
+        local saved = U.saveCache(snap)
         if saved then S.cached = snap end
     end
-    if clearInflight then clearInflight() end
+    if U.clearInflight then U.clearInflight() end
 end
 
 kickUpload = function()
@@ -1904,9 +1901,9 @@ kickUpload = function()
                 S.serverReady = true
             else
                 S.serverReady = false
-                noteUploadError("data_batch", err, batch.index)
+                U.noteUploadError("data_batch", err, batch.index)
                 if not S.uploadBlocked then S.nextRetryClock = os.clock() + 5 end
-                if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
+                if U.saveCache and U.cacheSnapshot then U.saveCache(U.cacheSnapshot()) end
                 break
             end
             if S.running and not S.finalizing and not shouldFlushQueue(false) then break end
@@ -1924,11 +1921,11 @@ local function cacheFile()
     return tostring(game.GameId) .. "_" .. C.CACHE_SUFFIX
 end
 
-local function inflightFile()
+U.inflightFile = function()
     return tostring(game.GameId) .. "_CafeinaUniversalTraceV30_inflight.json"
 end
 
-saveInflight = function(batch, body)
+U.saveInflight = function(batch, body)
     if not WRITEFILE then return false, "writefile_unavailable" end
     local payload = {
         schemaVersion = 1,
@@ -1944,25 +1941,25 @@ saveInflight = function(batch, body)
     }
     local ok, text = pcall(HttpService.JSONEncode, HttpService, payload)
     if not ok then return false, "inflight_encode_failed" end
-    local wrote, err = pcall(WRITEFILE, inflightFile(), text)
+    local wrote, err = pcall(WRITEFILE, U.inflightFile(), text)
     return wrote, wrote and nil or tostring(err)
 end
 
-local function loadInflight()
+U.loadInflight = function()
     if not READFILE or not ISFILE then return nil end
-    local ok, exists = pcall(ISFILE, inflightFile())
+    local ok, exists = pcall(ISFILE, U.inflightFile())
     if not ok or not exists then return nil end
-    local readOk, text = pcall(READFILE, inflightFile())
+    local readOk, text = pcall(READFILE, U.inflightFile())
     if not readOk or type(text) ~= "string" then return nil end
     local decodeOk, data = pcall(HttpService.JSONDecode, HttpService, text)
     if not decodeOk or type(data) ~= "table" or tonumber(data.gameId) ~= game.GameId then return nil end
     return data
 end
 
-clearInflight = function()
+U.clearInflight = function()
     if DELFILE and ISFILE then
-        local ok, exists = pcall(ISFILE, inflightFile())
-        if ok and exists then pcall(DELFILE, inflightFile()) end
+        local ok, exists = pcall(ISFILE, U.inflightFile())
+        if ok and exists then pcall(DELFILE, U.inflightFile()) end
     end
 end
 
@@ -1986,7 +1983,7 @@ local function strategySnapshot()
     return out
 end
 
-cacheSnapshot = function()
+U.cacheSnapshot = function()
     local pending = nil
     if type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string" then
         pending = {
@@ -2018,20 +2015,20 @@ cacheSnapshot = function()
     }
 end
 
-saveCache = function(snap)
-    snap = snap or cacheSnapshot()
+U.saveCache = function(snap)
+    snap = snap or U.cacheSnapshot()
     if not WRITEFILE then
-        noteUploadError("cache_write", "writefile_unavailable", S.batchIndex)
+        U.noteUploadError("cache_write", "writefile_unavailable", S.batchIndex)
         return false, "writefile_unavailable"
     end
     local ok, text = pcall(HttpService.JSONEncode, HttpService, snap)
     if not ok then
-        noteUploadError("cache_write", "cache_encode_failed", S.batchIndex)
+        U.noteUploadError("cache_write", "cache_encode_failed", S.batchIndex)
         return false, "cache_encode_failed"
     end
     local wrote, err = pcall(WRITEFILE, cacheFile(), text)
     if not wrote then
-        noteUploadError("cache_write", tostring(err), S.batchIndex)
+        U.noteUploadError("cache_write", tostring(err), S.batchIndex)
         return false, tostring(err)
     end
     return true, nil
@@ -2159,21 +2156,21 @@ local function restoreCache(data)
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
 end
 
-local function restoreInflight(data)
+U.restoreInflight = function(data)
     if type(data) ~= "table" or tostring(data.runId or "") ~= tostring(S.runId or "") then return false end
     local index = tonumber(data.batchIndex)
     if not index then return false end
     if index <= S.batchIndex then
-        clearInflight()
+        U.clearInflight()
         return false
     end
     if index ~= S.batchIndex + 1 then
-        noteUploadError("inflight_sequence", "inflight_index_mismatch", index)
+        U.noteUploadError("inflight_sequence", "inflight_index_mismatch", index)
         return false
     end
     local itemCount = math.max(0, math.floor(tonumber(data.itemCount) or 0))
     if itemCount < 1 or itemCount > #S.queue or type(data.body) ~= "string" then
-        noteUploadError("inflight_restore", "inflight_cache_mismatch", index)
+        U.noteUploadError("inflight_restore", "inflight_cache_mismatch", index)
         return false
     end
     S.pendingSend = {
@@ -4147,7 +4144,7 @@ local function sendManifest()
         body = encoded
         S.pendingManifestBody = body
         S.pendingManifestIndex = index
-        if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
+        if U.saveCache and U.cacheSnapshot then U.saveCache(U.cacheSnapshot()) end
     end
 
     local since = os.clock() - S.lastSendClock
@@ -4159,10 +4156,10 @@ local function sendManifest()
         S.pendingManifestBody = nil
         S.pendingManifestIndex = nil
         S.uploadBlocked = false
-        clearActiveUploadError()
+        U.clearActiveUploadError()
     else
-        noteUploadError("manifest", postErr, index)
-        if saveCache and cacheSnapshot then saveCache(cacheSnapshot()) end
+        U.noteUploadError("manifest", postErr, index)
+        if U.saveCache and U.cacheSnapshot then U.saveCache(U.cacheSnapshot()) end
     end
     return ok, ok and data or postErr
 end
@@ -4199,7 +4196,7 @@ local function resetRunState()
     S.cacheSchemaVersion = nil
     S.inflightRestored = false
     S.manifestConfirmed = false
-    if clearInflight then clearInflight() end
+    if U.clearInflight then U.clearInflight() end
     S.sessionExact, S.remoteSeen = {}, {}
     S.sessionExactCount = 0
     S.sessionSemantic, S.semanticCountByRemote = {}, {}
@@ -4272,8 +4269,8 @@ local function finalize(auto)
     task.spawn(function()
         local drained = drainQueue(120)
         if not drained then
-            S.cached = cacheSnapshot()
-            saveCache(S.cached)
+            S.cached = U.cacheSnapshot()
+            U.saveCache(S.cached)
             S.finalizing = false
             if mainButton then mainButton.Text = "REENVIAR" end
             return
@@ -4297,8 +4294,8 @@ local function finalize(auto)
             if mainButton then mainButton.Text = "INICIAR" end
             resetRunState()
         else
-            S.cached = cacheSnapshot()
-            saveCache(S.cached)
+            S.cached = U.cacheSnapshot()
+            U.saveCache(S.cached)
             S.finalizing = false
             if mainButton then mainButton.Text = "REENVIAR" end
         end
@@ -4354,8 +4351,8 @@ local function retryCached()
     task.spawn(function()
         local drained = drainQueue(120)
         if not drained then
-            S.cached = cacheSnapshot()
-            saveCache(S.cached)
+            S.cached = U.cacheSnapshot()
+            U.saveCache(S.cached)
             S.finalizing = false
             if mainButton then mainButton.Text = "REENVIAR" end
             return
@@ -4375,7 +4372,7 @@ local function retryCached()
             clearCache(); S.cached = nil; resetRunState()
             if mainButton then mainButton.Text = "INICIAR" end
         else
-            S.cached = cacheSnapshot(); saveCache(S.cached); S.finalizing = false
+            S.cached = U.cacheSnapshot(); saveCache(S.cached); S.finalizing = false
             if mainButton then mainButton.Text = "REENVIAR" end
         end
     end)
@@ -4968,15 +4965,15 @@ task.spawn(function()
 
     loadRemoteProfile(false)
     S.cached = loadCache()
-    local inflight = loadInflight()
+    local inflight = U.loadInflight()
     S.preflightReady = true
 
     if S.cached then
         restoreCache(S.cached)
-        if inflight then restoreInflight(inflight) end
+        if inflight then U.restoreInflight(inflight) end
         mainButton.Text = "REENVIAR"
     elseif inflight then
-        noteUploadError("orphan_inflight", "lote_em_voo_sem_cache_da_fila", tonumber(inflight.batchIndex))
+        U.noteUploadError("orphan_inflight", "lote_em_voo_sem_cache_da_fila", tonumber(inflight.batchIndex))
         mainButton.Text = "ERRO • DIAGNÓSTICO"
     else
         mainButton.Text = S.serverReady and "INICIAR" or "RETESTAR"
