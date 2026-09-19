@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.1.0
+# CAFEÍNA Universal Game Trace V3.2.0
 
 Arquivos principais:
 
@@ -7,80 +7,175 @@ Arquivos principais:
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
 
-## O que mudou no V3.1.0
+## Objetivo da V3.2
 
-A V3.1 continua sendo um coletor universal. Não há nomes de jogos, remotes, itens, armas, moedas ou mecânicas específicas codificados para uma experiência.
+A V3.2 mantém o CAFEÍNA universal: não contém nomes de jogos, remotes, itens, moedas ou mecânicas específicas de uma experiência.
 
-1. **Novidade semântica universal:** além do formato dos argumentos, o coletor cria uma assinatura semântica compacta. Strings, pequenos inteiros, faixas numéricas, enums, instâncias, tabelas e buffers podem revelar um comportamento novo mesmo quando o schema é idêntico.
-2. **Memória semântica por GameId:** padrões semânticos aceitos entram em `knownSemanticHashes` e deixam de ser reaprendidos como novidade em toda sessão.
-3. **Buffers opacos:** buffers passam a registrar comprimento/faixa, amostra limitada, hash, início/fim em hexadecimal e comparação com a amostra anterior. Não existe decoder específico de jogo.
-4. **Retorno de InvokeServer:** quando o executor permite o hook atual, o retorno real é preservado byte a byte na semântica Lua (inclusive múltiplos valores/nils) e registrado junto com schema, sem repetir a chamada.
-5. **Lupa automática:** eventos novos/importantes podem abrir até três snapshots curtos do estado cliente depois da ação, com limites e desativação sob pressão.
-6. **Correlação por evidência:** `causeCandidates` agora inclui suporte, baseline e confiança. É evidência temporal acumulada, nunca prova de causalidade.
-7. **Sequências comportamentais:** transições entre ações/eventos importantes são resumidas por frequência e intervalo.
-8. **Ciclo de vida e ruído de runtime:** objetos adicionados/removidos ganham duração quando observável; padrões repetitivos passam a ser amostrados em vez de ocupar o fluxo inteiro.
-9. **ValueBase sem ambiguidade:** cada mudança guarda `eventValue` e `observedAfterValue` separadamente.
-10. A rota HTTP continua `/api/inventory-trace-v3`, o histórico continua append-only/idempotente e o mesmo arquivo de coletor continua sendo usado.
+A evolução principal é o **Investigador Adaptativo**. O coletor continua observando tudo que a V3.1 já observava e, quando encontra uma ação nova/importante, cria uma investigação delimitada com contexto anterior, estado antes/depois, consequências observadas e um pacote final único.
 
-## Compatibilidade com V3.0.1
+A observação outbound continua sem alterar chamadas reais do jogo. O modo ativo é separado: ele só considera repetir um `RemoteEvent:FireServer` que já foi observado naturalmente, com os mesmos argumentos clonáveis e depois de filtros genéricos de risco. Ele não inventa remotes/argumentos, não repete `InvokeServer` e não testa automaticamente uma ação quando houver evidência de efeitos persistentes ou alto impacto.
 
-As garantias da V3.0.1 abaixo continuam válidas:
+## Estados da investigação e interface
 
-1. O coletor continua passivo quanto a ações próprias, mas agora pode observar tráfego nos dois sentidos quando o executor oferece `hookmetamethod` + `getnamecallmethod`.
-2. Chamadas reais feitas pelo cliente via `FireServer` e `InvokeServer` são registradas como `remote_outbound` sem alterar os argumentos nem repetir a chamada.
-3. Cada chamada outbound recebe assinatura de formato, assinatura exata, esquema dos argumentos e uma pontuação de importância.
-4. Remotes de maior interesse abrem automaticamente uma janela curta de investigação aprofundada.
-5. Eventos recebidos, mudanças de valores, inventário, objetos e atributos ocorridos logo depois carregam `causeCandidates`. Isso é correlação temporal, não afirmação de causalidade.
-6. O formato dos argumentos é inferido apenas de chamadas observadas; o coletor não inventa argumentos.
-7. Formatos outbound novos entram na mesma memória persistente de shapes do `GameId`, evitando reaprender a mesma estrutura em toda sessão.
-8. O manifesto final contém um bloco `intelligence` com quantidade de outbound observados/aceitos, candidatos de alto interesse, correlações abertas e foco mais importante da sessão.
+A UI continua compacta e pode ser minimizada em um ícone flutuante e arrastável. O ícone e a faixa do menu usam a mesma máquina de estados:
 
-## Correção herdada do travamento em “ENVIANDO”
+- **VERDE — LIVRE:** coleta normal; o jogador pode jogar normalmente.
+- **AMARELO — AVISO:** foi encontrada uma investigação candidata. É apenas aviso para parar de mexer; o input ainda não é bloqueado.
+- **VERMELHO — TESTE AUTOMÁTICO:** uma interação controlada está sendo executada. O input do jogador é temporariamente colocado em quarentena.
+- **AZUL — OBSERVANDO:** nenhuma nova interação é gerada; o coletor mede as consequências enquanto a quarentena continua ativa.
 
-A V3.0 original podia enviar lotes muito pequenos porque o loop da UI tentava esvaziar qualquer fila a cada 0,25 s. Em coleta longa isso podia consumir os 179 lotes de dados e deixar o lote final reservado ao manifesto enquanto ainda existiam poucos KB na fila, criando um deadlock.
+Durante VERMELHO/AZUL o painel minimiza automaticamente, deixando o ícone do CAFEÍNA acima da barreira de input. Tocar nesse ícone encerra a investigação atual, libera o input e reabre o painel.
 
-A correção introduzida na V3.0.1 e preservada na V3.1 funciona em duas camadas:
+A quarentena usa `ContextActionService` para movimento/pulo/controles e uma camada transparente da própria UI para impedir toques acidentais no jogo. Ela não altera `Humanoid`, `Camera`, `WalkSpeed`, `JumpPower` ou a posição do personagem. Finalização, Stop, destruição da GUI e restauração de cache sempre liberam a quarentena.
 
-- durante a coleta, o envio normal espera aproximadamente 70% do alvo de 1,75 MiB ou até 10 s de latência;
-- durante a finalização, a fila restante é drenada imediatamente;
-- o último slot continua reservado ao manifesto;
-- se o orçamento de lotes for atingido mesmo assim, apenas a cauda ainda não enviada é contabilizada como `batch_budget_bytes` e descartada, permitindo que o manifesto seja concluído em vez de ficar preso;
-- `acknowledgedDataBytes` não é mais forçado artificialmente para o total coletado, então o manifesto informa corretamente qualquer cauda não confirmada.
+## Investigador Adaptativo
 
-Isso também permite que um cache antigo preso no lote 179 seja finalizado na próxima execução: a V3.0.1 preserva os 179 lotes já confirmados e agora ainda possui folga para enviar a cauda pendente antes do manifesto.
+Uma ação candidata passa pelas seguintes etapas:
 
-## Regras gerais
+1. a ocorrência natural é observada e registrada normalmente;
+2. o CAFEÍNA guarda os segundos anteriores em um buffer circular;
+3. entra em AMARELO e espera o personagem/cliente estabilizar;
+4. avalia genericamente se a ação pode ser repetida;
+5. se for elegível, entra em VERMELHO e repete uma única vez o `FireServer` já observado;
+6. entra em AZUL e acompanha as consequências;
+7. produz um `investigation_bundle`;
+8. volta a VERDE e segue para a próxima investigação da fila.
 
-1. Deduplicação exata por sessão; repetições viram contadores.
-2. Memória persistente por `game.GameId`.
-3. Um jogo diferente usa perfil independente.
-4. Dados estáticos de baixo valor só voltam a ser coletados quando o fingerprint muda.
-5. Remotes e payloads novos recebem investigação contextual.
-6. Estratégia adaptativa por categoria com amostragem baseada em novidade.
-7. Scans incrementais e limitados por tempo para proteger FPS no celular.
-8. Backpressure reduz dados menos importantes antes da fila crescer demais.
-9. 96 MiB = orçamento suave, 128 MiB = proteção, 150 MiB = teto rígido de coleta.
-10. Lotes só são reconhecidos depois que a API confirma o espelho no GitHub.
-11. Retry mantém índice e conteúdo estáveis.
-12. Histórico é append-only/idempotente por `gameId/placeId/runId/batch`.
-13. Perfil só é atualizado pelo manifesto final e não reaplica o mesmo `runId`.
-14. Cache local guarda apenas a parte ainda não confirmada quando `writefile` está disponível.
-15. UI permanece compacta: MB, porcentagem e um único botão.
+O teste ativo é limitado por sessão, cooldown por padrão e fila máxima. Pressão de FPS/fila desativa aprofundamento ativo.
 
-## Observação outbound
+Ações são convertidas para modo somente observacional quando, entre outros casos:
 
-Quando suportado pelo executor, o coletor instala um único dispatcher de `__namecall` reutilizável entre reinicializações do script. Ele observa somente:
+- não são `FireServer` de um `RemoteEvent`;
+- os argumentos não podem ser clonados de forma conservadora;
+- o score de impacto está alto;
+- a ação já mostrou alteração persistente de Value/Tool/Attribute/Character;
+- o perfil do jogo já possui testes suficientes daquele padrão;
+- o cliente está sob pressão ou o personagem não estabiliza.
 
-- `RemoteEvent:FireServer(...)`
-- `RemoteFunction:InvokeServer(...)`
+## Action Bundle e state diff
 
-A chamada original continua pelo `__namecall` original. O CAFEÍNA não muda os argumentos, não cancela a chamada e não dispara uma segunda chamada.
+Cada investigação concluída registra um pacote único com:
 
-Se o executor não oferecer as funções necessárias, a coleta continua funcionando normalmente e o manifesto registra `outboundObserver = "unavailable"`.
+- candidato e hashes de shape/semântica;
+- prelude dos segundos anteriores;
+- estado quando a ação foi detectada;
+- estado imediatamente antes do teste;
+- snapshot intermediário;
+- estado final;
+- eventos relevantes da janela;
+- execução do teste, quando houve;
+- diferença compacta antes/depois;
+- score de impacto observado.
+
+O diff destaca mudanças de atributos, ferramentas, valores, GUI, health/state e deslocamento, em vez de depender apenas de snapshots completos.
+
+## Contexto de interação
+
+A V3.2 amplia os marcadores que ajudam a explicar o que originou uma ação:
+
+- `ProximityPrompt`: shown, hidden e triggered;
+- `Tool`: added/removed, equipped, unequipped e activated;
+- GUI: `GuiButton.Activated`, mudanças de `Visible` e `ScreenGui.Enabled`;
+- remotes inbound/outbound;
+- Values e Attributes;
+- objetos criados/removidos;
+- personagem e trajetória.
+
+A instrumentação de PlayerGui é incremental e limitada pelo mesmo orçamento de nós da varredura de GUI, evitando um `GetDescendants()` ilimitado no início da sessão.
+
+## Normalização de ruído
+
+Fingerprints de runtime, estrutura, objetos estáticos e partes próximas agora podem usar caminhos normalizados.
+
+Quando um objeto pertence a um Character real de jogador, o topo é representado estruturalmente como `Workspace.<Character>`. Segmentos claramente dinâmicos/numéricos também são compactados antes da decisão de novidade.
+
+Isso reduz o caso em que a mesma estrutura de avatar de dezenas de jogadores era aprendida como milhares de novidades diferentes, sem remover o caminho real dos registros que forem efetivamente armazenados.
+
+## Evolução de protocolo e campos
+
+Além de shape e semântica, a sessão mantém modelos compactos por fluxo:
+
+- quantidade de observações;
+- mudanças de shape;
+- mudanças semânticas;
+- quantidade de shapes/semânticas distintas.
+
+Campos de argumentos/tabelas também recebem estatísticas de estabilidade: número de observações, mudanças e tipos encontrados. O manifesto resume os campos mais variáveis para facilitar descobrir seletores, modos, quantidades e outros discriminantes sem codificar conhecimento de um jogo.
+
+## Buffers opacos
+
+A análise genérica de buffers da V3.1 continua ativa e agora preserva também a amostra hexadecimal limitada usada no fingerprint. Quando existe uma amostra anterior do mesmo fluxo/posição, o coletor calcula quanto da amostra mudou.
+
+Não existe decoder específico de protocolo.
+
+## Memória entre sessões
+
+O perfil por `game.GameId` continua guardando:
+
+- hashes estáticos/low-value;
+- shapes;
+- semânticas;
+- remotes;
+- frontier;
+- estratégia adaptativa.
+
+A V3.2 acrescenta `investigationKnowledge`, uma lista limitada de padrões investigados, incluindo contadores de observações, testes ativos, conclusões, casos somente passivos/cancelados e o último impacto/resultado.
+
+Assim uma nova sessão não precisa tratar como desconhecido um comportamento já suficientemente investigado.
+
+## Garantias herdadas da V3.1
+
+Continuam válidos:
+
+1. novidade semântica independente de shape;
+2. memória semântica por GameId;
+3. fingerprint genérico de buffers;
+4. captura do retorno real de `InvokeServer` sem executar uma segunda chamada;
+5. lupa automática com snapshots limitados;
+6. correlação com suporte, baseline e confiança;
+7. grafo compacto de transições comportamentais;
+8. ciclo de vida e amostragem de runtime;
+9. `eventValue` e `observedAfterValue` separados para ValueBase;
+10. backpressure, limites de memória e streaming protegido.
+
+## Hook outbound
+
+O dispatcher de `__namecall` continua reutilizável entre reinicializações.
+
+Para chamadas naturais:
+
+- `RemoteEvent:FireServer(...)` é observado sem mudar argumentos ou bloquear o encaminhamento original;
+- `RemoteFunction:InvokeServer(...)` executa a chamada original uma vez, preserva múltiplos retornos/nils e só então agenda a análise.
+
+A V3.2 adiciona um token interno somente durante um teste automático para distinguir a repetição controlada da ocorrência natural. A repetição nunca volta para a fila como uma nova investigação.
+
+Se o executor não oferecer os hooks necessários, o restante da coleta continua e `outboundObserver` registra a indisponibilidade.
+
+## Streaming e finalização
+
+A correção contra travamento em **ENVIANDO** permanece intacta:
+
+- durante coleta normal, batches esperam o alvo mínimo ou latência máxima;
+- finalização drena a fila restante;
+- sempre fica reservado um slot para o manifesto;
+- retries mantêm índice/conteúdo estáveis;
+- `acknowledgedDataBytes` representa somente bytes realmente confirmados pelo servidor/GitHub;
+- cache local preserva cauda não confirmada quando `writefile` está disponível.
+
+Limites principais continuam:
+
+- 96 MiB: orçamento suave;
+- 128 MiB: proteção;
+- 150 MiB: teto rígido;
+- máximo de 260 batches.
 
 ## Integração do servidor
 
-A rota permanece `/api/inventory-trace-v3` e o schema HTTP continua na versão 3, portanto não é necessária migração do backend para aceitar os novos registros.
+A rota permanece:
+
+`/api/inventory-trace-v3`
+
+e o schema HTTP continua em 3. Não é necessária migração de URL.
 
 Variáveis relevantes:
 
@@ -95,6 +190,9 @@ Variáveis relevantes:
 - `INVENTORY_TRACE_V3_MAX_REMOTES=1000`
 - `INVENTORY_TRACE_V3_MAX_BATCHES=260`
 - `INVENTORY_TRACE_V3_PROFILE_SEMANTIC_MAX=12000`
+- `INVENTORY_TRACE_V3_PROFILE_INVESTIGATION_MAX=800`
+
+O health expõe o limite de `investigationKnowledge` dentro de `profileCaps`.
 
 ## Estrutura persistente
 
@@ -116,7 +214,7 @@ O workflow `CAFEINA Trace V3 CI`:
 
 - verifica sintaxe Node;
 - executa os testes da rota V3;
-- baixa o compilador oficial Luau 0.739;
+- baixa o compilador oficial Luau;
 - compila `Cafeina_Universal_Game_Trace_V3_0.lua`.
 
-A validação real final continua sendo uma execução no executor/mobile, porque disponibilidade de hooks de `__namecall` varia por executor.
+Além do CI, a validação final precisa de uma execução real no executor/mobile, porque disponibilidade/comportamento de `hookmetamethod`, `ContextActionService` e camadas de input podem variar conforme o executor e o cliente Roblox.
