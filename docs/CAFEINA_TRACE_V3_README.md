@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.5
+# CAFEÍNA Universal Game Trace V3.2.6
 
 Arquivos principais:
 
@@ -6,6 +6,23 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## V3.2.6 — qualidade causal e contexto das investigações
+
+A V3.2.6 melhora a interpretação dos dados sem aumentar scans ou frequência de coleta:
+
+- correlações passam a carregar `relationStage`: `candidate`, `repeated`, `confirmed` ou `weak_context`;
+- objetos criados/removidos dentro de personagens de jogadores recebem peso causal menor (exceto `Tool`), reduzindo associações acidentais com churn de avatar;
+- confiança causal considera suporte confiável, baseline, proximidade temporal e consistência do intervalo;
+- `confirmed` exige pelo menos duas ocorrências distintas do efeito, evitando que várias janelas contem o mesmo evento como confirmações separadas;
+- `remoteImpact` só sobe por correlação quando há pelo menos 3 suportes, 2 suportes confiáveis e confiança mínima;
+- relações confirmadas deixam de consumir novas investigações repetidas na mesma sessão;
+- cada candidato guarda `queuedAt`, contexto compacto ao entrar na fila e hashes de contexto no início/antes do teste;
+- bundles registram se as condições mudaram entre detecção e teste;
+- resultados repetidos da mesma investigação passam a indicar `outcomeStage=confirmed` no delta da sessão;
+- watchdog mede a idade real do candidato mais antigo antes de declarar fila parada.
+
+Não foram alterados hook outbound v4, scans, frequência, snapshots, limites de memória/upload, API ou os gates existentes de replay.
 
 ## V3.2.5 — watchdog após o worker da fila
 

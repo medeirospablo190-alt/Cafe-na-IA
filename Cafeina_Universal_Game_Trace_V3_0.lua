@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.5
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.6
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_5",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_6",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -100,6 +100,14 @@ local C = {
     CORRELATION_MIN_GAP = 0.75,
     MAX_CORRELATION_WINDOWS = 10,
     CORRELATION_EVIDENCE_CAP = 1200,
+    CORRELATION_IMPACT_MIN_SUPPORT = 3,
+    CORRELATION_IMPACT_MIN_TRUSTED_SUPPORT = 2.0,
+    CORRELATION_IMPACT_MIN_DISTINCT = 2,
+    CORRELATION_IMPACT_MIN_CONFIDENCE = 35,
+    CORRELATION_CONFIRM_MIN_TRUSTED_SUPPORT = 2.0,
+    CORRELATION_CONFIRM_MIN_DISTINCT = 2,
+    CORRELATION_CONFIRM_MIN_CONFIDENCE = 25,
+    CORRELATION_CONFIRM_MAX_BASELINE = 1,
     BEHAVIOR_TRANSITION_CAP = 800,
     DEEP_PROBE_MAX = 36,
     DEEP_PROBE_COOLDOWN = 1.25,
@@ -128,6 +136,7 @@ local C = {
     MENU_HEALTH_YELLOW_STUCK = 5.5,
     MENU_HEALTH_RED_STUCK = 4.0,
     MENU_HEALTH_BLUE_STUCK = 7.0,
+    MENU_HEALTH_QUEUE_STUCK = 2.0,
     ACTIVE_TEST_MAX_IMPORTANCE = 86,
     ACTIVE_TEST_MAX_ARGS = 12,
     INPUT_LOCK_PRIORITY = 10000,
@@ -722,6 +731,7 @@ local S = {
         menuHealthUiErrors = 0,
         menuHealthQueueStarts = 0,
         menuHealthQueueErrors = 0,
+        investigationsConfirmedSkipped = 0,
         batchBudgetDrops = 0,
     },
     focusRemote = nil,
@@ -1270,6 +1280,98 @@ local function effectIdentity(category, object)
     return tostring(category) .. ":" .. tostring(object.kind or "?")
 end
 
+
+local function pathInsidePlayerCharacter(path)
+    local text = tostring(path or "")
+    if text == "" then return false end
+    local ok, players = pcall(function() return Players:GetPlayers() end)
+    if not ok then return false end
+    for _, player in ipairs(players) do
+        local prefix = "Workspace." .. tostring(player.Name)
+        if text == prefix or string.sub(text, 1, #prefix + 1) == prefix .. "." then
+            return true
+        end
+    end
+    return false
+end
+
+local function correlationEffectReliability(category, object)
+    if category ~= "runtime_added" and category ~= "runtime_remove" then return 1 end
+    object = type(object) == "table" and object or {}
+    local o = type(object.object) == "table" and object.object or {}
+    if tostring(o.className or object.className or "") == "Tool" then return 1 end
+    local path = o.path or object.path
+    if pathInsidePlayerCharacter(path) then
+        return 0.25
+    end
+    return 1
+end
+
+local function correlationMetrics(evidence)
+    if type(evidence) ~= "table" then
+        return { baseline = 0, total = 0, confidence = 0, stage = "candidate", trustedSupport = 0 }
+    end
+    local effectHash = evidence.effectHash
+    local baseline = tonumber(S.effectBaseline[effectHash]) or 0
+    local total = tonumber(S.effectTotals[effectHash]) or tonumber(evidence.support) or 1
+    local support = tonumber(evidence.support) or 0
+    local trustedSupport = tonumber(evidence.trustedSupport) or support
+    local consistency = trustedSupport / math.max(1, total)
+    local separation = trustedSupport / math.max(1, trustedSupport + baseline + 2)
+    local meanRecency = (tonumber(evidence.weighted) or 0) / math.max(0.001, trustedSupport)
+
+    local timingConsistency = 1
+    if support >= 2 then
+        local meanAge = (tonumber(evidence.ageSum) or 0) / support
+        local meanSq = (tonumber(evidence.ageSqSum) or 0) / support
+        local variance = math.max(0, meanSq - meanAge * meanAge)
+        local stdDev = math.sqrt(variance)
+        timingConsistency = 1 / (1 + stdDev * 1.5)
+    end
+
+    local confidence = math.floor(math.clamp(
+        consistency * separation * meanRecency * timingConsistency * 100, 0, 99
+    ) + 0.5)
+
+    local maxReliability = tonumber(evidence.maxReliability) or 1
+    local distinctEffects = tonumber(evidence.distinctEffects) or support
+    local stage = "candidate"
+    if maxReliability < 0.5 then
+        stage = "weak_context"
+    elseif distinctEffects >= C.CORRELATION_CONFIRM_MIN_DISTINCT and
+        trustedSupport >= C.CORRELATION_CONFIRM_MIN_TRUSTED_SUPPORT and
+        confidence >= C.CORRELATION_CONFIRM_MIN_CONFIDENCE and
+        baseline <= C.CORRELATION_CONFIRM_MAX_BASELINE then
+        stage = "confirmed"
+    elseif distinctEffects >= 2 then
+        stage = "repeated"
+    end
+
+    return {
+        baseline = baseline,
+        total = total,
+        confidence = confidence,
+        stage = stage,
+        distinctEffects = distinctEffects,
+        trustedSupport = math.floor(trustedSupport * 100 + 0.5) / 100,
+        timingConsistency = math.floor(timingConsistency * 1000 + 0.5) / 1000,
+    }
+end
+
+local function relationStageForCandidate(remotePath, shapeHash, semanticHash)
+    local rank = { weak_context = 0, candidate = 1, repeated = 2, confirmed = 3 }
+    local best = nil
+    for _, row in pairs(S.correlationEvidence) do
+        if row.remote == remotePath and
+            (row.semantic == semanticHash or row.shape == shapeHash) then
+            local stage = correlationMetrics(row).stage
+            if best == nil or (rank[stage] or 0) > (rank[best] or 0) then best = stage end
+            if best == "confirmed" then break end
+        end
+    end
+    return best or "candidate"
+end
+
 local function correlationCandidates(category, object, priority)
     if not CORRELATABLE_CATEGORIES[category] then return nil end
     pruneCorrelationWindows()
@@ -1291,32 +1393,59 @@ local function correlationCandidates(category, object, priority)
         if not evidence and S.correlationEvidenceCount < C.CORRELATION_EVIDENCE_CAP then
             evidence = {
                 remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
-                effect = effectLabel, effectHash = effectHash, support = 0, weighted = 0,
+                effect = effectLabel, effectHash = effectHash, support = 0, trustedSupport = 0,
+                distinctEffects = 0, lastOccurrence = nil,
+                weighted = 0, ageSum = 0, ageSqSum = 0, maxReliability = 0,
             }
             S.correlationEvidence[pairKey] = evidence
             S.correlationEvidenceCount = S.correlationEvidenceCount + 1
         end
-        local confidence, support = 0, 0
+        local confidence, support, stage, trustedSupport, timingConsistency, distinctEffects =
+            0, 0, "candidate", 0, 1, 0
         local baseline = S.effectBaseline[effectHash] or 0
         local total = S.effectTotals[effectHash] or 1
+        local reliability = correlationEffectReliability(category, object)
+        local occurrence = tostring(object.clock or (now - S.startClock)) .. "|" .. tostring(category) .. "|" .. effectHash
         if evidence then
             local recency = math.max(0.05, 1 - (age / math.max(0.001, C.CORRELATION_SECONDS)))
             evidence.support = evidence.support + 1
-            evidence.weighted = evidence.weighted + recency
+            if evidence.lastOccurrence ~= occurrence then
+                evidence.lastOccurrence = occurrence
+                evidence.distinctEffects = (tonumber(evidence.distinctEffects) or 0) + 1
+            end
+            evidence.trustedSupport = (tonumber(evidence.trustedSupport) or 0) + reliability
+            evidence.weighted = (tonumber(evidence.weighted) or 0) + recency * reliability
+            evidence.ageSum = (tonumber(evidence.ageSum) or 0) + age
+            evidence.ageSqSum = (tonumber(evidence.ageSqSum) or 0) + age * age
+            evidence.maxReliability = math.max(tonumber(evidence.maxReliability) or 0, reliability)
             evidence.lastAge = age
+            local metrics = correlationMetrics(evidence)
             support = evidence.support
-            local consistency = support / math.max(1, total)
-            local separation = support / math.max(1, support + baseline + 2)
-            local meanRecency = evidence.weighted / math.max(1, support)
-            confidence = math.floor(math.clamp(consistency * separation * meanRecency * 100, 0, 99) + 0.5)
-            if support >= 2 and (tonumber(priority) or 0) >= 72 then
-                S.remoteImpact[w.remote] = math.max(tonumber(S.remoteImpact[w.remote]) or 0, confidence * 0.18)
+            baseline = metrics.baseline
+            total = metrics.total
+            confidence = metrics.confidence
+            stage = metrics.stage
+            distinctEffects = metrics.distinctEffects
+            trustedSupport = metrics.trustedSupport
+            timingConsistency = metrics.timingConsistency
+            if support >= C.CORRELATION_IMPACT_MIN_SUPPORT and
+                distinctEffects >= C.CORRELATION_IMPACT_MIN_DISTINCT and
+                trustedSupport >= C.CORRELATION_IMPACT_MIN_TRUSTED_SUPPORT and
+                confidence >= C.CORRELATION_IMPACT_MIN_CONFIDENCE and
+                (tonumber(priority) or 0) >= 72 then
+                S.remoteImpact[w.remote] = math.max(
+                    tonumber(S.remoteImpact[w.remote]) or 0,
+                    confidence * 0.18
+                )
             end
         end
         out[#out + 1] = {
             id = w.id, remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
             importance = w.importance, age = age, effect = effectLabel,
-            support = support, baseline = baseline, effectTotal = total, confidence = confidence,
+            support = support, distinctEffects = distinctEffects,
+            trustedSupport = trustedSupport, baseline = baseline,
+            effectTotal = total, confidence = confidence, relationStage = stage,
+            timingConsistency = timingConsistency, reliability = reliability,
         }
     end
     return out
@@ -1901,6 +2030,32 @@ local function compactDeepState()
     }
 end
 
+
+local function compactInvestigationCondition()
+    local ch = LP.Character
+    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
+    local root = ch and ch:FindFirstChild("HumanoidRootPart")
+    local guiTail = {}
+    local first = math.max(1, #S.recentGuiChanges - 3)
+    for i = first, #S.recentGuiChanges do guiTail[#guiTail + 1] = S.recentGuiChanges[i] end
+    return {
+        player = {
+            state = hum and tostring(hum:GetState()) or nil,
+            health = hum and hum.Health or nil,
+            floor = hum and tostring(hum.FloorMaterial) or nil,
+            position = root and ser(root.Position) or nil,
+        },
+        playerAttributes = attrs(LP),
+        characterAttributes = ch and attrs(ch) or nil,
+        tools = compactToolState(),
+        recentGui = guiTail,
+    }
+end
+
+local function conditionHash(context)
+    return hashText("condition|" .. canon(context or {}, 0, {}, false))
+end
+
 local function opaqueDiagnostics(args, streamKey, force)
     local n = tonumber(args and args.n) or 0
     local hasBuffer = false
@@ -2224,8 +2379,14 @@ local function menuHealthWatchdogTick()
         issues[#issues + 1] = "stage_stuck:" .. stage
     end
 
-    if queueDepth > 0 and not active and now > (tonumber(S.investigationNextStartAt) or 0) + 2.0 then
-        issues[#issues + 1] = "queue_waiting_without_active"
+    if queueDepth > 0 and not active then
+        local oldest = S.investigationQueue[1]
+        local queuedAt = oldest and tonumber(oldest.queuedAt) or now
+        local queueAge = math.max(0, now - queuedAt)
+        if queueAge > C.MENU_HEALTH_QUEUE_STUCK and now > (tonumber(S.investigationNextStartAt) or 0) + 0.5 then
+            issues[#issues + 1] = "queue_waiting_without_active:" ..
+                tostring(math.floor(queueAge * 1000 + 0.5)) .. "ms"
+        end
     end
 
     local lastError = tostring(S.lastInvestigatorError or "")
@@ -2445,10 +2606,16 @@ local function finishActiveInvestigation(status, reason)
         recordKnowledge(inv.candidate, "cancelled", 1, { status = "cancelled", lastReason = reason, lastImpact = impact })
     else
         S.smartStats.investigationsCompleted = (S.smartStats.investigationsCompleted or 0) + 1
+        local outcomeHash = hashText(canon(diff, 0, {}, false))
+        local knowledge = knowledgeDeltaRow(inv.candidate.key)
+        local sameOutcome = knowledge and knowledge.lastOutcome == outcomeHash
+        local confirmations = sameOutcome and ((tonumber(knowledge.outcomeConfirmations) or 1) + 1) or 1
         recordKnowledge(inv.candidate, "completed", 1, {
             status = inv.mode == "active" and "tested" or "passive",
             lastReason = reason, lastImpact = impact,
-            lastOutcome = hashText(canon(diff, 0, {}, false)),
+            lastOutcome = outcomeHash,
+            outcomeConfirmations = confirmations,
+            outcomeStage = confirmations >= 2 and "confirmed" or "observed",
         })
     end
     local bundle = {
@@ -2458,7 +2625,20 @@ local function finishActiveInvestigation(status, reason)
             method = inv.candidate.method, shapeHash = inv.candidate.shapeHash,
             semanticHash = inv.candidate.semanticHash, importance = inv.candidate.importance,
             triggerContext = inv.candidate.triggerContext,
+            relationStage = inv.candidate.relationStage,
+            queuedAt = inv.candidate.queuedRelative,
             payload = packed(inv.candidate.replayArgs),
+        },
+        conditions = {
+            queued = inv.candidate.queuedContext,
+            started = inv.conditionAtStart,
+            beforeTest = inv.conditionBeforeTest,
+            queuedHash = inv.candidate.queuedContextHash,
+            startedHash = inv.conditionAtStartHash,
+            beforeTestHash = inv.conditionBeforeTestHash,
+            queuedToStartSame = inv.candidate.queuedContextHash == inv.conditionAtStartHash,
+            queuedToTestSame = inv.conditionBeforeTestHash and
+                inv.candidate.queuedContextHash == inv.conditionBeforeTestHash or nil,
         },
         prelude = inv.prelude, detectedState = inv.detectedState,
         before = inv.beforeState, middle = inv.middleState, after = after,
@@ -2558,6 +2738,8 @@ local function executeCandidate(inv)
     end
 
     inv.mode = "active"
+    inv.conditionBeforeTest = compactInvestigationCondition()
+    inv.conditionBeforeTestHash = conditionHash(inv.conditionBeforeTest)
     inv.beforeState = compactDeepState()
     inv.startedRelative = os.clock() - S.startClock
     setInvestigatorStage("red_prepare", "entrando no teste", inv, true)
@@ -2592,10 +2774,12 @@ local function startInvestigationCandidate(candidate)
     if not S.running or S.stopping or S.activeInvestigation then return end
     S.investigationSeq = S.investigationSeq + 1
     S.investigationCount = S.investigationCount + 1
+    local startCondition = compactInvestigationCondition()
     local inv = {
         id = S.investigationSeq, candidate = candidate, mode = "pending",
         yellowStarted = os.clock(), startedRelative = os.clock() - S.startClock,
         prelude = timelineSnapshot(), detectedState = compactDeepState(),
+        conditionAtStart = startCondition, conditionAtStartHash = conditionHash(startCondition),
         lastRelevantClock = os.clock(), diagnostics = {}, diagSeq = 0,
     }
     S.activeInvestigation = inv
@@ -2627,7 +2811,16 @@ local function queueInvestigationCandidate(remote, method, args, shapeHash, sema
     local remotePath = pathOf(remote)
     local key = hashText("action|" .. remotePath .. "|" .. tostring(method) .. "|" .. tostring(semanticHash or shapeHash))
     S.actionSeenCounts[key] = (S.actionSeenCounts[key] or 0) + 1
-    recordKnowledge({ key = key }, "observations", 1, { status = "observed" })
+    local relationStage = relationStageForCandidate(remotePath, shapeHash, semanticHash)
+    recordKnowledge({ key = key }, "observations", 1, {
+        status = "observed",
+        relationStage = relationStage,
+    })
+    if relationStage == "confirmed" and S.actionSeenCounts[key] > 1 then
+        S.smartStats.investigationsConfirmedSkipped =
+            (S.smartStats.investigationsConfirmedSkipped or 0) + 1
+        return
+    end
     if S.investigationQueuedKeys[key] then return end
     if S.activeInvestigation and S.activeInvestigation.candidate and S.activeInvestigation.candidate.key == key then return end
     local last = S.investigationLastByKey[key] or 0
@@ -2635,10 +2828,15 @@ local function queueInvestigationCandidate(remote, method, args, shapeHash, sema
     local prior = S.profileInvestigation[key]
     if type(prior) == "table" and (tonumber(prior.activeTests) or 0) >= 2 then return end
 
+    local queuedAt = os.clock()
+    local queuedContext = compactInvestigationCondition()
     local candidate = {
         key = key, remote = remote, remotePath = remotePath, method = method,
         replayArgs = replayArgs, shapeHash = shapeHash, semanticHash = semanticHash,
         importance = importance, cloneError = cloneErr, triggerContext = triggerContext,
+        relationStage = relationStage,
+        queuedAt = queuedAt, queuedRelative = queuedAt - S.startClock,
+        queuedContext = queuedContext, queuedContextHash = conditionHash(queuedContext),
     }
     if #S.investigationQueue >= C.INVESTIGATOR_QUEUE_CAP then return end
     S.investigationLastByKey[key] = os.clock()
@@ -2655,7 +2853,9 @@ processInvestigationQueue = function()
     S.investigationQueuedKeys[candidate.key] = nil
     S.smartStats.menuHealthQueueStarts = (S.smartStats.menuHealthQueueStarts or 0) + 1
     appendMenuHealthDiagnostic("queue_start",
-        "remote=" .. string.sub(tostring(candidate.remotePath or "?"), 1, 180),
+        "remote=" .. string.sub(tostring(candidate.remotePath or "?"), 1, 180) ..
+        " ageMs=" .. tostring(math.floor(math.max(0, os.clock() - (tonumber(candidate.queuedAt) or os.clock())) * 1000 + 0.5)) ..
+        " relation=" .. tostring(candidate.relationStage or "candidate"),
         "info", false)
     local ok, err = pcall(function()
         startInvestigationCandidate(candidate)
@@ -3527,15 +3727,13 @@ end
 local function correlationEvidenceSummary()
     local rows = {}
     for _, row in pairs(S.correlationEvidence) do
-        local baseline = S.effectBaseline[row.effectHash] or 0
-        local total = S.effectTotals[row.effectHash] or row.support or 1
-        local consistency = (row.support or 0) / math.max(1, total)
-        local separation = (row.support or 0) / math.max(1, (row.support or 0) + baseline + 2)
-        local meanRecency = (row.weighted or 0) / math.max(1, row.support or 0)
-        local confidence = math.floor(math.clamp(consistency * separation * meanRecency * 100, 0, 99) + 0.5)
+        local metrics = correlationMetrics(row)
         rows[#rows + 1] = {
             remote = row.remote, method = row.method, shape = row.shape, semantic = row.semantic,
-            effect = row.effect, support = row.support, baseline = baseline, effectTotal = total, confidence = confidence,
+            effect = row.effect, support = row.support, distinctEffects = metrics.distinctEffects,
+            trustedSupport = metrics.trustedSupport,
+            baseline = metrics.baseline, effectTotal = metrics.total, confidence = metrics.confidence,
+            relationStage = metrics.stage, timingConsistency = metrics.timingConsistency,
         }
     end
     table.sort(rows, function(a, b)
@@ -3689,6 +3887,7 @@ local function manifestTable()
                     uiErrors = S.smartStats.menuHealthUiErrors or 0,
                     queueStarts = S.smartStats.menuHealthQueueStarts or 0,
                     queueErrors = S.smartStats.menuHealthQueueErrors or 0,
+                    confirmedSkipped = S.smartStats.investigationsConfirmedSkipped or 0,
                     recent = menuHealthTail(30),
                 },
             },
@@ -3773,6 +3972,7 @@ local function resetRunState()
         inputQuarantines = 0, investigatorDiagnostics = 0, investigatorErrors = 0,
         menuHealthChecks = 0, menuHealthAnomalies = 0, menuHealthUiErrors = 0,
         menuHealthQueueStarts = 0, menuHealthQueueErrors = 0,
+        investigationsConfirmedSkipped = 0,
         batchBudgetDrops = 0,
     }
     S.focusRemote, S.focusScore = nil, 0
@@ -4390,4 +4590,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.5 carregado • fila segura • watchdog sem falso positivo • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.6 carregado • correlação qualificada • contexto de condição • streaming protegido")
