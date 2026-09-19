@@ -4536,6 +4536,120 @@ local buttonCorner = Instance.new("UICorner")
 buttonCorner.CornerRadius = UDim.new(0, 8)
 buttonCorner.Parent = mainButton
 
+local diagButton = Instance.new("TextButton")
+diagButton.Name = "Diagnostic"
+diagButton.Position = UDim2.new(1, -52, 0, 2)
+diagButton.Size = UDim2.fromOffset(48, 18)
+diagButton.BackgroundColor3 = Color3.fromRGB(82, 34, 34)
+diagButton.BorderSizePixel = 0
+diagButton.Text = "DIAG"
+diagButton.Font = Enum.Font.GothamBold
+diagButton.TextSize = 9
+diagButton.TextColor3 = Color3.fromRGB(255, 235, 235)
+diagButton.Visible = false
+diagButton.ZIndex = 104
+diagButton.Parent = stateStrip
+local diagButtonCorner = Instance.new("UICorner")
+diagButtonCorner.CornerRadius = UDim.new(0, 5)
+diagButtonCorner.Parent = diagButton
+
+local diagFrame = Instance.new("Frame")
+diagFrame.Name = "UploadDiagnostic"
+diagFrame.Size = UDim2.fromOffset(310, 270)
+diagFrame.Position = UDim2.new(0.5, -155, 0.5, -135)
+diagFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
+diagFrame.BorderSizePixel = 0
+diagFrame.Visible = false
+diagFrame.ZIndex = 160
+diagFrame.Parent = safeRoot
+local diagCorner = Instance.new("UICorner")
+diagCorner.CornerRadius = UDim.new(0, 10)
+diagCorner.Parent = diagFrame
+local diagStroke = Instance.new("UIStroke")
+diagStroke.Color = Color3.fromRGB(95, 55, 55)
+diagStroke.Thickness = 1
+diagStroke.Parent = diagFrame
+
+local diagTitle = Instance.new("TextLabel")
+diagTitle.BackgroundTransparency = 1
+diagTitle.Position = UDim2.fromOffset(10, 7)
+diagTitle.Size = UDim2.new(1, -48, 0, 24)
+diagTitle.Font = Enum.Font.GothamBold
+diagTitle.TextSize = 12
+diagTitle.TextColor3 = Color3.fromRGB(245, 238, 238)
+diagTitle.TextXAlignment = Enum.TextXAlignment.Left
+diagTitle.Text = "CAFEÍNA • DIAGNÓSTICO"
+diagTitle.ZIndex = 161
+diagTitle.Parent = diagFrame
+
+local diagClose = Instance.new("TextButton")
+diagClose.Position = UDim2.new(1, -35, 0, 5)
+diagClose.Size = UDim2.fromOffset(28, 26)
+diagClose.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+diagClose.BorderSizePixel = 0
+diagClose.Text = "×"
+diagClose.Font = Enum.Font.GothamBold
+diagClose.TextSize = 17
+diagClose.TextColor3 = Color3.fromRGB(240, 240, 244)
+diagClose.ZIndex = 162
+diagClose.Parent = diagFrame
+local diagCloseCorner = Instance.new("UICorner")
+diagCloseCorner.CornerRadius = UDim.new(0, 6)
+diagCloseCorner.Parent = diagClose
+
+local diagText = Instance.new("TextLabel")
+diagText.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
+diagText.BorderSizePixel = 0
+diagText.Position = UDim2.fromOffset(10, 38)
+diagText.Size = UDim2.new(1, -20, 1, -48)
+diagText.Font = Enum.Font.Code
+diagText.TextSize = 10
+diagText.TextColor3 = Color3.fromRGB(228, 228, 232)
+diagText.TextWrapped = true
+diagText.TextXAlignment = Enum.TextXAlignment.Left
+diagText.TextYAlignment = Enum.TextYAlignment.Top
+diagText.Text = "Sem erros registrados."
+diagText.ZIndex = 161
+diagText.Parent = diagFrame
+local diagTextCorner = Instance.new("UICorner")
+diagTextCorner.CornerRadius = UDim.new(0, 7)
+diagTextCorner.Parent = diagText
+
+local lastAutoShownUploadDiag = 0
+
+local function diagnosticText()
+    local e = S.uploadError or S.uploadDiagnostics[#S.uploadDiagnostics]
+    local queueItems = math.max(0, #S.queue - S.queueHead + 1)
+    local pendingExact = type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string"
+    local lines = {
+        "Versão: " .. C.VERSION,
+        "Run: " .. tostring(S.runId or "-"),
+        "Game: " .. tostring(S.runGameId or game.GameId),
+        "Place run/atual: " .. tostring(S.runPlaceId or "-") .. " / " .. tostring(game.PlaceId),
+        "Batch local: " .. tostring(S.batchIndex or 0) ..
+            " | alvo: " .. tostring(e and e.batchIndex or ((S.batchIndex or 0) + 1)),
+        string.format("Fila: %d itens • %.2f MB", queueItems, (S.queueBytes or 0) / MB),
+        string.format("ACK/total: %.2f / %.2f MB", (S.ackBytes or 0) / MB, (S.totalBytes or 0) / MB),
+        "Cache schema: " .. tostring(S.cacheSchemaVersion or "-") ..
+            " | lote exato: " .. (pendingExact and "SIM" or "NÃO"),
+        "Enviando/finalizando: " .. tostring(S.uploading == true) .. " / " .. tostring(S.finalizing == true),
+        "Bloqueado: " .. tostring(S.uploadBlocked == true),
+        "Investigador: " .. tostring(S.investigatorState) .. " • " .. tostring(S.investigatorStage),
+    }
+    if S.menuHealthLastAnomaly then lines[#lines + 1] = "Watchdog: " .. tostring(S.menuHealthLastAnomaly) end
+    if S.lastInvestigatorError then lines[#lines + 1] = "Erro investigador: " .. tostring(S.lastInvestigatorError) end
+    if e then
+        lines[#lines + 1] = "Upload: " .. tostring(e.code and ("HTTP " .. e.code) or e.kind) ..
+            " • " .. tostring(e.label)
+        lines[#lines + 1] = "Fase: " .. tostring(e.phase) ..
+            " | retry: " .. tostring(e.retryable) .. " | tentativas: " .. tostring(e.attempts or 1)
+        lines[#lines + 1] = "Erro: " .. string.sub(tostring(e.raw or S.lastUploadError or "-"), 1, 620)
+    elseif S.lastUploadError then
+        lines[#lines + 1] = "Erro upload: " .. string.sub(tostring(S.lastUploadError), 1, 620)
+    end
+    return table.concat(lines, "\n")
+end
+
 local miniIcon = Instance.new("TextButton")
 miniIcon.Name = "InvestigationIcon"
 miniIcon.Size = UDim2.fromOffset(46, 46)
@@ -4604,6 +4718,19 @@ local function setMinimized(value)
 end
 
 investigatorUiRefresh = function()
+    local hasDiag = S.uploadError ~= nil or S.uploadBlocked or S.menuHealthLastAnomaly ~= nil or S.lastInvestigatorError ~= nil
+    diagButton.Visible = hasDiag
+    stateLabel.Size = hasDiag and UDim2.new(1, -78, 1, -2) or UDim2.new(1, -28, 1, -2)
+
+    if S.uploadError then
+        stateDot.BackgroundColor3 = Color3.fromRGB(235, 72, 72)
+        miniIcon.BackgroundColor3 = Color3.fromRGB(235, 72, 72)
+        miniIcon.Text = "!"
+        local code = S.uploadError.code and (" " .. tostring(S.uploadError.code)) or ""
+        stateLabel.Text = "UPLOAD" .. code .. " • " .. tostring(S.uploadError.label or "ERRO")
+        return
+    end
+
     local visual = stateVisuals[S.investigatorState] or stateVisuals.GREEN
     if (S.investigatorState == "RED" or S.investigatorState == "BLUE") and not minimized then
         setMinimized(true)
@@ -4626,6 +4753,14 @@ uiRefresh = function()
     pctLabel.Text = tostring(math.clamp(pct, 0, 100)) .. "%"
     fill.Size = UDim2.fromScale(math.clamp(pct / 100, 0, 1), 1)
     investigatorUiRefresh()
+    diagText.Text = diagnosticText()
+    if S.uploadError and (tonumber(S.uploadError.seq) or 0) > lastAutoShownUploadDiag then
+        lastAutoShownUploadDiag = tonumber(S.uploadError.seq) or lastAutoShownUploadDiag
+        diagFrame.Visible = true
+    end
+    if S.uploadBlocked and not S.finalizing then
+        mainButton.Text = "ERRO • VER DIAGNÓSTICO"
+    end
 end
 
 task.spawn(function()
@@ -4733,6 +4868,14 @@ uiConnect(UserInputService.InputEnded, function(input)
     end
 end)
 
+uiConnect(diagButton.Activated, function()
+    diagText.Text = diagnosticText()
+    diagFrame.Visible = true
+end)
+uiConnect(diagClose.Activated, function()
+    diagFrame.Visible = false
+end)
+
 uiConnect(minimizeButton.Activated, function()
     if S.investigatorState == "RED" or S.investigatorState == "BLUE" then return end
     setMinimized(true)
@@ -4763,6 +4906,11 @@ task.defer(function() clampObject(frame, 4); clampObject(miniIcon, 5) end)
 uiConnect(mainButton.Activated, function()
     if S.investigatorState == "RED" or S.investigatorState == "BLUE" then return end
     if S.finalizing then return end
+    if S.uploadBlocked then
+        diagText.Text = diagnosticText()
+        diagFrame.Visible = true
+        return
+    end
     if S.cached then retryCached()
     elseif S.running then finalize(false)
     elseif not S.preflightReady then return
