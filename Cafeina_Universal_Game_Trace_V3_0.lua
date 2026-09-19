@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.4
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.5
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_4",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_5",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -4181,11 +4181,11 @@ task.spawn(function()
             S.smartStats.menuHealthUiErrors = (S.smartStats.menuHealthUiErrors or 0) + 1
             appendMenuHealthDiagnostic("ui_refresh_error", compactErrorTrace(uiErr), "error", true)
         end
-        menuHealthWatchdogTick()
         if S.running then
             if processInvestigationQueue then processInvestigationQueue() end
             maybeTrajectory()
         end
+        menuHealthWatchdogTick()
         if (S.running or S.finalizing) and not S.uploading and os.clock() >= S.nextRetryClock and
             shouldFlushQueue(S.finalizing or S.stopping) then
             kickUpload()
@@ -4390,4 +4390,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.4 carregado • fila segura • autodiagnóstico leve • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.5 carregado • fila segura • watchdog sem falso positivo • streaming protegido")
