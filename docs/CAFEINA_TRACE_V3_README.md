@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.2
+# CAFEÍNA Universal Game Trace V3.2.3
 
 Arquivos principais:
 
@@ -6,6 +6,29 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## Diagnóstico fino da V3.2.3
+
+A V3.2.3 estreita o diagnóstico para a transição que acontece logo depois de definir o estado YELLOW e antes de agendar o timer amarelo.
+
+Durante essa transição, o bundle mantém em memória os seguintes marcos:
+
+- `yellow_state_set`
+- `yellow_before_quarantine`
+- `yellow_after_quarantine`
+- `yellow_before_ui_defer`
+- `yellow_after_ui_defer`
+- `yellow_quarantine_error`
+- `yellow_ui_defer_error`
+- `yellow_ui_missing`
+
+Esses micro-marcadores não entram imediatamente na fila de upload, para não interferirem no trecho que está sendo diagnosticado. Eles ficam no array limitado de diagnósticos da investigação e aparecem no `investigation_bundle` quando a investigação termina ou é cancelada.
+
+A chamada inicial de `setInvestigatorState("YELLOW")` agora é protegida por `pcall`. Se ela falhar, o coletor grava `yellow_state_transition` como origem do erro e não agenda o timer como se a transição tivesse sido concluída.
+
+Erros de `setInputQuarantine` e do agendamento de atualização da UI são registrados separadamente e relançados, preservando o comportamento original em vez de mascarar a falha.
+
+O menu também conhece os novos estados intermediários, por exemplo `AMARELO • ANTES INPUT`, `AMARELO • INPUT OK`, `AMARELO • ANTES UI` e `AMARELO • UI AGENDADA`.
 
 ## Diagnóstico da V3.2.2
 
