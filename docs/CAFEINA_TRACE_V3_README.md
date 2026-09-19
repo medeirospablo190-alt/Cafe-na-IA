@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.4
+# CAFEÍNA Universal Game Trace V3.2.5
 
 Arquivos principais:
 
@@ -6,6 +6,12 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## V3.2.5 — watchdog após o worker da fila
+
+A V3.2.5 corrige apenas o falso positivo `queue_waiting_without_active` observado na primeira sessão da V3.2.4. No loop já existente, o worker da fila passa a rodar **antes** da checagem do watchdog. Assim, um candidato recém-enfileirado pode iniciar normalmente no mesmo ciclo antes de ser classificado como fila parada.
+
+Não foram alterados hook outbound v4, lógica das investigações, testes ativos/passivos, scans, snapshots, limites, API, frequência do loop nem orçamento de memória.
 
 ## V3.2.4 — fila segura e autodiagnóstico leve
 
