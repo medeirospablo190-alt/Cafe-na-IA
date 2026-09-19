@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.2
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.3
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_2",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_3",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -1955,6 +1955,7 @@ local function scheduleDeepProbe(r, triggerHash, triggerKind, semanticHash)
 end
 
 local investigatorUiRefresh
+local setInvestigatorStage
 local inputShield
 local INPUT_LOCK_ACTION = "CafeinaInvestigationInputLock"
 local INPUT_LOCK_KEYS = {
@@ -1988,62 +1989,118 @@ setInputQuarantine = function(enabled)
     if inputShield then inputShield.Visible = enabled end
 end
 
-local function setInvestigatorState(state, reason)
-    state = tostring(state or "GREEN")
-    S.investigatorState = state
-    S.investigatorReason = tostring(reason or "")
-    S.investigatorStateSince = os.clock()
-    setInputQuarantine(state == "RED" or state == "BLUE")
-    if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
-end
-
-local function setInvestigatorStage(stage, detail, inv, emitRecord)
+local function appendInvestigatorDiagnostic(stage, detail, inv, emitRecord)
     stage = tostring(stage or "unknown")
     detail = tostring(detail or "")
     local now = os.clock()
+
     S.investigatorStage = stage
     S.investigatorStageDetail = detail
     S.investigatorStageSince = now
 
-    if inv then
-        inv.stage = stage
-        inv.stageDetail = detail
-        inv.stageSince = now
-        inv.diagSeq = (tonumber(inv.diagSeq) or 0) + 1
-        inv.diagnostics = type(inv.diagnostics) == "table" and inv.diagnostics or {}
+    if not inv then return end
 
-        local row = {
-            seq = inv.diagSeq,
-            stage = stage,
-            detail = string.sub(detail, 1, 180),
-            clock = math.floor((now - S.startClock) * 1000 + 0.5) / 1000,
-            state = S.investigatorState,
-            mode = inv.mode,
-            pressure = pressureLevel(),
-            frameDtMs = math.floor((S.frameDt or 0) * 100000 + 0.5) / 100,
-        }
-        inv.diagnostics[#inv.diagnostics + 1] = row
-        while #inv.diagnostics > C.INVESTIGATOR_DIAGNOSTIC_CAP do
-            table.remove(inv.diagnostics, 1)
-        end
+    inv.stage = stage
+    inv.stageDetail = detail
+    inv.stageSince = now
+    inv.diagSeq = (tonumber(inv.diagSeq) or 0) + 1
+    inv.diagnostics = type(inv.diagnostics) == "table" and inv.diagnostics or {}
 
-        if emitRecord ~= false and S.running and not S.stopping then
-            S.smartStats.investigatorDiagnostics = (S.smartStats.investigatorDiagnostics or 0) + 1
-            enqueue("record", "investigator_diag", {
-                kind = "investigator_diag",
-                investigationId = inv.id,
-                stage = row.stage,
-                detail = row.detail,
-                state = row.state,
-                mode = row.mode,
-                pressure = row.pressure,
-                frameDtMs = row.frameDtMs,
-                remote = inv.candidate and inv.candidate.remote and remoteDesc(inv.candidate.remote) or nil,
-            }, 97, true, nil, nil,
-                hashText("investigator_diag|" .. tostring(inv.id) .. "|" .. tostring(inv.diagSeq) .. "|" .. stage), true)
-        end
+    local row = {
+        seq = inv.diagSeq,
+        stage = stage,
+        detail = string.sub(detail, 1, 180),
+        clock = math.floor((now - S.startClock) * 1000 + 0.5) / 1000,
+        state = S.investigatorState,
+        mode = inv.mode,
+        pressure = pressureLevel(),
+        frameDtMs = math.floor((S.frameDt or 0) * 100000 + 0.5) / 100,
+    }
+    inv.diagnostics[#inv.diagnostics + 1] = row
+    while #inv.diagnostics > C.INVESTIGATOR_DIAGNOSTIC_CAP do
+        table.remove(inv.diagnostics, 1)
     end
 
+    if emitRecord ~= false and S.running and not S.stopping then
+        S.smartStats.investigatorDiagnostics = (S.smartStats.investigatorDiagnostics or 0) + 1
+        enqueue("record", "investigator_diag", {
+            kind = "investigator_diag",
+            investigationId = inv.id,
+            stage = row.stage,
+            detail = row.detail,
+            state = row.state,
+            mode = row.mode,
+            pressure = row.pressure,
+            frameDtMs = row.frameDtMs,
+            remote = inv.candidate and inv.candidate.remote and remoteDesc(inv.candidate.remote) or nil,
+        }, 97, true, nil, nil,
+            hashText("investigator_diag|" .. tostring(inv.id) .. "|" .. tostring(inv.diagSeq) .. "|" .. stage), true)
+    end
+end
+
+local function probeYellowTransition(inv, stage, detail)
+    if not inv then return end
+    local ok, err = pcall(function()
+        appendInvestigatorDiagnostic(stage, detail, inv, true)
+    end)
+    if not ok then
+        S.lastInvestigatorError = "yellow_probe:" .. string.sub(tostring(err), 1, 220)
+        S.smartStats.investigatorErrors = (S.smartStats.investigatorErrors or 0) + 1
+    end
+end
+
+local function setInvestigatorState(state, reason)
+    state = tostring(state or "GREEN")
+    local inv = S.activeInvestigation
+
+    S.investigatorState = state
+    S.investigatorReason = tostring(reason or "")
+    S.investigatorStateSince = os.clock()
+
+    if state == "YELLOW" and inv then
+        probeYellowTransition(inv, "yellow_state_set", "estado YELLOW definido")
+        probeYellowTransition(inv, "yellow_before_quarantine", "antes de setInputQuarantine(false)")
+    end
+
+    local okInput, inputErr = pcall(function()
+        setInputQuarantine(state == "RED" or state == "BLUE")
+    end)
+    if not okInput then
+        if state == "YELLOW" and inv then
+            probeYellowTransition(inv, "yellow_quarantine_error", tostring(inputErr))
+        end
+        error(inputErr, 0)
+    end
+
+    if state == "YELLOW" and inv then
+        probeYellowTransition(inv, "yellow_after_quarantine", "setInputQuarantine(false) retornou")
+    end
+
+    if investigatorUiRefresh then
+        if state == "YELLOW" and inv then
+            probeYellowTransition(inv, "yellow_before_ui_defer", "antes de task.defer(UI)")
+        end
+
+        local okUi, uiErr = pcall(function()
+            task.defer(investigatorUiRefresh)
+        end)
+        if not okUi then
+            if state == "YELLOW" and inv then
+                probeYellowTransition(inv, "yellow_ui_defer_error", tostring(uiErr))
+            end
+            error(uiErr, 0)
+        end
+
+        if state == "YELLOW" and inv then
+            probeYellowTransition(inv, "yellow_after_ui_defer", "task.defer(UI) retornou")
+        end
+    elseif state == "YELLOW" and inv then
+        probeYellowTransition(inv, "yellow_ui_missing", "investigatorUiRefresh=nil")
+    end
+end
+
+setInvestigatorStage = function(stage, detail, inv, emitRecord)
+    appendInvestigatorDiagnostic(stage, detail, inv, emitRecord)
     if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
 end
 
@@ -2413,7 +2470,13 @@ local function startInvestigationCandidate(candidate)
         lastRelevantClock = os.clock(), diagnostics = {}, diagSeq = 0,
     }
     S.activeInvestigation = inv
-    setInvestigatorState("YELLOW", "nova interação • pare de mexer")
+    local stateOk, stateErr = pcall(function()
+        setInvestigatorState("YELLOW", "nova interação • pare de mexer")
+    end)
+    if not stateOk then
+        markInvestigatorError(inv, "yellow_state_transition", stateErr)
+        return
+    end
     setInvestigatorStage("yellow_timer_scheduled",
         "aguardando " .. tostring(C.INVESTIGATOR_YELLOW_SECONDS) .. "s", inv, true)
     task.delay(C.INVESTIGATOR_YELLOW_SECONDS, function()
@@ -3467,6 +3530,7 @@ local function manifestTable()
                 state = S.investigatorState,
                 stage = S.investigatorStage,
                 stageDetail = S.investigatorStageDetail,
+                stageAgeMs = math.floor(math.max(0, os.clock() - (tonumber(S.investigatorStageSince) or os.clock())) * 1000 + 0.5),
                 lastError = S.lastInvestigatorError,
                 diagnosticMarkers = S.smartStats.investigatorDiagnostics or 0,
                 errors = S.smartStats.investigatorErrors or 0,
@@ -3892,6 +3956,14 @@ local stateVisuals = {
 
 local stageLabels = {
     idle = "LIVRE",
+    yellow_state_set = "ESTADO AMARELO",
+    yellow_before_quarantine = "ANTES INPUT",
+    yellow_after_quarantine = "INPUT OK",
+    yellow_quarantine_error = "ERRO INPUT",
+    yellow_before_ui_defer = "ANTES UI",
+    yellow_after_ui_defer = "UI AGENDADA",
+    yellow_ui_defer_error = "ERRO UI",
+    yellow_ui_missing = "UI INDISPONÍVEL",
     yellow_timer_scheduled = "TIMER AGENDADO",
     yellow_timer_fired = "TIMER DISPAROU",
     execute_entered = "EXECUTANDO",
@@ -4151,4 +4223,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.2 carregado • investigador adaptativo • estados coloridos • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.3 carregado • investigador adaptativo • estados coloridos • streaming protegido")
