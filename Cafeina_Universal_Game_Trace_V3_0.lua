@@ -1132,7 +1132,7 @@ end
 
 local function cacheSnapshot()
     return {
-        schemaVersion = 1, gameId = S.runGameId, placeId = S.runPlaceId,
+        schemaVersion = 2, gameId = S.runGameId, placeId = S.runPlaceId,
         placeVersion = S.runPlaceVersion, runId = S.runId, startIso = S.startIso,
         batchIndex = S.batchIndex, totalBytes = S.totalBytes, ackBytes = S.ackBytes,
         finalManifest = S.finalManifest,
@@ -1140,6 +1140,7 @@ local function cacheSnapshot()
         deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaRemote = S.deltaRemote,
         strategy = strategySnapshot(), coverage = S.coverage, frontier = S.frontier,
         suppressed = S.suppressed, dropped = S.dropped, repeatCounts = S.repeatCounts,
+        smartStats = S.smartStats, focusRemote = S.focusRemote, focusScore = S.focusScore,
     }
 end
 
@@ -1189,6 +1190,7 @@ local function restoreCache(data)
             S.queueBytes = S.queueBytes + bytes
         end
     end
+    S.firstQueuedClock = S.queueBytes > 0 and os.clock() or 0
     S.deltaLow = type(data.deltaLow) == "table" and data.deltaLow or {}
     S.deltaShape = type(data.deltaShape) == "table" and data.deltaShape or {}
     S.deltaRemote = type(data.deltaRemote) == "table" and data.deltaRemote or {}
@@ -1213,6 +1215,14 @@ local function restoreCache(data)
     S.uploading = false
     S.suppressed = type(data.suppressed) == "table" and data.suppressed or {}
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
+    S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
+        outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
+        correlationsOpened = 0, batchBudgetDrops = 0,
+    }
+    S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
+    S.focusScore = tonumber(data.focusScore) or 0
+    S.correlationWindows, S.lastCorrelationByRemote = {}, {}
+    S.correlationSeq = 0
     S.repeatCounts = type(data.repeatCounts) == "table" and data.repeatCounts or {}
     S.repeatKeyCount = 0
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
@@ -1757,6 +1767,16 @@ local function manifestTable()
         },
         strategyDelta = strategySnapshot(),
         coverage = S.coverage,
+        intelligence = {
+            outboundObserver = S.coverage.outboundObserver,
+            outboundObserved = S.smartStats.outboundObserved or 0,
+            outboundAccepted = S.smartStats.outboundAccepted or 0,
+            highInterestOutbound = S.smartStats.highInterestOutbound or 0,
+            correlationsOpened = S.smartStats.correlationsOpened or 0,
+            batchBudgetDrops = S.smartStats.batchBudgetDrops or 0,
+            focusRemote = S.focusRemote,
+            focusScore = S.focusScore,
+        },
     }
 end
 
@@ -1792,6 +1812,8 @@ local function resetRunState()
     S.totalBytes, S.ackBytes, S.batchIndex = 0, 0, 0
     S.pendingSend = nil
     S.finalManifest = nil
+    S.firstQueuedClock = 0
+    S.lastUploadError = nil
     S.manifestConfirmed = false
     S.sessionExact, S.remoteSeen = {}, {}
     S.sessionExactCount = 0
@@ -1799,6 +1821,14 @@ local function resetRunState()
     S.deltaLowSet, S.deltaShapeSet, S.deltaRemoteSet = {}, {}, {}
     S.strategy, S.suppressed, S.dropped, S.repeatCounts, S.coverage, S.investigation, S.recentRefs = {}, {}, {}, {}, {}, {}, {}
     S.frontier, S.frontierSet = {}, {}
+    S.correlationWindows, S.lastCorrelationByRemote = {}, {}
+    S.correlationSeq = 0
+    S.smartStats = {
+        outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
+        correlationsOpened = 0, batchBudgetDrops = 0,
+    }
+    S.focusRemote, S.focusScore = nil, 0
+    S.outboundHookRegistry, S.outboundHookReady = nil, false
     S.repeatKeyCount = 0
     S.inboundCount, S.valueCount = 0, 0
     S.lastTrajectoryAt, S.lastTrajectoryPos, S.lastTrajectoryState = 0, nil, nil
@@ -1828,7 +1858,6 @@ local function finalize(auto)
             return
         end
 
-        S.ackBytes = S.totalBytes
         local ok = false
         local err
         for attempt = 1, C.RETRIES do
@@ -1878,7 +1907,13 @@ local function begin()
         gameId = game.GameId, placeId = game.PlaceId, placeVersion = game.PlaceVersion,
         profileRevision = tonumber(S.profile and S.profile.revision) or 0,
         profileSessions = tonumber(S.profile and S.profile.sessions) or 0,
-        capabilities = { request = REQUEST ~= nil, writefile = WRITEFILE ~= nil },
+        capabilities = {
+            request = REQUEST ~= nil,
+            writefile = WRITEFILE ~= nil,
+            outboundHook = S.outboundHookReady,
+            hookmetamethod = HOOKMETAMETHOD ~= nil,
+            getnamecallmethod = GETNAMECALLMETHOD ~= nil,
+        },
         player = playerContext(true),
     }, 100, true, nil, nil, nil, true)
 
@@ -1902,7 +1937,6 @@ local function retryCached()
             if mainButton then mainButton.Text = "REENVIAR" end
             return
         end
-        S.ackBytes = S.totalBytes
         local ok = false
         for attempt = 1, C.RETRIES do
             ok = sendManifest()
@@ -2035,7 +2069,8 @@ task.spawn(function()
     while gui.Parent do
         uiRefresh()
         if S.running then maybeTrajectory() end
-        if (S.running or S.finalizing) and not S.uploading and S.queueHead <= #S.queue and os.clock() >= S.nextRetryClock then
+        if (S.running or S.finalizing) and not S.uploading and os.clock() >= S.nextRetryClock and
+            shouldFlushQueue(S.finalizing or S.stopping) then
             kickUpload()
         end
         task.wait(0.25)
