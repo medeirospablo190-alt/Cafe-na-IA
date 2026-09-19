@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.0
+# CAFEÍNA Universal Game Trace V3.2.1
 
 Arquivos principais:
 
@@ -6,6 +6,14 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## Ajustes da V3.2.1
+
+A V3.2.1 faz três ajustes de qualidade observados em coleta real, sem aumentar os caps de scan, frequência de coleta ou tamanho máximo de sessão:
+
+1. **Contexto direto também pode abrir investigação:** um `FireServer` observado logo após `GuiButton.Activated`, `Tool.Activated` ou `ProximityPrompt.Triggered` pode entrar na fila mesmo quando shape e semântica do Remote já são conhecidos. O contexto precisa estar dentro de uma janela curta e o teste ativo continua passando pelos mesmos filtros genéricos de risco.
+2. **Player normalizado na assinatura semântica:** argumentos `Instance` de classe `Player` usam `I:Player` na assinatura de novidade. O payload armazenado continua contendo a instância/nome real; somente a decisão de novidade deixa de reaprender a mesma mecânica para cada jogador diferente.
+3. **Values de background não dominam a lupa:** a coleta normal de `ValueBase` não muda, mas snapshots profundos priorizam paths pouco repetitivos e limitam a quatro as entradas de paths já muito ativos. O buffer total continua em 32 e o snapshot em até 16 valores.
 
 ## Objetivo da V3.2
 
