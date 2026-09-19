@@ -144,6 +144,16 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
 
   const conflict = await post({ ...firstBody, records: [{ kind: "session_started", value: 2 }] });
   assert.equal(conflict.status, 409, "mesmo índice com conteúdo diferente deve ser rejeitado");
+  const conflictBody = await conflict.json();
+  assert.equal(conflictBody.runId, common.runId);
+  assert.equal(conflictBody.batchIndex, 1);
+  assert.equal(conflictBody.existing.batchIndex, 1);
+  assert.equal(conflictBody.existing.batchKind, "data");
+  assert.equal(conflictBody.existing.payloadBytes, 50);
+  assert.equal(conflictBody.existing.recordCount, 1);
+  assert.equal(conflictBody.existing.remoteCount, 0);
+  assert.match(conflictBody.existing.recordsHash, /^[a-f0-9]{12}$/);
+  assert.match(conflictBody.existing.remotesHash, /^[a-f0-9]{12}$/);
 
   const largeRecords = Array.from({ length: 1050 }, (_, i) => ({
     kind: "remote_inbound",
@@ -168,6 +178,12 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
     409,
     "arquivo >1 MB deve ser lido via raw para detectar conflito sem sobrescrever",
   );
+  const largeConflictBody = await largeConflict.json();
+  assert.equal(largeConflictBody.existing.batchIndex, 2);
+  assert.equal(largeConflictBody.existing.payloadBytes, 1_300_000);
+  assert.equal(largeConflictBody.existing.recordCount, 1050);
+  assert.equal(largeConflictBody.existing.remoteCount, 0);
+  assert.match(largeConflictBody.existing.recordsHash, /^[a-f0-9]{12}$/);
 
   const manifest = {
     ...common,
