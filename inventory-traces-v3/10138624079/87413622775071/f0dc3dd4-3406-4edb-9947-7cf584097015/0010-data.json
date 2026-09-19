@@ -1,0 +1,3872 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0_1",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-09-19T07:21:37.000Z",
+  "gameId": 10138624079,
+  "placeId": 87413622775071,
+  "placeVersion": 971,
+  "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+  "batchIndex": 10,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 67480,
+  "records": [
+    {
+      "unix": 1789802618,
+      "sig": "baab5ec3e6c0",
+      "corr": 242,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.4504672910006775,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x8953071be04e21bc"
+        ]
+      },
+      "clock": 121.45101938099833,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2bd245271",
+      "corr": 243,
+      "unix": 1789802618,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.5312675509994733,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 76,
+        "attributes": []
+      },
+      "value": 76,
+      "clock": 121.53181703699738,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "contextRefs": [
+        "80954fceb103",
+        "3936c1e183f0",
+        "baab5ec3e6c0",
+        "d4f2bd245271"
+      ],
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "method": "InvokeServer",
+      "newShape": false,
+      "sig": "9fa4ef74c38e",
+      "corr": 243,
+      "remote": {
+        "path": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+        "name": "Place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DeployableSystem_Remotes",
+        "attributes": []
+      },
+      "unix": 1789802618,
+      "importance": 94,
+      "investigating": true,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99185180664062,
+          "type": "Vector3",
+          "x": 104.05937957763672,
+          "z": -1809.85791015625
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 3,
+        "values": [
+          "PulseTurret",
+          {
+            "y": 149.99185180664062,
+            "type": "Vector3",
+            "x": 104.05937957763672,
+            "z": -1809.85791015625
+          },
+          {
+            "Mode": "QuickFeet"
+          }
+        ]
+      },
+      "clock": 121.55511995399866,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "Vector3"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Mode": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "quality": 94
+    },
+    {
+      "unix": 1789802618,
+      "sig": "98b359c8739c",
+      "corr": 243,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.771777291000035,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.2171592189988587,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1313,
+              "Version": 910,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 121.77232917299989,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "9970ae19782e",
+      "corr": 243,
+      "unix": 1789802618,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.828649843002495,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.2740317710013187,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Zombux",
+        "name": "Zombux",
+        "className": "StringValue",
+        "value": "304974",
+        "attributes": []
+      },
+      "value": "304974",
+      "clock": 121.82920125599776,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802619,
+      "sig": "c38cfb4fe39c",
+      "corr": 244,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.0281239050018485,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.4735058330006723,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xb94ea80d9621055b"
+        ]
+      },
+      "clock": 122.02867083899764,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.0004161816614214331,
+        "type": "Vector3",
+        "x": 1.668058580150955e-8,
+        "z": -1.7085934445049134e-8
+      },
+      "unix": 1789802619,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99185180664062,
+          "type": "Vector3",
+          "x": 104.05937957763672,
+          "z": -1809.85791015625
+        },
+        "userId": 765329164
+      },
+      "corr": 244,
+      "clock": 122.20196130799741,
+      "kind": "trajectory",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 26
+    },
+    {
+      "unix": 1789802619,
+      "sig": "3c01427d9e9f",
+      "corr": 244,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.2727760920024593,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.7181580200012831,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x71f7f165d556bffc"
+        ]
+      },
+      "clock": 122.27332521399876,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f2c5ad99cb",
+      "corr": 244,
+      "unix": 1789802619,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.4941927590007253,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.9395746869995492,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 253,
+        "attributes": []
+      },
+      "value": 253,
+      "clock": 122.4947357869969,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802619,
+      "sig": "79910aeeedaa",
+      "corr": 245,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.599181874000351,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.0445638019991748,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x1fc44a071fe02efd"
+        ]
+      },
+      "clock": 122.59972833899883,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802619,
+      "sig": "9cfe056fad96",
+      "corr": 245,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.776544009000645,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.2219259369994688,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xe12d059f18e460b2"
+        ]
+      },
+      "clock": 122.77709479699843,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f33a2452f4",
+      "corr": 245,
+      "unix": 1789802619,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.854630571000598,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.300012498999422,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 80,
+        "attributes": []
+      },
+      "value": 80,
+      "clock": 122.85516932899918,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802619,
+      "sig": "e55c52ebb36d",
+      "corr": 245,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.9202228630019818,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.3656047910008056,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xd11c48c902554edb"
+        ]
+      },
+      "clock": 122.92077479699947,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f248ad9948",
+      "corr": 245,
+      "unix": 1789802620,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.966473592001421,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.4118555200002447,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 249,
+        "attributes": []
+      },
+      "value": 249,
+      "clock": 122.96702323499994,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802620,
+      "sig": "78e95a19a556",
+      "corr": 246,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.226242185999581,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.671624113998405,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xe42d4ebb3fe33695"
+        ]
+      },
+      "clock": 123.22679344299831,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802620,
+      "sig": "239995b97a2e",
+      "corr": 246,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.383304946000862,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.8286868739996862,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xc29f56e8cc3a07f4"
+        ]
+      },
+      "clock": 123.3838541719997,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "91d65a4d71b3",
+      "corr": 246,
+      "unix": 1789802620,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.479438332000427,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.924820259999251,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Cash",
+        "name": "Cash",
+        "className": "StringValue",
+        "value": "1448",
+        "attributes": []
+      },
+      "value": "1448",
+      "clock": 123.47998714099958,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "contextRefs": [
+        "05f248ad9948",
+        "78e95a19a556",
+        "239995b97a2e",
+        "91d65a4d71b3"
+      ],
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "method": "InvokeServer",
+      "newShape": false,
+      "sig": "d119de61e585",
+      "corr": 246,
+      "remote": {
+        "path": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+        "name": "Place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DeployableSystem_Remotes",
+        "attributes": []
+      },
+      "unix": 1789802620,
+      "importance": 94,
+      "investigating": true,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99185180664062,
+          "type": "Vector3",
+          "x": 106.8167724609375,
+          "z": -1813.1416015625
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 3,
+        "values": [
+          "PulseTurret",
+          {
+            "y": 149.99185180664062,
+            "type": "Vector3",
+            "x": 106.8167724609375,
+            "z": -1813.1416015625
+          },
+          {
+            "Mode": "QuickFeet"
+          }
+        ]
+      },
+      "clock": 123.49161589099822,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "Vector3"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Mode": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "quality": 94
+    },
+    {
+      "unix": 1789802620,
+      "sig": "7b9f3561b8e2",
+      "corr": 247,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.57805109200126,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.023433020000084,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.08694505200037383,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x47bcbe4841dbc517"
+        ]
+      },
+      "clock": 123.57860089099995,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802620,
+      "sig": "fb0c86001c52",
+      "corr": 247,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.779937498002255,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.2253194260010787,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.28883145800136845,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xb0d6ebc5fbab4e4e"
+        ]
+      },
+      "clock": 123.78048833899811,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "80954cceb100",
+      "corr": 247,
+      "unix": 1789802620,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.936951092000527,
+          "id": 4,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.3823330199993507,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.4458450519996404,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.GlobalAliveZombies",
+        "name": "GlobalAliveZombies",
+        "className": "IntValue",
+        "value": 73,
+        "attributes": []
+      },
+      "value": 73,
+      "clock": 123.93749422399924,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802621,
+      "sig": "fa08def066fd",
+      "corr": 248,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.478023176001443,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.5415352080017328,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x54ebfa591f813e26"
+        ]
+      },
+      "clock": 124.0331897449978,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f240ad9940",
+      "corr": 248,
+      "unix": 1789802621,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.6214516139989428,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.6849636459992325,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 241,
+        "attributes": []
+      },
+      "value": 241,
+      "clock": 124.17660021399934,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802621,
+      "sig": "bcb1976dc01f",
+      "corr": 248,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.765628592998837,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.8291406249991269,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xba119e4a481c12f1"
+        ]
+      },
+      "clock": 124.32079609899665,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2bc245270",
+      "corr": 248,
+      "unix": 1789802621,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.823796509001113,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.8873085410014028,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 75,
+        "attributes": []
+      },
+      "value": 75,
+      "clock": 124.37896068199916,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802621,
+      "sig": "6cbbbbbde004",
+      "corr": 249,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.0404508319988963,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.103962863999186,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xbc868245915a8802"
+        ]
+      },
+      "clock": 124.59561734899762,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "45f2ac27d9ba",
+      "corr": 249,
+      "unix": 1789802621,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.238067862999742,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.3015798950000317,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.QueuedZombies",
+        "name": "QueuedZombies",
+        "className": "IntValue",
+        "value": 162,
+        "attributes": []
+      },
+      "value": 162,
+      "clock": 124.79323078599919,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802621,
+      "sig": "7bb110558689",
+      "corr": 249,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.2494426550001663,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.312954687000456,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xceab556d3279b05c"
+        ]
+      },
+      "clock": 124.8046107859991,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802622,
+      "sig": "023a95144929",
+      "corr": 250,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.4718752590015356,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.5353872910018254,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x485c2207f909cd14"
+        ]
+      },
+      "clock": 125.02704453599654,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "4ac58632c3dc",
+      "corr": 250,
+      "unix": 1789802622,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.5241503110009944,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.5876623430012842,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.WaveCompletedAt",
+        "name": "WaveCompletedAt",
+        "className": "NumberValue",
+        "value": 1789802622.737218,
+        "attributes": []
+      },
+      "value": 1789802622.737218,
+      "clock": 125.07931396299682,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802622,
+      "sig": "e935d7149fad",
+      "corr": 250,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.60169718600082,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.6652092180011095,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xc1d845e63c503cfa"
+        ]
+      },
+      "clock": 125.15686396299861,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2b824526c",
+      "corr": 250,
+      "unix": 1789802622,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.7937373940003454,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.8572494260006351,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 71,
+        "attributes": []
+      },
+      "value": 71,
+      "clock": 125.34888380699704,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802622,
+      "sig": "2ccc571833d9",
+      "corr": 250,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.8687003109989746,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.9322123429992644,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1282,
+              "Version": 1020,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 145,
+              "Version": 1021,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 13821,
+              "Version": 1022,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 305234,
+              "Version": 1023,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 125.42386203599744,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.00041618183604441583,
+        "type": "Vector3",
+        "x": 8.929302215576172,
+        "z": 2.761484384536743
+      },
+      "unix": 1789802622,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99185180664062,
+          "type": "Vector3",
+          "x": 97.07737731933594,
+          "z": -1809.1131591796875
+        },
+        "userId": 765329164
+      },
+      "corr": 250,
+      "clock": 125.42883109799732,
+      "kind": "trajectory",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 26
+    },
+    {
+      "sig": "e952afbbc06a",
+      "corr": 250,
+      "unix": 1789802622,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.9191251550000743,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.982637187000364,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "13832",
+        "attributes": []
+      },
+      "value": "13832",
+      "clock": 125.47429312999884,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802622,
+      "sig": "101219ee5e71",
+      "corr": 251,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.020782654999493,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.084294686999783,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x93c410122aa0412e"
+        ]
+      },
+      "clock": 125.57594896299997,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802622,
+      "sig": "2b8f22155611",
+      "corr": 251,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.289578175001225,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.3530902070015145,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x9d53a4ecca41a6f9"
+        ]
+      },
+      "clock": 125.84474401499756,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f13ead9832",
+      "corr": 252,
+      "unix": 1789802623,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.517815102000895,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.581327134001185,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 225,
+        "attributes": []
+      },
+      "value": 225,
+      "clock": 126.07298167099725,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802623,
+      "sig": "7ac944ee50c1",
+      "corr": 252,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.521161509001104,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.5846735410013935,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x772b799c0045b195"
+        ]
+      },
+      "clock": 126.07633297299981,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "e9953bbc0938",
+      "corr": 252,
+      "unix": 1789802623,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.691715987999487,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.7552280199997767,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "13928",
+        "attributes": []
+      },
+      "value": "13928",
+      "clock": 126.24688312899889,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802623,
+      "sig": "46c596f2d53e",
+      "corr": 252,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.82434676900084,
+          "id": 5,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 2.88785880100113,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xa187a31152d17bb5"
+        ]
+      },
+      "clock": 126.37951693099967,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "05f13ead9832",
+        "7ac944ee50c1",
+        "e9953bbc0938",
+        "46c596f2d53e"
+      ],
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "method": "InvokeServer",
+      "newShape": false,
+      "sig": "008a1a1ea6f8",
+      "corr": 252,
+      "remote": {
+        "path": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+        "name": "Place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.DeployableSystem_Remotes",
+        "attributes": []
+      },
+      "unix": 1789802623,
+      "importance": 94,
+      "investigating": true,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99185180664062,
+          "type": "Vector3",
+          "x": 100.14407348632812,
+          "z": -1808.3297119140625
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 3,
+        "values": [
+          "PulseTurret",
+          {
+            "y": 149.99185180664062,
+            "type": "Vector3",
+            "x": 100.14407348632812,
+            "z": -1808.3297119140625
+          },
+          {
+            "Mode": "QuickFeet"
+          }
+        ]
+      },
+      "clock": 126.41776354600006,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "Vector3"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Mode": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "quality": 94
+    },
+    {
+      "sig": "05f139ad982d",
+      "corr": 253,
+      "unix": 1789802623,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.0865347379985906,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.16033453099953476,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 220,
+        "attributes": []
+      },
+      "value": 220,
+      "clock": 126.5781862019976,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802623,
+      "sig": "f357a4b082bd",
+      "corr": 253,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.0903391130013915,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.16413890600233572,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x994a278dd31a2340"
+        ]
+      },
+      "clock": 126.58199724399674,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "e997cabc0be5",
+      "corr": 253,
+      "unix": 1789802623,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.275912655000866,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.3497124480018101,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "13978",
+        "attributes": []
+      },
+      "value": "13978",
+      "clock": 126.7675660979985,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802623,
+      "sig": "834ecaeb5bd6",
+      "corr": 253,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.2763187490018026,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.35011854200274684,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x5b66e4ffe177a5bb"
+        ]
+      },
+      "clock": 126.76797807699768,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802624,
+      "sig": "8cd66d0932a0",
+      "corr": 253,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.475538852999307,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.5493386460002512,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x41fe184ef665031c"
+        ]
+      },
+      "clock": 126.96719297299933,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "90caba4c4cf9",
+      "corr": 254,
+      "unix": 1789802624,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.60248286299975,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.6762826560006943,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Cash",
+        "name": "Cash",
+        "className": "StringValue",
+        "value": "1059",
+        "attributes": []
+      },
+      "value": "1059",
+      "clock": 127.09413901399967,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802624,
+      "sig": "4b7a5bf394f4",
+      "corr": 254,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.6476529149986163,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 0.7214527079995605,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x3a66a7585dcfc7d6"
+        ]
+      },
+      "clock": 127.1393102639995,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802624,
+      "sig": "ab54adc5bb80",
+      "corr": 254,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.9408426029986003,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.0146423959995445,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x31f924b3bfe4260e"
+        ]
+      },
+      "clock": 127.43250068099951,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "098788e0b1b8",
+      "corr": 255,
+      "unix": 1789802624,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.03992765500152,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.1137274480024644,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "14028",
+        "attributes": []
+      },
+      "value": "14028",
+      "clock": 127.53158375400017,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802624,
+      "sig": "5770bbf72ee6",
+      "corr": 255,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.183636040001147,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.2574358330020914,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x24e7e536fa6e4e9e"
+        ]
+      },
+      "clock": 127.67529177499819,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802624,
+      "sig": "aafff0edbf25",
+      "corr": 255,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.363628435999999,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.4374282290009432,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1111,
+              "Version": 1101,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 145,
+              "Version": 1102,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 14040,
+              "Version": 1103,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 305434,
+              "Version": 1104,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 127.85527427499983,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2382451e6",
+      "corr": 255,
+      "unix": 1789802624,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.458787393999955,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.5325871870008996,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 64,
+        "attributes": []
+      },
+      "value": 64,
+      "clock": 127.95043453499966,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802625,
+      "sig": "65ee87a68bf5",
+      "corr": 256,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.628466717000265,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.702266510001209,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1133,
+              "Version": 1106,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 145,
+              "Version": 1107,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 14045,
+              "Version": 1108,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 305444,
+              "Version": 1109,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 128.120112659999,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2372451e5",
+      "corr": 256,
+      "unix": 1789802625,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.73478557099952,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.8085853640004643,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 63,
+        "attributes": []
+      },
+      "value": 63,
+      "clock": 128.22643427399817,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802625,
+      "sig": "da95b5d9cbdc",
+      "corr": 256,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.737020311000379,
+          "id": 6,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        },
+        {
+          "method": "InvokeServer",
+          "age": 1.8108201040013228,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1153,
+              "Version": 1114,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 145,
+              "Version": 1115,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 14057,
+              "Version": 1116,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 305464,
+              "Version": 1117,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 128.22867713899905,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802625,
+      "sig": "a140a22aa732",
+      "corr": 257,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.1587209370009077,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xffafc959f3940e62"
+        ]
+      },
+      "clock": 128.57656406599926,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "ba6f9f3f467b",
+      "corr": 257,
+      "unix": 1789802625,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.2355809370019415,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Zombux",
+        "name": "Zombux",
+        "className": "StringValue",
+        "value": "305484",
+        "attributes": []
+      },
+      "value": "305484",
+      "clock": 128.6534332329975,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802625,
+      "sig": "d80177ee24cd",
+      "corr": 257,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.361352342999453,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xdaf62d31d59eb449"
+        ]
+      },
+      "clock": 128.77921062799942,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "baaf133f8c0d",
+      "corr": 257,
+      "unix": 1789802625,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.534473905001505,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Zombux",
+        "name": "Zombux",
+        "className": "StringValue",
+        "value": "305514",
+        "attributes": []
+      },
+      "value": "305514",
+      "clock": 128.95232505499735,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802626,
+      "sig": "97c84e612272",
+      "corr": 257,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.5784672390000196,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x38e2f90d5338b84c"
+        ]
+      },
+      "clock": 128.99632401399867,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802626,
+      "sig": "3e20a1886b20",
+      "corr": 258,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 2.927392759000213,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xcfe4f9a80d36518c"
+        ]
+      },
+      "clock": 129.34523594099664,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802626,
+      "sig": "ed6592e682eb",
+      "corr": 259,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.11302994700236,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xad00e35ff3f8c4bc"
+        ]
+      },
+      "clock": 129.5308864089966,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "baaf133f8c0d",
+        "97c84e612272",
+        "3e20a1886b20",
+        "ed6592e682eb"
+      ],
+      "method": "FireServer",
+      "newShape": false,
+      "sig": "9eda3c886c88",
+      "corr": 259,
+      "remote": {
+        "path": "ReplicatedStorage.Events.Actions.FireProjectileWeapon",
+        "name": "FireProjectileWeapon",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events.Actions",
+        "attributes": []
+      },
+      "unix": 1789802626,
+      "importance": 62,
+      "investigating": false,
+      "payload": {
+        "count": 6,
+        "values": [
+          "RPG",
+          {
+            "y": 148.35110473632812,
+            "type": "Vector3",
+            "x": 50.07563781738281,
+            "z": -1842.889404296875
+          },
+          42,
+          1,
+          68,
+          0
+        ]
+      },
+      "clock": 129.59079312799804,
+      "kind": "remote_outbound",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 82
+    },
+    {
+      "sig": "d4f23a2451e8",
+      "corr": 259,
+      "unix": 1789802626,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.4613873950002016,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 66,
+        "attributes": []
+      },
+      "value": 66,
+      "clock": 129.8792429199966,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802626,
+      "sig": "0ee4c2e89e3a",
+      "corr": 259,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.471451197001443,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xf311632a38c29cae"
+        ]
+      },
+      "clock": 129.8893096899992,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.5744146704673767,
+        "type": "Vector3",
+        "x": -7.505430698394775,
+        "z": 8.843893051147461
+      },
+      "unix": 1789802626,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 150.10472106933594,
+          "type": "Vector3",
+          "x": 96.99473571777344,
+          "z": -1803.420166015625
+        },
+        "userId": 765329164
+      },
+      "corr": 259,
+      "clock": 129.91110958599893,
+      "kind": "trajectory",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 26
+    },
+    {
+      "sig": "206cf178950e",
+      "corr": 260,
+      "unix": 1789802627,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.632485624002584,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.TotalZombiesThisWave",
+        "name": "TotalZombiesThisWave",
+        "className": "IntValue",
+        "value": 72,
+        "attributes": []
+      },
+      "value": 72,
+      "clock": 130.05033646099764,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802627,
+      "sig": "11a0fcd0e5a5",
+      "corr": 260,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.6376221339996846,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x524ba583a65333f8"
+        ]
+      },
+      "clock": 130.05548140899919,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802627,
+      "sig": "04f67610eacb",
+      "corr": 260,
+      "remote": {
+        "path": "ReplicatedStorage.Events.Communication.Hitmarker",
+        "name": "Hitmarker",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events.Communication",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.80340828000044,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 4,
+        "values": [
+          "RPG",
+          false,
+          true,
+          {
+            "y": 148.40713500976562,
+            "type": "Vector3",
+            "x": 51.494991302490234,
+            "z": -1842.061767578125
+          }
+        ]
+      },
+      "clock": 130.2212650549991,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "bab2253f8f43",
+      "corr": 260,
+      "unix": 1789802627,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.888019530000747,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Stats.Zombux",
+        "name": "Zombux",
+        "className": "StringValue",
+        "value": "305614",
+        "attributes": []
+      },
+      "value": "305574",
+      "clock": 130.30587125300008,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802627,
+      "sig": "a3bc9e2702d4",
+      "corr": 260,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 3.946116717001132,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xd4ab0a0109a62904"
+        ]
+      },
+      "clock": 130.36396979399797,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "8094caceb078",
+      "corr": 261,
+      "unix": 1789802627,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.164877081999293,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.GlobalAliveZombies",
+        "name": "GlobalAliveZombies",
+        "className": "IntValue",
+        "value": 64,
+        "attributes": []
+      },
+      "value": 64,
+      "clock": 130.5827302109974,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "unix": 1789802627,
+      "sig": "830cc19cba81",
+      "corr": 261,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.248014582000906,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xd9271822c3d69de0"
+        ]
+      },
+      "clock": 130.66587317999802,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802628,
+      "sig": "254e6c8bc304",
+      "corr": 262,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.604754061001586,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x9c53047b21011570"
+        ]
+      },
+      "clock": 131.022611512999,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "unix": 1789802628,
+      "sig": "f5f0116418be",
+      "corr": 262,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.885245311001199,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x8f2b50a81eebe1e1"
+        ]
+      },
+      "clock": 131.3030975549991,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f346ad9a52",
+      "corr": 262,
+      "unix": 1789802628,
+      "causeCandidates": [
+        {
+          "method": "InvokeServer",
+          "age": 4.949528436001856,
+          "id": 7,
+          "importance": 94,
+          "remote": "ReplicatedStorage.DeployableSystem_Remotes.Place",
+          "shape": "56e16fd9cbc6"
+        }
+      ],
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 261,
+        "attributes": []
+      },
+      "value": 261,
+      "clock": 131.3673831269989,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "3e8d41946340",
+      "corr": 263,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802628,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x06c4b26541c48f0c"
+        ]
+      },
+      "clock": 131.53656177299854,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "254e6c8bc304",
+        "f5f0116418be",
+        "05f346ad9a52",
+        "3e8d41946340"
+      ],
+      "method": "FireServer",
+      "newShape": false,
+      "sig": "aaa09824160f",
+      "corr": 263,
+      "remote": {
+        "path": "ReplicatedStorage.Events.Actions.ReloadWeapon",
+        "name": "ReloadWeapon",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events.Actions",
+        "attributes": []
+      },
+      "unix": 1789802628,
+      "importance": 61,
+      "investigating": false,
+      "payload": {
+        "count": 5,
+        "values": [
+          "RPG",
+          "Complete",
+          14,
+          3,
+          70
+        ]
+      },
+      "clock": 131.59212687699983,
+      "kind": "remote_outbound",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 82
+    },
+    {
+      "sig": "d5c02870039f",
+      "corr": 263,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802628,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xcdf6ddcd1f54ce3a"
+        ]
+      },
+      "clock": 131.85267755399764,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "0a0f24e145f6",
+      "corr": 263,
+      "unix": 1789802628,
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "14259",
+        "attributes": []
+      },
+      "value": "14259",
+      "clock": 131.85551244999806,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "58279fda75e1",
+      "corr": 264,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802629,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x897717aaa5075a4f"
+        ]
+      },
+      "clock": 132.13964942899838,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "05f2c8ad99ce",
+      "corr": 265,
+      "unix": 1789802629,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.ZombiesRemaining",
+        "name": "ZombiesRemaining",
+        "className": "IntValue",
+        "value": 256,
+        "attributes": []
+      },
+      "value": 256,
+      "clock": 132.53091328299706,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "5452cdda03ed",
+      "corr": 265,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802629,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xa7988547b408d3b4"
+        ]
+      },
+      "clock": 132.53433703299743,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.000832348654512316,
+        "type": "Vector3",
+        "x": -7.653743743896484,
+        "z": -14.050494194030762
+      },
+      "unix": 1789802629,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 149.99183654785156,
+          "type": "Vector3",
+          "x": 72.726806640625,
+          "z": -1809.43994140625
+        },
+        "userId": 765329164
+      },
+      "corr": 265,
+      "clock": 132.5407361999969,
+      "kind": "trajectory",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 26
+    },
+    {
+      "sig": "539ef5a5661e",
+      "corr": 265,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802629,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xef2c89929f725ad5"
+        ]
+      },
+      "clock": 132.82722151199778,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "d4f2392451e7",
+      "corr": 265,
+      "unix": 1789802630,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.AliveZombies",
+        "name": "AliveZombies",
+        "className": "IntValue",
+        "value": 65,
+        "attributes": []
+      },
+      "value": 65,
+      "clock": 132.99771791799867,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "5f474dd4b352",
+      "corr": 265,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802630,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x823c35e0977f6f5c"
+        ]
+      },
+      "clock": 132.99895104299867,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "d6de583002cf",
+        "539ef5a5661e",
+        "d4f2392451e7",
+        "5f474dd4b352"
+      ],
+      "method": "FireServer",
+      "newShape": false,
+      "sig": "96c39db18de4",
+      "corr": 266,
+      "remote": {
+        "path": "ReplicatedStorage.Events.Actions.FireProjectileWeapon",
+        "name": "FireProjectileWeapon",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events.Actions",
+        "attributes": []
+      },
+      "unix": 1789802630,
+      "importance": 62,
+      "investigating": false,
+      "payload": {
+        "count": 6,
+        "values": [
+          "RPG",
+          {
+            "y": 149.46958923339844,
+            "type": "Vector3",
+            "x": 39.57014846801758,
+            "z": -1837.1981201171875
+          },
+          44,
+          2,
+          72,
+          0
+        ]
+      },
+      "clock": 133.09239713699935,
+      "kind": "remote_outbound",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 82
+    },
+    {
+      "sig": "6defabd5cf14",
+      "corr": 266,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802630,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x1d46575b7d98de9b"
+        ]
+      },
+      "clock": 133.3800046369979,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "027d77f83578",
+      "corr": 267,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802630,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xa349e4691007cba6"
+        ]
+      },
+      "clock": 133.54551005399844,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "8094c8ceb076",
+      "corr": 267,
+      "unix": 1789802630,
+      "object": {
+        "path": "ReplicatedStorage.RoundInfo.GlobalAliveZombies",
+        "name": "GlobalAliveZombies",
+        "className": "IntValue",
+        "value": 62,
+        "attributes": []
+      },
+      "value": 62,
+      "clock": 133.60138562700013,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "0a53b2e190de",
+      "corr": 267,
+      "unix": 1789802630,
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "14423",
+        "attributes": []
+      },
+      "value": "14385",
+      "clock": 133.61335177199726,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "e75334b08c84",
+      "corr": 267,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802630,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xd43c0ad6c61fc9fa"
+        ]
+      },
+      "clock": 133.6157504699986,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "0a93ade1d6fd",
+      "corr": 267,
+      "unix": 1789802630,
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "14429",
+        "attributes": []
+      },
+      "value": "14429",
+      "clock": 133.7925246369996,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "2e161744bc5c",
+      "corr": 267,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802630,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x5ca27b9a8c3bf68b"
+        ]
+      },
+      "clock": 133.79292328299925,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "2ad430968b70",
+      "corr": 268,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_ClientEvent",
+        "name": "Zombie_ClientEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802631,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x182de021ef06b50b"
+        ]
+      },
+      "clock": 134.217399844998,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "contextRefs": [
+        "e75334b08c84",
+        "0a93ade1d6fd",
+        "2e161744bc5c",
+        "2ad430968b70"
+      ],
+      "method": "FireServer",
+      "newShape": false,
+      "sig": "230da8dde33a",
+      "corr": 268,
+      "remote": {
+        "path": "ReplicatedStorage.Events.Actions.ReloadWeapon",
+        "name": "ReloadWeapon",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Events.Actions",
+        "attributes": []
+      },
+      "unix": 1789802631,
+      "importance": 61,
+      "investigating": false,
+      "payload": {
+        "count": 5,
+        "values": [
+          "RPG",
+          "Begin",
+          15,
+          0,
+          74
+        ]
+      },
+      "clock": 134.37599880299967,
+      "kind": "remote_outbound",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 82
+    },
+    {
+      "sig": "43e3cde4776d",
+      "corr": 268,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802631,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0x930fd321ebcce96a"
+        ]
+      },
+      "clock": 134.48147458499807,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "0a95b4e1d91c",
+      "corr": 269,
+      "unix": 1789802631,
+      "object": {
+        "path": "ReplicatedStorage.ClientData.capuccino40.Level.Exp",
+        "name": "Exp",
+        "className": "StringValue",
+        "value": "14464",
+        "attributes": []
+      },
+      "value": "14464",
+      "clock": 134.72772963699754,
+      "kind": "value_changed",
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "quality": 72
+    },
+    {
+      "sig": "8ac3d3bcdd9b",
+      "corr": 269,
+      "remote": {
+        "path": "ReplicatedStorage.Zombie_Remotes.Zombie_Event",
+        "name": "Zombie_Event",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Zombie_Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802631,
+      "payload": {
+        "count": 1,
+        "values": [
+          "buffer: 0xbf26197b8d653128"
+        ]
+      },
+      "clock": 134.728022031999,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    },
+    {
+      "sig": "4c0e50dc06be",
+      "corr": 269,
+      "remote": {
+        "path": "ReplicatedStorage.Shared.DataReplication.Events.Update",
+        "name": "Update",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Shared.DataReplication.Events",
+        "attributes": []
+      },
+      "importance": 34,
+      "runId": "f0dc3dd4-3406-4edb-9947-7cf584097015",
+      "investigating": false,
+      "unix": 1789802631,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Cash",
+              "Value": 1633,
+              "Version": 1278,
+              "Action": "Increment"
+            },
+            "2": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Level",
+              "Value": 145,
+              "Version": 1279,
+              "Action": "Set"
+            },
+            "3": {
+              "Path": {
+                "1": "Level"
+              },
+              "Key": "Exp",
+              "Value": 14476,
+              "Version": 1280,
+              "Action": "Set"
+            },
+            "4": {
+              "Path": {
+                "1": "Stats"
+              },
+              "Key": "Zombux",
+              "Value": 305874,
+              "Version": 1281,
+              "Action": "Increment"
+            }
+          }
+        ]
+      },
+      "clock": 134.92834062600014,
+      "kind": "remote_inbound",
+      "newShape": false,
+      "quality": 78
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-09-19T07:23:52.947Z",
+  "contentChecksum": "K7HxytwoL7SEOhIFZ8zE",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 311219,
+    "inboundListeners": 88,
+    "ackBytes": 243739,
+    "queueBytes": 67480
+  }
+}
