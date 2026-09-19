@@ -1245,6 +1245,7 @@ end
 --==============================================================--
 
 local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
+local OUTBOUND_HOOK_VERSION = 2
 
 local function installOutboundObserver()
     if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
@@ -1254,28 +1255,48 @@ local function installOutboundObserver()
     end
 
     local registry = rawget(ENV, OUTBOUND_HOOK_KEY)
+
+    -- Neutralize the V1 dispatcher before chaining a corrected hook over it.
+    -- The old wrapper called Instance:IsA() inside __namecall before forwarding,
+    -- which can disturb the active namecall method on some executors.
+    if type(registry) == "table" and registry.installed == true and registry.version ~= OUTBOUND_HOOK_VERSION then
+        registry.callback = nil
+        registry = nil
+    end
+
     if type(registry) ~= "table" or registry.installed ~= true then
-        registry = { installed = false, callback = nil }
+        registry = { installed = false, callback = nil, version = OUTBOUND_HOOK_VERSION }
         local oldNamecall
         local function wrapper(self, ...)
             local method = GETNAMECALLMETHOD()
             local callback = registry.callback
-            if callback and (method == "FireServer" or method == "InvokeServer") and typeof(self) == "Instance" and isRemote(self) then
+            local className = typeof(self) == "Instance" and self.ClassName or nil
+            local outboundRemote =
+                className == "RemoteEvent" or className == "RemoteFunction" or className == "UnreliableRemoteEvent"
+
+            if callback and outboundRemote and (method == "FireServer" or method == "InvokeServer") then
                 local args = table.pack(...)
-                pcall(callback, self, method, args)
+                -- Do zero Instance method calls before the original namecall.
+                -- Observation runs deferred and cannot block damage, votes, purchases, etc.
+                task.defer(function()
+                    pcall(callback, self, method, args)
+                end)
             end
+
             return oldNamecall(self, ...)
         end
 
         local wrapped = NEWCLOSURE and NEWCLOSURE(wrapper) or wrapper
         local ok, old = pcall(HOOKMETAMETHOD, game, "__namecall", wrapped)
         if not ok or type(old) ~= "function" then
+            registry.callback = nil
             S.coverage.outboundObserver = "hook_failed"
             S.outboundHookReady = false
             return false
         end
         oldNamecall = old
         registry.installed = true
+        registry.version = OUTBOUND_HOOK_VERSION
         rawset(ENV, OUTBOUND_HOOK_KEY, registry)
     end
 
@@ -1336,6 +1357,7 @@ local function installOutboundObserver()
     S.outboundHookRegistry = registry
     S.outboundHookReady = true
     S.coverage.outboundObserver = "active"
+    S.coverage.outboundObserverVersion = OUTBOUND_HOOK_VERSION
     return true
 end
 
