@@ -14,6 +14,7 @@ A V3.2.6 melhora a interpretação dos dados sem aumentar scans ou frequência d
 - correlações passam a carregar `relationStage`: `candidate`, `repeated`, `confirmed` ou `weak_context`;
 - objetos criados/removidos dentro de personagens de jogadores recebem peso causal menor (exceto `Tool`), reduzindo associações acidentais com churn de avatar;
 - confiança causal considera suporte confiável, baseline, proximidade temporal e consistência do intervalo;
+- `confirmed` exige pelo menos duas ocorrências distintas do efeito, evitando que várias janelas contem o mesmo evento como confirmações separadas;
 - `remoteImpact` só sobe por correlação quando há pelo menos 3 suportes, 2 suportes confiáveis e confiança mínima;
 - relações confirmadas deixam de consumir novas investigações repetidas na mesma sessão;
 - cada candidato guarda `queuedAt`, contexto compacto ao entrar na fila e hashes de contexto no início/antes do teste;
