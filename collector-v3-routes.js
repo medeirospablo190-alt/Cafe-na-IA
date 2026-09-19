@@ -29,6 +29,12 @@ const MAX_PROFILE_LOW = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_LOW_MAX,
 const MAX_PROFILE_SHAPES = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_SHAPE_MAX, 1000, 20000, 12000);
 const MAX_PROFILE_SEMANTIC = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_SEMANTIC_MAX, 1000, 20000, 12000);
 const MAX_PROFILE_REMOTES = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_REMOTE_MAX, 500, 8000, 4000);
+const MAX_PROFILE_INVESTIGATIONS = clampInt(
+  process.env.INVENTORY_TRACE_V3_PROFILE_INVESTIGATION_MAX,
+  100,
+  2000,
+  800
+);
 const MAX_PROFILE_FRONTIER = clampInt(process.env.INVENTORY_TRACE_V3_PROFILE_FRONTIER_MAX, 10, 300, 100);
 const BODY_LIMIT = process.env.INVENTORY_TRACE_V3_BODY_LIMIT || "3mb";
 const HARD_SESSION_BYTES = 150 * 1024 * 1024;
@@ -55,6 +61,7 @@ export function installCollectorV3Routes(app) {
         shapeHashes: MAX_PROFILE_SHAPES,
         semanticHashes: MAX_PROFILE_SEMANTIC,
         remoteHashes: MAX_PROFILE_REMOTES,
+        investigationKnowledge: MAX_PROFILE_INVESTIGATIONS,
       },
     });
   });
@@ -299,6 +306,11 @@ async function mergeAndSaveProfile(gameId, runId, profileDelta, strategyDelta, c
       delta?.knownRemoteHashes,
       MAX_PROFILE_REMOTES
     );
+    current.investigationKnowledge = mergeInvestigationKnowledge(
+      current.investigationKnowledge,
+      delta?.investigationKnowledge,
+      MAX_PROFILE_INVESTIGATIONS
+    );
     current.frontier = mergeBoundedStrings(current.frontier, delta?.frontier, MAX_PROFILE_FRONTIER, 180);
     current.strategy = mergeStrategy(current.strategy, strategyDelta);
     current.lastCoverage = compactCoverage(coverage);
@@ -393,6 +405,7 @@ function emptyProfile(gameId) {
     knownShapeHashes: [],
     knownSemanticHashes: [],
     knownRemoteHashes: [],
+    investigationKnowledge: [],
     frontier: [],
     strategy: {},
     lastCoverage: {},
@@ -420,6 +433,58 @@ function mergeBoundedHashes(current, incoming, max) {
       out.push(s.toLowerCase());
     }
   }
+  return out.length <= max ? out : out.slice(out.length - max);
+}
+
+function mergeInvestigationKnowledge(current, incoming, max) {
+  const rows = new Map();
+
+  const apply = (source, accumulate) => {
+    if (!Array.isArray(source)) return;
+    for (const value of source) {
+      const row = safeObject(value);
+      const key = String(row?.key || "").toLowerCase();
+      if (!/^[a-f0-9]{8,24}$/.test(key)) continue;
+
+      const old = rows.get(key) || {
+        key,
+        observations: 0,
+        activeTests: 0,
+        completed: 0,
+        passiveOnly: 0,
+        cancelled: 0,
+        status: null,
+        lastReason: null,
+        lastImpact: null,
+        lastOutcome: null,
+      };
+      const next = { ...old };
+      for (const field of ["observations", "activeTests", "completed", "passiveOnly", "cancelled"]) {
+        const incomingValue = Math.max(0, Math.floor(Number(row[field]) || 0));
+        next[field] = accumulate ? boundedCounter(old[field], incomingValue) : incomingValue;
+      }
+
+      const status = String(row.status || "").slice(0, 32);
+      if (/^(observed|tested|passive|blocked|cancelled|error|inconclusive)$/.test(status)) {
+        next.status = status;
+      }
+      if (row.lastReason !== undefined && row.lastReason !== null) {
+        next.lastReason = String(row.lastReason).slice(0, 120);
+      }
+      const impact = Number(row.lastImpact);
+      if (Number.isFinite(impact)) next.lastImpact = Math.max(0, Math.min(100, Math.round(impact * 100) / 100));
+
+      const outcome = String(row.lastOutcome || "").toLowerCase();
+      if (/^[a-f0-9]{8,24}$/.test(outcome)) next.lastOutcome = outcome;
+
+      if (rows.has(key)) rows.delete(key);
+      rows.set(key, next);
+    }
+  };
+
+  apply(current, false);
+  apply(incoming, true);
+  const out = [...rows.values()];
   return out.length <= max ? out : out.slice(out.length - max);
 }
 
