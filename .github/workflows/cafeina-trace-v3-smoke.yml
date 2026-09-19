@@ -1,0 +1,42 @@
+name: CAFEINA Trace V3 Smoke
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Cafeina_Universal_Game_Trace_V3_0.lua"
+      - "collector-v3-routes.js"
+      - "gateway-main.js"
+      - ".github/workflows/cafeina-trace-v3-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Wait for Render Trace V3 endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health"
+          for i in $(seq 1 24); do
+            CODE="$(curl --silent --show-error --location --max-time 45 --output /tmp/health.json --write-out '%{http_code}' "$URL" || true)"
+            echo "attempt=$i code=$CODE"
+            cat /tmp/health.json 2>/dev/null || true
+            echo
+            if [ "$CODE" = "200" ] \
+              && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' /tmp/health.json \
+              && grep -Eq '"githubMirrorConfigured"[[:space:]]*:[[:space:]]*true' /tmp/health.json \
+              && grep -Eq '"hardSessionBytes"[[:space:]]*:[[:space:]]*157286400' /tmp/health.json; then
+              echo "CAFEINA Trace V3 is deployed and GitHub mirroring is ready."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "CAFEINA Trace V3 endpoint did not become ready in time."
+          exit 1
