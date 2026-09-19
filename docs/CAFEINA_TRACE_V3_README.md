@@ -25,7 +25,7 @@ A correção mantém a coleta intacta e atua somente na camada de transporte/rec
 
 O outbox não aumenta scans, watchers, frequência de coleta, investigação, orçamento de memória da sessão nem limites da API. A escrita adicional ocorre apenas quando um lote realmente vai ser transmitido.
 
-Caches antigos (`schemaVersion=3`) continuam carregando. Como eles foram criados antes do outbox durável, um conflito legado não é corrigido por adivinhação: o coletor preserva os dados, bloqueia repetição automática do erro e mostra o diagnóstico necessário para recuperação controlada.
+Caches antigos (`schemaVersion=3`) continuam carregando. Se um ACK antigo foi perdido e o mesmo índice já existe no GitHub, o servidor devolve somente metadados seguros do lote existente (índice, bytes, contagens e hashes compactos). O cliente só avança a fila quando o prefixo local coincide nesses campos; caso qualquer verificação falhe, nada é removido, retries determinísticos são bloqueados e o painel mostra o diagnóstico. Essa elegibilidade de recuperação também é preservada se houver outro reinício durante o processo.
 
 ## V3.2.6 — qualidade causal e contexto das investigações
 
