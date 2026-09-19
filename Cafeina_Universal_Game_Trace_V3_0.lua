@@ -792,6 +792,8 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
     object.quality = math.clamp(priority + (novelty and 5 or 0), 0, 100)
     object.corr = math.floor(object.clock * 2)
     if priority >= 80 then object.contextRefs = contextRefs() end
+    local causeCandidates = correlationCandidates(category)
+    if causeCandidates then object.causeCandidates = causeCandidates end
 
     local ok, json = pcall(HttpService.JSONEncode, HttpService, object)
     if not ok or type(json) ~= "string" then
@@ -815,9 +817,11 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         return false
     end
 
+    local wasEmpty = S.queueBytes <= 0
     S.queue[#S.queue + 1] = { channel = channel, json = json, bytes = bytes }
     S.queueBytes = S.queueBytes + bytes
     S.totalBytes = S.totalBytes + bytes
+    if wasEmpty then S.firstQueuedClock = os.clock() end
     markExact(exactHash)
 
     local st = strategyFor(category)
@@ -837,8 +841,30 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         addBoundedDelta(S.deltaRemote, S.deltaRemoteSet, persistentHash, C.DELTA_REMOTE_CAP)
     end
 
-    if S.queueBytes >= C.BATCH_TARGET_BYTES * 0.70 and kickUpload then kickUpload() end
+    if S.queueBytes >= C.BATCH_MIN_FLUSH_BYTES and kickUpload then kickUpload() end
     return true
+end
+
+local function shouldFlushQueue(force)
+    if S.queueHead > #S.queue or S.queueBytes <= 0 then return false end
+    if force then return true end
+    if S.queueBytes >= C.BATCH_MIN_FLUSH_BYTES then return true end
+    if S.queueBytes >= C.QUEUE_SOFT_BYTES then return true end
+    if S.firstQueuedClock > 0 and os.clock() - S.firstQueuedClock >= C.BATCH_MAX_LATENCY then return true end
+    return false
+end
+
+local function dropPendingForBatchBudget()
+    if S.queueBytes > 0 then
+        bump(S.dropped, "batch_budget_bytes", S.queueBytes)
+        bump(S.dropped, "batch_budget_events")
+        S.smartStats.batchBudgetDrops = (S.smartStats.batchBudgetDrops or 0) + 1
+    end
+    S.queue = {}
+    S.queueHead = 1
+    S.queueBytes = 0
+    S.firstQueuedClock = 0
+    S.pendingSend = nil
 end
 
 local function compactQueue()
@@ -875,6 +901,9 @@ local function buildDataBatch()
 
     if stop < S.queueHead then return nil end
     if S.batchIndex + 2 > C.MAX_BATCHES then
+        -- Keep the final manifest slot. If this guard is ever reached, discard only
+        -- the still-pending tail and record its byte count instead of deadlocking.
+        dropPendingForBatchBudget()
         S.stopping = true
         task.defer(function() if S.finishCallback then S.finishCallback(true) end end)
         return nil
@@ -931,15 +960,23 @@ local function acknowledgeBatch(batch)
     S.queueBytes = math.max(0, S.queueBytes - batch.bytes)
     S.ackBytes = S.ackBytes + batch.bytes
     S.pendingSend = nil
+    S.lastUploadError = nil
     compactQueue()
+    if S.queueHead > #S.queue or S.queueBytes <= 0 then
+        S.firstQueuedClock = 0
+    else
+        S.firstQueuedClock = os.clock()
+    end
 end
 
 kickUpload = function()
     if S.uploading or os.clock() < S.nextRetryClock then return end
-    if S.queueHead > #S.queue then return end
+    if not shouldFlushQueue(S.finalizing or S.stopping) then return end
     S.uploading = true
     task.spawn(function()
         while (S.running or S.finalizing) and S.queueHead <= #S.queue do
+            local force = S.finalizing or S.stopping
+            if not shouldFlushQueue(force) then break end
             local batch = buildDataBatch()
             if not batch then break end
             local ok, err = sendDataBatch(batch)
@@ -948,9 +985,11 @@ kickUpload = function()
                 S.serverReady = true
             else
                 S.serverReady = false
+                S.lastUploadError = tostring(err)
                 S.nextRetryClock = os.clock() + 5
                 break
             end
+            if S.running and not S.finalizing and not shouldFlushQueue(false) then break end
             task.wait()
         end
         S.uploading = false
