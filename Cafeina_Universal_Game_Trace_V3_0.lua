@@ -1,22 +1,25 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.0
--- Passive, adaptive, persistent-per-game collector.
+-- CAFEINA • UNIVERSAL GAME TRACE V3.0.1
+-- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
---  1) Never actively fire unknown server remotes. Observe only.
---  2) Exact duplicates are suppressed; repeated noise is counted, not stored.
---  3) Knowledge is scoped by game.GameId. A different game starts fresh.
---  4) Returning to the same game loads its persistent knowledge profile.
---  5) New remote/payload shapes receive temporary deeper observation.
---  6) Collection adapts to novelty yield instead of self-modifying code.
---  7) Static scans are incremental and time-budgeted to protect mobile FPS.
---  8) Backpressure reduces low-value collection before memory can grow.
---  9) Data streams in bounded batches; the client does not hold 150 MB in RAM.
--- 10) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
--- 11) A batch is acknowledged only after the server confirms GitHub mirroring.
--- 12) Historical batches are append-only/idempotent on the V3 server route.
--- 13) The UI stays compact: MB collected + upload % + one action button.
--- 14) No replay buffer and no verbose analysis UI.
+--  1) Observe inbound AND client->server remote calls without changing their arguments.
+--  2) Never generate unknown remote calls; outbound observation is passive.
+--  3) Exact duplicates are suppressed; repeated noise is counted, not stored.
+--  4) Knowledge is scoped by game.GameId. A different game starts fresh.
+--  5) New/high-interest remote shapes receive temporary deeper observation.
+--  6) Important outbound calls open bounded cause/effect correlation windows.
+--  7) Argument schemas are inferred from observed calls, never guessed.
+--  8) Collection adapts to novelty yield instead of self-modifying code.
+--  9) Static scans are incremental and time-budgeted to protect mobile FPS.
+-- 10) Backpressure reduces low-value collection before memory can grow.
+-- 11) Uploads are coalesced; tiny batches are not flushed every UI tick.
+-- 12) One manifest slot is always reserved; batch exhaustion cannot deadlock finalization.
+-- 13) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
+-- 14) A batch is acknowledged only after the server confirms GitHub mirroring.
+-- 15) Historical batches are append-only/idempotent on the V3 server route.
+-- 16) The UI stays compact: MB collected + upload % + one action button.
+-- 17) No replay buffer and no verbose analysis UI.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -34,8 +37,8 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0",
-    PURPOSE = "adaptive_universal_game_mapping",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_0_1",
+    PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
     HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health",
@@ -45,6 +48,8 @@ local C = {
     SOFT_BYTES = 96 * MB,
 
     BATCH_TARGET_BYTES = math.floor(1.75 * MB),
+    BATCH_MIN_FLUSH_BYTES = math.floor(1.75 * MB * 0.70),
+    BATCH_MAX_LATENCY = 10.0,
     QUEUE_SOFT_BYTES = 4 * MB,
     QUEUE_HARD_BYTES = 8 * MB,
 
@@ -74,6 +79,10 @@ local C = {
     TRAJECTORY_MOVE_STUDS = 5.0,
 
     INVESTIGATION_SECONDS = 8.0,
+    CORRELATION_SECONDS = 5.0,
+    CORRELATION_MIN_GAP = 0.75,
+    MAX_CORRELATION_WINDOWS = 10,
+    FOCUS_SCORE = 72,
     MIN_SEND_INTERVAL = 1.25,
     RETRIES = 4,
     RETRY_BASE = 0.8,
@@ -106,6 +115,9 @@ local WRITEFILE = pick(rawget(ENV, "writefile"), writefile)
 local READFILE = pick(rawget(ENV, "readfile"), readfile)
 local ISFILE = pick(rawget(ENV, "isfile"), isfile)
 local DELFILE = pick(rawget(ENV, "delfile"), delfile)
+local HOOKMETAMETHOD = pick(rawget(ENV, "hookmetamethod"), hookmetamethod)
+local GETNAMECALLMETHOD = pick(rawget(ENV, "getnamecallmethod"), getnamecallmethod)
+local NEWCLOSURE = pick(rawget(ENV, "newcclosure"), newcclosure)
 
 --==============================================================--
 -- SAFE SERIALIZATION + STABLE SIGNATURES
@@ -358,8 +370,10 @@ local S = {
     batchIndex = 0,
     pendingSend = nil,
     finalManifest = nil,
+    firstQueuedClock = 0,
     lastSendClock = 0,
     nextRetryClock = 0,
+    lastUploadError = nil,
 
     profile = nil,
     profileLow = {},
@@ -388,6 +402,20 @@ local S = {
     coverage = {},
     investigation = {},
     recentRefs = {},
+    correlationWindows = {},
+    correlationSeq = 0,
+    lastCorrelationByRemote = {},
+    smartStats = {
+        outboundObserved = 0,
+        outboundAccepted = 0,
+        highInterestOutbound = 0,
+        correlationsOpened = 0,
+        batchBudgetDrops = 0,
+    },
+    focusRemote = nil,
+    focusScore = 0,
+    outboundHookRegistry = nil,
+    outboundHookReady = false,
 
     frameDt = 1 / 60,
     lastTrajectoryAt = 0,
