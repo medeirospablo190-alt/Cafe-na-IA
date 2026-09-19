@@ -32,7 +32,8 @@ jobs:
             if [ "$CODE" = "200" ] \
               && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' /tmp/health.json \
               && grep -Eq '"githubMirrorConfigured"[[:space:]]*:[[:space:]]*true' /tmp/health.json \
-              && grep -Eq '"hardSessionBytes"[[:space:]]*:[[:space:]]*157286400' /tmp/health.json; then
+              && grep -Eq '"hardSessionBytes"[[:space:]]*:[[:space:]]*157286400' /tmp/health.json \
+              && grep -Eq '"maxBatches"[[:space:]]*:[[:space:]]*260' /tmp/health.json; then
               echo "CAFEINA Trace V3 is deployed and GitHub mirroring is ready."
               exit 0
             fi
