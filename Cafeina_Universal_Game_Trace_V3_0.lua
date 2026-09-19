@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.3
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.4
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
@@ -48,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_3",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_4",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -123,6 +123,11 @@ local C = {
     INVESTIGATOR_BLUE_IDLE = 0.9,
     INVESTIGATOR_COOLDOWN = 8.0,
     INVESTIGATOR_DIAGNOSTIC_CAP = 40,
+    MENU_HEALTH_DIAGNOSTIC_CAP = 160,
+    MENU_HEALTH_CHECK_INTERVAL = 1.5,
+    MENU_HEALTH_YELLOW_STUCK = 5.5,
+    MENU_HEALTH_RED_STUCK = 4.0,
+    MENU_HEALTH_BLUE_STUCK = 7.0,
     ACTIVE_TEST_MAX_IMPORTANCE = 86,
     ACTIVE_TEST_MAX_ARGS = 12,
     INPUT_LOCK_PRIORITY = 10000,
@@ -681,6 +686,14 @@ local S = {
     investigationKnowledgeDelta = {},
     actionSeenCounts = {},
     inputQuarantine = false,
+    investigationNextStartAt = 0,
+
+    menuHealthDiagnostics = {},
+    menuHealthDiagSeq = 0,
+    menuHealthLastCheck = 0,
+    menuHealthLastStatus = nil,
+    menuHealthLastAnomaly = nil,
+    menuHealthLastError = nil,
 
     protocolModels = {},
     protocolModelCount = 0,
@@ -704,6 +717,11 @@ local S = {
         inputQuarantines = 0,
         investigatorDiagnostics = 0,
         investigatorErrors = 0,
+        menuHealthChecks = 0,
+        menuHealthAnomalies = 0,
+        menuHealthUiErrors = 0,
+        menuHealthQueueStarts = 0,
+        menuHealthQueueErrors = 0,
         batchBudgetDrops = 0,
     },
     focusRemote = nil,
@@ -1956,6 +1974,7 @@ end
 
 local investigatorUiRefresh
 local setInvestigatorStage
+local processInvestigationQueue
 local inputShield
 local INPUT_LOCK_ACTION = "CafeinaInvestigationInputLock"
 local INPUT_LOCK_KEYS = {
@@ -2109,6 +2128,122 @@ local function markInvestigatorError(inv, source, err)
     S.lastInvestigatorError = tostring(source or "unknown") .. ": " .. message
     S.smartStats.investigatorErrors = (S.smartStats.investigatorErrors or 0) + 1
     setInvestigatorStage("execute_error", S.lastInvestigatorError, inv, true)
+end
+
+local function compactErrorTrace(err)
+    local message = tostring(err or "unknown_error")
+    local traced = nil
+    pcall(function()
+        if debug and type(debug.traceback) == "function" then
+            traced = debug.traceback(message, 2)
+        end
+    end)
+    return string.sub(tostring(traced or message), 1, 520)
+end
+
+local function appendMenuHealthDiagnostic(kind, detail, severity, emitRecord)
+    local now = os.clock()
+    S.menuHealthDiagSeq = (tonumber(S.menuHealthDiagSeq) or 0) + 1
+    local row = {
+        seq = S.menuHealthDiagSeq,
+        kind = tostring(kind or "status"),
+        detail = string.sub(tostring(detail or ""), 1, 360),
+        severity = tostring(severity or "info"),
+        clock = math.floor((now - S.startClock) * 1000 + 0.5) / 1000,
+        state = S.investigatorState,
+        stage = S.investigatorStage,
+        stageAgeMs = math.floor(math.max(0, now - (tonumber(S.investigatorStageSince) or now)) * 1000 + 0.5),
+        activeInvestigationId = S.activeInvestigation and S.activeInvestigation.id or nil,
+        queueDepth = #S.investigationQueue,
+        inputQuarantine = S.inputQuarantine == true,
+        uploading = S.uploading == true,
+        pressure = pressureLevel(),
+        frameDtMs = math.floor((S.frameDt or 0) * 100000 + 0.5) / 100,
+    }
+    S.menuHealthDiagnostics[#S.menuHealthDiagnostics + 1] = row
+    while #S.menuHealthDiagnostics > C.MENU_HEALTH_DIAGNOSTIC_CAP do
+        table.remove(S.menuHealthDiagnostics, 1)
+    end
+
+    if emitRecord == true and S.running and not S.stopping then
+        enqueue("record", "menu_health_diag", {
+            kind = "menu_health_diag",
+            diagnostic = row,
+        }, severity == "error" and 100 or 97, true, nil, nil,
+            hashText("menu_health|" .. tostring(row.seq) .. "|" .. row.kind), true)
+    end
+    return row
+end
+
+local function menuHealthTail(limit)
+    local out = {}
+    local rows = S.menuHealthDiagnostics
+    local first = math.max(1, #rows - math.max(1, tonumber(limit) or 24) + 1)
+    for i = first, #rows do out[#out + 1] = rows[i] end
+    return out
+end
+
+local function menuHealthWatchdogTick()
+    local now = os.clock()
+    if now - (tonumber(S.menuHealthLastCheck) or 0) < C.MENU_HEALTH_CHECK_INTERVAL then return end
+    S.menuHealthLastCheck = now
+    S.smartStats.menuHealthChecks = (S.smartStats.menuHealthChecks or 0) + 1
+
+    local active = S.activeInvestigation ~= nil
+    local queueDepth = #S.investigationQueue
+    local state = tostring(S.investigatorState or "GREEN")
+    local stage = tostring(S.investigatorStage or "idle")
+    local stageAge = math.max(0, now - (tonumber(S.investigatorStageSince) or now))
+    local statusSignature = table.concat({
+        state, stage, active and "1" or "0", tostring(queueDepth),
+        S.inputQuarantine and "1" or "0", S.uploading and "1" or "0",
+    }, "|")
+
+    if statusSignature ~= S.menuHealthLastStatus then
+        S.menuHealthLastStatus = statusSignature
+        appendMenuHealthDiagnostic("status_change",
+            "state=" .. state .. " stage=" .. stage .. " active=" .. tostring(active) ..
+            " queue=" .. tostring(queueDepth) .. " quarantine=" .. tostring(S.inputQuarantine == true),
+            "info", false)
+    end
+
+    local issues = {}
+    if not active and state ~= "GREEN" then issues[#issues + 1] = "state_without_active" end
+    if active and state == "GREEN" then issues[#issues + 1] = "active_without_state" end
+
+    local expectedQuarantine = state == "RED" or state == "BLUE"
+    if S.inputQuarantine ~= expectedQuarantine then
+        issues[#issues + 1] = "quarantine_mismatch"
+    end
+
+    local stuckLimit = nil
+    if state == "YELLOW" then stuckLimit = C.MENU_HEALTH_YELLOW_STUCK
+    elseif state == "RED" then stuckLimit = C.MENU_HEALTH_RED_STUCK
+    elseif state == "BLUE" then stuckLimit = C.MENU_HEALTH_BLUE_STUCK end
+    if active and stuckLimit and stageAge > stuckLimit then
+        issues[#issues + 1] = "stage_stuck:" .. stage
+    end
+
+    if queueDepth > 0 and not active and now > (tonumber(S.investigationNextStartAt) or 0) + 2.0 then
+        issues[#issues + 1] = "queue_waiting_without_active"
+    end
+
+    local lastError = tostring(S.lastInvestigatorError or "")
+    if lastError ~= "" and lastError ~= tostring(S.menuHealthLastError or "") then
+        S.menuHealthLastError = lastError
+        appendMenuHealthDiagnostic("investigator_error_seen", lastError, "error", true)
+    end
+
+    local anomalySignature = #issues > 0 and table.concat(issues, ",") or nil
+    if anomalySignature ~= S.menuHealthLastAnomaly then
+        if anomalySignature then
+            S.smartStats.menuHealthAnomalies = (S.smartStats.menuHealthAnomalies or 0) + 1
+            appendMenuHealthDiagnostic("health_anomaly", anomalySignature, "error", true)
+        elseif S.menuHealthLastAnomaly then
+            appendMenuHealthDiagnostic("health_recovered", tostring(S.menuHealthLastAnomaly), "info", false)
+        end
+        S.menuHealthLastAnomaly = anomalySignature
+    end
 end
 
 local function rememberGuiChange(kind, inst, state)
@@ -2330,6 +2465,7 @@ local function finishActiveInvestigation(status, reason)
         diff = diff, impact = impact, timeline = timelineSnapshot(inv.startedRelative),
         execution = inv.execution,
         diagnostics = inv.diagnostics,
+        menuHealth = menuHealthTail(24),
         finalStage = inv.stage,
         finalStageDetail = inv.stageDetail,
     }
@@ -2342,14 +2478,7 @@ local function finishActiveInvestigation(status, reason)
         enqueue("record", "investigation_bundle", bundle, 100, true, nil, nil,
             hashText("bundle|" .. tostring(inv.id) .. "|" .. tostring(status)), true)
     end
-    task.delay(0.35, function()
-        if not S.running or S.stopping or S.activeInvestigation then return end
-        local nextCandidate = table.remove(S.investigationQueue, 1)
-        if nextCandidate then
-            S.investigationQueuedKeys[nextCandidate.key] = nil
-            task.defer(function() if nextCandidate.start then nextCandidate.start() end end)
-        end
-    end)
+    S.investigationNextStartAt = os.clock() + 0.35
 end
 
 local function cancelActiveInvestigation(reason)
@@ -2511,17 +2640,30 @@ local function queueInvestigationCandidate(remote, method, args, shapeHash, sema
         replayArgs = replayArgs, shapeHash = shapeHash, semanticHash = semanticHash,
         importance = importance, cloneError = cloneErr, triggerContext = triggerContext,
     }
+    if #S.investigationQueue >= C.INVESTIGATOR_QUEUE_CAP then return end
     S.investigationLastByKey[key] = os.clock()
-    local starter
-    starter = function() startInvestigationCandidate(candidate) end
-    candidate.start = starter
+    S.investigationQueuedKeys[key] = true
+    S.investigationQueue[#S.investigationQueue + 1] = candidate
     S.smartStats.investigationsQueued = (S.smartStats.investigationsQueued or 0) + 1
-    if S.activeInvestigation then
-        if #S.investigationQueue >= C.INVESTIGATOR_QUEUE_CAP then return end
-        S.investigationQueuedKeys[key] = true
-        S.investigationQueue[#S.investigationQueue + 1] = candidate
-    else
-        starter()
+end
+
+processInvestigationQueue = function()
+    if not S.running or S.stopping or S.activeInvestigation then return end
+    if os.clock() < (tonumber(S.investigationNextStartAt) or 0) then return end
+    local candidate = table.remove(S.investigationQueue, 1)
+    if not candidate then return end
+    S.investigationQueuedKeys[candidate.key] = nil
+    S.smartStats.menuHealthQueueStarts = (S.smartStats.menuHealthQueueStarts or 0) + 1
+    appendMenuHealthDiagnostic("queue_start",
+        "remote=" .. string.sub(tostring(candidate.remotePath or "?"), 1, 180),
+        "info", false)
+    local ok, err = pcall(function()
+        startInvestigationCandidate(candidate)
+    end)
+    if not ok then
+        S.smartStats.menuHealthQueueErrors = (S.smartStats.menuHealthQueueErrors or 0) + 1
+        S.lastInvestigatorError = "queue_worker: " .. string.sub(tostring(err), 1, 260)
+        appendMenuHealthDiagnostic("queue_start_error", compactErrorTrace(err), "error", true)
     end
 end
 
@@ -3541,6 +3683,14 @@ local function manifestTable()
                 cancelled = S.smartStats.investigationsCancelled or 0,
                 blocked = S.smartStats.investigationsBlocked or 0,
                 inputQuarantines = S.smartStats.inputQuarantines or 0,
+                health = {
+                    checks = S.smartStats.menuHealthChecks or 0,
+                    anomalies = S.smartStats.menuHealthAnomalies or 0,
+                    uiErrors = S.smartStats.menuHealthUiErrors or 0,
+                    queueStarts = S.smartStats.menuHealthQueueStarts or 0,
+                    queueErrors = S.smartStats.menuHealthQueueErrors or 0,
+                    recent = menuHealthTail(30),
+                },
             },
         },
     }
@@ -3608,13 +3758,22 @@ local function resetRunState()
     S.lastInvestigatorError = nil
     S.activeInvestigation, S.investigationQueue, S.investigationQueuedKeys = nil, {}, {}
     S.investigationSeq, S.investigationCount, S.investigationEpoch = 0, 0, S.investigationEpoch + 1
+    S.investigationNextStartAt = 0
     S.investigationLastByKey, S.investigationKnowledgeDelta, S.actionSeenCounts = {}, {}, {}
+    S.menuHealthDiagnostics, S.menuHealthDiagSeq, S.menuHealthLastCheck = {}, 0, 0
+    S.menuHealthLastStatus, S.menuHealthLastAnomaly, S.menuHealthLastError = nil, nil, nil
     S.protocolModels, S.protocolModelCount = {}, 0
     S.argumentFields, S.argumentFieldCount = {}, 0
     S.smartStats = {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
         highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
-        opaqueSamples = 0, deepProbes = 0, batchBudgetDrops = 0,
+        opaqueSamples = 0, deepProbes = 0,
+        investigationsQueued = 0, investigationsCompleted = 0, investigationsActive = 0,
+        investigationsPassive = 0, investigationsCancelled = 0, investigationsBlocked = 0,
+        inputQuarantines = 0, investigatorDiagnostics = 0, investigatorErrors = 0,
+        menuHealthChecks = 0, menuHealthAnomalies = 0, menuHealthUiErrors = 0,
+        menuHealthQueueStarts = 0, menuHealthQueueErrors = 0,
+        batchBudgetDrops = 0,
     }
     S.focusRemote, S.focusScore = nil, 0
     S.outboundHookRegistry, S.outboundHookReady = nil, false
@@ -4017,8 +4176,16 @@ end
 
 task.spawn(function()
     while gui.Parent do
-        uiRefresh()
-        if S.running then maybeTrajectory() end
+        local okUi, uiErr = pcall(uiRefresh)
+        if not okUi then
+            S.smartStats.menuHealthUiErrors = (S.smartStats.menuHealthUiErrors or 0) + 1
+            appendMenuHealthDiagnostic("ui_refresh_error", compactErrorTrace(uiErr), "error", true)
+        end
+        menuHealthWatchdogTick()
+        if S.running then
+            if processInvestigationQueue then processInvestigationQueue() end
+            maybeTrajectory()
+        end
         if (S.running or S.finalizing) and not S.uploading and os.clock() >= S.nextRetryClock and
             shouldFlushQueue(S.finalizing or S.stopping) then
             kickUpload()
@@ -4223,4 +4390,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.3 carregado • investigador adaptativo • estados coloridos • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.4 carregado • fila segura • autodiagnóstico leve • streaming protegido")
