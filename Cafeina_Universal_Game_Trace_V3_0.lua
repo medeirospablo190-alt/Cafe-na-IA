@@ -1653,7 +1653,7 @@ local function noteRepeat(hash)
     end
 end
 
-local CRITICAL_QUEUE_CATEGORIES = {
+U.CRITICAL_QUEUE_CATEGORIES = {
     remote_outbound = true,
     remote_catalog = true,
     investigation_bundle = true,
@@ -1663,12 +1663,12 @@ local CRITICAL_QUEUE_CATEGORIES = {
     external_marker = true,
 }
 
-local function isCriticalQueueRecord(category, priority)
-    return CRITICAL_QUEUE_CATEGORIES[category] == true or
+U.isCriticalQueueRecord = function(category, priority)
+    return U.CRITICAL_QUEUE_CATEGORIES[category] == true or
         (tonumber(priority) or 0) >= C.QUEUE_CRITICAL_PRIORITY
 end
 
-local function noteQueueDrop(reason, category, priority, bytes, critical)
+U.noteQueueDrop = function(reason, category, priority, bytes, critical)
     reason = tostring(reason or "queue_drop")
     category = tostring(category or "unknown")
     local p = tonumber(priority) or 0
@@ -1762,18 +1762,18 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         task.defer(function() if S.finishCallback then S.finishCallback(true) end end)
         return false
     end
-    local criticalQueueRecord = isCriticalQueueRecord(category, priority)
+    local criticalQueueRecord = U.isCriticalQueueRecord(category, priority)
     local normalQueueLimit = math.max(0, C.QUEUE_HARD_BYTES - C.QUEUE_CRITICAL_RESERVE_BYTES)
 
     -- Protect reserved capacity from noisy normal-priority traffic. This does not
     -- reorder or evict queued records, so the durable upload/cache sequence stays intact.
     if not criticalQueueRecord and S.queueBytes + bytes > normalQueueLimit then
-        noteQueueDrop("queue_reserve_protect", category, priority, bytes, false)
+        U.noteQueueDrop("queue_reserve_protect", category, priority, bytes, false)
         return false
     end
 
     if S.queueBytes + bytes > C.QUEUE_HARD_BYTES then
-        noteQueueDrop("queue_hard_cap", category, priority, bytes, criticalQueueRecord)
+        U.noteQueueDrop("queue_hard_cap", category, priority, bytes, criticalQueueRecord)
         return false
     end
 
