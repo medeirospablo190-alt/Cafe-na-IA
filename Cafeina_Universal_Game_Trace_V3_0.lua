@@ -1,10 +1,10 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.1.0
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.0
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
 --  1) Observe inbound AND client->server remote calls without changing their arguments.
---  2) Never generate unknown remote calls; outbound observation is passive.
+--  2) Never invent unknown remote calls; active tests may replay only previously observed low-impact FireServer calls after generic risk gates.
 --  3) Exact duplicates are suppressed; repeated noise is counted, not stored.
 --  4) Knowledge is scoped by game.GameId. A different game starts fresh.
 --  5) New/high-interest remote shapes receive temporary deeper observation.
@@ -18,13 +18,18 @@
 -- 13) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
 -- 14) A batch is acknowledged only after the server confirms GitHub mirroring.
 -- 15) Historical batches are append-only/idempotent on the V3 server route.
--- 16) The UI stays compact: MB collected + upload % + one action button.
--- 17) No replay buffer and no verbose analysis UI.
+-- 16) The UI stays compact and can minimize to a draggable investigation-status icon.
+-- 17) A bounded circular context buffer is kept in memory only to build action bundles.
 -- 18) Semantic novelty is learned independently from raw argument shapes.
 -- 19) Opaque buffers are fingerprinted generically without game-specific decoders.
 -- 20) New/high-impact behavior opens bounded delayed deep-state probes.
 -- 21) Correlation confidence is evidence-based and never treated as proven causality.
 -- 22) Compact behavior transitions are learned as a universal session graph.
+-- 23) Runtime/static fingerprints normalize dynamic character/id path segments before novelty decisions.
+-- 24) Investigation state is explicit: GREEN free, YELLOW warning, RED controlled test, BLUE consequence observation.
+-- 25) RED/BLUE quarantine player input without changing Humanoid/Camera state; the CAFEINA icon remains an emergency escape.
+-- 26) Controlled active tests are bounded, one-at-a-time, and skipped when side-effect evidence or pressure makes replay unsafe.
+-- 27) Each investigation emits one action bundle with prelude, before/mid/after state and a compact diff.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -35,6 +40,7 @@ local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 local CoreGui = game:GetService("CoreGui")
 
 local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
@@ -42,7 +48,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_1_0",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_0",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -99,6 +105,26 @@ local C = {
     DEEP_PROBE_COOLDOWN = 1.25,
     DEEP_PROBE_DELAYS = { 0.20, 1.25, 3.00 },
     RECENT_VALUE_CAP = 32,
+    RECENT_GUI_CAP = 32,
+    TIMELINE_SECONDS = 7.0,
+    TIMELINE_CAP = 180,
+
+    INVESTIGATOR_QUEUE_CAP = 10,
+    INVESTIGATOR_MAX_PER_SESSION = 18,
+    INVESTIGATOR_YELLOW_SECONDS = 1.6,
+    INVESTIGATOR_YELLOW_MAX = 4.0,
+    INVESTIGATOR_RED_SETTLE = 0.16,
+    INVESTIGATOR_BLUE_MIN = 2.4,
+    INVESTIGATOR_BLUE_MAX = 5.5,
+    INVESTIGATOR_BLUE_IDLE = 0.9,
+    INVESTIGATOR_COOLDOWN = 8.0,
+    ACTIVE_TEST_MAX_IMPORTANCE = 86,
+    ACTIVE_TEST_MAX_ARGS = 12,
+    INPUT_LOCK_PRIORITY = 10000,
+    INVESTIGATION_KNOWLEDGE_CAP = 300,
+    PROTOCOL_MODEL_CAP = 320,
+    ARGUMENT_FIELD_CAP = 900,
+
     RUNTIME_BURST_FIRST = 3,
     RUNTIME_BURST_EVERY = 16,
     FOCUS_SCORE = 72,
@@ -110,6 +136,7 @@ local C = {
     DELTA_SHAPE_CAP = 4000,
     DELTA_SEMANTIC_CAP = 4000,
     DELTA_REMOTE_CAP = 1500,
+    DELTA_INVESTIGATION_CAP = 300,
     EXACT_SESSION_CAP = 50000,
 
     CACHE_SUFFIX = "CafeinaUniversalTraceV30_pending.json",
@@ -187,6 +214,7 @@ local function bufferFingerprint(v)
     if not len then return { type = "buffer", readable = false, repr = tostring(v) } end
     local sampleTarget = math.min(len, C.BUFFER_SAMPLE_BYTES)
     local h1, h2, sampled, zeros = 216613, 131071, 0, 0
+    local sampleHex = {}
     for i = 1, sampleTarget do
         local index = sampleTarget <= 1 and 0 or math.floor(((i - 1) * math.max(0, len - 1)) / (sampleTarget - 1))
         local b = bufferByte(v, index)
@@ -195,6 +223,7 @@ local function bufferFingerprint(v)
             if b == 0 then zeros = zeros + 1 end
             h1 = (h1 * 131 + b + (index % 251)) % 16777213
             h2 = (h2 * 137 + b + (index % 241)) % 16777199
+            sampleHex[#sampleHex + 1] = string.format("%02x", b)
         end
     end
     local edge = math.min(len, C.BUFFER_EDGE_BYTES)
@@ -210,7 +239,7 @@ local function bufferFingerprint(v)
     return {
         type = "buffer", length = len, lengthBucket = bufferLengthBucket(len),
         sampleHash = string.format("%06x%06x", h1, h2), sampledBytes = sampled,
-        headHex = table.concat(head), tailHex = table.concat(tail),
+        sampleHex = table.concat(sampleHex), headHex = table.concat(head), tailHex = table.concat(tail),
         zeroRatio = sampled > 0 and math.floor((zeros / sampled) * 1000 + 0.5) / 1000 or 0,
     }
 end
@@ -563,6 +592,7 @@ local S = {
     profileSemantic = {},
     profileRemote = {},
     profileFrontier = {},
+    profileInvestigation = {},
     frontier = {}, frontierSet = {},
     deltaLow = {}, deltaLowSet = {},
     deltaShape = {}, deltaShapeSet = {},
@@ -588,6 +618,8 @@ local S = {
     coverage = {},
     investigation = {},
     recentRefs = {},
+    recentTimeline = {},
+    recentGuiChanges = {},
     correlationWindows = {},
     correlationSeq = 0,
     lastCorrelationByRemote = {},
@@ -607,6 +639,28 @@ local S = {
     runtimePatternCounts = {},
     runtimePatternSeen = {},
     objectBorn = setmetatable({}, { __mode = "k" }),
+    toolSignals = setmetatable({}, { __mode = "k" }),
+    guiSignals = setmetatable({}, { __mode = "k" }),
+
+    investigatorState = "GREEN",
+    investigatorReason = "livre",
+    investigatorStateSince = 0,
+    activeInvestigation = nil,
+    investigationQueue = {},
+    investigationQueuedKeys = {},
+    investigationSeq = 0,
+    investigationEpoch = 0,
+    investigationCount = 0,
+    investigationLastByKey = {},
+    investigationKnowledgeDelta = {},
+    actionSeenCounts = {},
+    inputQuarantine = false,
+
+    protocolModels = {},
+    protocolModelCount = 0,
+    argumentFields = {},
+    argumentFieldCount = 0,
+
     smartStats = {
         outboundObserved = 0,
         outboundAccepted = 0,
@@ -615,6 +669,13 @@ local S = {
         semanticNovel = 0,
         opaqueSamples = 0,
         deepProbes = 0,
+        investigationsQueued = 0,
+        investigationsCompleted = 0,
+        investigationsActive = 0,
+        investigationsPassive = 0,
+        investigationsCancelled = 0,
+        investigationsBlocked = 0,
+        inputQuarantines = 0,
         batchBudgetDrops = 0,
     },
     focusRemote = nil,
@@ -714,6 +775,130 @@ local function contextRefs()
     return out
 end
 
+local TIMELINE_CATEGORIES = {
+    remote_outbound = true, remote_inbound = true, value_changed = true,
+    tool_transition = true, tool_signal = true, player_attribute = true,
+    prompt_triggered = true, gui_interaction = true, gui_state = true, character = true,
+}
+
+local function timelineIdentity(category, object)
+    object = type(object) == "table" and object or {}
+    local row = {
+        clock = os.clock() - S.startClock, category = category, kind = tostring(object.kind or category),
+        priority = tonumber(object.quality) or nil,
+    }
+    if object.remote then
+        row.remote = tostring(object.remote.path or object.remote.name or "?")
+        row.method = object.method
+        row.semanticHash = object.semanticHash
+    elseif object.object then
+        row.path = tostring(object.object.path or object.object.name or "?")
+    elseif object.tool then
+        row.path = tostring(object.tool.path or object.tool.name or "?")
+    elseif object.prompt then
+        row.path = tostring(object.prompt.path or object.prompt.name or "?")
+    elseif object.gui then
+        row.path = tostring(object.gui.path or object.gui.name or "?")
+    elseif object.name then
+        row.path = tostring(object.name)
+    end
+    return row
+end
+
+local function noteTimeline(category, object)
+    if not TIMELINE_CATEGORIES[category] then return end
+    local now = os.clock() - S.startClock
+    S.recentTimeline[#S.recentTimeline + 1] = timelineIdentity(category, object)
+    local cutoff = now - C.TIMELINE_SECONDS
+    while #S.recentTimeline > 0 and (#S.recentTimeline > C.TIMELINE_CAP or (S.recentTimeline[1].clock or 0) < cutoff) do
+        table.remove(S.recentTimeline, 1)
+    end
+end
+
+local function timelineSnapshot(sinceClock)
+    local out = {}
+    local since = tonumber(sinceClock) or ((os.clock() - S.startClock) - C.TIMELINE_SECONDS)
+    for _, row in ipairs(S.recentTimeline) do
+        if (row.clock or 0) >= since then out[#out + 1] = row end
+    end
+    return out
+end
+
+local function modelProtocol(direction, remotePath, method, shapeHash, semanticHash)
+    local key = tostring(direction) .. "|" .. tostring(remotePath) .. "|" .. tostring(method)
+    local row = S.protocolModels[key]
+    if not row then
+        if S.protocolModelCount >= C.PROTOCOL_MODEL_CAP then return end
+        row = {
+            direction = direction, remote = remotePath, method = method,
+            observed = 0, shapeChanges = 0, semanticChanges = 0,
+            lastShape = nil, lastSemantic = nil, shapes = {}, semantics = {},
+        }
+        S.protocolModels[key] = row
+        S.protocolModelCount = S.protocolModelCount + 1
+    end
+    row.observed = row.observed + 1
+    if shapeHash then
+        if row.lastShape and row.lastShape ~= shapeHash then row.shapeChanges = row.shapeChanges + 1 end
+        row.lastShape = shapeHash
+        if #row.shapes < 12 then
+            local exists = false
+            for _, h in ipairs(row.shapes) do if h == shapeHash then exists = true break end end
+            if not exists then row.shapes[#row.shapes + 1] = shapeHash end
+        end
+    end
+    if semanticHash then
+        if row.lastSemantic and row.lastSemantic ~= semanticHash then row.semanticChanges = row.semanticChanges + 1 end
+        row.lastSemantic = semanticHash
+        if #row.semantics < 16 then
+            local exists = false
+            for _, h in ipairs(row.semantics) do if h == semanticHash then exists = true break end end
+            if not exists then row.semantics[#row.semantics + 1] = semanticHash end
+        end
+    end
+end
+
+local function fieldModelTouch(streamKey, fieldPath, value)
+    local key = hashText("field|" .. tostring(streamKey) .. "|" .. tostring(fieldPath))
+    local row = S.argumentFields[key]
+    if not row then
+        if S.argumentFieldCount >= C.ARGUMENT_FIELD_CAP then return end
+        row = {
+            stream = string.sub(tostring(streamKey), 1, 220), field = string.sub(tostring(fieldPath), 1, 120),
+            observed = 0, changes = 0, last = nil, types = {},
+        }
+        S.argumentFields[key] = row
+        S.argumentFieldCount = S.argumentFieldCount + 1
+    end
+    row.observed = row.observed + 1
+    local token = semanticCanon(value, 0, {})
+    if row.last and row.last ~= token then row.changes = row.changes + 1 end
+    row.last = token
+    local t = typeof(value)
+    if #row.types < 6 then
+        local exists = false
+        for _, item in ipairs(row.types) do if item == t then exists = true break end end
+        if not exists then row.types[#row.types + 1] = t end
+    end
+end
+
+local function observeArgumentFields(remotePath, method, args, namespace)
+    local stream = tostring(namespace or "out") .. "|" .. tostring(remotePath) .. "|" .. tostring(method)
+    local n = math.min(tonumber(args and args.n) or 0, C.ACTIVE_TEST_MAX_ARGS)
+    for i = 1, n do
+        local value = args[i]
+        fieldModelTouch(stream, "arg" .. tostring(i), value)
+        if typeof(value) == "table" then
+            local count = 0
+            for k, item in pairs(value) do
+                count = count + 1
+                if count > C.SEMANTIC_TABLE_FIELDS then break end
+                fieldModelTouch(stream, "arg" .. tostring(i) .. "." .. tostring(k), item)
+            end
+        end
+    end
+end
+
 local function applyProfile(profile)
     profile = type(profile) == "table" and profile or {}
     S.profile = profile
@@ -722,6 +907,12 @@ local function applyProfile(profile)
     S.profileSemantic = arrayToSet(profile.knownSemanticHashes)
     S.profileRemote = arrayToSet(profile.knownRemoteHashes)
     S.profileFrontier = arrayToSet(profile.frontier)
+    S.profileInvestigation = {}
+    for _, row in ipairs(type(profile.investigationKnowledge) == "table" and profile.investigationKnowledge or {}) do
+        if type(row) == "table" and type(row.key) == "string" then
+            S.profileInvestigation[row.key] = row
+        end
+    end
     S.profileReady = true
 end
 
@@ -794,6 +985,37 @@ local function playerContext(full)
         end
     end
     return out
+end
+
+local function normalizeDynamicSegment(segment)
+    local text = tostring(segment or "")
+    if #text >= 8 and string.match(text, "^%d+$") then return "<id>" end
+    local compact = string.gsub(text, "%-", "")
+    if #compact >= 16 and string.match(compact, "^%x+$") then return "<id>" end
+    return string.gsub(text, "%d%d%d%d+", "<n>")
+end
+
+local function normalizedPath(inst)
+    if typeof(inst) ~= "Instance" then return tostring(inst) end
+    local raw = pathOf(inst)
+    local top = inst
+    local guard = 0
+    while top and top.Parent and top.Parent ~= Workspace and top.Parent ~= ReplicatedStorage and guard < 48 do
+        top = top.Parent
+        guard = guard + 1
+    end
+    if top and top.Parent == Workspace then
+        local ok, player = pcall(function() return Players:GetPlayerFromCharacter(top) end)
+        if ok and player then
+            local prefix = pathOf(top)
+            if string.sub(raw, 1, #prefix) == prefix then
+                raw = "Workspace.<Character>" .. string.sub(raw, #prefix + 1)
+            end
+        end
+    end
+    local parts = {}
+    for segment in string.gmatch(raw, "[^%.]+") do parts[#parts + 1] = normalizeDynamicSegment(segment) end
+    return table.concat(parts, ".")
 end
 
 local function isRemote(x)
@@ -925,6 +1147,7 @@ local CORRELATABLE_CATEGORIES = {
     tool_transition = true,
     player_attribute = true,
     prompt_triggered = true,
+    gui_state = true,
     character = true,
 }
 
@@ -932,6 +1155,8 @@ local BEHAVIOR_CATEGORIES = {
     remote_outbound = true,
     remote_inbound = true,
     tool_transition = true,
+    tool_signal = true,
+    gui_interaction = true,
     player_attribute = true,
     prompt_triggered = true,
     character = true,
@@ -960,6 +1185,8 @@ local function effectIdentity(category, object)
         return "tool:" .. tostring(object.kind or "?") .. ":" .. tostring(object.tool and object.tool.name or "?")
     elseif category == "player_attribute" then
         return "attribute:" .. tostring(object.name or "?")
+    elseif category == "gui_state" then
+        return "gui:" .. tostring(object.gui and object.gui.path or object.path or "?") .. ":" .. tostring(object.state or "?")
     elseif category == "prompt_triggered" then
         return "prompt:" .. tostring(object.prompt and object.prompt.path or "?")
     elseif category == "character" then
@@ -1045,8 +1272,11 @@ local function behaviorIdentity(category, object)
         local key = category .. ":" .. path .. ":" .. semantic
         local label = category .. ":" .. path
         return hashText(key), string.sub(label, 1, 220)
-    elseif category == "tool_transition" then
+    elseif category == "tool_transition" or category == "tool_signal" then
         local label = "tool:" .. tostring(object.kind or "?") .. ":" .. tostring(object.tool and object.tool.name or "?")
+        return hashText(label), string.sub(label, 1, 220)
+    elseif category == "gui_interaction" then
+        local label = "gui:" .. tostring(object.gui and object.gui.path or "?")
         return hashText(label), string.sub(label, 1, 220)
     elseif category == "player_attribute" then
         local label = "attribute:" .. tostring(object.name or "?")
@@ -1117,6 +1347,11 @@ end
 
 local function enqueue(channel, category, object, priority, novelty, persistentKind, persistentHash, exactHash, bypassSampling)
     if not S.running or S.stopping then return false end
+
+    noteTimeline(category, object)
+    if S.activeInvestigation and TIMELINE_CATEGORIES[category] then
+        S.activeInvestigation.lastRelevantClock = os.clock()
+    end
 
     if exactHash and hasSeenExact(exactHash) then
         noteRepeat(exactHash)
@@ -1395,6 +1630,8 @@ local function cacheSnapshot()
         smartStats = S.smartStats, focusRemote = S.focusRemote, focusScore = S.focusScore,
         correlationEvidence = S.correlationEvidence, effectTotals = S.effectTotals, effectBaseline = S.effectBaseline,
         remoteImpact = S.remoteImpact, behaviorTransitions = S.behaviorTransitions,
+        investigationKnowledgeDelta = S.investigationKnowledgeDelta,
+        protocolModels = S.protocolModels, argumentFields = S.argumentFields,
     }
 end
 
@@ -1474,7 +1711,10 @@ local function restoreCache(data)
     S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
         highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
-        opaqueSamples = 0, deepProbes = 0, batchBudgetDrops = 0,
+        opaqueSamples = 0, deepProbes = 0,
+        investigationsQueued = 0, investigationsCompleted = 0, investigationsActive = 0,
+        investigationsPassive = 0, investigationsCancelled = 0, investigationsBlocked = 0,
+        inputQuarantines = 0, batchBudgetDrops = 0,
     }
     S.focusRemote = type(data.focusRemote) == "string" and data.focusRemote or nil
     S.focusScore = tonumber(data.focusScore) or 0
@@ -1489,6 +1729,13 @@ local function restoreCache(data)
     S.behaviorTransitions = type(data.behaviorTransitions) == "table" and data.behaviorTransitions or {}
     S.behaviorTransitionCount = 0
     for _ in pairs(S.behaviorTransitions) do S.behaviorTransitionCount = S.behaviorTransitionCount + 1 end
+    S.investigationKnowledgeDelta = type(data.investigationKnowledgeDelta) == "table" and data.investigationKnowledgeDelta or {}
+    S.protocolModels = type(data.protocolModels) == "table" and data.protocolModels or {}
+    S.protocolModelCount = 0
+    for _ in pairs(S.protocolModels) do S.protocolModelCount = S.protocolModelCount + 1 end
+    S.argumentFields = type(data.argumentFields) == "table" and data.argumentFields or {}
+    S.argumentFieldCount = 0
+    for _ in pairs(S.argumentFields) do S.argumentFieldCount = S.argumentFieldCount + 1 end
     S.repeatCounts = type(data.repeatCounts) == "table" and data.repeatCounts or {}
     S.repeatKeyCount = 0
     for _ in pairs(S.repeatCounts) do S.repeatKeyCount = S.repeatKeyCount + 1 end
@@ -1535,11 +1782,14 @@ local function compactDeepState()
     local recent = {}
     local first = math.max(1, #S.recentValueChanges - 15)
     for i = first, #S.recentValueChanges do recent[#recent + 1] = S.recentValueChanges[i] end
+    local guiRecent = {}
+    local guiFirst = math.max(1, #S.recentGuiChanges - 15)
+    for i = guiFirst, #S.recentGuiChanges do guiRecent[#guiRecent + 1] = S.recentGuiChanges[i] end
     local ch = LP.Character
     return {
         player = playerContext(true), playerAttributes = attrs(LP),
         characterAttributes = ch and attrs(ch) or nil, tools = compactToolState(),
-        recentValues = recent, recentRefs = contextRefs(),
+        recentValues = recent, recentGui = guiRecent, recentRefs = contextRefs(),
     }
 end
 
@@ -1566,6 +1816,17 @@ local function opaqueDiagnostics(args, streamKey, force)
                     sameSample = previous.sampleHash == info.sampleHash,
                     headChanged = previous.headHex ~= info.headHex,
                     tailChanged = previous.tailHex ~= info.tailHex,
+                    sampleChangedRatio = (function()
+                        local a, b = tostring(previous.sampleHex or ""), tostring(info.sampleHex or "")
+                        local bytes = math.min(math.floor(#a / 2), math.floor(#b / 2))
+                        if bytes <= 0 then return nil end
+                        local changed = 0
+                        for j = 1, bytes do
+                            local s = (j - 1) * 2 + 1
+                            if string.sub(a, s, s + 1) ~= string.sub(b, s, s + 1) then changed = changed + 1 end
+                        end
+                        return math.floor((changed / bytes) * 1000 + 0.5) / 1000
+                    end)(),
                 } or nil,
                 observation = count,
             }
@@ -1600,6 +1861,421 @@ local function scheduleDeepProbe(r, triggerHash, triggerKind, semanticHash)
             }, 98, false, nil, nil,
                 hashText("deep\31" .. tostring(probeId) .. "\31" .. tostring(phase)), true)
         end)
+    end
+end
+
+local investigatorUiRefresh
+local inputShield
+local INPUT_LOCK_ACTION = "CafeinaInvestigationInputLock"
+local INPUT_LOCK_KEYS = {
+    Enum.PlayerActions.CharacterForward, Enum.PlayerActions.CharacterBackward,
+    Enum.PlayerActions.CharacterLeft, Enum.PlayerActions.CharacterRight, Enum.PlayerActions.CharacterJump,
+    Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D, Enum.KeyCode.Space,
+    Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
+    Enum.KeyCode.ButtonA, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
+}
+
+local function setInputQuarantine(enabled)
+    enabled = enabled == true
+    if S.inputQuarantine == enabled then
+        if inputShield then inputShield.Visible = enabled end
+        return
+    end
+    S.inputQuarantine = enabled
+    pcall(function() ContextActionService:UnbindAction(INPUT_LOCK_ACTION) end)
+    if enabled then
+        S.smartStats.inputQuarantines = (S.smartStats.inputQuarantines or 0) + 1
+        pcall(function()
+            ContextActionService:BindActionAtPriority(
+                INPUT_LOCK_ACTION,
+                function() return Enum.ContextActionResult.Sink end,
+                false,
+                C.INPUT_LOCK_PRIORITY,
+                table.unpack(INPUT_LOCK_KEYS)
+            )
+        end)
+    end
+    if inputShield then inputShield.Visible = enabled end
+end
+
+local function setInvestigatorState(state, reason)
+    state = tostring(state or "GREEN")
+    S.investigatorState = state
+    S.investigatorReason = tostring(reason or "")
+    S.investigatorStateSince = os.clock()
+    setInputQuarantine(state == "RED" or state == "BLUE")
+    if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
+end
+
+local function rememberGuiChange(kind, inst, state)
+    local row = {
+        kind = tostring(kind), path = pathOf(inst), className = inst.ClassName,
+        state = ser(state), clock = os.clock() - S.startClock,
+    }
+    S.recentGuiChanges[#S.recentGuiChanges + 1] = row
+    while #S.recentGuiChanges > C.RECENT_GUI_CAP do table.remove(S.recentGuiChanges, 1) end
+end
+
+local function stateMapDiff(before, after, cap)
+    before = type(before) == "table" and before or {}
+    after = type(after) == "table" and after or {}
+    local keys, seen = {}, {}
+    for k in pairs(before) do seen[tostring(k)] = true end
+    for k in pairs(after) do seen[tostring(k)] = true end
+    for k in pairs(seen) do keys[#keys + 1] = k end
+    table.sort(keys)
+    local out = {}
+    for _, key in ipairs(keys) do
+        local a, b = before[key], after[key]
+        if canon(a, 0, {}, false) ~= canon(b, 0, {}, false) then
+            out[#out + 1] = { key = key, before = a, after = b }
+            if #out >= (cap or 24) then break end
+        end
+    end
+    return out
+end
+
+local function toolKey(row)
+    return tostring(row and row.container or "?") .. "|" .. tostring(row and row.name or "?")
+end
+
+local function stateDiff(before, after, sinceClock)
+    before = type(before) == "table" and before or {}
+    after = type(after) == "table" and after or {}
+    local bTools, aTools = {}, {}
+    for _, row in ipairs(type(before.tools) == "table" and before.tools or {}) do bTools[toolKey(row)] = row end
+    for _, row in ipairs(type(after.tools) == "table" and after.tools or {}) do aTools[toolKey(row)] = row end
+    local added, removed = {}, {}
+    for key, row in pairs(aTools) do if not bTools[key] then added[#added + 1] = row end end
+    for key, row in pairs(bTools) do if not aTools[key] then removed[#removed + 1] = row end end
+    local recentValues = {}
+    for _, row in ipairs(type(after.recentValues) == "table" and after.recentValues or {}) do
+        if (tonumber(row.clock) or 0) >= (tonumber(sinceClock) or 0) then recentValues[#recentValues + 1] = row end
+    end
+    local recentGui = {}
+    for _, row in ipairs(type(after.recentGui) == "table" and after.recentGui or {}) do
+        if (tonumber(row.clock) or 0) >= (tonumber(sinceClock) or 0) then recentGui[#recentGui + 1] = row end
+    end
+    local bp, ap = before.player or {}, after.player or {}
+    local positionDelta = nil
+    if type(bp.position) == "table" and type(ap.position) == "table" and bp.position.x and ap.position.x then
+        local dx = (ap.position.x or 0) - (bp.position.x or 0)
+        local dy = (ap.position.y or 0) - (bp.position.y or 0)
+        local dz = (ap.position.z or 0) - (bp.position.z or 0)
+        positionDelta = math.floor(math.sqrt(dx * dx + dy * dy + dz * dz) * 1000 + 0.5) / 1000
+    end
+    return {
+        playerAttributes = stateMapDiff(before.playerAttributes, after.playerAttributes, 24),
+        characterAttributes = stateMapDiff(before.characterAttributes, after.characterAttributes, 24),
+        toolsAdded = added, toolsRemoved = removed,
+        healthBefore = bp.health, healthAfter = ap.health,
+        stateBefore = bp.state, stateAfter = ap.state,
+        positionDelta = positionDelta,
+        recentValues = recentValues, recentGui = recentGui,
+    }
+end
+
+local function investigationImpact(diff)
+    diff = type(diff) == "table" and diff or {}
+    local score = 0
+    score = score + math.min(24, #(diff.recentValues or {}) * 6)
+    score = score + math.min(20, (#(diff.toolsAdded or {}) + #(diff.toolsRemoved or {})) * 8)
+    score = score + math.min(18, (#(diff.playerAttributes or {}) + #(diff.characterAttributes or {})) * 5)
+    score = score + math.min(12, #(diff.recentGui or {}) * 3)
+    if diff.healthBefore ~= diff.healthAfter then score = score + 15 end
+    if diff.stateBefore ~= diff.stateAfter then score = score + 8 end
+    return math.clamp(score, 0, 100)
+end
+
+local function replayCloneValue(v, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    if depth > 3 then return false, nil end
+    local t = typeof(v)
+    if v == nil or t == "boolean" then return true, v end
+    if t == "number" then
+        if v ~= v or v == math.huge or v == -math.huge then return false, nil end
+        return true, v
+    end
+    if t == "string" then
+        if #v > 256 then return false, nil end
+        return true, v
+    end
+    if t == "Vector2" or t == "Vector3" or t == "CFrame" or t == "Color3" or t == "UDim2" or t == "EnumItem" then
+        return true, v
+    end
+    if t ~= "table" or seen[v] then return false, nil end
+    local okMeta, meta = pcall(getmetatable, v)
+    if not okMeta or meta ~= nil then return false, nil end
+    seen[v] = true
+    local out, count = {}, 0
+    for k, item in pairs(v) do
+        count = count + 1
+        if count > 32 then seen[v] = nil return false, nil end
+        local kt = typeof(k)
+        if kt ~= "string" and kt ~= "number" and kt ~= "boolean" then seen[v] = nil return false, nil end
+        local okItem, copied = replayCloneValue(item, depth + 1, seen)
+        if not okItem then seen[v] = nil return false, nil end
+        out[k] = copied
+    end
+    seen[v] = nil
+    return true, out
+end
+
+local function cloneReplayArgs(args)
+    local n = tonumber(args and args.n) or 0
+    if n > C.ACTIVE_TEST_MAX_ARGS then return nil, "too_many_args" end
+    local out = { n = n }
+    for i = 1, n do
+        local ok, copied = replayCloneValue(args[i], 0, {})
+        if not ok then return nil, "unsupported_arg_" .. tostring(i) end
+        out[i] = copied
+    end
+    return out
+end
+
+local function sideEffectReason(candidate)
+    if candidate.method ~= "FireServer" then return "not_fire_server" end
+    if (tonumber(candidate.importance) or 0) > C.ACTIVE_TEST_MAX_IMPORTANCE then return "high_importance" end
+    if (tonumber(S.remoteImpact[candidate.remotePath]) or 0) >= 12 then return "learned_impact" end
+    local prior = S.profileInvestigation[candidate.key]
+    if type(prior) == "table" and (tonumber(prior.activeTests) or 0) >= 2 then return "already_learned" end
+    for _, row in pairs(S.correlationEvidence) do
+        if row.remote == candidate.remotePath and
+            (row.semantic == candidate.semanticHash or row.shape == candidate.shapeHash) and
+            (tonumber(row.support) or 0) > 0 then
+            local effect = tostring(row.effect or "")
+            if string.sub(effect, 1, 6) == "value:" or string.sub(effect, 1, 5) == "tool:" or
+                string.sub(effect, 1, 10) == "attribute:" or string.sub(effect, 1, 10) == "character:" or
+                string.find(effect, "runtime_added:Tool:", 1, true) then
+                return "stateful_effect"
+            end
+        end
+    end
+    return nil
+end
+
+local function investigatorStable()
+    if pressureLevel() >= 2 then return false, "pressure" end
+    local ch = LP.Character
+    local root = ch and ch:FindFirstChild("HumanoidRootPart")
+    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
+    if not root or not hum or hum.Health <= 0 then return false, "character_unavailable" end
+    if hum.MoveDirection.Magnitude > 0.05 or root.AssemblyLinearVelocity.Magnitude > 3.5 then return false, "player_moving" end
+    if S.frameDt > 0.055 then return false, "frame_pressure" end
+    return true
+end
+
+local function knowledgeDeltaRow(key)
+    local row = S.investigationKnowledgeDelta[key]
+    if not row then
+        if (function() local n = 0 for _ in pairs(S.investigationKnowledgeDelta) do n = n + 1 end return n end)() >= C.DELTA_INVESTIGATION_CAP then
+            return nil
+        end
+        row = { key = key, observations = 0, activeTests = 0, completed = 0, passiveOnly = 0, cancelled = 0 }
+        S.investigationKnowledgeDelta[key] = row
+    end
+    return row
+end
+
+local function recordKnowledge(candidate, field, amount, extra)
+    local row = knowledgeDeltaRow(candidate.key)
+    if not row then return end
+    row[field] = (tonumber(row[field]) or 0) + (amount or 1)
+    if type(extra) == "table" then
+        for k, v in pairs(extra) do row[k] = v end
+    end
+end
+
+local function finishActiveInvestigation(status, reason)
+    local inv = S.activeInvestigation
+    if not inv then
+        setInvestigatorState("GREEN", "livre")
+        return
+    end
+    S.investigationEpoch = S.investigationEpoch + 1
+    local after = compactDeepState()
+    local diff = stateDiff(inv.beforeState or inv.detectedState, after, inv.startedRelative)
+    local impact = investigationImpact(diff)
+    if inv.candidate and inv.candidate.remotePath then
+        S.remoteImpact[inv.candidate.remotePath] = math.max(tonumber(S.remoteImpact[inv.candidate.remotePath]) or 0, impact * 0.22)
+    end
+    if status == "cancelled" then
+        S.smartStats.investigationsCancelled = (S.smartStats.investigationsCancelled or 0) + 1
+        recordKnowledge(inv.candidate, "cancelled", 1, { status = "cancelled", lastReason = reason, lastImpact = impact })
+    else
+        S.smartStats.investigationsCompleted = (S.smartStats.investigationsCompleted or 0) + 1
+        recordKnowledge(inv.candidate, "completed", 1, {
+            status = inv.mode == "active" and "tested" or "passive",
+            lastReason = reason, lastImpact = impact,
+            lastOutcome = hashText(canon(diff, 0, {}, false)),
+        })
+    end
+    local bundle = {
+        kind = "investigation_bundle", investigationId = inv.id, status = status,
+        mode = inv.mode, reason = reason, candidate = {
+            key = inv.candidate.key, remote = remoteDesc(inv.candidate.remote),
+            method = inv.candidate.method, shapeHash = inv.candidate.shapeHash,
+            semanticHash = inv.candidate.semanticHash, importance = inv.candidate.importance,
+            payload = packed(inv.candidate.replayArgs),
+        },
+        prelude = inv.prelude, detectedState = inv.detectedState,
+        before = inv.beforeState, middle = inv.middleState, after = after,
+        diff = diff, impact = impact, timeline = timelineSnapshot(inv.startedRelative),
+        execution = inv.execution,
+    }
+    S.activeInvestigation = nil
+    setInvestigatorState("GREEN", status == "cancelled" and "cancelado" or "livre")
+    if S.running and not S.stopping then
+        enqueue("record", "investigation_bundle", bundle, 100, true, nil, nil,
+            hashText("bundle|" .. tostring(inv.id) .. "|" .. tostring(status)), true)
+    end
+    task.delay(0.35, function()
+        if not S.running or S.stopping or S.activeInvestigation then return end
+        local nextCandidate = table.remove(S.investigationQueue, 1)
+        if nextCandidate then
+            S.investigationQueuedKeys[nextCandidate.key] = nil
+            task.defer(function() if nextCandidate.start then nextCandidate.start() end end)
+        end
+    end)
+end
+
+local function cancelActiveInvestigation(reason)
+    if not S.activeInvestigation then
+        setInputQuarantine(false)
+        setInvestigatorState("GREEN", "livre")
+        return
+    end
+    finishActiveInvestigation("cancelled", tostring(reason or "manual"))
+end
+
+local function beginBluePhase(inv, reason)
+    if S.activeInvestigation ~= inv then return end
+    inv.blueStarted = os.clock()
+    inv.lastRelevantClock = os.clock()
+    setInvestigatorState("BLUE", reason or "observando resultado")
+    task.delay(1.0, function()
+        if S.activeInvestigation == inv then inv.middleState = compactDeepState() end
+    end)
+    task.spawn(function()
+        while S.activeInvestigation == inv and S.running and not S.stopping do
+            local elapsed = os.clock() - inv.blueStarted
+            local idle = os.clock() - (inv.lastRelevantClock or inv.blueStarted)
+            if elapsed >= C.INVESTIGATOR_BLUE_MAX or
+                (elapsed >= C.INVESTIGATOR_BLUE_MIN and idle >= C.INVESTIGATOR_BLUE_IDLE) then
+                finishActiveInvestigation("completed", inv.mode == "active" and "active_test_complete" or "passive_observation_complete")
+                return
+            end
+            task.wait(0.20)
+        end
+    end)
+end
+
+local function executeCandidate(inv)
+    if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
+    local risk = sideEffectReason(inv.candidate)
+    if risk then
+        inv.mode = "passive"
+        S.smartStats.investigationsPassive = (S.smartStats.investigationsPassive or 0) + 1
+        S.smartStats.investigationsBlocked = (S.smartStats.investigationsBlocked or 0) + 1
+        recordKnowledge(inv.candidate, "passiveOnly", 1, { status = "blocked", lastReason = risk })
+        beginBluePhase(inv, "observação segura")
+        return
+    end
+
+    local stable, why = investigatorStable()
+    local yellowElapsed = os.clock() - inv.yellowStarted
+    if not stable and yellowElapsed < C.INVESTIGATOR_YELLOW_MAX then
+        S.investigatorReason = "aguardando estabilidade"
+        if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
+        task.delay(0.25, function() if S.activeInvestigation == inv then executeCandidate(inv) end end)
+        return
+    elseif not stable then
+        inv.mode = "passive"
+        S.smartStats.investigationsPassive = (S.smartStats.investigationsPassive or 0) + 1
+        S.smartStats.investigationsBlocked = (S.smartStats.investigationsBlocked or 0) + 1
+        recordKnowledge(inv.candidate, "passiveOnly", 1, { status = "blocked", lastReason = why })
+        beginBluePhase(inv, "ambiente instável")
+        return
+    end
+
+    inv.mode = "active"
+    inv.beforeState = compactDeepState()
+    inv.startedRelative = os.clock() - S.startClock
+    setInvestigatorState("RED", "teste automático")
+    task.delay(C.INVESTIGATOR_RED_SETTLE, function()
+        if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
+        local remote = inv.candidate.remote
+        if typeof(remote) ~= "Instance" or remote.Parent == nil or remote.ClassName ~= "RemoteEvent" then
+            inv.execution = { ok = false, error = "remote_unavailable" }
+            beginBluePhase(inv, "remote indisponível")
+            return
+        end
+        local registry = S.outboundHookRegistry
+        if type(registry) == "table" then registry.syntheticToken = inv.id end
+        local ok, err = pcall(function()
+            remote:FireServer(table.unpack(inv.candidate.replayArgs, 1, inv.candidate.replayArgs.n))
+        end)
+        if type(registry) == "table" then registry.syntheticToken = nil end
+        inv.execution = { ok = ok, error = ok and nil or tostring(err) }
+        S.smartStats.investigationsActive = (S.smartStats.investigationsActive or 0) + 1
+        recordKnowledge(inv.candidate, "activeTests", 1, { status = ok and "tested" or "error" })
+        task.delay(0.12, function()
+            if S.activeInvestigation == inv then beginBluePhase(inv, ok and "observando resultado" or "observando falha") end
+        end)
+    end)
+end
+
+local function startInvestigationCandidate(candidate)
+    if not S.running or S.stopping or S.activeInvestigation then return end
+    S.investigationSeq = S.investigationSeq + 1
+    S.investigationCount = S.investigationCount + 1
+    local inv = {
+        id = S.investigationSeq, candidate = candidate, mode = "pending",
+        yellowStarted = os.clock(), startedRelative = os.clock() - S.startClock,
+        prelude = timelineSnapshot(), detectedState = compactDeepState(),
+        lastRelevantClock = os.clock(),
+    }
+    S.activeInvestigation = inv
+    setInvestigatorState("YELLOW", "nova interação • pare de mexer")
+    task.delay(C.INVESTIGATOR_YELLOW_SECONDS, function()
+        if S.activeInvestigation == inv then executeCandidate(inv) end
+    end)
+end
+
+local function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance)
+    if not S.running or S.stopping or pressureLevel() >= 2 then return end
+    if S.investigationCount >= C.INVESTIGATOR_MAX_PER_SESSION then return end
+    if method ~= "FireServer" or remote.ClassName ~= "RemoteEvent" then return end
+    local replayArgs, cloneErr = cloneReplayArgs(args)
+    if not replayArgs then return end
+    local remotePath = pathOf(remote)
+    local key = hashText("action|" .. remotePath .. "|" .. tostring(method) .. "|" .. tostring(semanticHash or shapeHash))
+    S.actionSeenCounts[key] = (S.actionSeenCounts[key] or 0) + 1
+    recordKnowledge({ key = key }, "observations", 1, { status = "observed" })
+    if S.investigationQueuedKeys[key] then return end
+    if S.activeInvestigation and S.activeInvestigation.candidate and S.activeInvestigation.candidate.key == key then return end
+    local last = S.investigationLastByKey[key] or 0
+    if os.clock() - last < C.INVESTIGATOR_COOLDOWN then return end
+    local prior = S.profileInvestigation[key]
+    if type(prior) == "table" and (tonumber(prior.activeTests) or 0) >= 2 then return end
+
+    local candidate = {
+        key = key, remote = remote, remotePath = remotePath, method = method,
+        replayArgs = replayArgs, shapeHash = shapeHash, semanticHash = semanticHash,
+        importance = importance, cloneError = cloneErr,
+    }
+    S.investigationLastByKey[key] = os.clock()
+    local starter
+    starter = function() startInvestigationCandidate(candidate) end
+    candidate.start = starter
+    S.smartStats.investigationsQueued = (S.smartStats.investigationsQueued or 0) + 1
+    if S.activeInvestigation then
+        if #S.investigationQueue >= C.INVESTIGATOR_QUEUE_CAP then return end
+        S.investigationQueuedKeys[key] = true
+        S.investigationQueue[#S.investigationQueue + 1] = candidate
+    else
+        starter()
     end
 end
 
@@ -1660,6 +2336,8 @@ local function attachInbound(r)
             local newShape = not S.profileShape[shapeHash]
             local investigating = (S.investigation[remotePath] or 0) > os.clock()
             local score = importanceScore(remotePath, "OnClientEvent", newShape, r.ClassName, newSemantic)
+            modelProtocol("in", remotePath, "OnClientEvent", shapeHash, semanticHash)
+            if newShape or newSemantic then observeArgumentFields(remotePath, "OnClientEvent", args, "in") end
             if newShape then bump(S.coverage, "newShapes") end
             if newSemantic then bump(S.coverage, "newSemanticPatterns") end
             if newShape or newSemantic or score >= C.FOCUS_SCORE then
@@ -1758,16 +2436,18 @@ local function installOutboundObserver()
 
             if callback and outboundRemote and method == "InvokeServer" then
                 local args = table.pack(...)
+                local syntheticToken = registry.syntheticToken
                 local startedAt = os.clock()
                 local results = table.pack(oldNamecall(self, ...))
                 local latencyMs = math.max(0, (os.clock() - startedAt) * 1000)
-                task.defer(function() pcall(callback, self, method, args, results, latencyMs) end)
+                task.defer(function() pcall(callback, self, method, args, results, latencyMs, syntheticToken) end)
                 return table.unpack(results, 1, results.n)
             end
 
             if callback and outboundRemote and method == "FireServer" then
                 local args = table.pack(...)
-                task.defer(function() pcall(callback, self, method, args, nil, nil) end)
+                local syntheticToken = registry.syntheticToken
+                task.defer(function() pcall(callback, self, method, args, nil, nil, syntheticToken) end)
             end
 
             return oldNamecall(self, ...)
@@ -1787,7 +2467,7 @@ local function installOutboundObserver()
         rawset(ENV, OUTBOUND_HOOK_KEY, registry)
     end
 
-    registry.callback = function(remote, method, args, results, latencyMs)
+    registry.callback = function(remote, method, args, results, latencyMs, syntheticToken)
         if not S.running or S.stopping then return end
         task.defer(function()
             if not S.running or S.stopping then return end
@@ -1811,6 +2491,11 @@ local function installOutboundObserver()
             local newShape = not S.profileShape[shapeHash]
             local score = importanceScore(remotePath, method, newShape, remote.ClassName,
                 newSemantic, newResponseShape, newResponseSemantic)
+            modelProtocol("out", remotePath, method, shapeHash, semanticHash)
+            if newShape or newSemantic or newResponseShape or newResponseSemantic then
+                observeArgumentFields(remotePath, method, args, "out")
+                if results then observeArgumentFields(remotePath, method, results, "return") end
+            end
             local focused = score >= C.FOCUS_SCORE
             local deep = focused or newShape or newSemantic or newResponseShape or newResponseSemantic
             S.smartStats.outboundObserved = (S.smartStats.outboundObserved or 0) + 1
@@ -1836,6 +2521,8 @@ local function installOutboundObserver()
                 opaque = opaqueDiagnostics(args, "out:" .. remotePath, deep),
                 responseOpaque = results and opaqueDiagnostics(results, "return:" .. remotePath, deep) or nil,
                 newShape = newShape, investigating = deep, importance = score,
+                automatedInvestigation = syntheticToken ~= nil,
+                investigationId = syntheticToken,
                 player = deep and playerContext(false) or nil,
             }
             local accepted = enqueue("record", "remote_outbound", record,
@@ -1860,6 +2547,9 @@ local function installOutboundObserver()
                 end
             end
             if deep then openCorrelationWindow(remotePath, method, shapeHash, score, semanticHash) end
+            if accepted and deep and not syntheticToken then
+                queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, score)
+            end
         end)
     end
 
@@ -1877,17 +2567,71 @@ local function disableOutboundObserver()
     S.outboundHookReady = false
 end
 
+local function attachToolSignals(tool, label)
+    if not tool or not tool:IsA("Tool") or S.toolSignals[tool] then return end
+    S.toolSignals[tool] = true
+    local function emit(kind)
+        if not S.running or S.stopping then return end
+        enqueue("record", "tool_signal", {
+            kind = kind, container = label, tool = obj(tool, label), player = playerContext(false),
+        }, 91, false, nil, nil,
+            hashText("tool_signal|" .. kind .. "|" .. normalizedPath(tool) .. "|" .. tostring(math.floor((os.clock() - S.startClock) * 4))), true)
+    end
+    S.conns[#S.conns + 1] = tool.Equipped:Connect(function() emit("tool_equipped") end)
+    S.conns[#S.conns + 1] = tool.Unequipped:Connect(function() emit("tool_unequipped") end)
+    S.conns[#S.conns + 1] = tool.Activated:Connect(function() emit("tool_activated") end)
+end
+
+local function attachGuiSignals(inst)
+    if not inst or S.guiSignals[inst] then return end
+    if not (inst:IsA("GuiButton") or inst:IsA("ScreenGui")) then return end
+    S.guiSignals[inst] = true
+    if inst:IsA("GuiButton") then
+        S.conns[#S.conns + 1] = inst.Activated:Connect(function()
+            if not S.running or S.stopping then return end
+            enqueue("record", "gui_interaction", {
+                kind = "gui_activated", gui = obj(inst, "PlayerGui"), player = playerContext(false),
+            }, 94, false, nil, nil, nil, true)
+        end)
+        S.conns[#S.conns + 1] = inst:GetPropertyChangedSignal("Visible"):Connect(function()
+            if not S.running or S.stopping then return end
+            local state = inst.Visible
+            rememberGuiChange("visible", inst, state)
+            enqueue("record", "gui_state", {
+                kind = "gui_state", state = "visible", value = state,
+                gui = { path = pathOf(inst), name = inst.Name, className = inst.ClassName },
+            }, 68, false, nil, nil,
+                hashText("gui_visible|" .. normalizedPath(inst) .. "|" .. tostring(state)), false)
+        end)
+    else
+        S.conns[#S.conns + 1] = inst:GetPropertyChangedSignal("Enabled"):Connect(function()
+            if not S.running or S.stopping then return end
+            local state = inst.Enabled
+            rememberGuiChange("enabled", inst, state)
+            enqueue("record", "gui_state", {
+                kind = "gui_state", state = "enabled", value = state,
+                gui = { path = pathOf(inst), name = inst.Name, className = inst.ClassName },
+            }, 70, false, nil, nil,
+                hashText("gui_enabled|" .. normalizedPath(inst) .. "|" .. tostring(state)), false)
+        end)
+    end
+end
+
 local toolState = {}
 local function watchContainer(container, label)
     if not container then return end
     for _, x in ipairs(container:GetChildren()) do
-        if x:IsA("Tool") then toolState[pathOf(x)] = label end
+        if x:IsA("Tool") then
+            toolState[pathOf(x)] = label
+            attachToolSignals(x, label)
+        end
     end
     local added = container.ChildAdded:Connect(function(x)
         if not S.running or S.stopping or not x:IsA("Tool") then return end
         local p = pathOf(x)
         if toolState[p] == label then return end
         toolState[p] = label
+        attachToolSignals(x, label)
         enqueue("record", "tool_transition", {
             kind = "tool_added", container = label, tool = obj(x, label), player = playerContext(false),
         }, 90, false, nil, nil, nil, true)
@@ -1905,8 +2649,9 @@ local function watchContainer(container, label)
 end
 
 local function runtimePatternDecision(x, source)
-    local patternHash = signature("runtime_pattern", tostring(source) .. ":" .. pathOf(x), {
-        className = x.ClassName, name = x.Name,
+    local patternPath = normalizedPath(x)
+    local patternHash = signature("runtime_pattern", tostring(source) .. ":" .. patternPath, {
+        className = x.ClassName, name = normalizeDynamicSegment(x.Name),
     }, true)
     local count = (S.runtimePatternCounts[patternHash] or 0) + 1
     S.runtimePatternCounts[patternHash] = count
@@ -1929,15 +2674,16 @@ local function recordRuntimeAdded(x, source, kind, priority)
         kind = kind, object = snapshot,
         runtimePattern = { hash = patternHash, count = count, newPattern = newPattern },
     }, priority, newPattern, newPattern and "low" or nil, newPattern and patternHash or nil,
-        signature("runtime_event", pathOf(x), snapshot, false), newPattern or active)
+        signature("runtime_event", normalizedPath(x), { className = x.ClassName, name = normalizeDynamicSegment(x.Name) }, false),
+        newPattern or active)
 end
 
 local function recordRuntimeRemoving(x, source, kind)
     local born = S.objectBorn[x]
     local lifetime = born and math.max(0, os.clock() - born) or nil
     S.objectBorn[x] = nil
-    local exact = hashText("remove\31" .. tostring(source) .. "\31" .. pathOf(x) .. "\31" .. x.ClassName ..
-        "\31" .. tostring(math.floor((lifetime or 0) * 10)))
+    local exact = hashText("remove|" .. tostring(source) .. "|" .. normalizedPath(x) .. "|" .. x.ClassName ..
+        "|" .. tostring(math.floor((lifetime or 0) * 10)))
     enqueue("record", "runtime_remove", {
         kind = kind, source = source, path = pathOf(x), name = x.Name, className = x.ClassName,
         attributes = attrs(x), lifetimeSeconds = lifetime and math.floor(lifetime * 1000 + 0.5) / 1000 or nil,
@@ -1993,6 +2739,29 @@ local function runtimeWatchers()
         }, 95, false, nil, nil, nil, true)
     end)
     S.conns[#S.conns + 1] = pp
+    S.conns[#S.conns + 1] = ProximityPromptService.PromptShown:Connect(function(prompt, inputType)
+        if not S.running or S.stopping then return end
+        enqueue("record", "prompt_signal", {
+            kind = "prompt_shown", prompt = obj(prompt, "shown"), inputType = tostring(inputType),
+        }, 54, false, nil, nil,
+            hashText("prompt_shown|" .. normalizedPath(prompt)), false)
+    end)
+    S.conns[#S.conns + 1] = ProximityPromptService.PromptHidden:Connect(function(prompt)
+        if not S.running or S.stopping then return end
+        enqueue("record", "prompt_signal", {
+            kind = "prompt_hidden", prompt = { path = pathOf(prompt), name = prompt.Name },
+        }, 46, false, nil, nil,
+            hashText("prompt_hidden|" .. normalizedPath(prompt)), false)
+    end)
+
+    local pg = LP:FindFirstChildOfClass("PlayerGui")
+    if pg then
+        for _, x in ipairs(pg:GetDescendants()) do attachGuiSignals(x) end
+        for _, x in ipairs(pg:GetChildren()) do attachGuiSignals(x) end
+        S.conns[#S.conns + 1] = pg.DescendantAdded:Connect(function(x)
+            if S.running and not S.stopping then attachGuiSignals(x) end
+        end)
+    end
 
     local ac = LP.AttributeChanged:Connect(function(name)
         if not S.running or S.stopping then return end
@@ -2073,8 +2842,15 @@ local function staticRecord(inst, label)
 
     if important then
         local a = attrs(inst)
-        local fingerprint = obj(inst, "fingerprint", a)
-        local h = signature("static", pathOf(inst), fingerprint, false)
+        local fingerprint = { className = inst.ClassName, name = normalizeDynamicSegment(inst.Name), attributes = a }
+        if inst:IsA("ValueBase") then pcall(function() fingerprint.value = ser(inst.Value) end) end
+        if inst:IsA("ProximityPrompt") then
+            fingerprint.prompt = {
+                actionText = inst.ActionText, objectText = inst.ObjectText, hold = inst.HoldDuration,
+                distance = inst.MaxActivationDistance, lineOfSight = inst.RequiresLineOfSight,
+            }
+        end
+        local h = signature("static", normalizedPath(inst), fingerprint, false)
         if S.profileLow[h] then
             bump(S.suppressed, "important_instance")
             return
@@ -2084,7 +2860,7 @@ local function staticRecord(inst, label)
             true, "low", h, nil, false)
     elseif inst:IsA("Folder") or inst:IsA("Model") or inst:IsA("Accessory") then
         local a = attrs(inst)
-        local h = signature("structure", pathOf(inst), {
+        local h = signature("structure", normalizedPath(inst), {
             className = inst.ClassName, attributes = a, children = #inst:GetChildren(),
         }, false)
         if S.profileLow[h] then
@@ -2160,7 +2936,7 @@ local function scanNearby(epoch)
     local sliceStart = os.clock()
     for i, part in ipairs(parts) do
         if not scanActive(epoch) then break end
-        local h = signature("nearby", pathOf(part), {
+        local h = signature("nearby", normalizedPath(part), {
             className = part.ClassName, size = part.Size, material = part.Material,
             anchored = part.Anchored, canCollide = part.CanCollide, transparency = part.Transparency,
         }, false)
@@ -2244,6 +3020,7 @@ local function scanGui(epoch)
         end
 
         if x:IsA("ScreenGui") then
+            attachGuiSignals(x)
             local h = signature("gui_screen", pathOf(x), {
                 className = x.ClassName, enabled = x.Enabled, displayOrder = x.DisplayOrder, attributes = attrs(x),
             }, false)
@@ -2254,7 +3031,8 @@ local function scanGui(epoch)
                 }, 45, true, "low", h, nil, false)
                 captured = captured + 1
             end
-        elseif x:IsA("TextLabel") or x:IsA("TextButton") or x:IsA("TextBox") then
+        elseif x:IsA("TextLabel") or x:IsA("TextButton") or x:IsA("TextBox") or x:IsA("ImageButton") then
+            attachGuiSignals(x)
             local h = signature("gui_text", pathOf(x), {
                 className = x.ClassName, text = x.Text, visible = x.Visible, position = x.Position, size = x.Size,
             }, false)
@@ -2380,6 +3158,53 @@ local function impactSummary()
     return out
 end
 
+local function protocolSummary()
+    local rows = {}
+    for _, row in pairs(S.protocolModels) do
+        rows[#rows + 1] = {
+            direction = row.direction, remote = row.remote, method = row.method, observed = row.observed,
+            shapeChanges = row.shapeChanges, semanticChanges = row.semanticChanges,
+            shapeCount = #(row.shapes or {}), semanticCount = #(row.semantics or {}),
+        }
+    end
+    table.sort(rows, function(a, b)
+        local aa = (a.shapeChanges or 0) + (a.semanticChanges or 0)
+        local bb = (b.shapeChanges or 0) + (b.semanticChanges or 0)
+        if aa == bb then return (a.observed or 0) > (b.observed or 0) end
+        return aa > bb
+    end)
+    local out = {}
+    for i = 1, math.min(#rows, 50) do out[i] = rows[i] end
+    return out
+end
+
+local function argumentFieldSummary()
+    local rows = {}
+    for _, row in pairs(S.argumentFields) do
+        rows[#rows + 1] = {
+            stream = row.stream, field = row.field, observed = row.observed, changes = row.changes,
+            stability = row.observed > 1 and math.floor((1 - ((row.changes or 0) / math.max(1, row.observed - 1))) * 1000 + 0.5) / 1000 or nil,
+            types = row.types,
+        }
+    end
+    table.sort(rows, function(a, b)
+        if (a.changes or 0) == (b.changes or 0) then return (a.observed or 0) > (b.observed or 0) end
+        return (a.changes or 0) > (b.changes or 0)
+    end)
+    local out = {}
+    for i = 1, math.min(#rows, 80) do out[i] = rows[i] end
+    return out
+end
+
+local function investigationKnowledgeDeltaSummary()
+    local rows = {}
+    for _, row in pairs(S.investigationKnowledgeDelta) do rows[#rows + 1] = row end
+    table.sort(rows, function(a, b) return (a.completed or 0) > (b.completed or 0) end)
+    local out = {}
+    for i = 1, math.min(#rows, C.DELTA_INVESTIGATION_CAP) do out[i] = rows[i] end
+    return out
+end
+
 local function runtimePatternSummary()
     local rows = {}
     for hash, count in pairs(S.runtimePatternCounts) do
@@ -2403,6 +3228,7 @@ local function manifestTable()
             knownShapeHashes = S.deltaShape,
             knownSemanticHashes = S.deltaSemantic,
             knownRemoteHashes = S.deltaRemote,
+            investigationKnowledge = investigationKnowledgeDeltaSummary(),
             frontier = S.frontier,
         },
         strategyDelta = strategySnapshot(),
@@ -2424,6 +3250,18 @@ local function manifestTable()
             behaviorTransitions = behaviorSummary(),
             impactRemotes = impactSummary(),
             runtimePatterns = runtimePatternSummary(),
+            protocolEvolution = protocolSummary(),
+            argumentFields = argumentFieldSummary(),
+            investigator = {
+                state = S.investigatorState,
+                queued = S.smartStats.investigationsQueued or 0,
+                active = S.smartStats.investigationsActive or 0,
+                passive = S.smartStats.investigationsPassive or 0,
+                completed = S.smartStats.investigationsCompleted or 0,
+                cancelled = S.smartStats.investigationsCancelled or 0,
+                blocked = S.smartStats.investigationsBlocked or 0,
+                inputQuarantines = S.smartStats.inputQuarantines or 0,
+            },
         },
     }
 end
@@ -2452,6 +3290,7 @@ local function drainQueue(timeoutSeconds)
 end
 
 local function resetRunState()
+    setInputQuarantine(false)
     S.running = false
     S.stopping = false
     S.finalizing = false
@@ -2469,6 +3308,7 @@ local function resetRunState()
     S.deltaLow, S.deltaShape, S.deltaSemantic, S.deltaRemote = {}, {}, {}, {}
     S.deltaLowSet, S.deltaShapeSet, S.deltaSemanticSet, S.deltaRemoteSet = {}, {}, {}, {}
     S.strategy, S.suppressed, S.dropped, S.repeatCounts, S.coverage, S.investigation, S.recentRefs = {}, {}, {}, {}, {}, {}, {}
+    S.recentTimeline, S.recentGuiChanges = {}, {}
     S.frontier, S.frontierSet = {}, {}
     S.correlationWindows, S.lastCorrelationByRemote = {}, {}
     S.correlationSeq = 0
@@ -2481,6 +3321,14 @@ local function resetRunState()
     S.opaquePrevious, S.opaqueCounters = {}, {}
     S.runtimePatternCounts, S.runtimePatternSeen = {}, {}
     S.objectBorn = setmetatable({}, { __mode = "k" })
+    S.toolSignals = setmetatable({}, { __mode = "k" })
+    S.guiSignals = setmetatable({}, { __mode = "k" })
+    S.investigatorState, S.investigatorReason, S.investigatorStateSince = "GREEN", "livre", os.clock()
+    S.activeInvestigation, S.investigationQueue, S.investigationQueuedKeys = nil, {}, {}
+    S.investigationSeq, S.investigationCount, S.investigationEpoch = 0, 0, S.investigationEpoch + 1
+    S.investigationLastByKey, S.investigationKnowledgeDelta, S.actionSeenCounts = {}, {}, {}
+    S.protocolModels, S.protocolModelCount = {}, 0
+    S.argumentFields, S.argumentFieldCount = {}, 0
     S.smartStats = {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
         highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
@@ -2500,6 +3348,8 @@ local function finalize(auto)
     if S.finalizing then return end
     if not S.running and not S.cached and S.queueHead > #S.queue then return end
 
+    cancelActiveInvestigation("session_finalizing")
+    setInputQuarantine(false)
     S.finalizing = true
     S.stopping = true
     S.running = false
@@ -2583,6 +3433,8 @@ end
 local function retryCached()
     if S.finalizing or not S.cached then return end
     restoreCache(S.cached)
+    cancelActiveInvestigation("retry_cached")
+    setInputQuarantine(false)
     S.finalizing = true
     S.stopping = true
     S.running = false
@@ -2617,7 +3469,7 @@ local function retryCached()
 end
 
 --==============================================================--
--- COMPACT MOBILE UI
+-- COMPACT MOBILE UI + INVESTIGATION STATUS ICON
 --==============================================================--
 
 local GUI_NAME = "CafeinaUniversalGameTraceV30"
@@ -2630,6 +3482,7 @@ gui.Name = GUI_NAME
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = false
 gui.DisplayOrder = 9999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 pcall(function() gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets end)
 if not pcall(function() gui.Parent = parent end) then gui.Parent = LP:WaitForChild("PlayerGui") end
 
@@ -2639,15 +3492,31 @@ safeRoot.BackgroundTransparency = 1
 safeRoot.BorderSizePixel = 0
 safeRoot.Size = UDim2.fromScale(1, 1)
 safeRoot.Position = UDim2.fromOffset(0, 0)
+safeRoot.ZIndex = 1
 safeRoot.Parent = gui
+
+inputShield = Instance.new("TextButton")
+inputShield.Name = "InvestigationInputShield"
+inputShield.BackgroundTransparency = 1
+inputShield.BorderSizePixel = 0
+inputShield.Text = ""
+inputShield.AutoButtonColor = false
+inputShield.Active = true
+inputShield.Modal = true
+inputShield.Visible = false
+inputShield.Size = UDim2.fromScale(1, 1)
+inputShield.Position = UDim2.fromOffset(0, 0)
+inputShield.ZIndex = 80
+inputShield.Parent = safeRoot
 
 local frame = Instance.new("Frame")
 frame.Name = "Compact"
-frame.Size = UDim2.fromOffset(226, 104)
-frame.Position = UDim2.new(0.5, -113, 0.18, 0)
+frame.Size = UDim2.fromOffset(232, 132)
+frame.Position = UDim2.new(0.5, -116, 0.18, 0)
 frame.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
 frame.BorderSizePixel = 0
 frame.Active = true
+frame.ZIndex = 100
 frame.Parent = safeRoot
 
 local corner = Instance.new("UICorner")
@@ -2660,31 +3529,84 @@ stroke.Parent = frame
 
 local mbLabel = Instance.new("TextLabel")
 mbLabel.BackgroundTransparency = 1
-mbLabel.Position = UDim2.fromOffset(10, 7)
-mbLabel.Size = UDim2.fromOffset(145, 20)
+mbLabel.Position = UDim2.fromOffset(10, 6)
+mbLabel.Size = UDim2.fromOffset(116, 20)
 mbLabel.Font = Enum.Font.GothamBold
 mbLabel.TextSize = 11
 mbLabel.TextColor3 = Color3.fromRGB(238, 238, 242)
 mbLabel.TextXAlignment = Enum.TextXAlignment.Left
 mbLabel.Text = "0.0 / 150 MB"
+mbLabel.ZIndex = 101
 mbLabel.Parent = frame
 
 local pctLabel = Instance.new("TextLabel")
 pctLabel.BackgroundTransparency = 1
-pctLabel.Position = UDim2.new(1, -60, 0, 7)
-pctLabel.Size = UDim2.fromOffset(50, 20)
+pctLabel.Position = UDim2.new(1, -94, 0, 6)
+pctLabel.Size = UDim2.fromOffset(52, 20)
 pctLabel.Font = Enum.Font.GothamBold
 pctLabel.TextSize = 11
 pctLabel.TextColor3 = Color3.fromRGB(190, 190, 198)
 pctLabel.TextXAlignment = Enum.TextXAlignment.Right
 pctLabel.Text = "0%"
+pctLabel.ZIndex = 101
 pctLabel.Parent = frame
 
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "Minimize"
+minimizeButton.Position = UDim2.new(1, -34, 0, 5)
+minimizeButton.Size = UDim2.fromOffset(24, 22)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(26, 26, 31)
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Text = "—"
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.TextSize = 14
+minimizeButton.TextColor3 = Color3.fromRGB(220, 220, 225)
+minimizeButton.AutoButtonColor = true
+minimizeButton.ZIndex = 102
+minimizeButton.Parent = frame
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minimizeButton
+
+local stateStrip = Instance.new("Frame")
+stateStrip.Position = UDim2.fromOffset(10, 31)
+stateStrip.Size = UDim2.new(1, -20, 0, 22)
+stateStrip.BackgroundColor3 = Color3.fromRGB(21, 21, 25)
+stateStrip.BorderSizePixel = 0
+stateStrip.ZIndex = 101
+stateStrip.Parent = frame
+local stateCorner = Instance.new("UICorner")
+stateCorner.CornerRadius = UDim.new(0, 7)
+stateCorner.Parent = stateStrip
+
+local stateDot = Instance.new("Frame")
+stateDot.Position = UDim2.fromOffset(8, 7)
+stateDot.Size = UDim2.fromOffset(8, 8)
+stateDot.BorderSizePixel = 0
+stateDot.ZIndex = 102
+stateDot.Parent = stateStrip
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = stateDot
+
+local stateLabel = Instance.new("TextLabel")
+stateLabel.BackgroundTransparency = 1
+stateLabel.Position = UDim2.fromOffset(22, 1)
+stateLabel.Size = UDim2.new(1, -28, 1, -2)
+stateLabel.Font = Enum.Font.GothamBold
+stateLabel.TextSize = 10
+stateLabel.TextColor3 = Color3.fromRGB(236, 236, 240)
+stateLabel.TextXAlignment = Enum.TextXAlignment.Left
+stateLabel.TextTruncate = Enum.TextTruncate.AtEnd
+stateLabel.ZIndex = 102
+stateLabel.Parent = stateStrip
+
 local bar = Instance.new("Frame")
-bar.Position = UDim2.fromOffset(10, 32)
-bar.Size = UDim2.new(1, -20, 0, 8)
+bar.Position = UDim2.fromOffset(10, 59)
+bar.Size = UDim2.new(1, -20, 0, 7)
 bar.BackgroundColor3 = Color3.fromRGB(29, 29, 34)
 bar.BorderSizePixel = 0
+bar.ZIndex = 101
 bar.Parent = frame
 local barCorner = Instance.new("UICorner")
 barCorner.CornerRadius = UDim.new(1, 0)
@@ -2694,14 +3616,15 @@ local fill = Instance.new("Frame")
 fill.Size = UDim2.fromScale(0, 1)
 fill.BackgroundColor3 = Color3.fromRGB(220, 220, 226)
 fill.BorderSizePixel = 0
+fill.ZIndex = 102
 fill.Parent = bar
 local fillCorner = Instance.new("UICorner")
 fillCorner.CornerRadius = UDim.new(1, 0)
 fillCorner.Parent = fill
 
 mainButton = Instance.new("TextButton")
-mainButton.Position = UDim2.fromOffset(10, 50)
-mainButton.Size = UDim2.new(1, -20, 0, 44)
+mainButton.Position = UDim2.fromOffset(10, 75)
+mainButton.Size = UDim2.new(1, -20, 0, 46)
 mainButton.BackgroundColor3 = Color3.fromRGB(31, 31, 36)
 mainButton.BorderSizePixel = 0
 mainButton.Font = Enum.Font.GothamBold
@@ -2709,10 +3632,58 @@ mainButton.TextSize = 11
 mainButton.TextColor3 = Color3.fromRGB(245, 245, 247)
 mainButton.Text = REQUEST and "CONECTANDO" or "SEM HTTP"
 mainButton.AutoButtonColor = true
+mainButton.ZIndex = 101
 mainButton.Parent = frame
 local buttonCorner = Instance.new("UICorner")
 buttonCorner.CornerRadius = UDim.new(0, 8)
 buttonCorner.Parent = mainButton
+
+local miniIcon = Instance.new("TextButton")
+miniIcon.Name = "InvestigationIcon"
+miniIcon.Size = UDim2.fromOffset(46, 46)
+miniIcon.Position = UDim2.new(0, 12, 0.28, 0)
+miniIcon.BackgroundColor3 = Color3.fromRGB(55, 190, 105)
+miniIcon.BorderSizePixel = 0
+miniIcon.Text = "✓"
+miniIcon.Font = Enum.Font.GothamBold
+miniIcon.TextSize = 17
+miniIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+miniIcon.AutoButtonColor = false
+miniIcon.Active = true
+miniIcon.Visible = false
+miniIcon.ZIndex = 120
+miniIcon.Parent = safeRoot
+local iconCorner = Instance.new("UICorner")
+iconCorner.CornerRadius = UDim.new(1, 0)
+iconCorner.Parent = miniIcon
+local iconStroke = Instance.new("UIStroke")
+iconStroke.Color = Color3.fromRGB(240, 240, 245)
+iconStroke.Transparency = 0.45
+iconStroke.Thickness = 1
+iconStroke.Parent = miniIcon
+
+local stateVisuals = {
+    GREEN = { color = Color3.fromRGB(55, 190, 105), label = "VERDE • LIVRE", icon = "✓" },
+    YELLOW = { color = Color3.fromRGB(235, 190, 55), label = "AMARELO • PARE DE MEXER", icon = "!" },
+    RED = { color = Color3.fromRGB(235, 72, 72), label = "VERMELHO • TESTE AUTOMÁTICO", icon = "●" },
+    BLUE = { color = Color3.fromRGB(72, 145, 235), label = "AZUL • OBSERVANDO", icon = "…" },
+}
+
+local minimized = false
+local function setMinimized(value)
+    minimized = value == true
+    frame.Visible = not minimized
+    miniIcon.Visible = minimized
+end
+
+investigatorUiRefresh = function()
+    local visual = stateVisuals[S.investigatorState] or stateVisuals.GREEN
+    stateDot.BackgroundColor3 = visual.color
+    miniIcon.BackgroundColor3 = visual.color
+    miniIcon.Text = visual.icon
+    local reason = tostring(S.investigatorReason or "")
+    stateLabel.Text = visual.label .. (reason ~= "" and (" • " .. reason) or "")
+end
 
 uiRefresh = function()
     local total = S.totalBytes
@@ -2722,6 +3693,7 @@ uiRefresh = function()
     mbLabel.Text = string.format("%.1f / 150 MB", total / MB)
     pctLabel.Text = tostring(math.clamp(pct, 0, 100)) .. "%"
     fill.Size = UDim2.fromScale(math.clamp(pct / 100, 0, 1), 1)
+    investigatorUiRefresh()
 end
 
 task.spawn(function()
@@ -2747,49 +3719,45 @@ local function disconnectUi()
     table.clear(uiConns)
 end
 
--- Tiny frame-time EWMA only; no expensive work runs per frame.
 local heartbeat = uiConnect(RunService.Heartbeat, function(dt)
     S.frameDt = S.frameDt * 0.94 + dt * 0.06
 end)
 
--- Drag only from the top 46 px so the action button remains reliable on touch.
-local dragging, dragInput, dragMotion, dragStart, startPos = false, nil, nil, nil, nil
-local function clampFrame()
+local function clampObject(object, margin)
+    margin = margin or 4
     local rootPos = safeRoot.AbsolutePosition
     local rootSize = safeRoot.AbsoluteSize
-    local size = frame.AbsoluteSize
+    local size = object.AbsoluteSize
     if rootSize.X <= 0 or rootSize.Y <= 0 then return end
-    local minX, minY = rootPos.X + 4, rootPos.Y + 4
-    local maxX = math.max(minX, rootPos.X + rootSize.X - size.X - 4)
-    local maxY = math.max(minY, rootPos.Y + rootSize.Y - size.Y - 4)
-    local x = math.clamp(frame.AbsolutePosition.X, minX, maxX)
-    local y = math.clamp(frame.AbsolutePosition.Y, minY, maxY)
-    frame.Position = UDim2.fromOffset(x - rootPos.X, y - rootPos.Y)
+    local minX, minY = rootPos.X + margin, rootPos.Y + margin
+    local maxX = math.max(minX, rootPos.X + rootSize.X - size.X - margin)
+    local maxY = math.max(minY, rootPos.Y + rootSize.Y - size.Y - margin)
+    local x = math.clamp(object.AbsolutePosition.X, minX, maxX)
+    local y = math.clamp(object.AbsolutePosition.Y, minY, maxY)
+    object.Position = UDim2.fromOffset(x - rootPos.X, y - rootPos.Y)
 end
 
+local dragging, dragInput, dragMotion, dragStart, startPos = false, nil, nil, nil, nil
 uiConnect(frame.InputBegan, function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
     local localY = input.Position.Y - frame.AbsolutePosition.Y
-    if localY > 46 then return end
+    if localY > 54 then return end
     dragging = true
     dragInput = input
     dragMotion = input.UserInputType == Enum.UserInputType.Touch and input or nil
     dragStart = input.Position
     startPos = frame.Position
 end)
-
 uiConnect(frame.InputChanged, function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement then dragMotion = input end
 end)
-
 uiConnect(UserInputService.InputChanged, function(input)
     if not dragging or not dragStart or not startPos then return end
     if input ~= dragMotion and input ~= dragInput then return end
     local d = input.Position - dragStart
     frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-    clampFrame()
+    clampObject(frame, 4)
 end)
-
 uiConnect(UserInputService.InputEnded, function(input)
     if dragging and (input == dragInput or input.UserInputType == Enum.UserInputType.MouseButton1) then
         dragging = false
@@ -2797,15 +3765,63 @@ uiConnect(UserInputService.InputEnded, function(input)
     end
 end)
 
+local iconDragging, iconInput, iconMotion, iconStart, iconStartPos, iconMoved = false, nil, nil, nil, nil, false
+uiConnect(miniIcon.InputBegan, function(input)
+    if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+    iconDragging = true
+    iconInput = input
+    iconMotion = input.UserInputType == Enum.UserInputType.Touch and input or nil
+    iconStart = input.Position
+    iconStartPos = miniIcon.Position
+    iconMoved = false
+end)
+uiConnect(miniIcon.InputChanged, function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then iconMotion = input end
+end)
+uiConnect(UserInputService.InputChanged, function(input)
+    if not iconDragging or not iconStart or not iconStartPos then return end
+    if input ~= iconMotion and input ~= iconInput then return end
+    local d = input.Position - iconStart
+    if math.abs(d.X) + math.abs(d.Y) > 8 then iconMoved = true end
+    miniIcon.Position = UDim2.new(iconStartPos.X.Scale, iconStartPos.X.Offset + d.X, iconStartPos.Y.Scale, iconStartPos.Y.Offset + d.Y)
+    clampObject(miniIcon, 5)
+end)
+uiConnect(UserInputService.InputEnded, function(input)
+    if iconDragging and (input == iconInput or input.UserInputType == Enum.UserInputType.MouseButton1) then
+        iconDragging = false
+        iconInput, iconMotion = nil, nil
+    end
+end)
+
+uiConnect(minimizeButton.Activated, function()
+    if S.investigatorState == "RED" or S.investigatorState == "BLUE" then return end
+    setMinimized(true)
+end)
+
+uiConnect(miniIcon.Activated, function()
+    if iconMoved then iconMoved = false return end
+    if S.investigatorState ~= "GREEN" then cancelActiveInvestigation("icone_do_menu") end
+    setMinimized(false)
+end)
+
 pcall(function()
     local camera = Workspace.CurrentCamera
-    if camera then uiConnect(camera:GetPropertyChangedSignal("ViewportSize"), function() task.defer(clampFrame) end) end
+    if camera then
+        uiConnect(camera:GetPropertyChangedSignal("ViewportSize"), function()
+            task.defer(function() clampObject(frame, 4); clampObject(miniIcon, 5) end)
+        end)
+    end
 end)
-uiConnect(safeRoot:GetPropertyChangedSignal("AbsoluteSize"), function() task.defer(clampFrame) end)
-uiConnect(safeRoot:GetPropertyChangedSignal("AbsolutePosition"), function() task.defer(clampFrame) end)
-task.defer(clampFrame)
+uiConnect(safeRoot:GetPropertyChangedSignal("AbsoluteSize"), function()
+    task.defer(function() clampObject(frame, 4); clampObject(miniIcon, 5) end)
+end)
+uiConnect(safeRoot:GetPropertyChangedSignal("AbsolutePosition"), function()
+    task.defer(function() clampObject(frame, 4); clampObject(miniIcon, 5) end)
+end)
+task.defer(function() clampObject(frame, 4); clampObject(miniIcon, 5) end)
 
 uiConnect(mainButton.Activated, function()
+    if S.investigatorState == "RED" or S.investigatorState == "BLUE" then return end
     if S.finalizing then return end
     if S.cached then retryCached()
     elseif S.running then finalize(false)
@@ -2819,6 +3835,8 @@ uiConnect(mainButton.Activated, function()
         end)
     else begin() end
 end)
+
+investigatorUiRefresh()
 
 --==============================================================--
 -- PREFLIGHT
@@ -2861,6 +3879,8 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
     end,
     Finish = function() finalize(false) end,
     Stop = function()
+        cancelActiveInvestigation("stop")
+        setInputQuarantine(false)
         S.stopping = true; S.running = false; S.runEpoch = S.runEpoch + 1
         disconnect()
         disconnectUi()
@@ -2870,6 +3890,7 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
 
 gui.Destroying:Connect(function()
     if S.running and not S.finalizing then saveCache() end
+    setInputQuarantine(false)
     S.stopping = true
     S.running = false
     S.runEpoch = S.runEpoch + 1
@@ -2877,4 +3898,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.1.0 carregado • semântica adaptativa • lupa automática • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.0 carregado • investigador adaptativo • estados coloridos • streaming protegido")
