@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.6
+# CAFEÍNA Universal Game Trace V3.2.7
 
 Arquivos principais:
 
@@ -6,6 +6,26 @@ Arquivos principais:
 - `collector-v3-routes.js`: rotas V3 do gateway.
 - `test/collector-v3-routes.test.mjs`: testes de integração da API V3.
 - `.github/workflows/cafeina-trace-v3-ci.yml`: validação Node + compilação Luau.
+
+## V3.2.7 — reenvio durável e diagnóstico automático de upload
+
+A V3.2.7 corrige o cenário observado em produção em que o servidor/GitHub já havia persistido um lote, mas o executor perdeu a resposta de ACK antes de avançar o `batchIndex`. Ao reabrir, versões anteriores reconstruíam esse lote a partir da fila e podiam gerar um corpo diferente, causando `HTTP 409 — lote já existe com conteúdo diferente`.
+
+A correção mantém a coleta intacta e atua somente na camada de transporte/recuperação:
+
+- o corpo JSON exato de cada lote em voo é preservado antes do POST em um arquivo local pequeno de outbox;
+- caches novos usam `schemaVersion=4` e, quando existe um lote pendente, guardam também corpo exato, índice, bytes e quantidade de itens;
+- um retry após perda de ACK reutiliza o mesmo corpo em vez de reconstruir o lote;
+- durante recuperação de cache, o avanço da fila é salvo antes de apagar o outbox, fechando a janela de crash entre ACK e checkpoint;
+- o manifesto final também preserva seu corpo exato entre retries;
+- erros determinísticos como `409`, `400` e `413` bloqueiam retries cegos; erros transitórios como `429`, falhas de rede e `5xx` continuam elegíveis a retry;
+- o menu continua com 232×132 no estado normal; um botão `DIAG` e um painel separado aparecem somente quando existe erro de upload ou anomalia já detectada pelo watchdog;
+- o painel mostra versão, run, GameId/PlaceId, batch local/alvo, fila, ACK/total, schema do cache, presença de lote exato, estado de upload/finalização, watchdog e erro HTTP resumido;
+- `getgenv().__CAFEINA_UNIVERSAL_TRACE_V30.Diagnostic()` expõe o mesmo estado em formato compacto para diagnóstico externo.
+
+O outbox não aumenta scans, watchers, frequência de coleta, investigação, orçamento de memória da sessão nem limites da API. A escrita adicional ocorre apenas quando um lote realmente vai ser transmitido.
+
+Caches antigos (`schemaVersion=3`) continuam carregando. Como eles foram criados antes do outbox durável, um conflito legado não é corrigido por adivinhação: o coletor preserva os dados, bloqueia repetição automática do erro e mostra o diagnóstico necessário para recuperação controlada.
 
 ## V3.2.6 — qualidade causal e contexto das investigações
 
@@ -264,9 +284,11 @@ A correção contra travamento em **ENVIANDO** permanece intacta:
 - durante coleta normal, batches esperam o alvo mínimo ou latência máxima;
 - finalização drena a fila restante;
 - sempre fica reservado um slot para o manifesto;
-- retries mantêm índice/conteúdo estáveis;
+- retries mantêm índice e corpo exato estáveis por meio do outbox durável;
 - `acknowledgedDataBytes` representa somente bytes realmente confirmados pelo servidor/GitHub;
-- cache local preserva cauda não confirmada quando `writefile` está disponível.
+- cache local preserva cauda não confirmada quando `writefile` está disponível;
+- perda de ACK não força reconstrução do lote já persistido;
+- conflitos determinísticos param em estado diagnosticável em vez de repetir indefinidamente.
 
 Limites principais continuam:
 
