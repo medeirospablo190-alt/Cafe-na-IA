@@ -102,8 +102,10 @@ local C = {
     CORRELATION_EVIDENCE_CAP = 1200,
     CORRELATION_IMPACT_MIN_SUPPORT = 3,
     CORRELATION_IMPACT_MIN_TRUSTED_SUPPORT = 2.0,
+    CORRELATION_IMPACT_MIN_DISTINCT = 2,
     CORRELATION_IMPACT_MIN_CONFIDENCE = 35,
     CORRELATION_CONFIRM_MIN_TRUSTED_SUPPORT = 2.0,
+    CORRELATION_CONFIRM_MIN_DISTINCT = 2,
     CORRELATION_CONFIRM_MIN_CONFIDENCE = 25,
     CORRELATION_CONFIRM_MAX_BASELINE = 1,
     BEHAVIOR_TRANSITION_CAP = 800,
@@ -1332,14 +1334,16 @@ local function correlationMetrics(evidence)
     ) + 0.5)
 
     local maxReliability = tonumber(evidence.maxReliability) or 1
+    local distinctEffects = tonumber(evidence.distinctEffects) or support
     local stage = "candidate"
     if maxReliability < 0.5 then
         stage = "weak_context"
-    elseif trustedSupport >= C.CORRELATION_CONFIRM_MIN_TRUSTED_SUPPORT and
+    elseif distinctEffects >= C.CORRELATION_CONFIRM_MIN_DISTINCT and
+        trustedSupport >= C.CORRELATION_CONFIRM_MIN_TRUSTED_SUPPORT and
         confidence >= C.CORRELATION_CONFIRM_MIN_CONFIDENCE and
         baseline <= C.CORRELATION_CONFIRM_MAX_BASELINE then
         stage = "confirmed"
-    elseif support >= 2 then
+    elseif distinctEffects >= 2 then
         stage = "repeated"
     end
 
@@ -1348,6 +1352,7 @@ local function correlationMetrics(evidence)
         total = total,
         confidence = confidence,
         stage = stage,
+        distinctEffects = distinctEffects,
         trustedSupport = math.floor(trustedSupport * 100 + 0.5) / 100,
         timingConsistency = math.floor(timingConsistency * 1000 + 0.5) / 1000,
     }
@@ -1389,18 +1394,25 @@ local function correlationCandidates(category, object, priority)
             evidence = {
                 remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
                 effect = effectLabel, effectHash = effectHash, support = 0, trustedSupport = 0,
+                distinctEffects = 0, lastOccurrence = nil,
                 weighted = 0, ageSum = 0, ageSqSum = 0, maxReliability = 0,
             }
             S.correlationEvidence[pairKey] = evidence
             S.correlationEvidenceCount = S.correlationEvidenceCount + 1
         end
-        local confidence, support, stage, trustedSupport, timingConsistency = 0, 0, "candidate", 0, 1
+        local confidence, support, stage, trustedSupport, timingConsistency, distinctEffects =
+            0, 0, "candidate", 0, 1, 0
         local baseline = S.effectBaseline[effectHash] or 0
         local total = S.effectTotals[effectHash] or 1
         local reliability = correlationEffectReliability(category, object)
+        local occurrence = tostring(object.clock or (now - S.startClock)) .. "|" .. tostring(category) .. "|" .. effectHash
         if evidence then
             local recency = math.max(0.05, 1 - (age / math.max(0.001, C.CORRELATION_SECONDS)))
             evidence.support = evidence.support + 1
+            if evidence.lastOccurrence ~= occurrence then
+                evidence.lastOccurrence = occurrence
+                evidence.distinctEffects = (tonumber(evidence.distinctEffects) or 0) + 1
+            end
             evidence.trustedSupport = (tonumber(evidence.trustedSupport) or 0) + reliability
             evidence.weighted = (tonumber(evidence.weighted) or 0) + recency * reliability
             evidence.ageSum = (tonumber(evidence.ageSum) or 0) + age
@@ -1413,9 +1425,11 @@ local function correlationCandidates(category, object, priority)
             total = metrics.total
             confidence = metrics.confidence
             stage = metrics.stage
+            distinctEffects = metrics.distinctEffects
             trustedSupport = metrics.trustedSupport
             timingConsistency = metrics.timingConsistency
             if support >= C.CORRELATION_IMPACT_MIN_SUPPORT and
+                distinctEffects >= C.CORRELATION_IMPACT_MIN_DISTINCT and
                 trustedSupport >= C.CORRELATION_IMPACT_MIN_TRUSTED_SUPPORT and
                 confidence >= C.CORRELATION_IMPACT_MIN_CONFIDENCE and
                 (tonumber(priority) or 0) >= 72 then
@@ -1428,7 +1442,8 @@ local function correlationCandidates(category, object, priority)
         out[#out + 1] = {
             id = w.id, remote = w.remote, method = w.method, shape = w.shape, semantic = w.semantic,
             importance = w.importance, age = age, effect = effectLabel,
-            support = support, trustedSupport = trustedSupport, baseline = baseline,
+            support = support, distinctEffects = distinctEffects,
+            trustedSupport = trustedSupport, baseline = baseline,
             effectTotal = total, confidence = confidence, relationStage = stage,
             timingConsistency = timingConsistency, reliability = reliability,
         }
@@ -3715,7 +3730,8 @@ local function correlationEvidenceSummary()
         local metrics = correlationMetrics(row)
         rows[#rows + 1] = {
             remote = row.remote, method = row.method, shape = row.shape, semantic = row.semantic,
-            effect = row.effect, support = row.support, trustedSupport = metrics.trustedSupport,
+            effect = row.effect, support = row.support, distinctEffects = metrics.distinctEffects,
+            trustedSupport = metrics.trustedSupport,
             baseline = metrics.baseline, effectTotal = metrics.total, confidence = metrics.confidence,
             relationStage = metrics.stage, timingConsistency = metrics.timingConsistency,
         }
