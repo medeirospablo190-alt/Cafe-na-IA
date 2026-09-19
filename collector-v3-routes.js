@@ -123,6 +123,45 @@ async function handleLatestManifest(req, res) {
   return jsonError(res, 404, "Nenhum manifesto V3 encontrado.");
 }
 
+function portableHashText(text) {
+  const bytes = Buffer.from(String(text || ""), "utf8");
+  let h1 = 216613;
+  let h2 = 131071;
+  for (const b of bytes) {
+    h1 = (h1 * 131 + b) % 16777213;
+    h2 = (h2 * 137 + b) % 16777199;
+  }
+  return h1.toString(16).padStart(6, "0") + h2.toString(16).padStart(6, "0");
+}
+
+function resumeToken(row) {
+  const value = row && typeof row === "object" && !Array.isArray(row) ? row : {};
+  const remote = value.remote && typeof value.remote === "object" ? value.remote : {};
+  const object = value.object && typeof value.object === "object" ? value.object : {};
+  return [
+    String(value.kind || ""),
+    String(value.sig || ""),
+    String(value.semanticHash || ""),
+    String(value.shapeHash || ""),
+    String(remote.path || object.path || value.path || ""),
+  ].join("\x1f");
+}
+
+function batchResumeSummary(batch) {
+  if (!batch || typeof batch !== "object" || Array.isArray(batch)) return null;
+  const records = Array.isArray(batch.records) ? batch.records : [];
+  const remotes = Array.isArray(batch.remotes) ? batch.remotes : [];
+  return {
+    batchIndex: safeInteger(batch.batchIndex),
+    batchKind: String(batch.batchKind || "data"),
+    payloadBytes: safeInteger(batch.payloadBytes) || 0,
+    recordCount: records.length,
+    remoteCount: remotes.length,
+    recordsHash: portableHashText(records.map(resumeToken).join("\x1e")),
+    remotesHash: portableHashText(remotes.map(resumeToken).join("\x1e")),
+  };
+}
+
 async function handleBatch(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -197,7 +236,11 @@ async function handleBatch(req, res) {
       let parsed = null;
       try { parsed = JSON.parse(existing); } catch {}
       if (!parsed || parsed.contentChecksum !== contentChecksum) {
-        return jsonError(res, 409, "Lote já existe com conteúdo diferente.", { runId, batchIndex });
+        return jsonError(res, 409, "Lote já existe com conteúdo diferente.", {
+          runId,
+          batchIndex,
+          existing: batchResumeSummary(parsed),
+        });
       }
     } else {
       await fs.promises.writeFile(localPath, text, { encoding: "utf-8", flag: "wx" });
@@ -215,7 +258,11 @@ async function handleBatch(req, res) {
       let remoteParsed = null;
       try { remoteParsed = JSON.parse(remoteText); } catch {}
       if (!remoteParsed || remoteParsed.contentChecksum !== contentChecksum) {
-        return jsonError(res, 409, "Lote já existe no GitHub com conteúdo diferente.", { runId, batchIndex });
+        return jsonError(res, 409, "Lote já existe no GitHub com conteúdo diferente.", {
+          runId,
+          batchIndex,
+          existing: batchResumeSummary(remoteParsed),
+        });
       }
     } else {
       await upsertGitHubText(githubPath, text, `Trace V3 ${gameId}/${placeId} ${runId} batch ${batchIndex}`);
