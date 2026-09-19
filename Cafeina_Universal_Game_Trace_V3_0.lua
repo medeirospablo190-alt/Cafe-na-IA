@@ -50,7 +50,7 @@ local ENV = (getgenv and getgenv()) or _G
 
 local MB = 1024 * 1024
 local C = {
-    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_7",
+    VERSION = "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
     PURPOSE = "adaptive_bidirectional_game_mapping",
 
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
@@ -65,6 +65,11 @@ local C = {
     BATCH_MAX_LATENCY = 10.0,
     QUEUE_SOFT_BYTES = 4 * MB,
     QUEUE_HARD_BYTES = 8 * MB,
+    -- Keep the final portion of the queue available for high-value records.
+    -- Normal traffic is refused before the hard cap so remote_outbound,
+    -- rare/high-priority records and diagnostics still have room during bursts.
+    QUEUE_CRITICAL_RESERVE_BYTES = 1 * MB,
+    QUEUE_CRITICAL_PRIORITY = 90,
 
     MAX_RECORDS_PER_BATCH = 6000,
     MAX_REMOTES_PER_BATCH = 1000,
@@ -663,6 +668,8 @@ local S = {
     strategy = {},
     suppressed = {},
     dropped = {},
+    queueDropDetail = {},
+    queueHighWaterBytes = 0,
     repeatCounts = {},
     repeatKeyCount = 0,
     coverage = {},
@@ -1646,6 +1653,56 @@ local function noteRepeat(hash)
     end
 end
 
+local CRITICAL_QUEUE_CATEGORIES = {
+    remote_outbound = true,
+    remote_catalog = true,
+    investigation_bundle = true,
+    investigator_diag = true,
+    menu_health_diag = true,
+    session = true,
+    external_marker = true,
+}
+
+local function isCriticalQueueRecord(category, priority)
+    return CRITICAL_QUEUE_CATEGORIES[category] == true or
+        (tonumber(priority) or 0) >= C.QUEUE_CRITICAL_PRIORITY
+end
+
+local function noteQueueDrop(reason, category, priority, bytes, critical)
+    reason = tostring(reason or "queue_drop")
+    category = tostring(category or "unknown")
+    local p = tonumber(priority) or 0
+    local n = math.max(0, tonumber(bytes) or 0)
+
+    bump(S.dropped, reason)
+
+    local row = S.queueDropDetail[category]
+    if type(row) ~= "table" then
+        row = {
+            count = 0,
+            bytes = 0,
+            critical = 0,
+            normal = 0,
+            minPriority = p,
+            maxPriority = p,
+            reasons = {},
+        }
+        S.queueDropDetail[category] = row
+    end
+
+    row.count = (tonumber(row.count) or 0) + 1
+    row.bytes = (tonumber(row.bytes) or 0) + n
+    row.minPriority = math.min(tonumber(row.minPriority) or p, p)
+    row.maxPriority = math.max(tonumber(row.maxPriority) or p, p)
+    if critical then
+        row.critical = (tonumber(row.critical) or 0) + 1
+    else
+        row.normal = (tonumber(row.normal) or 0) + 1
+    end
+    row.reasons = type(row.reasons) == "table" and row.reasons or {}
+    row.reasons[reason] = (tonumber(row.reasons[reason]) or 0) + 1
+end
+
 local function enqueue(channel, category, object, priority, novelty, persistentKind, persistentHash, exactHash, bypassSampling)
     if not S.running or S.stopping then return false end
 
@@ -1705,14 +1762,25 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
         task.defer(function() if S.finishCallback then S.finishCallback(true) end end)
         return false
     end
+    local criticalQueueRecord = isCriticalQueueRecord(category, priority)
+    local normalQueueLimit = math.max(0, C.QUEUE_HARD_BYTES - C.QUEUE_CRITICAL_RESERVE_BYTES)
+
+    -- Protect reserved capacity from noisy normal-priority traffic. This does not
+    -- reorder or evict queued records, so the durable upload/cache sequence stays intact.
+    if not criticalQueueRecord and S.queueBytes + bytes > normalQueueLimit then
+        noteQueueDrop("queue_reserve_protect", category, priority, bytes, false)
+        return false
+    end
+
     if S.queueBytes + bytes > C.QUEUE_HARD_BYTES then
-        bump(S.dropped, "queue_hard_cap")
+        noteQueueDrop("queue_hard_cap", category, priority, bytes, criticalQueueRecord)
         return false
     end
 
     local wasEmpty = S.queueBytes <= 0
     S.queue[#S.queue + 1] = { channel = channel, json = json, bytes = bytes }
     S.queueBytes = S.queueBytes + bytes
+    S.queueHighWaterBytes = math.max(tonumber(S.queueHighWaterBytes) or 0, S.queueBytes)
     S.totalBytes = S.totalBytes + bytes
     if wasEmpty then S.firstQueuedClock = os.clock() end
     markExact(exactHash)
@@ -2014,6 +2082,7 @@ U.cacheSnapshot = function()
         deltaLow = S.deltaLow, deltaShape = S.deltaShape, deltaSemantic = S.deltaSemantic, deltaRemote = S.deltaRemote,
         strategy = strategySnapshot(), coverage = S.coverage, frontier = S.frontier,
         suppressed = S.suppressed, dropped = S.dropped, repeatCounts = S.repeatCounts,
+        queueDropDetail = S.queueDropDetail, queueHighWaterBytes = S.queueHighWaterBytes,
         smartStats = S.smartStats, focusRemote = S.focusRemote, focusScore = S.focusScore,
         correlationEvidence = S.correlationEvidence, effectTotals = S.effectTotals, effectBaseline = S.effectBaseline,
         remoteImpact = S.remoteImpact, behaviorTransitions = S.behaviorTransitions,
@@ -2130,6 +2199,8 @@ local function restoreCache(data)
     S.uploadError = nil
     S.suppressed = type(data.suppressed) == "table" and data.suppressed or {}
     S.dropped = type(data.dropped) == "table" and data.dropped or {}
+    S.queueDropDetail = type(data.queueDropDetail) == "table" and data.queueDropDetail or {}
+    S.queueHighWaterBytes = math.max(tonumber(data.queueHighWaterBytes) or 0, S.queueBytes)
     S.smartStats = type(data.smartStats) == "table" and data.smartStats or {
         outboundObserved = 0, outboundAccepted = 0, highInterestOutbound = 0,
         highInterestInbound = 0, correlationsOpened = 0, semanticNovel = 0,
@@ -4177,6 +4248,14 @@ local function manifestTable()
         totalDataBytes = S.totalBytes, acknowledgedDataBytes = S.ackBytes,
         dataBatches = S.batchIndex,
         suppressed = S.suppressed, dropped = S.dropped, repeatSummary = repeatSummary(),
+        queueProtection = {
+            hardBytes = C.QUEUE_HARD_BYTES,
+            reserveBytes = C.QUEUE_CRITICAL_RESERVE_BYTES,
+            normalLimitBytes = math.max(0, C.QUEUE_HARD_BYTES - C.QUEUE_CRITICAL_RESERVE_BYTES),
+            criticalPriority = C.QUEUE_CRITICAL_PRIORITY,
+            highWaterBytes = tonumber(S.queueHighWaterBytes) or 0,
+            dropDetail = S.queueDropDetail,
+        },
         profileDelta = {
             knownLowValueHashes = S.deltaLow,
             knownShapeHashes = S.deltaShape,
@@ -4310,6 +4389,7 @@ local function resetRunState()
     S.deltaLow, S.deltaShape, S.deltaSemantic, S.deltaRemote = {}, {}, {}, {}
     S.deltaLowSet, S.deltaShapeSet, S.deltaSemanticSet, S.deltaRemoteSet = {}, {}, {}, {}
     S.strategy, S.suppressed, S.dropped, S.repeatCounts, S.coverage, S.investigation, S.recentRefs = {}, {}, {}, {}, {}, {}, {}
+    S.queueDropDetail, S.queueHighWaterBytes = {}, 0
     S.recentTimeline, S.recentGuiChanges = {}, {}
     S.frontier, S.frontierSet = {}, {}
     S.correlationWindows, S.lastCorrelationByRemote = {}, {}
@@ -4749,6 +4829,10 @@ local function diagnosticText()
         "Batch local: " .. tostring(S.batchIndex or 0) ..
             " | alvo: " .. tostring(e and e.batchIndex or ((S.batchIndex or 0) + 1)),
         string.format("Fila: %d itens • %.2f MB", queueItems, (S.queueBytes or 0) / MB),
+        string.format("Fila pico: %.2f MB • reserva crítica: %.2f MB",
+            (S.queueHighWaterBytes or 0) / MB, C.QUEUE_CRITICAL_RESERVE_BYTES / MB),
+        "Drops fila: hard=" .. tostring((S.dropped and S.dropped.queue_hard_cap) or 0) ..
+            " • proteção=" .. tostring((S.dropped and S.dropped.queue_reserve_protect) or 0),
         string.format("ACK/total: %.2f / %.2f MB", (S.ackBytes or 0) / MB, (S.totalBytes or 0) / MB),
         "Cache schema: " .. tostring(S.cacheSchemaVersion or "-") ..
             " | lote exato: " .. (pendingExact and "SIM" or "NÃO"),
@@ -5139,4 +5223,4 @@ gui.Destroying:Connect(function()
     disconnectUi()
 end)
 
-print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.7 carregado • upload durável • diagnóstico automático • streaming protegido")
+print("[CAFEINA] UNIVERSAL GAME TRACE V3.2.8 carregado • fila protegida • upload durável • diagnóstico automático")
