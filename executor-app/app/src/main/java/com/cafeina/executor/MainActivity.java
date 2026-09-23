@@ -45,6 +45,7 @@ public final class MainActivity extends Activity {
 
     private ScriptStore scriptStore;
     private AutoExecuteStore autoExecuteStore;
+    private String runtimeFilesRoot;
     private EditText editor;
     private TextView console;
     private TextView status;
@@ -63,6 +64,7 @@ public final class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         scriptStore = new ScriptStore(getFilesDir());
         autoExecuteStore = new AutoExecuteStore(getFilesDir());
+        runtimeFilesRoot = getFilesDir().toPath().resolve("runtime-fs").toString();
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
@@ -83,7 +85,7 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 7 • explicit local auto execute + runtime");
+        subtitle.setText("Phase 8 • sandboxed local files API + runtime");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -724,7 +726,7 @@ public final class MainActivity extends Activity {
                     report.append("[AUTOEXEC] ").append(name).append('\n');
 
                     try {
-                        String raw = LuauBridge.nativeExecute(entry.getValue(), 500);
+                        String raw = LuauBridge.nativeExecuteWithFiles(entry.getValue(), 500, runtimeFilesRoot);
                         JSONObject result = new JSONObject(raw);
                         boolean ok = result.optBoolean("ok", false);
                         String output = result.optString("output", "");
@@ -793,7 +795,7 @@ public final class MainActivity extends Activity {
 
         runtimeExecutor.submit(() -> {
             try {
-                final String raw = LuauBridge.nativeExecute(source, 500);
+                final String raw = LuauBridge.nativeExecuteWithFiles(source, 500, runtimeFilesRoot);
                 runOnUiThread(() -> renderResult(raw, tabName));
             } catch (Throwable error) {
                 runOnUiThread(() -> {
