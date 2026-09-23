@@ -1,0 +1,273 @@
+# CAFEÍNA — BASE AUTORITATIVA + HANDOFF DO PRÓXIMO CHAT
+
+Atualizado em 2026-09-23. Este documento é cumulativo e serve para impedir perda de contexto na troca de chat.
+
+## NÃO PERDER AO TROCAR DE CHAT
+
+1. Ler primeiro `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`.
+2. O protocolo reduzido de 6 regras tem precedência sobre regras operacionais antigas conflitantes.
+3. Verificar o estado REAL do GitHub antes de qualquer afirmação ou mutação.
+4. Não reconstruir trabalho já concluído.
+5. Preservar regras técnicas e invariantes; elas protegem o software, mas não criam checkpoints de conversa.
+6. Preservar decisões, arquitetura, fases, PRs, branches, commits, testes, falhas, correções, infraestrutura, Collector e ponto exato de continuação.
+7. O Plano Mestre CAFEÍNA de 300 itens fornecido pelo usuário continua sendo a especificação funcional autoritativa. Não o substituir por um resumo quando o texto canônico estiver disponível no contexto/handoff anterior.
+8. Não misturar requisitos Roblox/Grupo Lua no produto independente CAFEÍNA.
+
+## OBJETIVO DO PRODUTO
+
+CAFEÍNA é um aplicativo Android independente que combina:
+- runtime Luau oficial;
+- editor e projetos;
+- CAFEÍNA AI profundamente integrada;
+- Test World;
+- workspace/editor/modelador 3D;
+- ferramentas, skills e extensibilidade;
+- pesquisa pública com proveniência;
+- testes, diagnósticos, replay, métricas e profiling;
+- memória/Knowledge Store persistente;
+- snapshots, versionamento, recuperação e rollback;
+- continuidade de trabalho interrompido;
+- futura expansão desktop/notebook.
+
+Fluxo de produto:
+USER → CAFEÍNA AI → CODE + WORLD + 3D + TESTS + RESEARCH + TOOLS → FUNCTIONAL RESULT → VALIDATION → LEARNING.
+
+Fluxo interno esperado:
+entender → planejar → executar → testar → encontrar falhas → corrigir → retestar → melhorar → entregar.
+
+O usuário mantém controle final. Tudo deve ser gratuito; recursos essenciais não devem depender de serviço pago. A direção da AI é local/offline por padrão quando aplicável.
+
+Frase-guia literal:
+“A CAFEÍNA deve fazer o máximo possível para cumprir o objetivo do usuário, aprender com cada experiência, criar as ferramentas que estiverem faltando, testar antes de confiar, preservar o que funciona, explicar mudanças importantes e nunca perder a capacidade de voltar para um estado estável.”
+
+## ARQUITETURA BASE
+
+Camadas/sistemas:
+- APP SHELL
+- CAFEÍNA AI
+- LUAU RUNTIME
+- EDITOR
+- TEST WORLD
+- 3D ENGINE
+- TOOL SYSTEM
+- KNOWLEDGE SYSTEM
+- RESEARCH SYSTEM
+- TEST ENGINE
+- DIAGNOSTICS
+- DEVICE PROFILE
+- PROJECT SYSTEM
+- VERSIONING
+- SNAPSHOTS
+- RECOVERY CORE
+
+UI planejada: IA | CÓDIGO | MUNDO | 3D | SISTEMA.
+
+AI:
+- MODO CRIAÇÃO / MODO APRENDIZADO
+- Goal Lock
+- Learning Queue
+- STABLE / CANDIDATE / EXPERIMENTAL
+- Shadow/Reviewer/adversarial/self-evaluation
+- autoaperfeiçoamento exige evidência, testes, métricas, rollback e controle do usuário.
+
+Knowledge lifecycle:
+- EXPERIMENTAL
+- VALIDATED
+- CONSOLIDATED
+- OBSOLETE
+Internet é candidata até validação. Camadas HOT/WARM/COLD.
+
+Capabilities previstas:
+APP_STORAGE, SELECTED_FOLDER, NETWORK, CAMERA, MICROPHONE, NOTIFICATIONS, BLUETOOTH, LOCATION, SENSORS, BACKGROUND_PROCESSING, TEST_WORLD, 3D_ENGINE, DEVICE_DIAGNOSTICS.
+Princípios: least privilege, permissões honestas, fail-closed quando necessário.
+
+## FASES CONCLUÍDAS
+
+1. Runtime Luau independente: compile/execute, print/warn, retornos, erros, timeout, CLI, Android JNI e sandbox.
+2. Android Shell: editor/console/background execution/JNI/APK.
+3. Tabs.
+4. Armazenamento local de scripts.
+5. SAVE/LOAD.
+6. Restauração de tabs + proteção de não salvo.
+7. Auto Execute local explícito.
+8. Runtime filesystem sandboxed: `fs.write()`, `fs.read()`, `fs.exists()`, `fs.list()`.
+9–13. Fundação Test World/World Core/render/mobile preview/scene diff/picking/camera/persistência avançadas desenvolvidas por PRs sucessivos.
+14. Project/World persistence e snapshot foundation já integrados; recovery em validação.
+
+Diretórios privados históricos:
+- `files/runtime-fs`
+- `files/scripts`
+- `files/autoexec.list`
+- projetos em `files/projects/<project-id>/...`
+
+## ROADMAP AUTORITATIVO DE FASES
+
+9 Test World foundation
+10 Scene Graph + headless World
+11 render Android básico + avatar
+12 Edit/Play
+13 test harness + metrics + replay
+14 projects + snapshots + versioning + recovery + diff + rollback
+15 SQLite Knowledge Store
+16 CAFEÍNA AI core interface
+17 chat/context/missions
+18 tool system
+19 research subsystem
+20 learning mode
+21 auto-improvement candidates
+22 3D editor foundation
+23 procedural modeling
+24 image-assisted modeling
+25 advanced playtest agents
+26 optimization/profiling
+27 plugin/skill architecture
+
+## INVARIANTES TÉCNICAS QUE CONTINUAM VÁLIDAS
+
+- WorldService/native é fonte de verdade; renderer recebe estado derivado.
+- Preservar `worldMatrix`.
+- Scene Graph rejeita ciclos e pais inválidos.
+- Remover pai retorna filhos à raiz.
+- RenderScene determinístico.
+- Scene diff estável por ObjectId.
+- Picking usa `worldMatrix`.
+- Camera separada do World e não muta objetos.
+- Gestos: 1 dedo orbit, pinch zoom, 2 dedos pan.
+- ObjectId Luau em string decimal; não perder precisão uint64.
+- World IDs não são reciclados.
+- Import inválido de World não pode destruir World válido anterior.
+- Capability System fail-closed.
+- CMake Android 3.22.1: não reintroduzir `DOWNLOAD_EXTRACT_TIMESTAMP TRUE` sem causa comprovada.
+- Filament fixado em 1.75.1.
+- Testes devem validar comportamento, não apenas compilação.
+- Bug recorrente exige correção de causa raiz + regressão.
+- Branch → testes → PR → CI → merge para mudanças relevantes; isso ocorre dentro do bloco contínuo, sem virar checkpoint de conversa.
+- Antes de merge, verificar diff e preservar dados protegidos.
+- Squash merge pode divergir branches empilhadas: reconstruir branch limpa sobre o novo main quando necessário.
+- Não copiar arquivos inteiros cegamente entre branches.
+- Não force-update sem preservar exatamente o branch/PR pretendido.
+- POC-alvo: Projeto → World → Luau cria objeto → renderiza → salva → fecha → abre → restaura.
+
+## HISTÓRICO RECENTE IMPORTANTE
+
+- #101: `Render: propagate hierarchical world transforms`, merge em 2026-09-23. Transform local preservado, `worldMatrix` column-major, composição recursiva de ancestrais, translation → rotation Z/Y/X → scale, pais não-mesh afetam filhos, falhas fechadas.
+- #107 recuperou trabalho válido do antigo #102.
+- #108 recuperou camera mobile preview do antigo #103.
+- #111 recuperou deterministic scene diff do antigo #104.
+- #112 persistência do World integrada; squash merge `126072fe08ef836a60c98c9c8f9d20547c859f3d`.
+  - arquivo: `files/projects/<project-id>/worlds/main.cafeina-world.json`
+  - limite 16 MiB
+  - temp + fsync + replace seguro
+  - symlink fail-closed
+  - JNI export/import
+  - import inválido validado antes de substituir World ativo
+  - IDs não reciclados
+- #113 antigo POC stacked foi fechado sem merge.
+- #114 POC limpo de save/load/startup restore foi integrado; merge `709d068fd41b930f8b36e20e36d8bea9f7e1f3b6`.
+- #115 snapshot foundation antigo foi fechado após divergência causada por squash.
+- #116 snapshot foundation reconstruído sobre main e integrado; merge `b551954f746216636a8f0c461d2263b197bb7681`.
+  - `ProjectSnapshotStore`
+  - snapshots imutáveis
+  - limite 16 MiB
+  - IDs lowercase alnum/hyphen/underscore, primeiro caractere alnum, max 64
+  - escrita temp + fsync + atomic move/fallback
+  - sem overwrite
+  - symlink fail-closed
+  - listagem determinística.
+
+## ESTADO EXATO VERIFICADO EM 2026-09-23
+
+### PR #117 — transactional World snapshot recovery
+- Estado: OPEN
+- Head: `c80030fcc430db0143da8dab6216fc8e8a90281c`
+- Mergeable: true
+- CI run `35915914472`: COMPLETED / SUCCESS.
+- Branch: `project/snapshot-recovery-current-main`
+- Diff pretendido: apenas `ProjectWorldRecovery.java` e `ProjectWorldRecoveryTest.java`.
+- Comportamento: snapshot do World nativo; restore transacional; import inválido restaura estado nativo anterior e preserva arquivo principal.
+- Antes do merge: verificar novamente diff/head/mergeability e ausência de dados protegidos. Depois squash merge.
+
+### PR #118 — SQLite Knowledge Store foundation
+- Estado: OPEN
+- Head: `4c08a170ca861e75a34659b093254ccb443dc7a7`
+- Mergeable: true
+- CI run `35916012198`: COMPLETED / FAILURE.
+- Falha observada: job `android-emulator`, etapa instrumentation.
+- Causa do log: infraestrutura do runner ao instalar o Android Emulator: `Error on ZipFile unknown archive`; emulador não chegou a iniciar (`Connection refused` na limpeza). Não há evidência nesse run de falha do código da Knowledge Store.
+- Android build/unit do fluxo anterior progrediram normalmente; não tratar o erro do emulador como defeito funcional sem nova evidência.
+- Branch: `knowledge/sqlite-foundation`.
+- Arquivos: `CafeinaKnowledgeDatabase.java`, `KnowledgeState.java`, `KnowledgeStateTest.java`.
+- Schema inicial local: conversations, knowledge, sources, experiments, diagnostics, test_results, decisions, failures, snapshots; índices básicos.
+- Estados: EXPERIMENTAL/VALIDATED/CONSOLIDATED/OBSOLETE.
+- Migração desconhecida falha fechada.
+
+## INFRAESTRUTURA / COLLECTOR — NÃO QUEBRAR
+
+CAFEÍNA App/Runtime e CAFEÍNA Collector são blocos independentes no mesmo repositório.
+
+Collector:
+- preservar V2.1/V3;
+- preservar histórico `inventory-traces/` e `inventory-traces-v3/`;
+- gateway atual e mirror GitHub não devem ser quebrados por trabalho do app;
+- endpoint de health V3 conhecido: `/api/inventory-trace-v3/health`;
+- Collector historicamente usa JSON persistente/GitHub mirror, não o runtime Android.
+
+Cloud API:
+- `cafeina-cloud-api/`
+- PostgreSQL reutilizável
+- toda estrutura nova CAFEÍNA no schema `cafeina_ai`
+- não executar DROP automático em tabelas legadas
+- variáveis usadas: `DATABASE_URL`, `DATABASE_SSL`, `PUBLIC_BASE_URL`, `PORT`, `NODE_ENV`.
+- migração de envs do Collector deve ser compatível: criar novo mesmo valor → testar → confirmar → remover antigo → remover fallback depois.
+- aliases legados podem existir temporariamente; não apagar antes de provar dependências.
+- considerar `rootDir` do Render.
+- novo servidor/banco CAFEÍNA já foi autorizado; não pedir autorização novamente para a direção já aprovada.
+- nunca reproduzir segredos desnecessariamente.
+
+## ERROS DE PROCESSO IDENTIFICADOS E CORRIGIDOS NAS REGRAS
+
+Falhas ocorridas:
+- polling repetitivo de CI;
+- micro-updates enchendo a conversa;
+- parar porque CI estava pendente;
+- parar ao terminar PR/etapa;
+- reconsultar o mesmo job várias vezes;
+- tratar regra técnica/checkpoint como gatilho de conversa;
+- re-pedir autorização já concedida;
+- fragmentar desenvolvimento em operações minúsculas.
+
+Correção vigente:
+- protocolo reduzido de 6 regras em `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`;
+- execução por objetivo;
+- consultas em lote;
+- erro corrigível tratado internamente;
+- CI pendente não gera polling;
+- silêncio operacional;
+- parada somente por dependência real do usuário;
+- continuidade obrigatória entre chats.
+
+## MODELO BASE PARA O PRÓXIMO CHAT
+
+Ao receber “continua”:
+1. Ler este arquivo e o protocolo operacional.
+2. Verificar GitHub real em lote.
+3. Não narrar micro-etapas.
+4. Consumir primeiro trabalho executável, depois independente, depois pendências externas.
+5. Resolver erros corrigíveis internamente.
+6. Não retornar porque um PR/merge/teste/fase terminou.
+7. Continuar pelas fases do roadmap até existir dependência real do usuário ou limite inevitável da sessão.
+
+## CONTINUE EXATAMENTE DAQUI
+
+Ordem inicial, sujeita à verificação real do GitHub:
+1. Verificar #117 em um único lote. Como o último estado verificado é CI verde + mergeable, confirmar diff/head e squash-merge se continuar válido.
+2. Verificar #118 sem polling. O último run falhou por download/arquivo ZIP do Android Emulator no runner, não por evidência de erro do código. Reexecutar/obter validação apropriada; se nova falha for de código, diagnosticar e corrigir; se infraestrutura transitória e validação passar depois, verificar diff e integrar.
+3. Se #117 for mergeado antes de #118 e #118 divergir por squash, reconstruir #118 limpo sobre o main atual em vez de misturar commits antigos.
+4. Concluir Fase 14: recovery/versioning/diff/rollback necessários para o POC e garantir regressões de restauração.
+5. Avançar Fase 15 Knowledge Store: DAO/repositórios transacionais, timestamps, project scoping, provenance, estados de conhecimento, migrations versionadas e testes Android/SQLite.
+6. Depois avançar para Fase 16 CAFEÍNA AI core interface, respeitando o Plano Mestre e sem misturar Collector.
+7. Manter sempre o protocolo reduzido: não parar por CI/PR/commit/teste/fim de fase.
+
+## REGRA FINAL DE HANDOFF
+
+Este documento não autoriza substituir o Plano Mestre de 300 itens por este resumo. Ele registra o estado técnico e operacional para retomada. Quando o texto literal completo dos 300 itens estiver disponível no contexto do chat, ele deve ser preservado integralmente em um artefato canônico, sem reconstrução por memória e sem compressão.
