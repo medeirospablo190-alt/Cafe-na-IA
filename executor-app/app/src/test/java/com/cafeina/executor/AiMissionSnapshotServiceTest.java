@@ -1,0 +1,6 @@
+package com.cafeina.executor;
+import static org.junit.Assert.*; import org.junit.Test;
+public final class AiMissionSnapshotServiceTest {
+ @Test public void capturesAndRestoresMissionContinuity(){InMemoryAiMissionStore s=new InMemoryAiMissionStore();s.save(new AiMissionRecord("m","p","g",AiMissionState.WAITING_USER,7));AiToolExecutionJournal j=new AiToolExecutionJournal();j.append(new AiToolExecutionRecord("m","p","inspect",true,"ok",5));AiMissionEventLog e=new AiMissionEventLog();e.append(new AiMissionEvent("m","p",AiMissionEvent.Type.WAITING_USER,"need input",6));AiMissionSnapshotService svc=new AiMissionSnapshotService(new AiMissionRecovery(s),j,e);AiMissionSnapshot snap=svc.capture("m");s.save(new AiMissionRecord("m","p","g",AiMissionState.RUNNING,8));svc.restore(snap);assertEquals(AiMissionState.WAITING_USER,s.get("m").state);assertEquals(1,snap.executions.size());assertEquals(1,snap.events.size());}
+ @Test public void snapshotCollectionsAreImmutable(){InMemoryAiMissionStore s=new InMemoryAiMissionStore();s.save(new AiMissionRecord("m","p","g",AiMissionState.RUNNING,1));AiMissionSnapshot snap=new AiMissionSnapshotService(new AiMissionRecovery(s),new AiToolExecutionJournal(),new AiMissionEventLog()).capture("m");assertThrows(UnsupportedOperationException.class,()->snap.events.clear());}
+}
