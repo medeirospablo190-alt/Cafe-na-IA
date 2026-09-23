@@ -245,7 +245,8 @@ Correção vigente:
 - erro corrigível tratado internamente;
 - CI pendente não gera polling;
 - mínimo de narração;
-- parada somente por dependência real do usuário;
+- execução contínua: não encerrar voluntariamente enquanto existir ação segura, autorizada e relevante executável autonomamente;
+- parada somente por dependência real do usuário, pausa/cancelamento ou limitação real das ferramentas;
 - continuidade obrigatória entre chats.
 
 ## MODELO BASE PARA O PRÓXIMO CHAT
