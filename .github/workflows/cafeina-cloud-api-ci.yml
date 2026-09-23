@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - "cafeina-cloud-api/**"
-      - "grupo-lua-keymaster/services/control-api/package.json"
+      - "grupo-lua-keymaster/services/control-api/**"
       - ".github/workflows/cafeina-cloud-api-ci.yml"
   pull_request:
     paths:
       - "cafeina-cloud-api/**"
-      - "grupo-lua-keymaster/services/control-api/package.json"
+      - "grupo-lua-keymaster/services/control-api/**"
       - ".github/workflows/cafeina-cloud-api-ci.yml"
 
 jobs:
@@ -61,12 +61,31 @@ jobs:
         run: |
           PGPASSWORD=cafeina psql             --host 127.0.0.1             --username cafeina             --dbname cafeina             --tuples-only             --command "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'cafeina_ai';"             | grep -q cafeina_ai
 
-      - name: Validate old Render rootDir compatibility shim
+      - name: Validate old Render rootDir compatibility service
         working-directory: grupo-lua-keymaster/services/control-api
+        shell: bash
         run: |
-          rm -rf ../../../cafeina-cloud-api/node_modules
-          npm install
+          set -euo pipefail
+          npm install --ignore-scripts
+          npm run check
           npm run migrate
+
+          PORT=39101 node src/server.js > /tmp/cafeina-render-compat.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:39101/v1/health > /tmp/compat-health.json; then
+              cat /tmp/compat-health.json
+              grep -q '"ok":true' /tmp/compat-health.json
+              grep -q '"CAFEINA_CLOUD_API"' /tmp/compat-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/cafeina-render-compat.log
+          exit 1
 
       - name: Smoke health endpoint
         working-directory: cafeina-cloud-api
