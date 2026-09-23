@@ -89,6 +89,8 @@ public:
 
     static bool isValidObjectName(const std::string& name);
     static bool isValidTransform(const Transform& transform);
+    static bool isValidMeshComponent(const MeshComponent& component);
+    static bool isValidColliderComponent(const ColliderComponent& component);
     static bool isValidSemanticComponent(const SemanticComponent& component);
 
 private:
