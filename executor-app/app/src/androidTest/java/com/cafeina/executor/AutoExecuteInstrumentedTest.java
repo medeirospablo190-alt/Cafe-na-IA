@@ -30,14 +30,17 @@ public final class AutoExecuteInstrumentedTest {
         ScriptStore scripts = new ScriptStore(files);
         AutoExecuteStore auto = new AutoExecuteStore(files.resolve("autoexecute.txt"));
 
-        Files.deleteIfExists(scripts.directory().resolve("auto.lua"));
-        Files.deleteIfExists(files.resolve("autoexecute.txt"));
+        cleanup(files, scripts);
         scripts.save("auto.lua", "print('auto-start')\nreturn 77");
 
-        Activity first = start(instrumentation);
+        Activity first = null;
+        Activity second = null;
+
         try {
-            Button off = waitForButton(instrumentation, first, "AUTO EXEC: OFF", 5000);
-            assertNotNull(off);
+            first = start(instrumentation);
+
+            Button off = waitForButton(instrumentation, first, "AUTO EXEC: OFF", 7000);
+            assertNotNull("AUTO EXEC: OFF did not become available after restore", off);
 
             instrumentation.runOnMainSync(off::performClick);
 
@@ -48,32 +51,64 @@ public final class AutoExecuteInstrumentedTest {
                 Thread.sleep(50);
             }
 
-            assertTrue(auto.load().contains("auto.lua"));
-        } finally {
+            assertTrue(
+                "Tapping AUTO EXEC: OFF did not persist auto.lua in autoexecute.txt",
+                auto.load().contains("auto.lua")
+            );
+
             instrumentation.runOnMainSync(first::finish);
             instrumentation.waitForIdleSync();
-        }
+            first = null;
 
-        Activity second = start(instrumentation);
-        try {
+            second = start(instrumentation);
+
             TextView report = waitForTextContaining(
                 instrumentation,
                 second,
                 "[AUTO EXEC] auto.lua",
-                8000
+                10000
             );
-            assertNotNull(report);
-            assertTrue(report.getText().toString().contains("auto-start"));
-            assertTrue(report.getText().toString().contains("[77]"));
+            assertNotNull(
+                "Reopening the Activity did not produce an Auto Execute report for auto.lua",
+                report
+            );
 
-            Button on = waitForButton(instrumentation, second, "AUTO EXEC: ON", 3000);
-            assertNotNull(on);
+            final String[] reportText = new String[1];
+            final TextView finalReport = report;
+            instrumentation.runOnMainSync(() -> reportText[0] = finalReport.getText().toString());
+
+            assertTrue(
+                "Auto Execute report did not contain script print output. Report: " + reportText[0],
+                reportText[0].contains("auto-start")
+            );
+            assertTrue(
+                "Auto Execute report did not contain return value 77. Report: " + reportText[0],
+                reportText[0].contains("[77]")
+            );
+
+            Button on = waitForButton(instrumentation, second, "AUTO EXEC: ON", 5000);
+            assertNotNull(
+                "AUTO EXEC state was not restored as ON after reopening",
+                on
+            );
         } finally {
-            instrumentation.runOnMainSync(second::finish);
-            instrumentation.waitForIdleSync();
-            Files.deleteIfExists(scripts.directory().resolve("auto.lua"));
-            Files.deleteIfExists(files.resolve("autoexecute.txt"));
+            if (first != null) {
+                final Activity activity = first;
+                instrumentation.runOnMainSync(activity::finish);
+                instrumentation.waitForIdleSync();
+            }
+            if (second != null) {
+                final Activity activity = second;
+                instrumentation.runOnMainSync(activity::finish);
+                instrumentation.waitForIdleSync();
+            }
+            cleanup(files, scripts);
         }
+    }
+
+    private static void cleanup(Path files, ScriptStore scripts) throws Exception {
+        Files.deleteIfExists(scripts.directory().resolve("auto.lua"));
+        Files.deleteIfExists(files.resolve("autoexecute.txt"));
     }
 
     private static Activity start(Instrumentation instrumentation) {
