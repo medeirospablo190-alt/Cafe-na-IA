@@ -14,6 +14,7 @@ add_subdirectory(
 
 add_library(cafeina_render_core STATIC
     src/RenderScene.cpp
+    src/RenderPicking.cpp
 )
 target_include_directories(cafeina_render_core PUBLIC include)
 target_link_libraries(cafeina_render_core PUBLIC cafeina_world_core)
