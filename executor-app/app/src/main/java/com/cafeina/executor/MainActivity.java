@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -181,6 +182,11 @@ public final class MainActivity extends Activity {
         autoExecParams.setMargins(0, dp(6), 0, 0);
         root.addView(autoExecuteButton, autoExecParams);
 
+        Button worldPreviewButton = makeButton("WORLD PREVIEW", Color.rgb(55, 87, 130));
+        LinearLayout.LayoutParams worldPreviewParams = matchWrap();
+        worldPreviewParams.setMargins(0, dp(6), 0, 0);
+        root.addView(worldPreviewButton, worldPreviewParams);
+
         status = new TextView(this);
         status.setText("Preparando...");
         status.setTextColor(MUTED);
@@ -214,6 +220,9 @@ public final class MainActivity extends Activity {
         saveButton.setOnClickListener(v -> saveActiveScript());
         loadButton.setOnClickListener(v -> showLoadPicker());
         autoExecuteButton.setOnClickListener(v -> toggleAutoExecute());
+        worldPreviewButton.setOnClickListener(
+            v -> startActivity(new Intent(this, WorldPreviewActivity.class))
+        );
 
         renderTabs();
         return root;
