@@ -66,9 +66,9 @@ public final class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         scriptStore = new ScriptStore(getFilesDir());
-        initializeDefaultProject();
         autoExecuteStore = new AutoExecuteStore(getFilesDir());
         runtimeFilesRoot = getFilesDir().toPath().resolve("runtime-fs").toString();
+        initializeDefaultProject();
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
