@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "cafeina-cloud-api/**"
+      - "grupo-lua-keymaster/services/control-api/package.json"
       - ".github/workflows/cafeina-cloud-api-ci.yml"
   pull_request:
     paths:
       - "cafeina-cloud-api/**"
+      - "grupo-lua-keymaster/services/control-api/package.json"
       - ".github/workflows/cafeina-cloud-api-ci.yml"
 
 jobs:
@@ -58,6 +60,12 @@ jobs:
       - name: Verify isolated schema
         run: |
           PGPASSWORD=cafeina psql             --host 127.0.0.1             --username cafeina             --dbname cafeina             --tuples-only             --command "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'cafeina_ai';"             | grep -q cafeina_ai
+
+      - name: Validate old Render rootDir compatibility shim
+        working-directory: grupo-lua-keymaster/services/control-api
+        run: |
+          npm install --ignore-scripts
+          npm run migrate
 
       - name: Smoke health endpoint
         working-directory: cafeina-cloud-api
