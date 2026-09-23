@@ -227,7 +227,9 @@ public final class MainActivity extends Activity {
 
         ioExecutor.submit(() -> {
             final Map<String, String> loaded = new LinkedHashMap<>();
+            final Set<String> configuredAutoExecute = new LinkedHashSet<>();
             int failures = 0;
+            boolean autoConfigFailure = false;
 
             try {
                 List<String> names = scriptStore.listScripts();
@@ -248,7 +250,29 @@ public final class MainActivity extends Activity {
                 return;
             }
 
+            try {
+                configuredAutoExecute.addAll(autoExecuteStore.load());
+            } catch (Exception ignored) {
+                autoConfigFailure = true;
+            }
+
+            final Set<String> validAutoExecute = new LinkedHashSet<>();
+            for (String name : configuredAutoExecute) {
+                if (loaded.containsKey(name)) {
+                    validAutoExecute.add(name);
+                }
+            }
+
+            if (!validAutoExecute.equals(configuredAutoExecute)) {
+                try {
+                    autoExecuteStore.save(validAutoExecute);
+                } catch (Exception ignored) {
+                    autoConfigFailure = true;
+                }
+            }
+
             final int failedCount = failures;
+            final boolean configFailed = autoConfigFailure;
             runOnUiThread(() -> {
                 if (!activityAlive()) return;
 
@@ -262,19 +286,30 @@ public final class MainActivity extends Activity {
                     tabs.activate(firstLoadedIndex);
                 }
 
+                autoExecuteNames.clear();
+                autoExecuteNames.addAll(validAutoExecute);
+
                 setEditorText(tabs.activeContent());
                 renderTabs();
+                updateAutoExecuteButton();
                 setControlsEnabled(true);
 
-                if (loaded.isEmpty() && failedCount == 0) {
+                if (loaded.isEmpty() && failedCount == 0 && !configFailed) {
                     status.setText("Pronto • " + tabs.activeName());
-                } else if (failedCount == 0) {
+                } else if (failedCount == 0 && !configFailed) {
                     status.setText("Restaurados " + loaded.size() + " script(s) • " + tabs.activeName());
                 } else {
                     status.setText(
-                        "Restaurados " + loaded.size() + " • falhas " + failedCount + " • " + tabs.activeName()
+                        "Restaurados "
+                            + loaded.size()
+                            + " • falhas "
+                            + (failedCount + (configFailed ? 1 : 0))
+                            + " • "
+                            + tabs.activeName()
                     );
                 }
+
+                runAutoExecuteScripts(loaded);
             });
         });
     }
@@ -570,6 +605,141 @@ public final class MainActivity extends Activity {
         status.setText("Carregado localmente • " + name);
         renderTabs();
         updateAutoExecuteButton();
+    }
+
+    private void toggleAutoExecute() {
+        tabs.updateActiveContent(editor.getText().toString());
+        updateAutoExecuteButton();
+
+        final String name = tabs.activeName();
+        final boolean currentlyEnabled = autoExecuteNames.contains(name);
+
+        if (!currentlyEnabled && tabs.activeDirty()) {
+            status.setText("Salve " + name + " antes de ativar Auto Execute");
+            return;
+        }
+
+        autoExecuteButton.setEnabled(false);
+        status.setText((currentlyEnabled ? "Desativando" : "Ativando") + " Auto Execute • " + name);
+
+        final Set<String> next = new LinkedHashSet<>(autoExecuteNames);
+        if (currentlyEnabled) {
+            next.remove(name);
+        } else {
+            next.add(name);
+        }
+
+        ioExecutor.submit(() -> {
+            try {
+                if (!currentlyEnabled && !scriptStore.exists(name)) {
+                    runOnUiThread(() -> {
+                        if (!activityAlive()) return;
+                        autoExecuteButton.setEnabled(true);
+                        updateAutoExecuteButton();
+                        status.setText("Salve " + name + " antes de ativar Auto Execute");
+                    });
+                    return;
+                }
+
+                autoExecuteStore.save(next);
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    autoExecuteNames.clear();
+                    autoExecuteNames.addAll(next);
+                    autoExecuteButton.setEnabled(true);
+                    updateAutoExecuteButton();
+                    status.setText(
+                        (currentlyEnabled ? "Auto Execute OFF • " : "Auto Execute ON • ") + name
+                    );
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    autoExecuteButton.setEnabled(true);
+                    updateAutoExecuteButton();
+                    showStorageError("Falha ao alterar Auto Execute de " + name, error);
+                });
+            }
+        });
+    }
+
+    private void updateAutoExecuteButton() {
+        if (autoExecuteButton == null || tabs.size() == 0) return;
+
+        boolean enabled = autoExecuteNames.contains(tabs.activeName());
+        if (enabled && tabs.activeDirty()) {
+            autoExecuteButton.setText("AUTO EXEC: ON • SALVE");
+        } else {
+            autoExecuteButton.setText(enabled ? "AUTO EXEC: ON" : "AUTO EXEC: OFF");
+        }
+        autoExecuteButton.setBackgroundTintList(
+            ColorStateList.valueOf(enabled ? Color.rgb(48, 121, 89) : Color.rgb(78, 82, 101))
+        );
+    }
+
+    private void runAutoExecuteScripts(Map<String, String> loadedScripts) {
+        if (autoExecuteNames.isEmpty()) return;
+
+        final Set<String> names = new LinkedHashSet<>(autoExecuteNames);
+        final Map<String, String> scripts = new LinkedHashMap<>(loadedScripts);
+        executeButton.setEnabled(false);
+        status.setText("Auto Execute • " + names.size() + " script(s)...");
+
+        runtimeExecutor.submit(() -> {
+            StringBuilder report = new StringBuilder();
+            int executed = 0;
+
+            for (String name : names) {
+                String source = scripts.get(name);
+                if (source == null) continue;
+
+                executed++;
+                report.append("[AUTO EXEC] ").append(name).append('\n');
+
+                try {
+                    String raw = LuauBridge.nativeExecute(source, 500);
+                    JSONObject result = new JSONObject(raw);
+
+                    String output = result.optString("output", "");
+                    String error = result.optString("error", "");
+                    JSONArray returns = result.optJSONArray("returns");
+
+                    if (!output.isEmpty()) {
+                        report.append(output);
+                        if (!output.endsWith("\n")) report.append('\n');
+                    }
+
+                    if (result.optBoolean("ok", false)) {
+                        if (returns != null && returns.length() > 0) {
+                            report.append("returns:");
+                            for (int i = 0; i < returns.length(); i++) {
+                                report.append(" [").append(returns.optString(i)).append(']');
+                            }
+                            report.append('\n');
+                        }
+                    } else {
+                        report.append("[ERRO] ").append(error).append('\n');
+                    }
+                } catch (Throwable error) {
+                    report.append("[BRIDGE ERROR] ")
+                        .append(error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage())
+                        .append('\n');
+                }
+
+                report.append('\n');
+            }
+
+            final int executedCount = executed;
+            final String rendered = report.toString().trim();
+            runOnUiThread(() -> {
+                if (!activityAlive()) return;
+                executeButton.setEnabled(true);
+                if (!rendered.isEmpty()) {
+                    console.setText(rendered);
+                }
+                status.setText("Auto Execute concluído • " + executedCount + " script(s)");
+            });
+        });
     }
 
     private void executeSource() {
