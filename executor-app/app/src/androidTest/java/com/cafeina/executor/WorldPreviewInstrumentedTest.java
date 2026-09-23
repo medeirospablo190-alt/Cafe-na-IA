@@ -63,14 +63,18 @@ public final class WorldPreviewInstrumentedTest {
 
             SurfaceView surface = activity.findViewById(WorldPreviewActivity.SURFACE_VIEW_ID);
             TextView status = activity.findViewById(WorldPreviewActivity.STATUS_VIEW_ID);
+            TextView cameraHint = activity.findViewById(WorldPreviewActivity.CAMERA_HINT_VIEW_ID);
 
             assertNotNull(surface);
             assertNotNull(status);
+            assertNotNull(cameraHint);
             assertEquals(
                 "WORLD PREVIEW • GPU READY • 1 item(s)",
                 status.getText().toString()
             );
             assertFalse(status.getText().toString().contains("INIT ERROR"));
+            assertTrue(cameraHint.getText().toString().contains("orbitar"));
+            assertTrue(cameraHint.getText().toString().contains("zoom"));
             assertTrue(surface.getWidth() >= 0);
         } finally {
             activity.runOnUiThread(activity::finish);
