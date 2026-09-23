@@ -62,3 +62,38 @@ Hierarchy rules:
 - the base `removeObject()` operation is intentionally non-destructive to descendants: direct children move to root instead of being silently deleted.
 
 An explicit subtree-delete operation can be added later with its own confirmation/transaction semantics.
+
+
+## Phase 10.5 — versioned world persistence
+
+World Core now supports deterministic JSON persistence.
+
+Format identity:
+
+- `format = CAFEINA_WORLD`
+- `version = 1`
+
+Persisted state includes:
+
+- stable object IDs;
+- next object ID;
+- parent hierarchy;
+- names;
+- position;
+- rotation;
+- scale.
+
+Safety rules:
+
+- unsupported versions fail closed;
+- input size is limited before parsing;
+- object count is bounded during parsing;
+- duplicate/zero/invalid IDs are rejected;
+- missing parents and hierarchy cycles are rejected;
+- non-finite transforms are rejected;
+- restore validates into temporary state before replacing the active world;
+- JSON round-trip is deterministic for the same world state.
+
+### JSON dependency
+
+World persistence uses `nlohmann/json` v3.12.0, fetched from the official release archive with a pinned SHA-256 in CMake. The project is open source and its primary class is MIT licensed; the upstream repository also documents bundled third-party licensing metadata. The dependency is build-time/library code only and does not add a server requirement.
