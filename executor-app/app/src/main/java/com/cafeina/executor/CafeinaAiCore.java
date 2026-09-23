@@ -1,5 +1,6 @@
 package com.cafeina.executor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public interface CafeinaAiCore {
             this.projectId = projectId;
             this.message = message;
             this.requestedCapabilities = requestedCapabilities == null
-                ? Collections.emptyList() : Collections.unmodifiableList(requestedCapabilities);
+                ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestedCapabilities));
         }
     }
 
@@ -34,7 +35,7 @@ public interface CafeinaAiCore {
             if (message == null) throw new IllegalArgumentException("message is required");
             this.message = message;
             this.usedCapabilities = usedCapabilities == null
-                ? Collections.emptyList() : Collections.unmodifiableList(usedCapabilities);
+                ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(usedCapabilities));
         }
     }
 }
