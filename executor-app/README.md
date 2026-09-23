@@ -191,3 +191,34 @@ The preview follows Filament's Android surface lifecycle:
 - an Android instrumentation test launches the preview and requires successful Filament/material/mesh initialization on the emulator.
 
 Runtime material compilation is a bootstrap convenience. Once the backend path is stable, the intended optimization is to ship a material precompiled with the matching Filament release and remove `filamat-android` from normal runtime builds.
+
+
+## Phase 11.1 — shared World -> RenderScene -> Filament bridge
+
+The editor and preview now use the same native World state.
+
+Manual executions and Auto Execute call `nativeExecuteWithFilesAndWorld()`, so authorized Luau code can mutate the shared synchronized `WorldService`.
+
+The preview does not own a second mutable scene model. When opened it requests an immutable `RenderScene` snapshot from JNI and renders that snapshot with Filament.
+
+Current end-to-end path:
+
+```text
+Luau
+  -> RuntimeCapability::World
+  -> shared WorldService
+  -> WorldState
+  -> RenderSceneBuilder
+  -> RenderScene JSON snapshot
+  -> WorldPreviewActivity
+  -> Filament entities
+```
+
+Initial visual support is deliberately narrow:
+
+- `World.createPart()` creates a visible Box MeshComponent;
+- Box RenderItems are drawn by the Android preview;
+- position, rotation and scale are applied;
+- unsupported future primitive types are skipped rather than silently rendered as the wrong shape.
+
+The instrumentation test resets the shared world, creates a part from Luau, verifies the native RenderScene snapshot, launches the Filament Activity, and requires the Activity to report exactly one rendered item.
