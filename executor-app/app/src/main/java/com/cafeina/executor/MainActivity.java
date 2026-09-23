@@ -25,8 +25,10 @@ import org.json.JSONObject;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -42,8 +44,10 @@ public final class MainActivity extends Activity {
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
+    private final Set<String> autoExecuteNames = new LinkedHashSet<>();
 
     private ScriptStore scriptStore;
+    private AutoExecuteStore autoExecuteStore;
     private EditText editor;
     private TextView console;
     private TextView status;
@@ -51,6 +55,7 @@ public final class MainActivity extends Activity {
     private Button clearButton;
     private Button saveButton;
     private Button loadButton;
+    private Button autoExecuteButton;
     private Button addTabButton;
     private LinearLayout tabButtons;
     private boolean suppressEditorWatcher;
@@ -59,6 +64,7 @@ public final class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         scriptStore = new ScriptStore(getFilesDir());
+        autoExecuteStore = new AutoExecuteStore(getFilesDir());
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
@@ -79,7 +85,7 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 6 • restore + dirty safety + local runtime");
+        subtitle.setText("Phase 7 • local auto execute + safe runtime");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -138,6 +144,8 @@ public final class MainActivity extends Activity {
                     renderTabs();
                 }
 
+                updateAutoExecuteButton();
+
                 if (nowDirty) {
                     status.setText("Alterado • " + tabs.activeName());
                 }
@@ -167,6 +175,12 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams storageParams = matchWrap();
         storageParams.setMargins(0, dp(6), 0, 0);
         root.addView(storageActions, storageParams);
+
+        autoExecuteButton = makeButton("AUTO EXEC: OFF", Color.rgb(78, 82, 101));
+        LinearLayout.LayoutParams autoParams =
+            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44));
+        autoParams.setMargins(0, dp(6), 0, 0);
+        root.addView(autoExecuteButton, autoParams);
 
         status = new TextView(this);
         status.setText("Preparando...");
@@ -200,8 +214,10 @@ public final class MainActivity extends Activity {
         clearButton.setOnClickListener(v -> clearActiveTab());
         saveButton.setOnClickListener(v -> saveActiveScript());
         loadButton.setOnClickListener(v -> showLoadPicker());
+        autoExecuteButton.setOnClickListener(v -> toggleAutoExecute());
 
         renderTabs();
+        updateAutoExecuteButton();
         return root;
     }
 
@@ -269,6 +285,7 @@ public final class MainActivity extends Activity {
         clearButton.setEnabled(enabled);
         saveButton.setEnabled(enabled);
         loadButton.setEnabled(enabled);
+        autoExecuteButton.setEnabled(enabled);
         if (addTabButton != null) addTabButton.setEnabled(enabled);
     }
 
@@ -444,6 +461,7 @@ public final class MainActivity extends Activity {
                     tabs.markSaved(name, content);
                     saveButton.setEnabled(true);
                     renderTabs();
+                    updateAutoExecuteButton();
                     status.setText("Salvo localmente • " + name);
                 });
             } catch (Exception error) {
@@ -551,6 +569,7 @@ public final class MainActivity extends Activity {
         loadButton.setEnabled(true);
         status.setText("Carregado localmente • " + name);
         renderTabs();
+        updateAutoExecuteButton();
     }
 
     private void executeSource() {
@@ -626,6 +645,7 @@ public final class MainActivity extends Activity {
         setEditorText(tabs.activeContent());
         status.setText(prefix + " • " + tabs.activeName());
         renderTabs();
+        updateAutoExecuteButton();
     }
 
     private void setEditorText(String value) {
