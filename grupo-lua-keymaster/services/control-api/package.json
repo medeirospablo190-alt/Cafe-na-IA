@@ -1,0 +1,13 @@
+{
+  "name": "cafeina-cloud-api-render-compat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run start:free",
+    "start:free": "npm run migrate && node node_modules/@cafeina/cloud-api/src/server.js",
+    "migrate": "node node_modules/@cafeina/cloud-api/scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@cafeina/cloud-api": "file:../../../cafeina-cloud-api"
+  }
+}
