@@ -1,0 +1,7 @@
+package com.cafeina.executor;
+import static org.junit.Assert.*; import java.util.*; import org.junit.Test;
+public final class AiToolPlanRunnerTest {
+ private static AiTool named(String n,boolean ok,List<String> calls){return new AiTool(){public String name(){return n;}public Set<String> requiredCapabilities(){return Collections.singleton("tool.run");}public AiToolResult execute(AiToolRequest r){calls.add(n);return ok?AiToolResult.success(n):AiToolResult.failure(n);}};}
+ @Test public void executesOrderedPlanAndStopsOnFailure(){List<String> calls=new ArrayList<>();AiToolRegistry reg=new AiToolRegistry();reg.register(named("a",true,calls));reg.register(named("b",false,calls));reg.register(named("c",true,calls));AiToolExecutor ex=new AiToolExecutor(reg,new AiCapabilitySet(Collections.singleton("tool.run")));AiToolRequest req=new AiToolRequest("p",null);AiToolPlan plan=new AiToolPlan(Arrays.asList(new AiToolPlan.Step("a",req),new AiToolPlan.Step("b",req),new AiToolPlan.Step("c",req)));List<AiToolResult> results=new AiToolPlanRunner(ex).run(plan);assertEquals(Arrays.asList("a","b"),calls);assertEquals(2,results.size());}
+ @Test public void planDefensivelyCopiesSteps(){List<AiToolPlan.Step> s=new ArrayList<>();s.add(new AiToolPlan.Step("a",new AiToolRequest("p",null)));AiToolPlan p=new AiToolPlan(s);s.clear();assertEquals(1,p.steps().size());assertThrows(UnsupportedOperationException.class,()->p.steps().clear());}
+}
