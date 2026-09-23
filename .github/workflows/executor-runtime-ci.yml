@@ -1,0 +1,42 @@
+name: CAFEINA Executor Runtime CI
+
+on:
+  push:
+    paths:
+      - "executor-runtime/**"
+      - ".github/workflows/executor-runtime-ci.yml"
+  pull_request:
+    paths:
+      - "executor-runtime/**"
+      - ".github/workflows/executor-runtime-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  linux-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        working-directory: executor-runtime
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build runtime targets
+        working-directory: executor-runtime
+        run: cmake --build build --target cafeina_luau_runtime_smoke cafeina_luau_cli --parallel 2
+
+      - name: Smoke tests
+        working-directory: executor-runtime
+        run: ctest --test-dir build --output-on-failure
+
+      - name: CLI sanity
+        working-directory: executor-runtime
+        run: |
+          output="$(./build/cafeina_luau_cli "print('ci-ok') return 6 * 7")"
+          printf '%s\n' "$output"
+          grep -F "ci-ok" <<<"$output"
+          grep -F "returns: [42]" <<<"$output"
