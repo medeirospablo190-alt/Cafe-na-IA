@@ -1,0 +1,55 @@
+name: CAFEINA Executor App CI
+
+on:
+  push:
+    paths:
+      - "executor-app/**"
+      - "executor-runtime/**"
+      - ".github/workflows/executor-app-ci.yml"
+  pull_request:
+    paths:
+      - "executor-app/**"
+      - "executor-runtime/**"
+      - ".github/workflows/executor-app-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android native toolchain
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager             "platforms;android-35"             "build-tools;35.0.0"             "ndk;27.2.12479018"             "cmake;3.22.1"
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build debug APK
+        working-directory: executor-app
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Verify native runtime packaged
+        working-directory: executor-app
+        run: |
+          APK="$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)"
+          test -n "$APK"
+          unzip -l "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
