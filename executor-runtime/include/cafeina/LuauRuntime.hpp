@@ -1,6 +1,8 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -39,6 +41,24 @@ struct RuntimeCapabilities {
     }
 };
 
+// Thread-safe, one-shot cancellation signal owned by the host.
+// It contains no Android dependency and can be shared with any execution worker.
+class CancellationToken {
+public:
+    void cancel() noexcept
+    {
+        cancelled_.store(true, std::memory_order_relaxed);
+    }
+
+    bool isCancellationRequested() const noexcept
+    {
+        return cancelled_.load(std::memory_order_relaxed);
+    }
+
+private:
+    std::atomic<bool> cancelled_{false};
+};
+
 // Host-owned metadata and access granted to one execution.
 // Capabilities are explicit: host access alone does not expose an API.
 struct ExecutionContext {
@@ -49,6 +69,7 @@ struct ExecutionContext {
 
     RuntimeCapabilities capabilities;
     RuntimeHostAccess hostAccess;
+    std::shared_ptr<CancellationToken> cancellation;
 };
 
 // Canonical request shape for the runtime platform.

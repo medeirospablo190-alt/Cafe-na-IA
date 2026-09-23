@@ -119,3 +119,19 @@ Rules:
 - JNI and Android APIs remain unchanged.
 
 This establishes least-privilege capability gating before future APIs such as World, UI, Test or Network are introduced.
+
+
+## Phase 8.7 — cancellation core
+
+Canonical executions can now receive a host-owned, thread-safe `CancellationToken`.
+
+Behavior:
+
+- the token is optional and one-shot;
+- a request cancelled before execution fails closed with `execution cancelled`;
+- a running Luau loop is interrupted through the same VM interrupt mechanism used by timeouts;
+- cancellation is checked before timeout so an explicit user stop is reported as cancellation;
+- the token uses an atomic flag and has no Android UI dependency;
+- legacy executor/JNI calls remain unchanged when no token is supplied.
+
+The smoke suite covers both pre-start cancellation and cancellation of a running infinite loop from another host thread. This prepares the runtime for future PAUSE/STOP task controls without putting task management inside the Luau VM.

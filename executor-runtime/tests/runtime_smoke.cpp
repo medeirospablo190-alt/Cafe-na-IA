@@ -5,7 +5,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace {
 
@@ -93,6 +95,48 @@ int main()
         const auto r = runtime.execute("while true do end", {40});
         require(!r.ok, "infinite loop should be interrupted");
         require(r.error.find("timed out") != std::string::npos, "timeout should be reported");
+    }
+
+    {
+        auto cancellation = std::make_shared<cafeina::CancellationToken>();
+        cancellation->cancel();
+
+        cafeina::ExecutionRequest request;
+        request.source = "return 1";
+        request.limits.timeoutMs = 500;
+        request.context.cancellation = cancellation;
+
+        const auto r = runtime.execute(request);
+        require(!r.ok, "pre-cancelled execution should not start");
+        require(
+            r.error.find("cancelled") != std::string::npos,
+            "pre-cancelled execution should report cancellation"
+        );
+    }
+
+    {
+        auto cancellation = std::make_shared<cafeina::CancellationToken>();
+
+        cafeina::ExecutionRequest request;
+        request.source = "while true do end";
+        request.limits.timeoutMs = 2000;
+        request.context.cancellation = cancellation;
+
+        cafeina::RuntimeResult r;
+        std::thread worker([&]() {
+            cafeina::LuauRuntime cancellableRuntime;
+            r = cancellableRuntime.execute(request);
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
+        cancellation->cancel();
+        worker.join();
+
+        require(!r.ok, "running execution should stop after cancellation");
+        require(
+            r.error.find("cancelled") != std::string::npos,
+            "running execution should report cancellation instead of timeout"
+        );
     }
 
     const fs::path root = makeTempRoot();

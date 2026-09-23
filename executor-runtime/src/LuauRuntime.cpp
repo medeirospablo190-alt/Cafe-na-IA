@@ -30,6 +30,7 @@ struct VmExecutionContext {
     Clock::time_point deadline;
     std::string* output = nullptr;
     std::string filesRoot;
+    const CancellationToken* cancellation = nullptr;
 };
 
 std::string stackValueToString(lua_State* L, int index)
@@ -74,6 +75,12 @@ void timeoutInterrupt(lua_State* L, int gc)
     auto* ctx = executionContext(L);
     if (!ctx)
         return;
+
+    if (ctx->cancellation && ctx->cancellation->isCancellationRequested())
+    {
+        lua_checkstack(L, 1);
+        luaL_error(L, "execution cancelled");
+    }
 
     if (Clock::now() > ctx->deadline)
     {
@@ -351,6 +358,13 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
 {
     RuntimeResult result;
     const auto started = Clock::now();
+    const std::shared_ptr<CancellationToken> cancellation = request.context.cancellation;
+
+    if (cancellation && cancellation->isCancellationRequested())
+    {
+        result.error = "execution cancelled";
+        return result;
+    }
 
     const bool filesEnabled = request.context.capabilities.has(RuntimeCapability::Files);
     if (filesEnabled && request.context.hostAccess.filesRoot.empty())
@@ -376,6 +390,7 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     ctx.output = &result.output;
     if (filesEnabled)
         ctx.filesRoot = request.context.hostAccess.filesRoot;
+    ctx.cancellation = cancellation.get();
     lua_setthreaddata(thread, &ctx);
 
     lua_pushcfunction(thread, capturePrint, "print");
