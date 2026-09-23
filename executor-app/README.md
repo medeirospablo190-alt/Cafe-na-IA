@@ -35,3 +35,21 @@ A interface agora suporta múltiplas abas `.lua` sem persistência em disco:
 - CLEAR limpa apenas a aba ativa.
 
 A lógica de estado das abas vive em `EditorTabs.java` e possui testes unitários independentes da Activity.
+
+
+## Phase 4 — armazenamento local de scripts
+
+O app agora possui uma camada de armazenamento local independente da interface.
+
+- diretório privado do app: `files/scripts`;
+- somente nomes `.lua` validados;
+- bloqueio de path traversal e caracteres de controle;
+- limite inicial de 2 MiB por script;
+- gravação em arquivo temporário, `fsync` e commit por move atômico quando disponível;
+- leitura UTF-8;
+- listagem ordenada;
+- arquivos temporários/inválidos são ignorados;
+- nenhum script do usuário é apagado automaticamente;
+- nenhuma rede, servidor ou banco de dados é usado.
+
+Nesta fase o armazenamento ainda não foi ligado aos botões do editor. Primeiro ele é validado isoladamente por testes JVM e por teste instrumentado no armazenamento interno do Android.
