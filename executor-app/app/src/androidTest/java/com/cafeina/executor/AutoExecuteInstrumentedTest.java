@@ -39,8 +39,13 @@ public final class AutoExecuteInstrumentedTest {
         try {
             first = start(instrumentation);
 
-            Button off = waitForButton(instrumentation, first, "AUTO EXEC: OFF", 7000);
-            assertNotNull("AUTO EXEC: OFF did not become available after restore", off);
+            Button autoTab = waitForButton(instrumentation, first, "auto.lua", 7000);
+            assertNotNull("auto.lua tab did not restore before opt-in", autoTab);
+            instrumentation.runOnMainSync(autoTab::performClick);
+            instrumentation.waitForIdleSync();
+
+            Button off = waitForButton(instrumentation, first, "AUTO EXEC: OFF", 3000);
+            assertNotNull("AUTO EXEC: OFF did not become available for auto.lua", off);
 
             instrumentation.runOnMainSync(off::performClick);
 
@@ -86,9 +91,14 @@ public final class AutoExecuteInstrumentedTest {
                 reportText[0].contains("[77]")
             );
 
-            Button on = waitForButton(instrumentation, second, "AUTO EXEC: ON", 5000);
+            Button restoredAutoTab = waitForButton(instrumentation, second, "auto.lua", 5000);
+            assertNotNull("auto.lua tab did not restore after reopening", restoredAutoTab);
+            instrumentation.runOnMainSync(restoredAutoTab::performClick);
+            instrumentation.waitForIdleSync();
+
+            Button on = waitForButton(instrumentation, second, "AUTO EXEC: ON", 3000);
             assertNotNull(
-                "AUTO EXEC state was not restored as ON after reopening",
+                "AUTO EXEC state for auto.lua was not restored as ON after reopening",
                 on
             );
         } finally {
