@@ -207,6 +207,19 @@ int main()
             "semantic component should attach to existing object"
         );
 
+        MeshComponent invalidMesh;
+        invalidMesh.primitive = static_cast<PrimitiveMesh>(999);
+        bool invalidMeshRejected = false;
+        try
+        {
+            persistent.setMeshComponent(house, invalidMesh);
+        }
+        catch (const std::invalid_argument&)
+        {
+            invalidMeshRejected = true;
+        }
+        require(invalidMeshRejected, "invalid mesh enum must be rejected");
+
         MeshComponent temporaryMesh;
         temporaryMesh.primitive = PrimitiveMesh::Sphere;
         require(
