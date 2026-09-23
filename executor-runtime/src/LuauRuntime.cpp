@@ -352,6 +352,13 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     RuntimeResult result;
     const auto started = Clock::now();
 
+    const bool filesEnabled = request.context.capabilities.has(RuntimeCapability::Files);
+    if (filesEnabled && request.context.hostAccess.filesRoot.empty())
+    {
+        result.error = "FILES capability requires a filesystem sandbox root";
+        return result;
+    }
+
     if (!impl_ || !impl_->global)
     {
         result.error = "failed to initialize Luau VM";
@@ -367,7 +374,8 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     VmExecutionContext ctx;
     ctx.deadline = started + std::chrono::milliseconds(request.limits.timeoutMs);
     ctx.output = &result.output;
-    ctx.filesRoot = request.context.hostAccess.filesRoot;
+    if (filesEnabled)
+        ctx.filesRoot = request.context.hostAccess.filesRoot;
     lua_setthreaddata(thread, &ctx);
 
     lua_pushcfunction(thread, capturePrint, "print");
@@ -429,6 +437,12 @@ RuntimeResult LuauRuntime::execute(
     request.source = source;
     request.limits = limits;
     request.context.hostAccess = hostAccess;
+
+    // Preserve Phase 8 behavior for existing JNI/app callers: providing a
+    // legacy filesRoot explicitly grants only the FILES capability.
+    if (!hostAccess.filesRoot.empty())
+        request.context.capabilities.grant(RuntimeCapability::Files);
+
     return execute(request);
 }
 
