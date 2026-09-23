@@ -1,4 +1,5 @@
 #include "cafeina/LuauRuntime.hpp"
+#include "WorldLuauApi.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -7,9 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
-#include <limits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -32,7 +31,6 @@ struct VmExecutionContext {
     Clock::time_point deadline;
     std::string* output = nullptr;
     std::string filesRoot;
-    world::WorldService* worldService = nullptr;
     const CancellationToken* cancellation = nullptr;
 };
 
@@ -324,278 +322,6 @@ void exposeFilesystemApi(lua_State* L)
     lua_setglobal(L, "fs");
 }
 
-world::WorldService* checkedWorldService(lua_State* L)
-{
-    auto* ctx = executionContext(L);
-    if (!ctx || !ctx->worldService)
-        luaL_error(L, "World API is not enabled");
-
-    return ctx->worldService;
-}
-
-world::ObjectId checkedObjectId(lua_State* L, int index, bool allowZero = false)
-{
-    size_t length = 0;
-    const char* raw = luaL_checklstring(L, index, &length);
-
-    if (!raw || length == 0)
-        throw std::invalid_argument("object id must be a decimal string");
-
-    world::ObjectId value = 0;
-    const world::ObjectId maxValue = std::numeric_limits<world::ObjectId>::max();
-
-    for (size_t i = 0; i < length; ++i)
-    {
-        const unsigned char c = static_cast<unsigned char>(raw[i]);
-        if (c < '0' || c > '9')
-            throw std::invalid_argument("object id must contain only decimal digits");
-
-        const world::ObjectId digit = static_cast<world::ObjectId>(c - '0');
-        if (value > (maxValue - digit) / 10)
-            throw std::invalid_argument("object id is out of range");
-
-        value = value * 10 + digit;
-    }
-
-    if (!allowZero && value == 0)
-        throw std::invalid_argument("object id zero is reserved for scene root");
-
-    return value;
-}
-
-void pushObjectId(lua_State* L, world::ObjectId id)
-{
-    const std::string text = std::to_string(id);
-    lua_pushlstring(L, text.data(), text.size());
-}
-
-void pushVec3(lua_State* L, const world::Vec3& value)
-{
-    lua_createtable(L, 0, 3);
-
-    lua_pushnumber(L, value.x);
-    lua_setfield(L, -2, "x");
-
-    lua_pushnumber(L, value.y);
-    lua_setfield(L, -2, "y");
-
-    lua_pushnumber(L, value.z);
-    lua_setfield(L, -2, "z");
-
-    lua_setreadonly(L, -1, true);
-}
-
-void pushWorldObject(lua_State* L, const world::WorldObject& object)
-{
-    lua_createtable(L, 0, 7);
-
-    pushObjectId(L, object.id);
-    lua_setfield(L, -2, "id");
-
-    pushObjectId(L, object.parentId);
-    lua_setfield(L, -2, "parentId");
-
-    lua_pushlstring(L, object.name.data(), object.name.size());
-    lua_setfield(L, -2, "name");
-
-    pushVec3(L, object.transform.position);
-    lua_setfield(L, -2, "position");
-
-    pushVec3(L, object.transform.rotationDegrees);
-    lua_setfield(L, -2, "rotationDegrees");
-
-    pushVec3(L, object.transform.scale);
-    lua_setfield(L, -2, "scale");
-
-    lua_setreadonly(L, -1, true);
-}
-
-template <typename Fn>
-int withWorldErrors(lua_State* L, Fn&& fn)
-{
-    try
-    {
-        return fn();
-    }
-    catch (const std::exception& error)
-    {
-        return luaL_error(L, "World API error: %s", error.what());
-    }
-}
-
-int worldCreate(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        size_t length = 0;
-        const char* raw = luaL_checklstring(L, 1, &length);
-        const std::string name(raw, length);
-
-        const world::ObjectId id = checkedWorldService(L)->createObject(name);
-        pushObjectId(L, id);
-        return 1;
-    });
-}
-
-int worldGet(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId id = checkedObjectId(L, 1);
-        const auto object = checkedWorldService(L)->object(id);
-
-        if (!object)
-        {
-            lua_pushnil(L);
-            return 1;
-        }
-
-        pushWorldObject(L, *object);
-        return 1;
-    });
-}
-
-int worldRemove(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId id = checkedObjectId(L, 1);
-        lua_pushboolean(L, checkedWorldService(L)->removeObject(id) ? 1 : 0);
-        return 1;
-    });
-}
-
-int worldSetName(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId id = checkedObjectId(L, 1);
-
-        size_t length = 0;
-        const char* raw = luaL_checklstring(L, 2, &length);
-        const std::string name(raw, length);
-
-        lua_pushboolean(L, checkedWorldService(L)->setName(id, name) ? 1 : 0);
-        return 1;
-    });
-}
-
-int worldSetParent(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId childId = checkedObjectId(L, 1);
-        const world::ObjectId parentId = checkedObjectId(L, 2, true);
-
-        lua_pushboolean(L, checkedWorldService(L)->setParent(childId, parentId) ? 1 : 0);
-        return 1;
-    });
-}
-
-enum class TransformField {
-    Position,
-    Rotation,
-    Scale,
-};
-
-int worldSetTransformField(lua_State* L, TransformField field)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId id = checkedObjectId(L, 1);
-        const double x = luaL_checknumber(L, 2);
-        const double y = luaL_checknumber(L, 3);
-        const double z = luaL_checknumber(L, 4);
-
-        world::WorldService* service = checkedWorldService(L);
-        const auto object = service->object(id);
-        if (!object)
-        {
-            lua_pushboolean(L, 0);
-            return 1;
-        }
-
-        world::Transform transform = object->transform;
-        const world::Vec3 value{x, y, z};
-
-        switch (field)
-        {
-        case TransformField::Position:
-            transform.position = value;
-            break;
-        case TransformField::Rotation:
-            transform.rotationDegrees = value;
-            break;
-        case TransformField::Scale:
-            transform.scale = value;
-            break;
-        }
-
-        lua_pushboolean(L, service->setTransform(id, transform) ? 1 : 0);
-        return 1;
-    });
-}
-
-int worldSetPosition(lua_State* L)
-{
-    return worldSetTransformField(L, TransformField::Position);
-}
-
-int worldSetRotation(lua_State* L)
-{
-    return worldSetTransformField(L, TransformField::Rotation);
-}
-
-int worldSetScale(lua_State* L)
-{
-    return worldSetTransformField(L, TransformField::Scale);
-}
-
-int worldChildren(lua_State* L)
-{
-    return withWorldErrors(L, [&]() {
-        const world::ObjectId parentId = checkedObjectId(L, 1, true);
-        const std::vector<world::ObjectId> children = checkedWorldService(L)->childrenOf(parentId);
-
-        lua_createtable(L, static_cast<int>(children.size()), 0);
-        for (size_t i = 0; i < children.size(); ++i)
-        {
-            pushObjectId(L, children[i]);
-            lua_rawseti(L, -2, static_cast<int>(i + 1));
-        }
-
-        return 1;
-    });
-}
-
-void exposeWorldApi(lua_State* L)
-{
-    lua_createtable(L, 0, 9);
-
-    lua_pushcfunction(L, worldCreate, "World.create");
-    lua_setfield(L, -2, "create");
-
-    lua_pushcfunction(L, worldGet, "World.get");
-    lua_setfield(L, -2, "get");
-
-    lua_pushcfunction(L, worldRemove, "World.remove");
-    lua_setfield(L, -2, "remove");
-
-    lua_pushcfunction(L, worldSetName, "World.setName");
-    lua_setfield(L, -2, "setName");
-
-    lua_pushcfunction(L, worldSetParent, "World.setParent");
-    lua_setfield(L, -2, "setParent");
-
-    lua_pushcfunction(L, worldSetPosition, "World.setPosition");
-    lua_setfield(L, -2, "setPosition");
-
-    lua_pushcfunction(L, worldSetRotation, "World.setRotation");
-    lua_setfield(L, -2, "setRotation");
-
-    lua_pushcfunction(L, worldSetScale, "World.setScale");
-    lua_setfield(L, -2, "setScale");
-
-    lua_pushcfunction(L, worldChildren, "World.children");
-    lua_setfield(L, -2, "children");
-
-    lua_setreadonly(L, -1, true);
-    lua_setglobal(L, "World");
-}
 
 } // namespace
 
@@ -673,8 +399,6 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     ctx.output = &result.output;
     if (filesEnabled)
         ctx.filesRoot = request.context.hostAccess.filesRoot;
-    if (worldEnabled)
-        ctx.worldService = request.context.hostAccess.worldService;
     ctx.cancellation = cancellation.get();
     lua_setthreaddata(thread, &ctx);
 
@@ -685,8 +409,8 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
 
     if (!ctx.filesRoot.empty())
         exposeFilesystemApi(thread);
-    if (ctx.worldService)
-        exposeWorldApi(thread);
+    if (worldEnabled)
+        exposeWorldApi(thread, request.context.hostAccess.worldService);
 
     size_t bytecodeSize = 0;
     char* bytecodeRaw = luau_compile(request.source.data(), request.source.size(), nullptr, &bytecodeSize);
