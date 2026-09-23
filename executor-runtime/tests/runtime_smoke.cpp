@@ -87,6 +87,10 @@ int main()
     host.filesRoot = root.string();
 
     {
+        const fs::path requestRoot = makeTempRoot();
+        cafeina::RuntimeHostAccess requestHost;
+        requestHost.filesRoot = requestRoot.string();
+
         cafeina::ExecutionRequest request;
         request.source =
             "fs.write('request.txt', 'context-ok') "
@@ -94,7 +98,7 @@ int main()
         request.limits.timeoutMs = 500;
         request.context.executionId = "smoke-execution-files";
         request.context.projectId = "smoke-project";
-        request.context.hostAccess = host;
+        request.context.hostAccess = requestHost;
 
         const auto r = runtime.execute(request);
         require(r.ok, "execution request should carry explicit host access");
@@ -103,9 +107,12 @@ int main()
             "execution request host access should expose the same sandboxed fs API"
         );
         require(
-            fs::is_regular_file(root / "request.txt"),
-            "execution request filesystem must remain inside the sandbox root"
+            fs::is_regular_file(requestRoot / "request.txt"),
+            "execution request filesystem must remain inside its sandbox root"
         );
+
+        std::error_code requestCleanup;
+        fs::remove_all(requestRoot, requestCleanup);
     }
 
     {
