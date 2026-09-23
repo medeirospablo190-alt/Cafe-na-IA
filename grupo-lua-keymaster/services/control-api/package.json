@@ -3,11 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "npm --prefix ../../../cafeina-cloud-api install --omit=dev",
     "start": "npm run start:free",
-    "start:free": "npm run migrate && node node_modules/@cafeina/cloud-api/src/server.js",
-    "migrate": "node node_modules/@cafeina/cloud-api/scripts/migrate.mjs"
-  },
-  "dependencies": {
-    "@cafeina/cloud-api": "file:../../../cafeina-cloud-api"
+    "start:free": "npm run migrate && node ../../../cafeina-cloud-api/src/server.js",
+    "migrate": "npm --prefix ../../../cafeina-cloud-api run migrate"
   }
 }
