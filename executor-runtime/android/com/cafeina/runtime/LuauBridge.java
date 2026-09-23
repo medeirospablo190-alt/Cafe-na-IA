@@ -24,4 +24,8 @@ public final class LuauBridge {
     public static native String nativeRenderSceneSnapshot();
 
     public static native void nativeResetWorld();
+
+    public static native String nativeExportWorldJson();
+
+    public static native void nativeImportWorldJson(String worldJson);
 }
