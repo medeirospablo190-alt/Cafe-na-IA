@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -76,7 +77,7 @@ public final class ProjectStoreTest {
         ProjectStore store = newStore();
         ProjectStore.Project project = store.create("stable");
 
-        Files.write(project.scriptsDirectory().resolve("keep.lua"), "return 1".getBytes());
+        Files.write(project.scriptsDirectory().resolve("keep.lua"), "return 1".getBytes(StandardCharsets.UTF_8));
 
         assertThrows(IOException.class, () -> store.create("stable"));
         assertTrue(Files.isRegularFile(project.scriptsDirectory().resolve("keep.lua")));
@@ -102,7 +103,7 @@ public final class ProjectStoreTest {
 
         Files.write(
             project.root().resolve(".cafeina-project"),
-            "CAFEINA_PROJECT\n999\n".getBytes()
+            "CAFEINA_PROJECT\n999\n".getBytes(StandardCharsets.UTF_8)
         );
 
         assertFalse(store.exists("versioned"));
