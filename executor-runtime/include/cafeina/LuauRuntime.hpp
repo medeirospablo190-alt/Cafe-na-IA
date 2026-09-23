@@ -16,15 +16,38 @@ struct RuntimeHostAccess {
     std::string filesRoot;
 };
 
+enum class RuntimeCapability : std::uint64_t {
+    Files = 1ull << 0,
+};
+
+struct RuntimeCapabilities {
+    std::uint64_t bits = 0;
+
+    bool has(RuntimeCapability capability) const
+    {
+        return (bits & static_cast<std::uint64_t>(capability)) != 0;
+    }
+
+    void grant(RuntimeCapability capability)
+    {
+        bits |= static_cast<std::uint64_t>(capability);
+    }
+
+    void revoke(RuntimeCapability capability)
+    {
+        bits &= ~static_cast<std::uint64_t>(capability);
+    }
+};
+
 // Host-owned metadata and access granted to one execution.
-// This is intentionally small: future capabilities can be added here
-// without coupling LuauRuntime to Android UI classes.
+// Capabilities are explicit: host access alone does not expose an API.
 struct ExecutionContext {
     // Opaque identifiers for diagnostics, task tracking and future recovery.
     // Empty values are valid for legacy callers.
     std::string executionId;
     std::string projectId;
 
+    RuntimeCapabilities capabilities;
     RuntimeHostAccess hostAccess;
 };
 
