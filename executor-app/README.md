@@ -229,3 +229,29 @@ The instrumentation test resets the shared world, creates a part from Luau, veri
 The Android preview consumes Render Core's resolved `worldMatrix` directly when available. It keeps the older local transform fields only as a compatibility fallback.
 
 The emulator integration test creates a logical parent and a renderable child from Luau, parents the child, applies local positions, and verifies the composed world translation before Filament initialization succeeds.
+
+
+## Phase 11.2 — mobile World Preview camera
+
+The Android World Preview uses a dedicated mobile camera controller instead of a fixed camera.
+
+Gestures:
+
+- one finger drag: orbit;
+- pinch: zoom;
+- two finger drag: pan;
+- `RESET CAM`: restore the framed scene view.
+
+The camera remains separate from World state. Moving the preview camera never mutates project objects, scripts or RenderScene data.
+
+The preview computes conservative bounds from visible Box render items, using resolved world-space translation when available, and stores that framing as the reset home.
+
+`OrbitCameraState` is JVM-tested for finite pose, yaw wrapping, pitch/zoom clamps, pan, framing and reset.
+
+### Screen-to-world selection ray
+
+`PreviewRayMath` converts camera pose + screen coordinates + viewport + FOV into a normalized world-space ray without depending on Filament.
+
+This prepares the mobile selection path:
+
+`tap -> PreviewRayMath -> RenderPicker -> ObjectId`
