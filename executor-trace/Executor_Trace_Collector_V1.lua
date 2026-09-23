@@ -17,7 +17,7 @@ local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
 
 local C = {
-    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_2",
+    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_3",
     PURPOSE = "executor_ui_mapping",
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
     HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health",
@@ -322,7 +322,7 @@ local function makeStatus()
     local t = Instance.new("TextLabel")
     t.BackgroundTransparency = 1; t.Position = UDim2.fromOffset(12,8); t.Size = UDim2.new(1,-24,0,20)
     t.Font = Enum.Font.GothamBold; t.TextSize = 12; t.TextColor3 = Color3.fromRGB(245,245,248)
-    t.TextXAlignment = Enum.TextXAlignment.Left; t.Text = "CAFEÍNA • EXECUTOR TRACE"; t.Parent = f
+    t.TextXAlignment = Enum.TextXAlignment.Left; t.Text = "CAFEÍNA • EXECUTOR TRACE • V1.3"; t.Parent = f
     local l = Instance.new("TextLabel")
     l.BackgroundTransparency = 1; l.Position = UDim2.fromOffset(12,31); l.Size = UDim2.new(1,-24,0,17)
     l.Font = Enum.Font.Gotham; l.TextSize = 10; l.TextColor3 = Color3.fromRGB(210,210,216)
@@ -598,7 +598,8 @@ local function jsonSafe(value, depth, seen)
 end
 
 local function encodeBody(body)
-    local sanitized = jsonSafe(body)
+    local safeOk, sanitized = pcall(jsonSafe, body)
+    if not safeOk then return nil, "json_safe: " .. tostring(sanitized) end
     local ok, raw = pcall(HttpService.JSONEncode, HttpService, sanitized)
     if not ok then return nil, "json_encode_1: " .. tostring(raw) end
     sanitized.payloadBytes = #raw
@@ -626,7 +627,7 @@ local function upload(summary)
             userId=tostring(LP.UserId),username=LP.Name,capturedAt=capturedAt,gameId=game.GameId,
             placeId=game.PlaceId,placeVersion=game.PlaceVersion,runId=runId,batchIndex=idx,batchKind="data",
             payloadBytes=0,records=chunk,remotes={},stats=summary}
-        local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "encode_failed" end
+        local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "encode_unknown" end
         local ok,data=postExact(raw,idx)
         if not ok then cacheFailure({runId=runId,failedBatch=idx,error=data,body=body}); return false,data end
         if data.github and data.github.path then paths[#paths+1]=data.github.path end
@@ -646,14 +647,14 @@ local function upload(summary)
         username=LP.Name,capturedAt=capturedAt,gameId=game.GameId,placeId=game.PlaceId,placeVersion=game.PlaceVersion,
         runId=runId,batchIndex=idx,batchTotal=idx,batchKind="manifest",payloadBytes=0,records={},remotes={},
         manifest=manifest,stats=summary}
-    local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "manifest_encode_failed" end
+    local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "manifest_encode_unknown" end
     local ok,data=postExact(raw,idx)
     if not ok then cacheFailure({runId=runId,failedBatch=idx,error=data,body=body}); return false,data end
     return true,data
 end
 
 makeStatus()
-status("Checando gateway/GitHub...",0.03)
+status("V1.3 • Checando gateway/GitHub...",0.03)
 if not REQUEST then status("ERRO: request/http_request indisponível",1); warn("[EXECUTOR TRACE] nada enviado"); return end
 local preOk, preErr = health()
 if not preOk then status("ERRO no preflight: "..tostring(preErr),1); warn("[EXECUTOR TRACE] preflight falhou"); return end
