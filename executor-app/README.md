@@ -229,3 +229,42 @@ The instrumentation test resets the shared world, creates a part from Luau, veri
 The Android preview consumes Render Core's resolved `worldMatrix` directly when available. It keeps the older local transform fields only as a compatibility fallback.
 
 The emulator integration test creates a logical parent and a renderable child from Luau, parents the child, applies local positions, and verifies the composed world translation before Filament initialization succeeds.
+
+
+## Phase 11.3 — project world document persistence
+
+A CAFEÍNA project can now persist the native shared World without moving world authority into Java.
+
+Storage:
+
+`files/projects/<project-id>/worlds/main.cafeina-world.json`
+
+`WorldDocumentStore` provides:
+
+- UTF-8 storage;
+- 16 MiB size guard aligned with the native world format limit;
+- same-directory temporary file;
+- fsync before commit;
+- atomic replace when supported;
+- fallback replace when atomic move is unavailable;
+- symlink rejection;
+- no leftover temp file after successful save.
+
+`ProjectWorldPersistence` coordinates:
+
+`native World export -> atomic project file`
+
+and:
+
+`project file -> validated native World import`
+
+The coordinator uses an injectable bridge so JVM tests do not load the native library.
+
+Android instrumentation verifies the complete sequence:
+
+1. Luau creates a renderable World object;
+2. native World exports as CAFEINA_WORLD v2;
+3. World is reset;
+4. exported JSON is imported;
+5. RenderScene returns the object again with the same transform;
+6. malformed JSON is rejected without destroying the restored World.
