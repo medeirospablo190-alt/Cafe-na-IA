@@ -44,6 +44,21 @@ int main()
     }
 
     {
+        cafeina::ExecutionRequest request;
+        request.source = "return 6 * 7";
+        request.limits.timeoutMs = 250;
+        request.context.executionId = "smoke-execution-1";
+        request.context.projectId = "smoke-project";
+
+        const cafeina::ExecutionResult r = runtime.execute(request);
+        require(r.ok, "canonical execution request should succeed");
+        require(
+            r.returns.size() == 1 && r.returns[0] == "42",
+            "canonical execution request should capture return values"
+        );
+    }
+
+    {
         const auto r = runtime.execute("return fs == nil", {250});
         require(r.ok, "runtime without host files should still execute");
         require(r.returns.size() == 1 && r.returns[0] == "true", "fs should not exist without explicit host access");
@@ -70,6 +85,28 @@ int main()
     const fs::path root = makeTempRoot();
     cafeina::RuntimeHostAccess host;
     host.filesRoot = root.string();
+
+    {
+        cafeina::ExecutionRequest request;
+        request.source =
+            "fs.write('request.txt', 'context-ok') "
+            "return fs.read('request.txt')";
+        request.limits.timeoutMs = 500;
+        request.context.executionId = "smoke-execution-files";
+        request.context.projectId = "smoke-project";
+        request.context.hostAccess = host;
+
+        const auto r = runtime.execute(request);
+        require(r.ok, "execution request should carry explicit host access");
+        require(
+            r.returns.size() == 1 && r.returns[0] == "context-ok",
+            "execution request host access should expose the same sandboxed fs API"
+        );
+        require(
+            fs::is_regular_file(root / "request.txt"),
+            "execution request filesystem must remain inside the sandbox root"
+        );
+    }
 
     {
         const auto r = runtime.execute(
