@@ -5,11 +5,9 @@
 #include <memory>
 #include <string>
 
-extern "C" {
 #include "lua.h"
 #include "lualib.h"
 #include "luacode.h"
-}
 
 namespace cafeina {
 namespace {
