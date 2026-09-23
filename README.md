@@ -5,7 +5,7 @@ Este repositório agora mantém dois blocos independentes:
 1. **CAFEÍNA App/Runtime** — editor Luau, World Core, Render Core e Android.
 2. **CAFEÍNA Collector** — gateway de coleta V2.1/V3 e histórico de traces.
 
-O produto **GRUPO LUA** foi removido da árvore ativa. App 1, Keymaster, FREE/VIP, Social, Chat, portal de downloads e regras antigas não fazem parte da CAFEÍNA.
+O produto legado anterior foi removido da árvore ativa. A CAFEÍNA mantém somente sua infraestrutura atual, o coletor e a base neutra de backend.
 
 ## Coletor
 
@@ -37,7 +37,7 @@ A base PostgreSQL reutilizável foi preservada em `cafeina-cloud-api/`.
 
 Ela usa o mesmo `DATABASE_URL` que pode apontar para o banco existente, porém toda estrutura nova da CAFEÍNA fica no schema PostgreSQL `cafeina_ai`.
 
-**Importante:** tabelas antigas do Grupo Lua não são apagadas automaticamente. Isso evita perda acidental de dados; a remoção física do legado do banco deve ser feita somente após auditoria do banco em produção.
+**Importante:** tabelas legadas do banco não são apagadas automaticamente. Isso evita perda acidental de dados; a remoção física do legado deve ocorrer somente após auditoria do banco em produção.
 
 ## Desenvolvimento do app
 
