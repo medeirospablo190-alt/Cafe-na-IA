@@ -4,15 +4,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public final class EditorTabs {
     private static final class TabState {
         final String name;
         String content;
+        String savedContent;
 
-        TabState(String name, String content) {
+        TabState(String name, String content, String savedContent) {
             this.name = name;
             this.content = content;
+            this.savedContent = savedContent;
+        }
+
+        boolean isDirty() {
+            return !Objects.equals(content, savedContent);
         }
     }
 
@@ -21,7 +28,8 @@ public final class EditorTabs {
     private int nextScriptNumber = 1;
 
     public EditorTabs(String initialContent) {
-        tabs.add(new TabState("script.lua", initialContent == null ? "" : initialContent));
+        String safe = initialContent == null ? "" : initialContent;
+        tabs.add(new TabState("script.lua", safe, safe));
     }
 
     public int size() {
@@ -40,12 +48,20 @@ public final class EditorTabs {
         return tabs.get(activeIndex).content;
     }
 
+    public boolean activeDirty() {
+        return tabs.get(activeIndex).isDirty();
+    }
+
     public String nameAt(int index) {
         return tabs.get(index).name;
     }
 
     public String contentAt(int index) {
         return tabs.get(index).content;
+    }
+
+    public boolean isDirtyAt(int index) {
+        return tabs.get(index).isDirty();
     }
 
     public int indexOfName(String name) {
@@ -75,7 +91,7 @@ public final class EditorTabs {
             name = "script" + nextScriptNumber++ + ".lua";
         } while (hasName(name) || reserved.contains(name));
 
-        tabs.add(new TabState(name, ""));
+        tabs.add(new TabState(name, "", ""));
         activeIndex = tabs.size() - 1;
         return name;
     }
@@ -89,14 +105,41 @@ public final class EditorTabs {
         String safeContent = content == null ? "" : content;
 
         if (existing >= 0) {
-            tabs.get(existing).content = safeContent;
+            TabState tab = tabs.get(existing);
+            tab.content = safeContent;
+            tab.savedContent = safeContent;
             activeIndex = existing;
         } else {
-            tabs.add(new TabState(name, safeContent));
+            tabs.add(new TabState(name, safeContent, safeContent));
             activeIndex = tabs.size() - 1;
         }
 
         advanceGeneratedCounter(name);
+        return activeIndex;
+    }
+
+    public void markSaved(String name, String savedContent) {
+        int index = indexOfName(name);
+        if (index < 0) return;
+        tabs.get(index).savedContent = savedContent == null ? "" : savedContent;
+    }
+
+    public int close(int index) {
+        if (index < 0 || index >= tabs.size()) {
+            throw new IndexOutOfBoundsException("tab index " + index);
+        }
+        if (tabs.size() <= 1) {
+            throw new IllegalStateException("at least one tab must remain open");
+        }
+
+        tabs.remove(index);
+
+        if (index < activeIndex) {
+            activeIndex--;
+        } else if (index == activeIndex && activeIndex >= tabs.size()) {
+            activeIndex = tabs.size() - 1;
+        }
+
         return activeIndex;
     }
 
