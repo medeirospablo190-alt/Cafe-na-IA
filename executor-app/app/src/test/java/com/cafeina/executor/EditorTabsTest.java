@@ -1,8 +1,11 @@
 package com.cafeina.executor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import java.util.Arrays;
 
 public final class EditorTabsTest {
     @Test
@@ -34,6 +37,36 @@ public final class EditorTabsTest {
 
         assertEquals("script2.lua", tabs.addTab());
         assertEquals(3, tabs.size());
+    }
+
+    @Test
+    public void newTabSkipsNamesAlreadySavedOnDisk() {
+        EditorTabs tabs = new EditorTabs("");
+        String created = tabs.addTab(Arrays.asList("script1.lua", "script2.lua"));
+        assertEquals("script3.lua", created);
+    }
+
+    @Test
+    public void loadingNamedScriptOpensItAndAdvancesGeneratedCounter() {
+        EditorTabs tabs = new EditorTabs("");
+
+        int index = tabs.openOrReplace("script5.lua", "return 5");
+        assertEquals(index, tabs.activeIndex());
+        assertEquals("script5.lua", tabs.activeName());
+        assertEquals("return 5", tabs.activeContent());
+        assertTrue(tabs.hasName("script5.lua"));
+
+        assertEquals("script6.lua", tabs.addTab());
+    }
+
+    @Test
+    public void loadingExistingTabReplacesThatTabsContentWithoutDuplicatingIt() {
+        EditorTabs tabs = new EditorTabs("draft");
+        tabs.openOrReplace("script.lua", "saved");
+
+        assertEquals(1, tabs.size());
+        assertEquals("script.lua", tabs.activeName());
+        assertEquals("saved", tabs.activeContent());
     }
 
     @Test(expected = IndexOutOfBoundsException.class)

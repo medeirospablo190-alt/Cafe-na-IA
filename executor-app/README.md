@@ -53,3 +53,18 @@ O app agora possui uma camada de armazenamento local independente da interface.
 - nenhuma rede, servidor ou banco de dados é usado.
 
 Nesta fase o armazenamento ainda não foi ligado aos botões do editor. Primeiro ele é validado isoladamente por testes JVM e por teste instrumentado no armazenamento interno do Android.
+
+
+## Phase 5 — SAVE / LOAD local
+
+A interface passa a usar o `ScriptStore` validado na Fase 4.
+
+- SAVE grava somente a aba ativa no armazenamento privado do app;
+- LOAD lista somente scripts `.lua` válidos salvos localmente;
+- carregar um arquivo abre/ativa uma aba com o nome do arquivo;
+- se uma aba aberta tiver conteúdo diferente da versão em disco, o app pede confirmação antes de substituí-la;
+- o botão `+` consulta os nomes já salvos e pula nomes ocupados, evitando criar uma aba nova com o mesmo nome de um arquivo antigo;
+- operações de disco rodam em executor separado da UI e do runtime;
+- erros de armazenamento aparecem no console sem encerrar o app.
+
+O CI também abre a Activity no emulador, altera o editor, toca SAVE e confirma que `script.lua` foi persistido com o conteúdo esperado.
