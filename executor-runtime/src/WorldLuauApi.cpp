@@ -108,7 +108,8 @@ int withWorldErrors(lua_State* L, Fn&& fn)
     }
     catch (const std::exception& error)
     {
-        return luaL_error(L, "World API error: %s", error.what());
+        luaL_error(L, "World API error: %s", error.what());
+        return 0;
     }
 }
 
