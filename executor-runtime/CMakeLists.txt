@@ -37,8 +37,17 @@ target_link_libraries(
 )
 
 if(ANDROID)
+    set(CAFEINA_RENDER_BUILD_TESTS OFF)
+    add_subdirectory(
+        "${CMAKE_CURRENT_SOURCE_DIR}/../render-core"
+        "${CMAKE_CURRENT_BINARY_DIR}/render-core"
+    )
+
     add_library(cafeina_luau_jni SHARED src/android_jni.cpp)
-    target_link_libraries(cafeina_luau_jni PRIVATE cafeina_luau_runtime)
+    target_link_libraries(
+        cafeina_luau_jni
+        PRIVATE cafeina_luau_runtime cafeina_render_core
+    )
 else()
     add_executable(cafeina_luau_cli src/main.cpp)
     target_link_libraries(cafeina_luau_cli PRIVATE cafeina_luau_runtime)
