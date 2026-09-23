@@ -126,6 +126,36 @@ int worldCreate(lua_State* L)
     });
 }
 
+int worldCreatePart(lua_State* L)
+{
+    return withWorldErrors(L, [&]() {
+        size_t length = 0;
+        const char* raw = luaL_optlstring(L, 1, "Part", &length);
+        const std::string name(raw, length);
+
+        world::WorldService* service = worldService(L);
+        const world::ObjectId id = service->createObject(name);
+
+        try
+        {
+            world::MeshComponent mesh;
+            mesh.primitive = world::PrimitiveMesh::Box;
+            mesh.visible = true;
+
+            if (!service->setMeshComponent(id, mesh))
+                throw std::runtime_error("failed to attach default mesh");
+        }
+        catch (...)
+        {
+            service->removeObject(id);
+            throw;
+        }
+
+        pushObjectId(L, id);
+        return 1;
+    });
+}
+
 int worldGet(lua_State* L)
 {
     return withWorldErrors(L, [&]() {
@@ -272,9 +302,10 @@ void exposeWorldApi(lua_State* L, world::WorldService* service)
     if (!service)
         luaL_error(L, "World API requires a host service");
 
-    lua_createtable(L, 0, 9);
+    lua_createtable(L, 0, 10);
 
     setWorldFunction(L, service, worldCreate, "World.create", "create");
+    setWorldFunction(L, service, worldCreatePart, "World.createPart", "createPart");
     setWorldFunction(L, service, worldGet, "World.get", "get");
     setWorldFunction(L, service, worldRemove, "World.remove", "remove");
     setWorldFunction(L, service, worldSetName, "World.setName", "setName");

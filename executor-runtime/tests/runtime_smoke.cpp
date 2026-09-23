@@ -152,6 +152,25 @@ int main()
         require(house.has_value() && house->name == "House", "host should observe Luau-created house");
         require(door.has_value() && door->parentId == 1, "host should observe Luau-created hierarchy");
         require(house->transform.position.x == 1.0, "host should observe Luau transform changes");
+
+        cafeina::ExecutionRequest partRequest;
+        partRequest.source = "local part = World.createPart('RenderBox') return part";
+        partRequest.context.capabilities.grant(cafeina::RuntimeCapability::World);
+        partRequest.context.hostAccess.worldService = &sharedWorld;
+
+        const auto partResult = runtime.execute(partRequest);
+        require(partResult.ok, "World.createPart should create a renderable object");
+        require(
+            partResult.returns.size() == 1 && partResult.returns[0] == "3",
+            "World.createPart should preserve stable object IDs"
+        );
+
+        const auto partMesh = sharedWorld.meshComponent(3);
+        require(partMesh.has_value(), "World.createPart should attach a mesh component");
+        require(
+            partMesh->primitive == cafeina::world::PrimitiveMesh::Box && partMesh->visible,
+            "World.createPart should attach a visible box mesh"
+        );
     }
 
     {

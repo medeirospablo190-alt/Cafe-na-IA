@@ -2,12 +2,15 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.opengl.Matrix;
 import android.os.Bundle;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import com.cafeina.runtime.LuauBridge;
 
 import com.google.android.filament.Box;
 import com.google.android.filament.Camera;
@@ -19,6 +22,7 @@ import com.google.android.filament.RenderableManager;
 import com.google.android.filament.Renderer;
 import com.google.android.filament.Scene;
 import com.google.android.filament.SwapChain;
+import com.google.android.filament.TransformManager;
 import com.google.android.filament.VertexBuffer;
 import com.google.android.filament.View;
 import com.google.android.filament.Viewport;
@@ -29,8 +33,13 @@ import com.google.android.filament.android.UiHelper;
 import com.google.android.filament.filamat.MaterialBuilder;
 import com.google.android.filament.filamat.MaterialPackage;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class WorldPreviewActivity extends Activity {
     public static final int SURFACE_VIEW_ID = 0x43414645;
@@ -56,10 +65,10 @@ public final class WorldPreviewActivity extends Activity {
     private VertexBuffer vertexBuffer;
     private IndexBuffer indexBuffer;
     private SwapChain swapChain;
-    private int renderable;
     private int cameraEntity;
     private boolean destroyed;
 
+    private final List<Integer> renderables = new ArrayList<>();
     private final PreviewFrameCallback frameCallback = new PreviewFrameCallback();
 
     @Override
@@ -98,8 +107,10 @@ public final class WorldPreviewActivity extends Activity {
         try {
             setupSurface();
             setupFilament();
-            setupScene();
-            statusView.setText("WORLD PREVIEW • GPU READY");
+            int renderedItems = setupSceneFromSharedWorld();
+            statusView.setText(
+                "WORLD PREVIEW • GPU READY • " + renderedItems + " item(s)"
+            );
         } catch (Throwable error) {
             statusView.setText("WORLD PREVIEW • INIT ERROR: " + safeMessage(error));
             android.util.Log.e(TAG, "Filament preview initialization failed", error);
@@ -123,32 +134,115 @@ public final class WorldPreviewActivity extends Activity {
 
         cameraEntity = EntityManager.get().create();
         camera = engine.createCamera(cameraEntity);
+        camera.lookAt(6.0, 5.0, 8.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
         view.setScene(scene);
         view.setCamera(camera);
         view.setPostProcessingEnabled(false);
     }
 
-    private void setupScene() {
+    private int setupSceneFromSharedWorld() throws Exception {
         material = buildRuntimeMaterial();
-        createTriangleMesh();
+        createBoxMesh();
 
-        renderable = EntityManager.get().create();
+        JSONObject snapshot = new JSONObject(LuauBridge.nativeRenderSceneSnapshot());
+        if (!snapshot.optBoolean("ok", false)) {
+            throw new IllegalStateException(
+                "RenderScene snapshot failed: " + snapshot.optString("error", "unknown error")
+            );
+        }
+
+        JSONArray items = snapshot.optJSONArray("items");
+        if (items == null) {
+            throw new IllegalStateException("RenderScene snapshot has no items array");
+        }
+
+        int renderedCount = 0;
+        int unsupportedCount = 0;
+
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.getJSONObject(i);
+            String primitive = item.optString("primitive", "");
+
+            if (!"box".equals(primitive)) {
+                unsupportedCount++;
+                continue;
+            }
+
+            int entity = createBoxRenderable(item);
+            renderables.add(entity);
+            scene.addEntity(entity);
+            renderedCount++;
+        }
+
+        if (unsupportedCount > 0) {
+            android.util.Log.i(
+                TAG,
+                "Skipped " + unsupportedCount + " unsupported primitive(s) in bootstrap renderer"
+            );
+        }
+
+        return renderedCount;
+    }
+
+    private int createBoxRenderable(JSONObject item) throws Exception {
+        int entity = EntityManager.get().create();
 
         new RenderableManager.Builder(1)
-            .boundingBox(new Box(0f, 0f, 0f, 1f, 1f, 0.01f))
+            .boundingBox(new Box(0f, 0f, 0f, 0.5f, 0.5f, 0.5f))
             .geometry(
                 0,
                 RenderableManager.PrimitiveType.TRIANGLES,
                 vertexBuffer,
                 indexBuffer,
                 0,
-                3
+                36
             )
             .material(0, material.getDefaultInstance())
-            .build(engine, renderable);
+            .build(engine, entity);
 
-        scene.addEntity(renderable);
+        applyTransform(entity, item);
+        return entity;
+    }
+
+    private void applyTransform(int entity, JSONObject item) throws Exception {
+        float[] transform = new float[16];
+
+        JSONArray worldMatrix = item.optJSONArray("worldMatrix");
+        if (worldMatrix != null && worldMatrix.length() == 16) {
+            for (int i = 0; i < 16; i++) {
+                transform[i] = (float) worldMatrix.getDouble(i);
+            }
+        } else {
+            JSONArray position = item.getJSONArray("position");
+            JSONArray rotation = item.getJSONArray("rotationDegrees");
+            JSONArray scale = item.getJSONArray("scale");
+
+            Matrix.setIdentityM(transform, 0);
+            Matrix.translateM(
+                transform,
+                0,
+                (float) position.getDouble(0),
+                (float) position.getDouble(1),
+                (float) position.getDouble(2)
+            );
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(2), 0f, 0f, 1f);
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(1), 0f, 1f, 0f);
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(0), 1f, 0f, 0f);
+            Matrix.scaleM(
+                transform,
+                0,
+                (float) scale.getDouble(0),
+                (float) scale.getDouble(1),
+                (float) scale.getDouble(2)
+            );
+        }
+
+        TransformManager transformManager = engine.getTransformManager();
+        transformManager.setTransform(
+            transformManager.getInstance(entity),
+            transform
+        );
     }
 
     private Material buildRuntimeMaterial() {
@@ -156,7 +250,7 @@ public final class WorldPreviewActivity extends Activity {
         try {
             MaterialPackage materialPackage = new MaterialBuilder()
                 .platform(MaterialBuilder.Platform.MOBILE)
-                .name("CAFEINA Preview Vertex Color")
+                .name("CAFEINA World Box")
                 .shading(MaterialBuilder.Shading.UNLIT)
                 .require(MaterialBuilder.VertexAttribute.COLOR)
                 .material(
@@ -181,23 +275,28 @@ public final class WorldPreviewActivity extends Activity {
         }
     }
 
-    private void createTriangleMesh() {
+    private void createBoxMesh() {
         final int floatBytes = 4;
         final int colorBytes = 4;
         final int vertexStride = 3 * floatBytes + colorBytes;
 
         ByteBuffer vertices = ByteBuffer
-            .allocateDirect(3 * vertexStride)
+            .allocateDirect(8 * vertexStride)
             .order(ByteOrder.nativeOrder());
 
-        putVertex(vertices, 0.0f, 1.0f, 0.0f, 0xffff7a18);
-        putVertex(vertices, -0.9f, -0.7f, 0.0f, 0xff3b8bfe);
-        putVertex(vertices, 0.9f, -0.7f, 0.0f, 0xff4acb71);
+        putVertex(vertices, -0.5f, -0.5f, -0.5f, 0xffff7a18);
+        putVertex(vertices,  0.5f, -0.5f, -0.5f, 0xff3b8bfe);
+        putVertex(vertices,  0.5f,  0.5f, -0.5f, 0xff4acb71);
+        putVertex(vertices, -0.5f,  0.5f, -0.5f, 0xffffc44a);
+        putVertex(vertices, -0.5f, -0.5f,  0.5f, 0xffb875ff);
+        putVertex(vertices,  0.5f, -0.5f,  0.5f, 0xff4acbd3);
+        putVertex(vertices,  0.5f,  0.5f,  0.5f, 0xffff6680);
+        putVertex(vertices, -0.5f,  0.5f,  0.5f, 0xff8da1ff);
         vertices.flip();
 
         vertexBuffer = new VertexBuffer.Builder()
             .bufferCount(1)
-            .vertexCount(3)
+            .vertexCount(8)
             .attribute(
                 VertexBuffer.VertexAttribute.POSITION,
                 0,
@@ -217,16 +316,26 @@ public final class WorldPreviewActivity extends Activity {
 
         vertexBuffer.setBufferAt(engine, 0, vertices);
 
+        short[] cubeIndices = new short[] {
+            0, 1, 2, 0, 2, 3,
+            5, 4, 7, 5, 7, 6,
+            4, 0, 3, 4, 3, 7,
+            1, 5, 6, 1, 6, 2,
+            3, 2, 6, 3, 6, 7,
+            4, 5, 1, 4, 1, 0
+        };
+
         ByteBuffer indices = ByteBuffer
-            .allocateDirect(3 * 2)
+            .allocateDirect(cubeIndices.length * 2)
             .order(ByteOrder.nativeOrder());
-        indices.putShort((short) 0);
-        indices.putShort((short) 1);
-        indices.putShort((short) 2);
+
+        for (short index : cubeIndices) {
+            indices.putShort(index);
+        }
         indices.flip();
 
         indexBuffer = new IndexBuffer.Builder()
-            .indexCount(3)
+            .indexCount(cubeIndices.length)
             .bufferType(IndexBuffer.Builder.IndexType.USHORT)
             .build(engine);
         indexBuffer.setBuffer(engine, indices);
@@ -286,12 +395,14 @@ public final class WorldPreviewActivity extends Activity {
             swapChain = null;
         }
 
-        if (renderable != 0) {
-            scene.removeEntity(renderable);
-            engine.destroyEntity(renderable);
-            EntityManager.get().destroy(renderable);
-            renderable = 0;
+        for (int entity : renderables) {
+            if (scene != null) {
+                scene.removeEntity(entity);
+            }
+            engine.destroyEntity(entity);
+            EntityManager.get().destroy(entity);
         }
+        renderables.clear();
 
         if (vertexBuffer != null) engine.destroyVertexBuffer(vertexBuffer);
         if (indexBuffer != null) engine.destroyIndexBuffer(indexBuffer);
@@ -360,18 +471,8 @@ public final class WorldPreviewActivity extends Activity {
         public void onResized(int width, int height) {
             if (camera == null || view == null || engine == null || height == 0) return;
 
-            double zoom = 1.4;
             double aspect = (double) width / (double) height;
-            camera.setProjection(
-                Camera.Projection.ORTHO,
-                -aspect * zoom,
-                aspect * zoom,
-                -zoom,
-                zoom,
-                0.0,
-                10.0
-            );
-
+            camera.setProjection(45.0, aspect, 0.1, 100.0, Camera.Fov.VERTICAL);
             view.setViewport(new Viewport(0, 0, width, height));
             FilamentHelper.synchronizePendingFrames(engine);
         }

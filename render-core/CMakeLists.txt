@@ -5,12 +5,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CAFEINA_WORLD_BUILD_SERIALIZATION OFF)
-set(CAFEINA_WORLD_BUILD_TESTS OFF)
-add_subdirectory(
-    "${CMAKE_CURRENT_SOURCE_DIR}/../world-core"
-    "${CMAKE_CURRENT_BINARY_DIR}/world-core"
-)
+option(CAFEINA_RENDER_BUILD_TESTS "Build Render Core smoke tests" ON)
+
+if(NOT TARGET cafeina_world_core)
+    set(CAFEINA_WORLD_BUILD_SERIALIZATION OFF)
+    set(CAFEINA_WORLD_BUILD_TESTS OFF)
+    add_subdirectory(
+        "${CMAKE_CURRENT_SOURCE_DIR}/../world-core"
+        "${CMAKE_CURRENT_BINARY_DIR}/world-core"
+    )
+endif()
 
 add_library(cafeina_render_core STATIC
     src/RenderScene.cpp
@@ -18,7 +22,9 @@ add_library(cafeina_render_core STATIC
 target_include_directories(cafeina_render_core PUBLIC include)
 target_link_libraries(cafeina_render_core PUBLIC cafeina_world_core)
 
-enable_testing()
-add_executable(cafeina_render_core_smoke tests/render_scene_smoke.cpp)
-target_link_libraries(cafeina_render_core_smoke PRIVATE cafeina_render_core)
-add_test(NAME cafeina_render_core_smoke COMMAND cafeina_render_core_smoke)
+if(CAFEINA_RENDER_BUILD_TESTS)
+    enable_testing()
+    add_executable(cafeina_render_core_smoke tests/render_scene_smoke.cpp)
+    target_link_libraries(cafeina_render_core_smoke PRIVATE cafeina_render_core)
+    add_test(NAME cafeina_render_core_smoke COMMAND cafeina_render_core_smoke)
+endif()

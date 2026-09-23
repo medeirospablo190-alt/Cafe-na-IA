@@ -735,7 +735,7 @@ public final class MainActivity extends Activity {
                     report.append("[AUTOEXEC] ").append(name).append('\n');
 
                     try {
-                        String raw = LuauBridge.nativeExecuteWithFiles(entry.getValue(), 500, runtimeFilesRoot);
+                        String raw = LuauBridge.nativeExecuteWithFilesAndWorld(entry.getValue(), 500, runtimeFilesRoot);
                         JSONObject result = new JSONObject(raw);
                         boolean ok = result.optBoolean("ok", false);
                         String output = result.optString("output", "");
@@ -804,7 +804,7 @@ public final class MainActivity extends Activity {
 
         runtimeExecutor.submit(() -> {
             try {
-                final String raw = LuauBridge.nativeExecuteWithFiles(source, 500, runtimeFilesRoot);
+                final String raw = LuauBridge.nativeExecuteWithFilesAndWorld(source, 500, runtimeFilesRoot);
                 runOnUiThread(() -> renderResult(raw, tabName));
             } catch (Throwable error) {
                 runOnUiThread(() -> {

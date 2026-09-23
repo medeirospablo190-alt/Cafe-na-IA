@@ -14,4 +14,14 @@ public final class LuauBridge {
         int timeoutMs,
         String sandboxRoot
     );
+
+    public static native String nativeExecuteWithFilesAndWorld(
+        String source,
+        int timeoutMs,
+        String sandboxRoot
+    );
+
+    public static native String nativeRenderSceneSnapshot();
+
+    public static native void nativeResetWorld();
 }
