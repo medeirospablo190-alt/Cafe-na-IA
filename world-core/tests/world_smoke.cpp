@@ -1,7 +1,9 @@
 #include "cafeina/world/World.hpp"
+#include "cafeina/world/WorldSerialization.hpp"
 
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -23,6 +25,10 @@ int main()
     using cafeina::world::Transform;
     using cafeina::world::Vec3;
     using cafeina::world::World;
+    using cafeina::world::WorldFormatError;
+    using cafeina::world::WorldState;
+    using cafeina::world::deserializeWorldJson;
+    using cafeina::world::serializeWorldJson;
 
     World world;
 
@@ -138,6 +144,92 @@ int main()
         rejected = true;
     }
     require(rejected, "invalid names must fail explicitly");
+
+    {
+        Transform invalidTransform;
+        invalidTransform.position.x = std::numeric_limits<double>::infinity();
+
+        bool invalidTransformRejected = false;
+        try
+        {
+            world.setTransform(spawnId, invalidTransform);
+        }
+        catch (const std::invalid_argument&)
+        {
+            invalidTransformRejected = true;
+        }
+        require(invalidTransformRejected, "non-finite transforms must be rejected");
+    }
+
+    {
+        World persistent;
+        const auto house = persistent.createObject("House");
+        const auto door = persistent.createObject("Door");
+        const auto deleted = persistent.createObject("Temporary");
+
+        Transform houseTransform;
+        houseTransform.position = Vec3{12.5, 3.0, -8.25};
+        houseTransform.rotationDegrees = Vec3{0.0, 45.0, 0.0};
+        houseTransform.scale = Vec3{2.0, 2.0, 2.0};
+
+        require(persistent.setTransform(house, houseTransform), "persistent transform should update");
+        require(persistent.setParent(door, house), "persistent hierarchy should update");
+        require(persistent.removeObject(deleted), "temporary object should be removed before save");
+
+        const std::string encoded = serializeWorldJson(persistent);
+        World reopened = deserializeWorldJson(encoded);
+
+        require(reopened.objectCount() == 2, "round-trip should preserve object count");
+        require(reopened.findObject(house) != nullptr, "round-trip should preserve stable house ID");
+        require(reopened.findObject(door) != nullptr, "round-trip should preserve stable door ID");
+        require(reopened.findObject(house)->transform == houseTransform, "round-trip should preserve transforms");
+        require(reopened.findObject(door)->parentId == house, "round-trip should preserve hierarchy");
+        require(serializeWorldJson(reopened) == encoded, "serialized world should be deterministic after round-trip");
+
+        const auto afterReopen = reopened.createObject("AfterReopen");
+        require(afterReopen > deleted, "round-trip must preserve next object ID and never recycle deleted IDs");
+
+        std::string unsupported = encoded;
+        const std::string versionNeedle = "\"version\": 1";
+        const auto versionPos = unsupported.find(versionNeedle);
+        require(versionPos != std::string::npos, "serialized world should contain explicit version");
+        unsupported.replace(versionPos, versionNeedle.size(), "\"version\": 999");
+
+        bool versionRejected = false;
+        try
+        {
+            (void)deserializeWorldJson(unsupported);
+        }
+        catch (const WorldFormatError&)
+        {
+            versionRejected = true;
+        }
+        require(versionRejected, "unsupported world versions must fail closed");
+
+        WorldState invalidState = persistent.state();
+        require(invalidState.objects.size() == 2, "state snapshot should contain saved objects");
+        invalidState.objects[0].parentId = invalidState.objects[1].id;
+        invalidState.objects[1].parentId = invalidState.objects[0].id;
+
+        World protectedWorld;
+        const auto protectedId = protectedWorld.createObject("Protected");
+
+        bool invalidStateRejected = false;
+        try
+        {
+            protectedWorld.restore(invalidState);
+        }
+        catch (const std::invalid_argument&)
+        {
+            invalidStateRejected = true;
+        }
+
+        require(invalidStateRejected, "cyclic restored state must be rejected");
+        require(
+            protectedWorld.objectCount() == 1 && protectedWorld.findObject(protectedId) != nullptr,
+            "failed restore must leave the existing world untouched"
+        );
+    }
 
     std::cout << "world core smoke tests passed\n";
     return 0;
