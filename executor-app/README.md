@@ -157,3 +157,37 @@ Rules:
 - the Project Core is currently isolated and is not yet wired into the editor, Auto Execute or existing `files/scripts` / `files/runtime-fs` data.
 
 Keeping the existing storage untouched avoids a destructive migration before project selection, migration and rollback rules are defined and tested.
+
+
+## Phase 11 — Android render backend bootstrap
+
+The app now has an isolated `WorldPreviewActivity` that proves the Android GPU/render lifecycle without making the current editor or World Core depend directly on a graphics backend.
+
+Initial backend:
+
+- Google Filament `1.77.1`;
+- `filament-android` for the rendering runtime;
+- `filamat-android` only for this bootstrap phase so the preview material can be generated at runtime instead of committing a precompiled binary material.
+
+The editor exposes a `WORLD PREVIEW` button that opens the separate preview Activity.
+
+The bootstrap currently renders a small vertex-colored triangle. It intentionally does **not** create a second mutable world model and is not yet connected to `RenderScene`.
+
+Architecture remains:
+
+`WorldService -> WorldState -> RenderScene -> Android graphics backend`
+
+The next bridge will feed immutable RenderScene snapshots into the Android backend.
+
+### Lifecycle validation
+
+The preview follows Filament's Android surface lifecycle:
+
+- Filament initialized before API use;
+- `SurfaceView` managed with `UiHelper`;
+- swap chain created/destroyed with the native window;
+- frame scheduling stops on pause;
+- GPU resources are explicitly destroyed;
+- an Android instrumentation test launches the preview and requires successful Filament/material/mesh initialization on the emulator.
+
+Runtime material compilation is a bootstrap convenience. Once the backend path is stable, the intended optimization is to ship a material precompiled with the matching Filament release and remove `filamat-android` from normal runtime builds.
