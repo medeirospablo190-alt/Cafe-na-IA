@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -79,7 +80,7 @@ public final class WorldDocumentStoreTest {
         ProjectStore.Project project = createProject("symlink-file");
         WorldDocumentStore store = new WorldDocumentStore(project);
         Path target = temp.newFile("outside-world.json").toPath();
-        Files.writeString(target, "outside");
+        Files.write(target, "outside".getBytes(StandardCharsets.UTF_8));
 
         try {
             Files.createSymbolicLink(store.worldFile(), target);
@@ -88,7 +89,7 @@ public final class WorldDocumentStoreTest {
         }
 
         assertThrows(IOException.class, () -> store.save("replacement"));
-        assertEquals("outside", Files.readString(target));
+        assertEquals("outside", new String(Files.readAllBytes(target), StandardCharsets.UTF_8));
     }
 
     @Test
