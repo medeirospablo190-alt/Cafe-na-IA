@@ -85,3 +85,23 @@ O editor agora trata o estado das abas explicitamente:
 - nenhum script é executado automaticamente na restauração.
 
 Continuamos sem servidor e sem banco de dados. Toda essa fase usa exclusivamente o armazenamento privado do Android.
+
+
+## Phase 7 — Auto Execute local e explícito
+
+Auto Execute continua inteiramente local e desativado por padrão.
+
+- cada script pode ser marcado individualmente;
+- só um `.lua` já salvo e sem alterações pendentes pode ser ativado;
+- o registro fica em `files/autoexecute.txt`, no armazenamento privado do app;
+- referências a arquivos que deixaram de existir são removidas na próxima abertura;
+- nenhum script remoto entra no Auto Execute;
+- na abertura, o app restaura os arquivos salvos e executa apenas os nomes explicitamente marcados;
+- cada execução usa o mesmo runtime sandboxado e timeout de 500 ms;
+- uma falha em um script não impede os próximos da lista;
+- editar um script já marcado mostra `AUTO EXEC: ON • SALVE`, deixando claro que a próxima abertura ainda usará o último snapshot salvo;
+- o recurso pode ser desligado mesmo enquanto existem alterações não salvas.
+
+O CI valida o fluxo completo: salva `auto.lua`, ativa pelo botão, fecha a Activity, reabre e confirma que o runtime produz a saída esperada automaticamente.
+
+Nenhum servidor ou banco de dados é necessário.
