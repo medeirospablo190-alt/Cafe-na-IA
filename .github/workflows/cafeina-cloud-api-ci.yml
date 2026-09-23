@@ -64,7 +64,8 @@ jobs:
       - name: Validate old Render rootDir compatibility shim
         working-directory: grupo-lua-keymaster/services/control-api
         run: |
-          npm install --ignore-scripts
+          rm -rf ../../../cafeina-cloud-api/node_modules
+          npm install
           npm run migrate
 
       - name: Smoke health endpoint
