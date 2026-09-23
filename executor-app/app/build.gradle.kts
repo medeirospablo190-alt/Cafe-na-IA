@@ -49,8 +49,8 @@ android {
 
 
 dependencies {
-    implementation("com.google.android.filament:filament-android:1.77.0")
-    implementation("com.google.android.filament:filamat-android:1.77.0")
+    implementation("com.google.android.filament:filament-android:1.75.1")
+    implementation("com.google.android.filament:filamat-android:1.75.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
