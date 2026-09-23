@@ -79,3 +79,23 @@ Regras:
 - não há delete nesta fase;
 - a API não alcança `files/scripts`, `autoexec.list` ou outras áreas do app;
 - a bridge Android expõe `nativeExecuteWithFiles(source, timeoutMs, sandboxRoot)`, mantendo `nativeExecute` compatível e sem filesystem.
+
+
+## Phase 8.5 — runtime platform execution contract
+
+The runtime now has a canonical host-side execution contract without changing the existing Android/JNI behavior.
+
+New public types:
+
+- `ExecutionRequest`: source + limits + execution context;
+- `ExecutionContext`: host-owned execution/project identifiers plus explicit host access;
+- `ExecutionResult`: semantic alias for the existing `RuntimeResult`.
+
+Compatibility is preserved:
+
+- `execute(source, limits, hostAccess)` still works and delegates to `ExecutionRequest`;
+- `nativeExecute()` is unchanged;
+- `nativeExecuteWithFiles()` is unchanged;
+- the sandboxed `fs` API is still opt-in and scoped to the same host-provided directory.
+
+The new metadata is host-side only and is not exposed automatically as Luau globals. This is the foundation for later capability, task/cancellation, project and Test World APIs without coupling the C++ runtime to Android UI classes.

@@ -16,6 +16,26 @@ struct RuntimeHostAccess {
     std::string filesRoot;
 };
 
+// Host-owned metadata and access granted to one execution.
+// This is intentionally small: future capabilities can be added here
+// without coupling LuauRuntime to Android UI classes.
+struct ExecutionContext {
+    // Opaque identifiers for diagnostics, task tracking and future recovery.
+    // Empty values are valid for legacy callers.
+    std::string executionId;
+    std::string projectId;
+
+    RuntimeHostAccess hostAccess;
+};
+
+// Canonical request shape for the runtime platform.
+// Legacy execute(source, limits, hostAccess) remains available as a wrapper.
+struct ExecutionRequest {
+    std::string source;
+    RuntimeLimits limits;
+    ExecutionContext context;
+};
+
 struct RuntimeResult {
     bool ok = false;
     std::string output;
@@ -24,6 +44,9 @@ struct RuntimeResult {
     std::uint64_t elapsedMs = 0;
 };
 
+// Forward-looking semantic name while preserving the existing RuntimeResult API.
+using ExecutionResult = RuntimeResult;
+
 class LuauRuntime {
 public:
     LuauRuntime();
@@ -31,6 +54,8 @@ public:
 
     LuauRuntime(const LuauRuntime&) = delete;
     LuauRuntime& operator=(const LuauRuntime&) = delete;
+
+    RuntimeResult execute(const ExecutionRequest& request);
 
     RuntimeResult execute(
         const std::string& source,
