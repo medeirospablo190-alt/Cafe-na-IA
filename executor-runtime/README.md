@@ -204,3 +204,19 @@ World.setScale(part, 2, 2, 2)
 `nativeRenderSceneSnapshot()` now includes the resolved column-major `worldMatrix` for every RenderItem in addition to local position/rotation/scale metadata.
 
 Android graphics code should prefer `worldMatrix` for actual drawing. This preserves Scene Graph parent transforms all the way from World Core through RenderScene into Filament.
+
+
+## Android host world persistence bridge
+
+Android host code can now export/import the shared World as the existing versioned `CAFEINA_WORLD` JSON format.
+
+JNI methods:
+
+- `nativeExportWorldJson()`
+- `nativeImportWorldJson(worldJson)`
+
+These APIs are host-only. They are not exposed to Luau and do not grant any new filesystem capability.
+
+Export copies the synchronized WorldService state into a validated World snapshot before serialization. Import parses and validates the complete document before replacing the shared World state, so malformed JSON cannot partially mutate the active scene.
+
+The Android JNI build links `cafeina_world_serialization`; non-Android CLI/runtime builds keep serialization disabled in this path.
