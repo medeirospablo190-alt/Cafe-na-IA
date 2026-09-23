@@ -19,6 +19,7 @@ public final class ProjectStore {
     public static final int MAX_ID_LENGTH = 64;
 
     private static final String MARKER_NAME = ".cafeina-project";
+    private static final int MAX_MARKER_BYTES = 128;
     private static final String MARKER_BODY = "CAFEINA_PROJECT\n" + STORAGE_VERSION + "\n";
 
     private final Path projectsDirectory;
@@ -217,6 +218,11 @@ public final class ProjectStore {
         Path marker = root.resolve(MARKER_NAME);
         if (Files.isSymbolicLink(marker) || !Files.isRegularFile(marker, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("project marker missing or unsafe");
+        }
+
+        long size = Files.size(marker);
+        if (size > MAX_MARKER_BYTES) {
+            throw new IOException("project marker is too large");
         }
 
         byte[] bytes = Files.readAllBytes(marker);
