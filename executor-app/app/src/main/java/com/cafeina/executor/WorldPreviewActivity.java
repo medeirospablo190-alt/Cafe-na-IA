@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -44,6 +46,7 @@ import java.util.List;
 public final class WorldPreviewActivity extends Activity {
     public static final int SURFACE_VIEW_ID = 0x43414645;
     public static final int STATUS_VIEW_ID = 0x43414646;
+    public static final int CAMERA_HINT_VIEW_ID = 0x43414647;
 
     private static final String TAG = "CafeinaWorldPreview";
 
@@ -68,6 +71,8 @@ public final class WorldPreviewActivity extends Activity {
     private int cameraEntity;
     private boolean destroyed;
 
+    private final OrbitCameraState cameraState = new OrbitCameraState();
+    private PreviewCameraController cameraController;
     private final List<Integer> renderables = new ArrayList<>();
     private final PreviewFrameCallback frameCallback = new PreviewFrameCallback();
 
@@ -89,6 +94,14 @@ public final class WorldPreviewActivity extends Activity {
         statusView.setBackgroundColor(Color.argb(180, 12, 13, 16));
         statusView.setPadding(dp(12), dp(8), dp(12), dp(8));
 
+        TextView cameraHintView = new TextView(this);
+        cameraHintView.setId(CAMERA_HINT_VIEW_ID);
+        cameraHintView.setText("1 dedo: orbitar  •  pinça: zoom  •  2 dedos: mover");
+        cameraHintView.setTextColor(Color.rgb(220, 223, 230));
+        cameraHintView.setTextSize(11f);
+        cameraHintView.setBackgroundColor(Color.argb(150, 12, 13, 16));
+        cameraHintView.setPadding(dp(10), dp(6), dp(10), dp(6));
+
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.rgb(9, 10, 13));
         root.addView(surfaceView, new FrameLayout.LayoutParams(
@@ -101,6 +114,38 @@ public final class WorldPreviewActivity extends Activity {
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         root.addView(statusView, statusParams);
+
+        Button resetCameraButton = new Button(this);
+        resetCameraButton.setText("RESET CAM");
+        resetCameraButton.setTextSize(11f);
+        resetCameraButton.setAllCaps(false);
+        resetCameraButton.setTextColor(Color.WHITE);
+        resetCameraButton.setBackgroundColor(Color.argb(190, 30, 34, 43));
+        resetCameraButton.setPadding(dp(10), dp(4), dp(10), dp(4));
+
+        FrameLayout.LayoutParams resetParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            dp(40)
+        );
+        resetParams.gravity = Gravity.TOP | Gravity.END;
+        resetParams.setMargins(0, dp(44), dp(10), 0);
+        root.addView(resetCameraButton, resetParams);
+
+        FrameLayout.LayoutParams hintParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        hintParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        hintParams.setMargins(dp(10), 0, dp(10), dp(12));
+        root.addView(cameraHintView, hintParams);
+
+        cameraController = new PreviewCameraController(
+            this,
+            cameraState,
+            this::applyCameraPose
+        );
+        surfaceView.setOnTouchListener(cameraController);
+        resetCameraButton.setOnClickListener(v -> cameraController.reset());
 
         setContentView(root);
 
@@ -134,7 +179,7 @@ public final class WorldPreviewActivity extends Activity {
 
         cameraEntity = EntityManager.get().create();
         camera = engine.createCamera(cameraEntity);
-        camera.lookAt(6.0, 5.0, 8.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        applyCameraPose(cameraState.pose());
 
         view.setScene(scene);
         view.setCamera(camera);
@@ -156,6 +201,8 @@ public final class WorldPreviewActivity extends Activity {
         if (items == null) {
             throw new IllegalStateException("RenderScene snapshot has no items array");
         }
+
+        frameCameraToItems(items);
 
         int renderedCount = 0;
         int unsupportedCount = 0;
@@ -183,6 +230,80 @@ public final class WorldPreviewActivity extends Activity {
         }
 
         return renderedCount;
+    }
+
+    private void frameCameraToItems(JSONArray items) throws Exception {
+        boolean hasBounds = false;
+        double minX = 0.0;
+        double minY = 0.0;
+        double minZ = 0.0;
+        double maxX = 0.0;
+        double maxY = 0.0;
+        double maxZ = 0.0;
+
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.getJSONObject(i);
+            if (!"box".equals(item.optString("primitive", ""))) {
+                continue;
+            }
+
+            JSONArray matrix = item.optJSONArray("worldMatrix");
+            JSONArray scale = item.getJSONArray("scale");
+
+            double x;
+            double y;
+            double z;
+
+            if (matrix != null && matrix.length() == 16) {
+                x = matrix.getDouble(12);
+                y = matrix.getDouble(13);
+                z = matrix.getDouble(14);
+            } else {
+                JSONArray position = item.getJSONArray("position");
+                x = position.getDouble(0);
+                y = position.getDouble(1);
+                z = position.getDouble(2);
+            }
+
+            double sx = Math.abs(scale.getDouble(0));
+            double sy = Math.abs(scale.getDouble(1));
+            double sz = Math.abs(scale.getDouble(2));
+
+            double radius = 0.5 * Math.sqrt(sx * sx + sy * sy + sz * sz);
+
+            if (!hasBounds) {
+                minX = x - radius;
+                minY = y - radius;
+                minZ = z - radius;
+                maxX = x + radius;
+                maxY = y + radius;
+                maxZ = z + radius;
+                hasBounds = true;
+            } else {
+                minX = Math.min(minX, x - radius);
+                minY = Math.min(minY, y - radius);
+                minZ = Math.min(minZ, z - radius);
+                maxX = Math.max(maxX, x + radius);
+                maxY = Math.max(maxY, y + radius);
+                maxZ = Math.max(maxZ, z + radius);
+            }
+        }
+
+        if (!hasBounds) {
+            return;
+        }
+
+        double centerX = (minX + maxX) * 0.5;
+        double centerY = (minY + maxY) * 0.5;
+        double centerZ = (minZ + maxZ) * 0.5;
+
+        double dx = maxX - minX;
+        double dy = maxY - minY;
+        double dz = maxZ - minZ;
+        double radius = 0.5 * Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        cameraState.frameBounds(centerX, centerY, centerZ, radius);
+        applyCameraPose(cameraState.pose());
     }
 
     private int createBoxRenderable(JSONObject item) throws Exception {
@@ -242,6 +363,24 @@ public final class WorldPreviewActivity extends Activity {
         transformManager.setTransform(
             transformManager.getInstance(entity),
             transform
+        );
+    }
+
+    private void applyCameraPose(OrbitCameraState.CameraPose pose) {
+        if (camera == null || destroyed) {
+            return;
+        }
+
+        camera.lookAt(
+            pose.eyeX,
+            pose.eyeY,
+            pose.eyeZ,
+            pose.targetX,
+            pose.targetY,
+            pose.targetZ,
+            0.0,
+            1.0,
+            0.0
         );
     }
 
