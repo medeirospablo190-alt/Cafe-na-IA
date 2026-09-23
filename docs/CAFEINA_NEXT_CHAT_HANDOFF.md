@@ -276,3 +276,10 @@ Estado verificado em 2026-09-23:
 ## REGRA FINAL DE HANDOFF
 
 Este documento não substitui o Plano Mestre de 300 itens. O Plano Mestre é a especificação do produto; o Protocolo Definitivo define como desenvolver; este Handoff registra apenas o estado mutável necessário para retomada. Não é necessário duplicar integralmente o Plano Mestre neste handoff.
+
+## ATUALIZAÇÃO 2026-09-23 — FASES 15/16
+- Integrados no main: #144 support repositories, #145 test evidence, #146 decisions/failures, #147 provenance links e #149 CafeinaAiCore foundation.
+- #148 lifecycle encontrou regressão real no teste antigo: a política passou a rejeitar EXPERIMENTAL→CONSOLIDATED por exceção; teste corrigido e CI reexecutando.
+- #152 falhou corretamente por dependências AI ainda não integradas; substituído por integração coesa #155 sobre main atual.
+- #153/#154 são rebuilds intermediários; #155 consolida capabilities fail-closed + trusted project context + provider boundary sobre CafeinaAiCore já integrado.
+- Próximo fluxo: integrar lifecycle quando verde; integrar #155 quando verde; adicionar testes do DefaultCafeinaAiCore e persistência/reopen da Knowledge Store; então avançar chat/missões da Fase 17.
