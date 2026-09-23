@@ -22,3 +22,16 @@ Ainda não inclui Script Hub, abas, arquivos, temas, Auto Execute ou integraçã
 ## ABI inicial
 
 A Fase 2 compila `arm64-v8a`, suficiente para validar o APK em Android ARM64. Suporte adicional de ABI deve entrar em PR separado depois que este fluxo básico estiver estável.
+
+
+## Phase 3 — abas em memória
+
+A interface agora suporta múltiplas abas `.lua` sem persistência em disco:
+
+- `script.lua` é a aba inicial;
+- o botão `+` cria `script1.lua`, `script2.lua` e assim por diante;
+- trocar de aba preserva o conteúdo de cada editor em memória;
+- EXECUTE roda apenas a aba ativa;
+- CLEAR limpa apenas a aba ativa.
+
+A lógica de estado das abas vive em `EditorTabs.java` e possui testes unitários independentes da Activity.
