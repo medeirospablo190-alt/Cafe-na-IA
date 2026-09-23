@@ -237,7 +237,20 @@ Evitar: OBJETIVO → CONSULTA → MICRO-RESPOSTA → CONFIRMAÇÃO → MICROALTE
 ## 63. RESULTADO ESPERADO
 Usuário deve poder dizer “faz X” e o processo buscar X completo e validado dentro das capacidades disponíveis, resolvendo internamente etapas que não exigem participação humana. Segurança, qualidade, testes, branches, PRs, CI e rollback continuam; deixam de virar interrupções desnecessárias.
 
-## 64. REGRA FINAL
+## 64. GATE OBRIGATÓRIO DE SAÍDA
+Antes de emitir qualquer resposta final durante uma missão autorizada, executar esta verificação de controle:
+
+**Existe alguma próxima ação segura, autorizada, relevante e executável autonomamente agora?**
+
+- Se SIM: a resposta final é inválida. Executar a próxima ação e repetir o gate depois.
+- Se NÃO: identificar a causa concreta. Só é permitido encerrar por dependência real do usuário, pausa/cancelamento explícito ou limitação real da ferramenta/plataforma que impeça prosseguir.
+- CI pendente, PR aberto/criado, commit, merge, teste/fase/subbloco concluído, erro corrigível, quantidade de trabalho já feita ou desejo de apresentar progresso NÃO satisfazem o gate de saída.
+- Se uma dependência externa estiver aguardando, procurar e consumir trabalho independente autorizado antes de considerar encerramento.
+- Não usar mensagens como “continuando” como substituto de execução: continuidade significa executar a próxima ação no mesmo turno.
+
+Este gate é controle de execução do protocolo existente, não uma nova família de regras concorrentes.
+
+## 65. REGRA FINAL
 O PROCESSO EXISTE PARA AJUDAR A CONSTRUIR O CAFEÍNA. O CAFEÍNA NÃO EXISTE PARA SATISFAZER O PROCESSO.
 
 Preservar QUALIDADE + ESTABILIDADE + SEGURANÇA + TESTES + EVIDÊNCIA + RECOVERY + ROLLBACK + CONTROLE DO USUÁRIO sem sacrificar desnecessariamente CONTINUIDADE + AUTONOMIA + VELOCIDADE + FOCO + EFICIÊNCIA.
