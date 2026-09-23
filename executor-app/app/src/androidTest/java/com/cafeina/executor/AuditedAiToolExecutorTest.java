@@ -1,0 +1,9 @@
+package com.cafeina.executor;
+import static org.junit.Assert.*; import android.content.Context; import androidx.test.core.app.ApplicationProvider; import java.util.*; import org.junit.*;
+public final class AuditedAiToolExecutorTest {
+ private Context context; private CafeinaKnowledgeDatabase db;
+ @Before public void setUp(){context=ApplicationProvider.getApplicationContext();context.deleteDatabase(CafeinaKnowledgeDatabase.DATABASE_NAME);db=new CafeinaKnowledgeDatabase(context);}
+ @After public void tearDown(){db.close();context.deleteDatabase(CafeinaKnowledgeDatabase.DATABASE_NAME);}
+ @Test public void recordsSuccessfulExecution(){AiToolRegistry r=new AiToolRegistry();r.register(new AiTool(){public String name(){return "read";}public Set<String> requiredCapabilities(){return Collections.emptySet();}public AiToolResult execute(AiToolRequest q){return AiToolResult.success("ok");}});DiagnosticsRepository d=new DiagnosticsRepository(db);new AuditedAiToolExecutor(new AiToolExecutor(r,AiCapabilitySet.none()),d).execute("read",new AiToolRequest("p",null),10);assertEquals("ai_tool",d.recent("p",10).get(0).kind);assertEquals("success",d.recent("p",10).get(0).details);}
+ @Test public void recordsDeniedExecutionWithoutRunningTool(){final int[] calls={0};AiToolRegistry r=new AiToolRegistry();r.register(new AiTool(){public String name(){return "write";}public Set<String> requiredCapabilities(){return Collections.singleton("world.write");}public AiToolResult execute(AiToolRequest q){calls[0]++;return AiToolResult.success("bad");}});DiagnosticsRepository d=new DiagnosticsRepository(db);AuditedAiToolExecutor a=new AuditedAiToolExecutor(new AiToolExecutor(r,AiCapabilitySet.none()),d);assertThrows(SecurityException.class,()->a.execute("write",new AiToolRequest("p",null),10));assertEquals(0,calls[0]);assertEquals("ai_tool_denied",d.recent("p",10).get(0).kind);}
+}
