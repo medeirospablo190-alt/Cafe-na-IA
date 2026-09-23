@@ -165,7 +165,7 @@ The app now has an isolated `WorldPreviewActivity` that proves the Android GPU/r
 
 Initial backend:
 
-- Google Filament `1.77.0`;
+- Google Filament `1.75.1`;
 - `filament-android` for the rendering runtime;
 - `filamat-android` only for this bootstrap phase so the preview material can be generated at runtime instead of committing a precompiled binary material.
 
