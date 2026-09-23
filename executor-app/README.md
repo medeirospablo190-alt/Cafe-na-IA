@@ -222,3 +222,51 @@ Initial visual support is deliberately narrow:
 - unsupported future primitive types are skipped rather than silently rendered as the wrong shape.
 
 The instrumentation test resets the shared world, creates a part from Luau, verifies the native RenderScene snapshot, launches the Filament Activity, and requires the Activity to report exactly one rendered item.
+
+
+## Phase 11.2 — mobile World Preview camera
+
+The Android World Preview now uses a dedicated mobile camera controller instead of a fixed camera.
+
+Gestures:
+
+- one finger drag: orbit;
+- pinch: zoom;
+- two finger drag: pan;
+- `RESET CAM`: restore the canonical preview view.
+
+The camera is intentionally separate from World state. Moving the preview camera never mutates project objects, scripts or RenderScene data.
+
+`OrbitCameraState` contains the platform-light camera math and is covered by JVM unit tests for:
+
+- finite default pose;
+- yaw wrapping;
+- pitch clamps;
+- zoom clamps;
+- camera-relative pan;
+- reset behavior.
+
+`PreviewCameraController` translates Android touch input into that state and only sends resulting camera poses to Filament.
+
+
+### Screen-to-world selection ray
+
+The mobile preview also has platform-light screen ray projection in `PreviewRayMath`.
+
+Inputs:
+
+- current orbit camera pose;
+- screen X/Y;
+- viewport width/height;
+- vertical field of view.
+
+Output:
+
+- world-space ray origin at the camera eye;
+- normalized world-space direction through the requested screen point.
+
+This is intentionally separate from Filament and Android touch dispatch so it can be unit-tested and later passed directly into Render Core picking.
+
+The next selection bridge becomes:
+
+`tap -> PreviewRayMath -> RenderPicker -> ObjectId`
