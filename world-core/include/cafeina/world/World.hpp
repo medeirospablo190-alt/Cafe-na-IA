@@ -36,6 +36,7 @@ struct Transform {
 
 struct WorldObject {
     ObjectId id = 0;
+    ObjectId parentId = 0;
     std::string name;
     Transform transform;
 };
@@ -52,6 +53,10 @@ public:
     bool setName(ObjectId id, const std::string& name);
     bool setTransform(ObjectId id, const Transform& transform);
 
+    // parentId == 0 means scene root. Cycles and self-parenting are rejected.
+    bool setParent(ObjectId childId, ObjectId parentId);
+    std::vector<ObjectId> childrenOf(ObjectId parentId) const;
+
     std::vector<WorldObject> objects() const;
     std::size_t objectCount() const noexcept;
 
@@ -62,6 +67,8 @@ public:
     static bool isValidObjectName(const std::string& name);
 
 private:
+    bool wouldCreateCycle(ObjectId childId, ObjectId parentId) const;
+
     ObjectId nextId_ = 1;
     std::map<ObjectId, WorldObject> objects_;
 };
