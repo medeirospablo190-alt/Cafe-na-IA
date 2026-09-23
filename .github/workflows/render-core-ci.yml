@@ -1,0 +1,36 @@
+name: CAFEINA Render Core CI
+
+on:
+  push:
+    paths:
+      - "render-core/**"
+      - "world-core/**"
+      - ".github/workflows/render-core-ci.yml"
+  pull_request:
+    paths:
+      - "render-core/**"
+      - "world-core/**"
+      - ".github/workflows/render-core-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  linux-render-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        working-directory: render-core
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: render-core
+        run: cmake --build build --target cafeina_render_core_smoke --parallel 2
+
+      - name: Smoke tests
+        working-directory: render-core
+        run: ctest --test-dir build --output-on-failure
