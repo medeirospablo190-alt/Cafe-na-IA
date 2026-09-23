@@ -103,3 +103,20 @@ Safety behavior:
 - invisible objects never reach RenderScene and therefore cannot be selected by this picker.
 
 This prepares mobile screen-space selection. The Android layer will later convert a tap into a world-space ray and call this same backend-neutral picker.
+
+
+## RenderScene diff foundation
+
+`RenderSceneDiffer` compares two immutable RenderScene snapshots by stable `ObjectId`.
+
+It produces three deterministic ID lists:
+
+- added;
+- removed;
+- updated.
+
+An item is updated when any render-relevant field changes, including primitive, local transform or resolved world matrix.
+
+This is the foundation for live preview synchronization and hot reload. A graphics backend can keep its existing entity map and apply only the minimal changes instead of tearing down and rebuilding the full scene after every edit.
+
+Duplicate ObjectIds fail closed. Stable ordering comes from ObjectId ordering, matching the deterministic scene extraction rules.
