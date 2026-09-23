@@ -38,10 +38,18 @@ public final class KnowledgeRepositoryTest {
     @Test public void transitionsOnlyFromExpectedStateAndUpdatesTimestamp() {
         long id = repository.put("project-a", "world", "validated fact", KnowledgeState.EXPERIMENTAL, null, 10);
         assertTrue(repository.transition(id, KnowledgeState.EXPERIMENTAL, KnowledgeState.VALIDATED, 20));
-        assertFalse(repository.transition(id, KnowledgeState.EXPERIMENTAL, KnowledgeState.CONSOLIDATED, 30));
+        assertThrows(IllegalArgumentException.class, () ->
+            repository.transition(id, KnowledgeState.EXPERIMENTAL, KnowledgeState.CONSOLIDATED, 30));
         KnowledgeRepository.Entry entry = repository.list("project-a", KnowledgeState.VALIDATED).get(0);
         assertEquals(10, entry.createdAt);
         assertEquals(20, entry.updatedAt);
+    }
+
+    @Test public void rejectsLifecycleStateSkipping() {
+        long id = repository.put("project-a", "fact", "candidate", KnowledgeState.EXPERIMENTAL, null, 10);
+        assertThrows(IllegalArgumentException.class,
+            () -> repository.transition(id, KnowledgeState.EXPERIMENTAL, KnowledgeState.CONSOLIDATED, 20));
+        assertEquals(1, repository.list("project-a", KnowledgeState.EXPERIMENTAL).size());
     }
 
     @Test public void supportsGlobalKnowledgeWithoutLeakingIntoProjectScope() {

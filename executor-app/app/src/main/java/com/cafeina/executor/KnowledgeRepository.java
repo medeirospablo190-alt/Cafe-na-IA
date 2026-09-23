@@ -58,11 +58,23 @@ public final class KnowledgeRepository {
 
     public boolean transition(long id, KnowledgeState expected, KnowledgeState next, long now) {
         if (expected == null || next == null) throw new IllegalArgumentException("states are required");
+        if (!isAllowedTransition(expected, next)) throw new IllegalArgumentException("invalid knowledge state transition " + expected + " -> " + next);
         ContentValues values = new ContentValues();
         values.put("state", next.name());
         values.put("updated_at", now);
         return database.getWritableDatabase().update("knowledge", values, "id=? AND state=?",
             new String[]{Long.toString(id), expected.name()}) == 1;
+    }
+
+    private static boolean isAllowedTransition(KnowledgeState from, KnowledgeState to) {
+        if (from == to) return false;
+        switch (from) {
+            case EXPERIMENTAL: return to == KnowledgeState.VALIDATED || to == KnowledgeState.OBSOLETE;
+            case VALIDATED: return to == KnowledgeState.CONSOLIDATED || to == KnowledgeState.OBSOLETE;
+            case CONSOLIDATED: return to == KnowledgeState.OBSOLETE;
+            case OBSOLETE: return to == KnowledgeState.EXPERIMENTAL;
+            default: return false;
+        }
     }
 
     private static void requireText(String value, String field) {
