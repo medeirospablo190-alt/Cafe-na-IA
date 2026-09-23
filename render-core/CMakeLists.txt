@@ -18,6 +18,7 @@ endif()
 
 add_library(cafeina_render_core STATIC
     src/RenderScene.cpp
+    src/RenderPicking.cpp
 )
 target_include_directories(cafeina_render_core PUBLIC include)
 target_link_libraries(cafeina_render_core PUBLIC cafeina_world_core)
@@ -27,4 +28,8 @@ if(CAFEINA_RENDER_BUILD_TESTS)
     add_executable(cafeina_render_core_smoke tests/render_scene_smoke.cpp)
     target_link_libraries(cafeina_render_core_smoke PRIVATE cafeina_render_core)
     add_test(NAME cafeina_render_core_smoke COMMAND cafeina_render_core_smoke)
+
+    add_executable(cafeina_render_picking_smoke tests/render_picking_smoke.cpp)
+    target_link_libraries(cafeina_render_picking_smoke PRIVATE cafeina_render_core)
+    add_test(NAME cafeina_render_picking_smoke COMMAND cafeina_render_picking_smoke)
 endif()
