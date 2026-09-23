@@ -17,7 +17,7 @@ local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
 
 local C = {
-    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_0",
+    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_1",
     PURPOSE = "executor_ui_mapping",
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
     HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health",
@@ -26,7 +26,7 @@ local C = {
     MAX_RECORDS = 5200,
     MAX_DYNAMIC = 2200,
     MAX_NODES_PER_ROOT = 6500,
-    RECORDS_PER_BATCH = 420,
+    RECORDS_PER_BATCH = 100,
     RETRIES = 4,
     RETRY_BASE = 0.85,
     STATUS_GUI = "CafeinaExecutorTraceV1",
@@ -344,21 +344,59 @@ local function status(s, p)
     print("[EXECUTOR TRACE] " .. tostring(s))
 end
 
-local function requestRaw(opts)
-    if not REQUEST then return false, nil, "request_unavailable" end
-    local ok, r = pcall(REQUEST, opts)
-    if not ok or type(r) ~= "table" then return false, nil, tostring(r) end
-    local code = tonumber(r.StatusCode or r.Status or r.status_code or 0) or 0
-    local body = tostring(r.Body or r.body or "")
-    return code >= 200 and code < 300, body, "HTTP " .. tostring(code)
+local function rawRequest(options)
+    if not REQUEST then return false, nil, "executor_request_unavailable" end
+    local last = "unknown"
+    for attempt = 1, C.RETRIES do
+        local ok, response = pcall(REQUEST, options)
+        if ok and type(response) == "table" then
+            local code = tonumber(response.StatusCode or response.Status or response.status or response.status_code) or 0
+            if code >= 200 and code < 300 then return true, response, nil end
+            last = "HTTP " .. tostring(code) .. " " .. tostring(response.Body or response.body or "")
+            if code == 429 or code >= 500 then
+                task.wait(C.RETRY_BASE * attempt)
+            else
+                break
+            end
+        else
+            last = tostring(response)
+            task.wait(C.RETRY_BASE * attempt)
+        end
+    end
+    return false, nil, last
+end
+
+local function getJson(url)
+    local ok, response, err = rawRequest({ Url = url, Method = "GET", Headers = { Accept = "application/json" } })
+    if not ok then return false, nil, err end
+    local good, data = pcall(HttpService.JSONDecode, HttpService, response.Body or response.body or "{}")
+    if not good then return false, nil, tostring(data) end
+    return true, data, nil
+end
+
+local function postRaw(url, body)
+    local ok, response, err = rawRequest({
+        Url = url,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json", Accept = "application/json" },
+        Body = body,
+    })
+    if not ok then return false, nil, err end
+    local good, data = pcall(HttpService.JSONDecode, HttpService, response.Body or response.body or "{}")
+    if not good or type(data) ~= "table" then return false, nil, "invalid_api_response" end
+    if data.ok ~= true then return false, data, tostring(data.message or "api_not_ok") end
+    if type(data.github) ~= "table" or data.github.configured ~= true or data.github.mirrored ~= true then
+        return false, data, tostring((data.github and data.github.error) or "github_not_confirmed")
+    end
+    return true, data, nil
 end
 
 local function health()
-    local ok, body, err = requestRaw({ Method="GET", Url=C.HEALTH, Headers={Accept="application/json"} })
+    local ok, data, err = getJson(C.HEALTH)
     if not ok then return false, err end
-    local decOk, data = pcall(HttpService.JSONDecode, HttpService, body)
-    if not decOk or type(data) ~= "table" then return false, "invalid_health_json" end
-    if data.ok ~= true or data.githubMirrorConfigured ~= true then return false, "github_mirror_not_ready" end
+    if type(data) ~= "table" or data.ok ~= true or data.githubMirrorConfigured ~= true then
+        return false, "github_mirror_not_ready"
+    end
     return true, data
 end
 
@@ -461,19 +499,12 @@ add({kind="executor_trace_session",version=C.VERSION,purpose=C.PURPOSE,runId=run
 add({kind="executor_capabilities",capabilities=caps})
 
 local function postExact(bodyText, batchIndex)
-    local lastErr = "unknown"
-    for attempt = 1, C.RETRIES do
-        local ok, raw, err = requestRaw({Method="POST",Url=C.BASE.."/batch",
-            Headers={["Content-Type"]="application/json",Accept="application/json"},Body=bodyText})
-        if ok then
-            local decOk, data = pcall(HttpService.JSONDecode,HttpService,raw)
-            if decOk and type(data)=="table" and data.ok==true and type(data.github)=="table"
-                and data.github.mirrored==true and tonumber(data.batchIndex)==batchIndex then return true,data end
-            lastErr = "github_not_confirmed"
-        else lastErr = err end
-        task.wait(C.RETRY_BASE * (2 ^ (attempt - 1)))
+    local ok, data, err = postRaw(C.BASE .. "/batch", bodyText)
+    if not ok then return false, err end
+    if tonumber(data.batchIndex) ~= batchIndex then
+        return false, "batch_ack_mismatch"
     end
-    return false,lastErr
+    return true, data
 end
 
 local function encodeBody(body)
@@ -559,7 +590,7 @@ if ok then
     if type(result)=="table" and result.github then print("[EXECUTOR TRACE] GitHub path="..tostring(result.github.path)) end
     task.delay(10,function() pcall(function() if statusGui then statusGui:Destroy() end end) end)
 else
-    status("FALHA NO UPLOAD • cache local salvo",1)
+    status("FALHA: " .. text(result, 120),1)
     warn("[EXECUTOR TRACE] upload falhou: "..tostring(result))
 end
 
