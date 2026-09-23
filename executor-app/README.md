@@ -85,3 +85,21 @@ O editor agora trata o estado das abas explicitamente:
 - nenhum script é executado automaticamente na restauração.
 
 Continuamos sem servidor e sem banco de dados. Toda essa fase usa exclusivamente o armazenamento privado do Android.
+
+
+## Phase 7 — Auto Execute local e explícito
+
+O Auto Execute continua totalmente local e opt-in.
+
+- somente scripts `.lua` já salvos podem ser marcados;
+- uma aba com alterações não salvas precisa ser salva antes de alterar o Auto Execute;
+- a lista de opt-in fica em `files/autoexec.list`, separada do conteúdo dos scripts;
+- no máximo 32 scripts podem ser marcados;
+- o startup ignora nomes inválidos e não executa arquivos que não existem mais;
+- nenhum script novo entra no Auto Execute automaticamente;
+- cada execução continua passando pelo mesmo runtime Luau sandboxado e pelo mesmo timeout;
+- o console identifica cada execução com `[AUTOEXEC] nome.lua`;
+- falha em um script não impede os próximos da lista de serem tentados;
+- nenhuma rede, servidor ou banco de dados é usado.
+
+O CI salva um script de teste, marca explicitamente esse arquivo, reabre a Activity no emulador e exige a saída `autoexec-phase7-ok` e o retorno `123`.
