@@ -29,6 +29,18 @@ public:
     bool setTransform(ObjectId id, const Transform& transform);
     bool setParent(ObjectId childId, ObjectId parentId);
 
+    bool setMeshComponent(ObjectId id, const MeshComponent& component);
+    std::optional<MeshComponent> meshComponent(ObjectId id) const;
+    bool removeMeshComponent(ObjectId id);
+
+    bool setColliderComponent(ObjectId id, const ColliderComponent& component);
+    std::optional<ColliderComponent> colliderComponent(ObjectId id) const;
+    bool removeColliderComponent(ObjectId id);
+
+    bool setSemanticComponent(ObjectId id, const SemanticComponent& component);
+    std::optional<SemanticComponent> semanticComponent(ObjectId id) const;
+    bool removeSemanticComponent(ObjectId id);
+
     std::vector<ObjectId> childrenOf(ObjectId parentId) const;
     std::vector<WorldObject> objects() const;
     std::size_t objectCount() const;
