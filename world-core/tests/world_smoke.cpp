@@ -1,11 +1,15 @@
 #include "cafeina/world/World.hpp"
 #include "cafeina/world/WorldSerialization.hpp"
+#include "cafeina/world/WorldService.hpp"
 
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 namespace {
 
@@ -26,6 +30,7 @@ int main()
     using cafeina::world::Vec3;
     using cafeina::world::World;
     using cafeina::world::WorldFormatError;
+    using cafeina::world::WorldService;
     using cafeina::world::WorldState;
     using cafeina::world::deserializeWorldJson;
     using cafeina::world::serializeWorldJson;
@@ -229,6 +234,62 @@ int main()
             protectedWorld.objectCount() == 1 && protectedWorld.findObject(protectedId) != nullptr,
             "failed restore must leave the existing world untouched"
         );
+    }
+
+    {
+        WorldService service;
+
+        constexpr int threadCount = 4;
+        constexpr int objectsPerThread = 50;
+
+        std::vector<std::vector<cafeina::world::ObjectId>> created(threadCount);
+        std::vector<std::thread> workers;
+        workers.reserve(threadCount);
+
+        for (int threadIndex = 0; threadIndex < threadCount; ++threadIndex)
+        {
+            workers.emplace_back([&, threadIndex]() {
+                auto& ids = created[threadIndex];
+                ids.reserve(objectsPerThread);
+
+                for (int i = 0; i < objectsPerThread; ++i)
+                {
+                    ids.push_back(
+                        service.createObject(
+                            "T" + std::to_string(threadIndex) + "_" + std::to_string(i)
+                        )
+                    );
+                }
+            });
+        }
+
+        for (auto& worker : workers)
+            worker.join();
+
+        require(
+            service.objectCount() == std::size_t(threadCount * objectsPerThread),
+            "synchronized service should retain all concurrently created objects"
+        );
+
+        std::set<cafeina::world::ObjectId> uniqueIds;
+        for (const auto& ids : created)
+            uniqueIds.insert(ids.begin(), ids.end());
+
+        require(
+            uniqueIds.size() == std::size_t(threadCount * objectsPerThread),
+            "concurrent creation must still issue unique stable IDs"
+        );
+
+        const auto snapshot = service.state();
+        require(
+            snapshot.objects.size() == std::size_t(threadCount * objectsPerThread),
+            "service state should provide a consistent snapshot"
+        );
+
+        const auto sampleId = created[0][0];
+        const auto sample = service.object(sampleId);
+        require(sample.has_value(), "service should return object copies safely");
+        require(sample->id == sampleId, "service object copy should preserve stable ID");
     }
 
     std::cout << "world core smoke tests passed\n";
