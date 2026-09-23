@@ -99,3 +99,23 @@ Compatibility is preserved:
 - the sandboxed `fs` API is still opt-in and scoped to the same host-provided directory.
 
 The new metadata is host-side only and is not exposed automatically as Luau globals. This is the foundation for later capability, task/cancellation, project and Test World APIs without coupling the C++ runtime to Android UI classes.
+
+
+## Phase 8.6 — capability system foundation
+
+Host resources are now gated by explicit runtime capabilities.
+
+Initial capability:
+
+- `RuntimeCapability::Files`.
+
+Rules:
+
+- an `ExecutionRequest` does not receive host APIs by default;
+- providing `hostAccess.filesRoot` alone does not expose `fs`;
+- the request must also explicitly grant the `FILES` capability;
+- granting `FILES` without a sandbox root fails closed before script execution;
+- legacy `execute(source, limits, hostAccess)` callers preserve Phase 8 behavior by automatically granting only `FILES` when a non-empty `filesRoot` is supplied;
+- JNI and Android APIs remain unchanged.
+
+This establishes least-privilege capability gating before future APIs such as World, UI, Test or Network are introduced.
