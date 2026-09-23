@@ -222,3 +222,10 @@ Initial visual support is deliberately narrow:
 - unsupported future primitive types are skipped rather than silently rendered as the wrong shape.
 
 The instrumentation test resets the shared world, creates a part from Luau, verifies the native RenderScene snapshot, launches the Filament Activity, and requires the Activity to report exactly one rendered item.
+
+
+### Hierarchical preview transforms
+
+The Android preview consumes Render Core's resolved `worldMatrix` directly when available. It keeps the older local transform fields only as a compatibility fallback.
+
+The emulator integration test creates a logical parent and a renderable child from Luau, parents the child, applies local positions, and verifies the composed world translation before Filament initialization succeeds.
