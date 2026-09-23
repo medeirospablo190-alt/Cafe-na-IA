@@ -1,5 +1,6 @@
 #include "cafeina/LuauRuntime.hpp"
 #include "cafeina/render/RenderScene.hpp"
+#include "cafeina/world/WorldSerialization.hpp"
 
 #include <jni.h>
 
@@ -70,6 +71,17 @@ std::string fromJString(JNIEnv* env, jstring value)
 jstring toJString(JNIEnv* env, const std::string& value)
 {
     return env->NewStringUTF(value.c_str());
+}
+
+void throwJava(
+    JNIEnv* env,
+    const char* className,
+    const std::string& message
+)
+{
+    jclass exceptionClass = env->FindClass(className);
+    if (exceptionClass)
+        env->ThrowNew(exceptionClass, message.c_str());
 }
 
 jstring executeLegacyToJson(
@@ -248,4 +260,56 @@ Java_com_cafeina_runtime_LuauBridge_nativeResetWorld(
 )
 {
     sharedWorld().clear();
+}
+
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_cafeina_runtime_LuauBridge_nativeExportWorldJson(
+    JNIEnv* env,
+    jclass
+)
+{
+    try
+    {
+        cafeina::world::World snapshot;
+        snapshot.restore(sharedWorld().state());
+        return toJString(
+            env,
+            cafeina::world::serializeWorldJson(snapshot)
+        );
+    }
+    catch (const std::exception& error)
+    {
+        throwJava(
+            env,
+            "java/lang/IllegalStateException",
+            std::string("failed to export world: ") + error.what()
+        );
+        return nullptr;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_cafeina_runtime_LuauBridge_nativeImportWorldJson(
+    JNIEnv* env,
+    jclass,
+    jstring worldJson
+)
+{
+    try
+    {
+        const std::string json = fromJString(env, worldJson);
+        cafeina::world::World restored =
+            cafeina::world::deserializeWorldJson(json);
+
+        sharedWorld().restore(restored.state());
+    }
+    catch (const std::exception& error)
+    {
+        throwJava(
+            env,
+            "java/lang/IllegalArgumentException",
+            std::string("failed to import world: ") + error.what()
+        );
+    }
 }
