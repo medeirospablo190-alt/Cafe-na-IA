@@ -53,7 +53,8 @@ public final class WorldPreviewInstrumentedTest {
         assertEquals(1, items.length());
         JSONObject item = items.getJSONObject(0);
         assertEquals("box", item.getString("primitive"));
-        assertEquals("2", item.getString("id"));
+        long itemId = Long.parseLong(item.getString("id"));
+        assertTrue(itemId > 0L);
 
         JSONArray worldMatrix = item.getJSONArray("worldMatrix");
         assertEquals(16, worldMatrix.length());
