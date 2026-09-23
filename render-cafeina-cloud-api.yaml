@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+
+services:
+  - type: web
+    name: cafeina-cloud-api
+    runtime: node
+    region: virginia
+    plan: free
+    rootDir: cafeina-cloud-api
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /v1/health
+    autoDeploy: true
+    maxShutdownDelaySeconds: 20
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: PUBLIC_BASE_URL
+        fromService:
+          type: web
+          name: cafeina-cloud-api
+          envVarKey: RENDER_EXTERNAL_URL

@@ -7,12 +7,30 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TRACE_V3_DIR = path.resolve(
-  process.env.INVENTORY_TRACE_V3_DIR || path.join(__dirname, "private-downloads", "inventory-traces-v3")
+const COLLECTOR_DATA_DIR = path.resolve(
+  process.env.CAFEINA_COLLECTOR_DATA_DIR
+    || process.env.DOWNLOAD_DIR
+    || path.join(__dirname, "private-downloads")
 );
-const GITHUB_TOKEN = String(process.env.AVATAR_DUMP_GITHUB_TOKEN || "").trim();
-const GITHUB_REPO = String(process.env.AVATAR_DUMP_GITHUB_REPO || "medeirospablo190-alt/Cafe-na-IA").trim();
-const GITHUB_BRANCH = String(process.env.AVATAR_DUMP_GITHUB_BRANCH || "main").trim();
+const TRACE_V3_DIR = path.resolve(
+  process.env.INVENTORY_TRACE_V3_DIR
+    || path.join(COLLECTOR_DATA_DIR, "inventory-traces-v3")
+);
+const GITHUB_TOKEN = String(
+  process.env.CAFEINA_COLLECTOR_GITHUB_TOKEN
+    || process.env.AVATAR_DUMP_GITHUB_TOKEN
+    || ""
+).trim();
+const GITHUB_REPO = String(
+  process.env.CAFEINA_COLLECTOR_GITHUB_REPO
+    || process.env.AVATAR_DUMP_GITHUB_REPO
+    || "medeirospablo190-alt/Cafe-na-IA"
+).trim();
+const GITHUB_BRANCH = String(
+  process.env.CAFEINA_COLLECTOR_GITHUB_BRANCH
+    || process.env.AVATAR_DUMP_GITHUB_BRANCH
+    || "main"
+).trim();
 const GITHUB_API_BASE = String(process.env.INVENTORY_TRACE_V3_GITHUB_API_BASE || "https://api.github.com")
   .trim()
   .replace(/\/+$/g, "");

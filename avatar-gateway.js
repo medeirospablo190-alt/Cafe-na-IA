@@ -1,5 +1,4 @@
-// Compatibility entrypoint kept for Render configurations that still run
-// `node avatar-gateway.js` directly. The actual gateway now lives in one
-// implementation so avatar, geometry, inventory trace and portal proxying
-// cannot drift apart.
+// Deprecated Render compatibility entrypoint.
+// Older deployments may still run `node avatar-gateway.js`; keep that command
+// working while serving only the CAFEÍNA collector gateway.
 import "./gateway-main.js";

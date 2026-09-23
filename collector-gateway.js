@@ -1,2 +1,2 @@
-// Compatibility entrypoint for older Render Start Commands.
+// Canonical public entrypoint for the CAFEÍNA data collector service.
 import "./gateway-main.js";

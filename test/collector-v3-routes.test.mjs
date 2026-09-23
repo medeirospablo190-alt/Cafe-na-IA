@@ -84,9 +84,9 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   const apiPort = randomPort();
   const fake = await startFakeGitHub(githubPort);
 
-  process.env.AVATAR_DUMP_GITHUB_TOKEN = "test-token";
-  process.env.AVATAR_DUMP_GITHUB_REPO = "test/repo";
-  process.env.AVATAR_DUMP_GITHUB_BRANCH = "main";
+  process.env.CAFEINA_COLLECTOR_GITHUB_TOKEN = "test-token";
+  process.env.CAFEINA_COLLECTOR_GITHUB_REPO = "test/repo";
+  process.env.CAFEINA_COLLECTOR_GITHUB_BRANCH = "main";
   process.env.INVENTORY_TRACE_V3_GITHUB_API_BASE = `http://127.0.0.1:${githubPort}`;
   process.env.INVENTORY_TRACE_V3_DIR = dir;
   process.env.INVENTORY_TRACE_V3_GITHUB_PATH = "inventory-traces-v3";

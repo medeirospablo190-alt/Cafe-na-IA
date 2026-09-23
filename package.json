@@ -1,13 +1,12 @@
 {
-  "name": "grupo-lua-download-portal",
-  "version": "5.1.0",
+  "name": "cafeina-collector-gateway",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node avatar-gateway.js",
-    "check": "node --check gateway-main.js && node --check portal-main.js && node --check server.js && node --check avatar-gateway.js && node --check collector-gateway.js && node --check avatar-geometry-routes.js && node --check collector-v3-routes.js && node --check public/app.js && node --check scripts/hash-download-password.mjs && node --check test/site-portal.test.mjs && node --check test/avatar-gateway.test.mjs && node --check test/collector-v3-routes.test.mjs",
-    "test": "node --test test/*.test.mjs",
-    "hash:download": "node scripts/hash-download-password.mjs"
+    "start": "node collector-gateway.js",
+    "check": "node --check gateway-main.js && node --check collector-gateway.js && node --check collector-v3-routes.js && node --check test/inventory-trace.test.mjs && node --check test/collector-v3-routes.test.mjs",
+    "test": "node --test test/inventory-trace.test.mjs test/collector-v3-routes.test.mjs"
   },
   "dependencies": {
     "express": "^5.1.0"

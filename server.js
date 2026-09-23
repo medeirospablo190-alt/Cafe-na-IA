@@ -1,4 +1,4 @@
-// Stable entrypoint for Render configurations that still run `node server.js`.
-// The download portal itself lives in portal-main.js and is spawned internally
-// by gateway-main.js, so every public entrypoint exposes the same collector routes.
+// Deprecated Render compatibility entrypoint.
+// Older deployments may still run `node server.js`; keep that command working
+// while serving only the CAFEÍNA collector gateway.
 import "./gateway-main.js";

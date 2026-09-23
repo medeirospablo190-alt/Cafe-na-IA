@@ -1,12 +1,16 @@
-name: CAFEINA Trace V3 CI
+name: CAFEINA Collector CI
 
 on:
   push:
     paths:
       - "Cafeina_Universal_Game_Trace_V3_0.lua"
       - "collector-v3-routes.js"
+      - "collector-gateway.js"
       - "gateway-main.js"
+      - "avatar-gateway.js"
+      - "server.js"
       - "test/collector-v3-routes.test.mjs"
+      - "test/inventory-trace.test.mjs"
       - "package.json"
       - "docs/CAFEINA_TRACE_V3_README.md"
       - ".github/workflows/cafeina-trace-v3-ci.yml"
@@ -14,8 +18,12 @@ on:
     paths:
       - "Cafeina_Universal_Game_Trace_V3_0.lua"
       - "collector-v3-routes.js"
+      - "collector-gateway.js"
       - "gateway-main.js"
+      - "avatar-gateway.js"
+      - "server.js"
       - "test/collector-v3-routes.test.mjs"
+      - "test/inventory-trace.test.mjs"
       - "package.json"
       - "docs/CAFEINA_TRACE_V3_README.md"
       - ".github/workflows/cafeina-trace-v3-ci.yml"
@@ -31,13 +39,10 @@ jobs:
           node-version: 22
       - name: Install Node dependencies
         run: npm install --ignore-scripts
-      - name: Check gateway and V3 route syntax
-        run: |
-          node --check gateway-main.js
-          node --check collector-v3-routes.js
-          node --check test/collector-v3-routes.test.mjs
-      - name: Run V3 integration tests
-        run: node --test test/collector-v3-routes.test.mjs
+      - name: Check collector service
+        run: npm run check
+      - name: Run collector integration tests
+        run: npm test
       - name: Download pinned Luau compiler
         run: |
           mkdir -p /tmp/luau
