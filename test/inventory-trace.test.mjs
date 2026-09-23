@@ -48,6 +48,15 @@ test("inventory trace recebe, salva latest e retorna recibo", async (t) => {
   const base = `http://127.0.0.1:${port}`;
   await waitFor(`${base}/api/inventory-trace/health`);
 
+  const rootHealth = await fetch(`${base}/api/health`).then((r) => r.json());
+  assert.equal(rootHealth.ok, true);
+  assert.equal(rootHealth.service, "CAFEINA_COLLECTOR_GATEWAY");
+  assert.equal(rootHealth.legacyTrace, true);
+  assert.equal(rootHealth.traceV3, true);
+
+  assert.equal((await fetch(`${base}/api/downloads/catalog`)).status, 404);
+  assert.equal((await fetch(`${base}/api/avatar-dump/765329164/status`)).status, 404);
+
   const payload = {
     schemaVersion: 1,
     userId: "765329164",
