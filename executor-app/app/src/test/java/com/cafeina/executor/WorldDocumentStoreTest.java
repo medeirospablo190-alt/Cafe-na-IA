@@ -75,6 +75,38 @@ public final class WorldDocumentStoreTest {
     }
 
     @Test
+    public void symbolicLinkWorldFileIsRejectedWithoutTouchingTarget() throws Exception {
+        ProjectStore.Project project = createProject("symlink-file");
+        WorldDocumentStore store = new WorldDocumentStore(project);
+        Path target = temp.newFile("outside-world.json").toPath();
+        Files.writeString(target, "outside");
+
+        try {
+            Files.createSymbolicLink(store.worldFile(), target);
+        } catch (UnsupportedOperationException | IOException unsupported) {
+            return;
+        }
+
+        assertThrows(IOException.class, () -> store.save("replacement"));
+        assertEquals("outside", Files.readString(target));
+    }
+
+    @Test
+    public void symbolicLinkWorldsDirectoryIsRejected() throws Exception {
+        Path real = temp.newFolder("real-worlds").toPath();
+        Path link = temp.getRoot().toPath().resolve("linked-worlds");
+        try {
+            Files.createSymbolicLink(link, real);
+        } catch (UnsupportedOperationException | IOException unsupported) {
+            return;
+        }
+
+        WorldDocumentStore store = new WorldDocumentStore(link);
+        assertThrows(IOException.class, () -> store.save("{}"));
+        assertThrows(IOException.class, store::exists);
+    }
+
+    @Test
     public void oversizedWorldJsonIsRejectedBeforeWrite() throws Exception {
         ProjectStore.Project project = createProject("oversized");
         WorldDocumentStore store = new WorldDocumentStore(project);
