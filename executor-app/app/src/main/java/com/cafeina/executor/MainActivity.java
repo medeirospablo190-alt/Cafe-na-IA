@@ -45,6 +45,8 @@ public final class MainActivity extends Activity {
     private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
 
     private ScriptStore scriptStore;
+    private ProjectStore projectStore;
+    private ProjectWorldPersistence worldPersistence;
     private AutoExecuteStore autoExecuteStore;
     private String runtimeFilesRoot;
     private EditText editor;
@@ -64,6 +66,7 @@ public final class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         scriptStore = new ScriptStore(getFilesDir());
+        initializeDefaultProject();
         autoExecuteStore = new AutoExecuteStore(getFilesDir());
         runtimeFilesRoot = getFilesDir().toPath().resolve("runtime-fs").toString();
         getWindow().setStatusBarColor(BG);
@@ -183,9 +186,18 @@ public final class MainActivity extends Activity {
         root.addView(autoExecuteButton, autoExecParams);
 
         Button worldPreviewButton = makeButton("WORLD PREVIEW", Color.rgb(55, 87, 130));
+        Button saveWorldButton = makeButton("SAVE WORLD", Color.rgb(48, 121, 89));
+        Button loadWorldButton = makeButton("LOAD WORLD", Color.rgb(78, 82, 101));
         LinearLayout.LayoutParams worldPreviewParams = matchWrap();
         worldPreviewParams.setMargins(0, dp(6), 0, 0);
         root.addView(worldPreviewButton, worldPreviewParams);
+
+        LinearLayout worldStorageActions = new LinearLayout(this);
+        worldStorageActions.setOrientation(LinearLayout.HORIZONTAL);
+        addTwoButtons(worldStorageActions, saveWorldButton, loadWorldButton);
+        LinearLayout.LayoutParams worldStorageParams = matchWrap();
+        worldStorageParams.setMargins(0, dp(6), 0, 0);
+        root.addView(worldStorageActions, worldStorageParams);
 
         status = new TextView(this);
         status.setText("Preparando...");
@@ -223,6 +235,8 @@ public final class MainActivity extends Activity {
         worldPreviewButton.setOnClickListener(
             v -> startActivity(new Intent(this, WorldPreviewActivity.class))
         );
+        saveWorldButton.setOnClickListener(v -> saveWorld());
+        loadWorldButton.setOnClickListener(v -> loadWorld());
 
         renderTabs();
         return root;
@@ -784,6 +798,54 @@ public final class MainActivity extends Activity {
                     executeButton.setEnabled(true);
                 });
             });
+        });
+    }
+
+
+    private void initializeDefaultProject() {
+        try {
+            projectStore = new ProjectStore(getFilesDir().toPath().resolve("projects"));
+            ProjectStore.Project project = projectStore.exists("default")
+                ? projectStore.open("default")
+                : projectStore.create("default");
+            worldPersistence = new ProjectWorldPersistence(project);
+            if (worldPersistence.hasSavedWorld()) {
+                worldPersistence.loadSavedWorld();
+            }
+        } catch (Exception error) {
+            worldPersistence = null;
+        }
+    }
+
+    private void saveWorld() {
+        if (worldPersistence == null) {
+            status.setText("Projeto World indisponível");
+            return;
+        }
+        status.setText("Salvando World...");
+        ioExecutor.submit(() -> {
+            try {
+                worldPersistence.saveCurrentWorld();
+                runOnUiThread(() -> { if (activityAlive()) status.setText("World salvo • projeto default"); });
+            } catch (Exception error) {
+                runOnUiThread(() -> { if (activityAlive()) showStorageError("Falha ao salvar World", error); });
+            }
+        });
+    }
+
+    private void loadWorld() {
+        if (worldPersistence == null) {
+            status.setText("Projeto World indisponível");
+            return;
+        }
+        status.setText("Carregando World...");
+        ioExecutor.submit(() -> {
+            try {
+                worldPersistence.loadSavedWorld();
+                runOnUiThread(() -> { if (activityAlive()) status.setText("World restaurado • projeto default"); });
+            } catch (Exception error) {
+                runOnUiThread(() -> { if (activityAlive()) showStorageError("Falha ao carregar World", error); });
+            }
         });
     }
 
