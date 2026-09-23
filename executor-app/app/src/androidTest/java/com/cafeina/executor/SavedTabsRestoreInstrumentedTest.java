@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -65,7 +66,7 @@ public final class SavedTabsRestoreInstrumentedTest {
                 View root = activity.findViewById(android.R.id.content);
                 dirtyLabel[0] = MainActivityStorageUiTest.findFirst(root, Button.class, "restored.lua *");
             });
-            assertEquals(null, dirtyLabel[0]);
+            assertNull(dirtyLabel[0]);
         } finally {
             instrumentation.runOnMainSync(activity::finish);
             Files.deleteIfExists(store.directory().resolve("restored.lua"));
