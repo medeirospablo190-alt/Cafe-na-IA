@@ -41,6 +41,11 @@ struct WorldObject {
     Transform transform;
 };
 
+struct WorldState {
+    ObjectId nextObjectId = 1;
+    std::vector<WorldObject> objects;
+};
+
 class World {
 public:
     static constexpr std::size_t MaxObjectNameBytes = 128;
@@ -60,11 +65,15 @@ public:
     std::vector<WorldObject> objects() const;
     std::size_t objectCount() const noexcept;
 
+    WorldState state() const;
+    void restore(const WorldState& state);
+
     // Removes all current objects but intentionally does not recycle IDs.
     // Stable IDs must never start referring to a different object in the same World lifetime.
     void clear() noexcept;
 
     static bool isValidObjectName(const std::string& name);
+    static bool isValidTransform(const Transform& transform);
 
 private:
     bool wouldCreateCycle(ObjectId childId, ObjectId parentId) const;
