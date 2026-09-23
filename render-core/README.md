@@ -78,3 +78,28 @@ Hierarchy rules during render extraction:
 - invalid transforms anywhere in the resolved ancestry fail closed.
 
 Graphics backends should consume `worldMatrix` for actual drawing. The local `transform` field remains useful for editor UI, diagnostics and serialization-aware tooling.
+
+
+## Picking foundation
+
+`RenderPicker` provides backend-neutral scene selection without depending on Filament, Android or GPU readback.
+
+Initial support:
+
+- ray origin + direction in world space;
+- nearest-hit selection;
+- Box primitives;
+- full `worldMatrix` support, including parent hierarchy, rotation and scale;
+- deterministic tie-break by smaller stable `ObjectId`;
+- hit distance and world-space hit position.
+
+Picking transforms the ray into each render item's local unit-box space, performs slab intersection, then transforms the hit point back to world space for a comparable real distance.
+
+Safety behavior:
+
+- zero/non-finite ray direction is rejected;
+- singular transforms are skipped because they cannot be inverted reliably;
+- unsupported primitive types are skipped rather than guessed;
+- invisible objects never reach RenderScene and therefore cannot be selected by this picker.
+
+This prepares mobile screen-space selection. The Android layer will later convert a tap into a world-space ray and call this same backend-neutral picker.
