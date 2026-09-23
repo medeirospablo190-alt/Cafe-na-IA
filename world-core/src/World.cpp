@@ -21,6 +21,33 @@ bool World::isValidTransform(const Transform& transform)
         && finite(transform.scale);
 }
 
+bool World::isValidMeshComponent(const MeshComponent& component)
+{
+    switch (component.primitive)
+    {
+    case PrimitiveMesh::Box:
+    case PrimitiveMesh::Sphere:
+    case PrimitiveMesh::Cylinder:
+    case PrimitiveMesh::Plane:
+        return true;
+    }
+
+    return false;
+}
+
+bool World::isValidColliderComponent(const ColliderComponent& component)
+{
+    switch (component.shape)
+    {
+    case ColliderShape::Box:
+    case ColliderShape::Sphere:
+    case ColliderShape::Capsule:
+        return true;
+    }
+
+    return false;
+}
+
 bool World::isValidObjectName(const std::string& name)
 {
     if (name.empty() || name.size() > MaxObjectNameBytes)
@@ -174,6 +201,8 @@ std::vector<ObjectId> World::childrenOf(ObjectId parentId) const
 
 bool World::setMeshComponent(ObjectId id, const MeshComponent& component)
 {
+    if (!isValidMeshComponent(component))
+        throw std::invalid_argument("invalid mesh component");
     if (objects_.find(id) == objects_.end())
         return false;
 
@@ -194,6 +223,8 @@ bool World::removeMeshComponent(ObjectId id)
 
 bool World::setColliderComponent(ObjectId id, const ColliderComponent& component)
 {
+    if (!isValidColliderComponent(component))
+        throw std::invalid_argument("invalid collider component");
     if (objects_.find(id) == objects_.end())
         return false;
 
@@ -343,6 +374,8 @@ void World::restore(const WorldState& state)
     {
         if (restored.find(entry.objectId) == restored.end())
             throw std::invalid_argument("mesh component references missing object");
+        if (!isValidMeshComponent(entry.value))
+            throw std::invalid_argument("invalid mesh component in world state");
         if (!restoredMeshes.emplace(entry.objectId, entry.value).second)
             throw std::invalid_argument("duplicate mesh component");
     }
@@ -352,6 +385,8 @@ void World::restore(const WorldState& state)
     {
         if (restored.find(entry.objectId) == restored.end())
             throw std::invalid_argument("collider component references missing object");
+        if (!isValidColliderComponent(entry.value))
+            throw std::invalid_argument("invalid collider component in world state");
         if (!restoredColliders.emplace(entry.objectId, entry.value).second)
             throw std::invalid_argument("duplicate collider component");
     }
