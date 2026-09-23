@@ -2,6 +2,7 @@ package com.cafeina.executor;
 public final class AiMissionController {
  private final AiMissionStore store;
  public AiMissionController(AiMissionStore store){if(store==null)throw new IllegalArgumentException("store required");this.store=store;}
+ public AiMissionRecord get(String id){return require(id);}
  public AiMissionRecord create(String id,String projectId,String goal,long now){if(store.get(id)!=null)throw new IllegalArgumentException("mission exists");AiMissionRecord m=new AiMissionRecord(id,projectId,goal,AiMissionState.CREATED,now);store.save(m);return m;}
  public AiMissionRecord start(String id,long now){return move(id,AiMissionState.CREATED,AiMissionState.RUNNING,now);}
  public AiMissionRecord waitForUser(String id,long now){return move(id,AiMissionState.RUNNING,AiMissionState.WAITING_USER,now);}
