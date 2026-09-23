@@ -17,7 +17,7 @@ local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local ENV = (getgenv and getgenv()) or _G
 
 local C = {
-    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_1",
+    VERSION = "CAFEINA_EXECUTOR_TRACE_V1_2",
     PURPOSE = "executor_ui_mapping",
     BASE = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3",
     HEALTH = "https://cafe-na-ia.onrender.com/api/inventory-trace-v3/health",
@@ -507,12 +507,104 @@ local function postExact(bodyText, batchIndex)
     return true, data
 end
 
+local function safeString(value)
+    local s = tostring(value or "")
+    local ok = pcall(HttpService.JSONEncode, HttpService, s)
+    if ok then return s end
+    local out = table.create(#s)
+    for i = 1, #s do
+        local b = string.byte(s, i)
+        if b >= 32 and b <= 126 then
+            out[#out + 1] = string.char(b)
+        elseif b == 9 then
+            out[#out + 1] = "\\t"
+        elseif b == 10 then
+            out[#out + 1] = "\\n"
+        elseif b == 13 then
+            out[#out + 1] = "\\r"
+        else
+            out[#out + 1] = "?"
+        end
+    end
+    return table.concat(out)
+end
+
+local function jsonSafe(value, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    if depth > 10 then return "<max_depth>" end
+
+    local t = typeof(value)
+    if value == nil or t == "boolean" then return value end
+    if t == "number" then
+        if value ~= value then return "<nan>" end
+        if value == math.huge then return "<inf>" end
+        if value == -math.huge then return "<-inf>" end
+        return value
+    end
+    if t == "string" then return safeString(value) end
+
+    if t == "table" then
+        if seen[value] then return "<cycle>" end
+        seen[value] = true
+
+        local count, maxIndex, arrayLike = 0, 0, true
+        for k in pairs(value) do
+            count += 1
+            if type(k) ~= "number" or k < 1 or k % 1 ~= 0 then
+                arrayLike = false
+            else
+                maxIndex = math.max(maxIndex, k)
+            end
+            if count > 12000 then break end
+        end
+        if arrayLike and maxIndex ~= count then arrayLike = false end
+
+        local out
+        if arrayLike then
+            out = table.create(count)
+            for i = 1, count do
+                out[i] = jsonSafe(value[i], depth + 1, seen)
+            end
+        else
+            out = {}
+            local n = 0
+            for k, v in pairs(value) do
+                n += 1
+                if n > 12000 then
+                    out["<truncated>"] = true
+                    break
+                end
+                out[safeString(k)] = jsonSafe(v, depth + 1, seen)
+            end
+        end
+
+        seen[value] = nil
+        return out
+    end
+
+    if t == "Instance" then
+        return { type = "Instance", className = value.ClassName, name = safeString(value.Name), path = safeString(fullName(value)) }
+    end
+
+    if t == "Vector2" then return { x = value.X, y = value.Y } end
+    if t == "Vector3" then return { x = value.X, y = value.Y, z = value.Z } end
+    if t == "Color3" then return rgb(value) end
+    if t == "UDim" then return u1(value) end
+    if t == "UDim2" then return u2(value) end
+    if t == "EnumItem" then return tostring(value) end
+
+    return safeString(value)
+end
+
 local function encodeBody(body)
-    local ok, raw = pcall(HttpService.JSONEncode,HttpService,body)
-    if not ok then return nil end
-    body.payloadBytes = #raw
-    ok, raw = pcall(HttpService.JSONEncode,HttpService,body)
-    return ok and raw or nil
+    local sanitized = jsonSafe(body)
+    local ok, raw = pcall(HttpService.JSONEncode, HttpService, sanitized)
+    if not ok then return nil, "json_encode_1: " .. tostring(raw) end
+    sanitized.payloadBytes = #raw
+    ok, raw = pcall(HttpService.JSONEncode, HttpService, sanitized)
+    if not ok then return nil, "json_encode_2: " .. tostring(raw) end
+    return raw, nil
 end
 
 local function cacheFailure(data)
@@ -534,7 +626,7 @@ local function upload(summary)
             userId=tostring(LP.UserId),username=LP.Name,capturedAt=capturedAt,gameId=game.GameId,
             placeId=game.PlaceId,placeVersion=game.PlaceVersion,runId=runId,batchIndex=idx,batchKind="data",
             payloadBytes=0,records=chunk,remotes={},stats=summary}
-        local raw=encodeBody(body); if not raw then return false,"encode_failed" end
+        local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "encode_failed" end
         local ok,data=postExact(raw,idx)
         if not ok then cacheFailure({runId=runId,failedBatch=idx,error=data,body=body}); return false,data end
         if data.github and data.github.path then paths[#paths+1]=data.github.path end
@@ -554,7 +646,7 @@ local function upload(summary)
         username=LP.Name,capturedAt=capturedAt,gameId=game.GameId,placeId=game.PlaceId,placeVersion=game.PlaceVersion,
         runId=runId,batchIndex=idx,batchTotal=idx,batchKind="manifest",payloadBytes=0,records={},remotes={},
         manifest=manifest,stats=summary}
-    local raw=encodeBody(body); if not raw then return false,"manifest_encode_failed" end
+    local raw, encodeErr=encodeBody(body); if not raw then return false,encodeErr or "manifest_encode_failed" end
     local ok,data=postExact(raw,idx)
     if not ok then cacheFailure({runId=runId,failedBatch=idx,error=data,body=body}); return false,data end
     return true,data
