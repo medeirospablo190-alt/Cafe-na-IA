@@ -13,12 +13,13 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.2.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++17"
                 arguments += listOf("-DANDROID_STL=c++_shared")
-                abiFilters += listOf("arm64-v8a")
+                abiFilters += listOf("arm64-v8a", "x86_64")
             }
         }
     }
@@ -44,4 +45,10 @@ android {
             isMinifyEnabled = false
         }
     }
+}
+
+
+dependencies {
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
 }
