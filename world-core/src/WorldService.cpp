@@ -45,6 +45,63 @@ bool WorldService::setParent(ObjectId childId, ObjectId parentId)
     return world_.setParent(childId, parentId);
 }
 
+bool WorldService::setMeshComponent(ObjectId id, const MeshComponent& component)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.setMeshComponent(id, component);
+}
+
+std::optional<MeshComponent> WorldService::meshComponent(ObjectId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    const MeshComponent* component = world_.meshComponent(id);
+    return component ? std::optional<MeshComponent>(*component) : std::nullopt;
+}
+
+bool WorldService::removeMeshComponent(ObjectId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.removeMeshComponent(id);
+}
+
+bool WorldService::setColliderComponent(ObjectId id, const ColliderComponent& component)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.setColliderComponent(id, component);
+}
+
+std::optional<ColliderComponent> WorldService::colliderComponent(ObjectId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    const ColliderComponent* component = world_.colliderComponent(id);
+    return component ? std::optional<ColliderComponent>(*component) : std::nullopt;
+}
+
+bool WorldService::removeColliderComponent(ObjectId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.removeColliderComponent(id);
+}
+
+bool WorldService::setSemanticComponent(ObjectId id, const SemanticComponent& component)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.setSemanticComponent(id, component);
+}
+
+std::optional<SemanticComponent> WorldService::semanticComponent(ObjectId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    const SemanticComponent* component = world_.semanticComponent(id);
+    return component ? std::optional<SemanticComponent>(*component) : std::nullopt;
+}
+
+bool WorldService::removeSemanticComponent(ObjectId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return world_.removeSemanticComponent(id);
+}
+
 std::vector<ObjectId> WorldService::childrenOf(ObjectId parentId) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

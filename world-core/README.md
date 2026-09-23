@@ -17,6 +17,10 @@ This module deliberately has no Android UI, renderer, physics engine, Luau depen
 - cycle and self-parent protection;
 - non-destructive parent removal: direct children are preserved and moved to root;
 - deterministic object and child snapshots ordered by ID;
+- typed component stores keyed by stable ObjectId:
+  - Mesh;
+  - Collider;
+  - Semantic;
 - clearing a world without recycling IDs;
 - standalone C++ smoke tests.
 
@@ -37,13 +41,12 @@ Renaming an object therefore never changes its `ObjectId`.
 
 ## Explicitly not included yet
 
-- components;
 - rendering;
-- physics;
-- serialization;
+- physics simulation;
+- materials / textures;
+- advanced mesh data;
 - Android input;
-- Luau World API;
-- AI integration.
+- AI integration inside World Core.
 
 Those enter as separate tested phases so the headless data model remains reusable by Android, CLI tests and future desktop/notebook tooling.
 
@@ -71,7 +74,8 @@ World Core now supports deterministic JSON persistence.
 Format identity:
 
 - `format = CAFEINA_WORLD`
-- `version = 1`
+- current writer: `version = 2`
+- oldest supported reader: `version = 1`
 
 Persisted state includes:
 
@@ -81,7 +85,12 @@ Persisted state includes:
 - names;
 - position;
 - rotation;
-- scale.
+- scale;
+- Mesh components;
+- Collider components;
+- Semantic components.
+
+Version 1 worlds remain readable. They load with empty component stores and are written back as version 2 on the next save.
 
 Safety rules:
 
@@ -129,3 +138,44 @@ The CMake project now separates:
 - `cafeina_world_serialization`: optional JSON persistence target.
 
 This lets the runtime/Android bridge link only the core model when persistence is not required in that binary path.
+
+
+## Phase 10.2 — Component System foundation
+
+Scene identity and hierarchy remain in `WorldObject`. Optional behavior/render metadata lives in separate stores keyed by stable `ObjectId`, avoiding a growing monolithic object structure.
+
+Initial component types:
+
+### MeshComponent
+
+- primitive: box, sphere, cylinder or plane;
+- visible flag.
+
+This is render metadata only. It does not render anything by itself.
+
+### ColliderComponent
+
+- shape: box, sphere or capsule;
+- enabled flag;
+- solid flag.
+
+This defines intended collision metadata only. Physics simulation is still a later phase.
+
+### SemanticComponent
+
+- optional semantic role;
+- up to 32 validated tags;
+- duplicate tags and control characters are rejected.
+
+This gives future editor/AI/test systems structured meaning without overloading display names.
+
+Lifecycle rules:
+
+- components can only attach to existing objects;
+- removing an object removes all attached components;
+- component state participates in snapshots and validated restore;
+- component references to missing objects fail closed during restore;
+- duplicate component entries fail closed;
+- `WorldService` exposes synchronized component reads/writes using copies rather than raw pointers.
+
+The component format is persisted in `CAFEINA_WORLD` v2 while the reader continues to accept v1 worlds.

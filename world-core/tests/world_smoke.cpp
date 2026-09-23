@@ -26,6 +26,11 @@ void require(bool condition, const char* message)
 
 int main()
 {
+    using cafeina::world::ColliderComponent;
+    using cafeina::world::ColliderShape;
+    using cafeina::world::MeshComponent;
+    using cafeina::world::PrimitiveMesh;
+    using cafeina::world::SemanticComponent;
     using cafeina::world::Transform;
     using cafeina::world::Vec3;
     using cafeina::world::World;
@@ -179,7 +184,53 @@ int main()
 
         require(persistent.setTransform(house, houseTransform), "persistent transform should update");
         require(persistent.setParent(door, house), "persistent hierarchy should update");
+
+        MeshComponent houseMesh;
+        houseMesh.primitive = PrimitiveMesh::Box;
+        houseMesh.visible = true;
+        require(persistent.setMeshComponent(house, houseMesh), "mesh component should attach to existing object");
+
+        ColliderComponent houseCollider;
+        houseCollider.shape = ColliderShape::Box;
+        houseCollider.enabled = true;
+        houseCollider.solid = true;
+        require(
+            persistent.setColliderComponent(house, houseCollider),
+            "collider component should attach to existing object"
+        );
+
+        SemanticComponent houseSemantic;
+        houseSemantic.role = "building";
+        houseSemantic.tags = {"interactive", "structure"};
+        require(
+            persistent.setSemanticComponent(house, houseSemantic),
+            "semantic component should attach to existing object"
+        );
+
+        MeshComponent invalidMesh;
+        invalidMesh.primitive = static_cast<PrimitiveMesh>(999);
+        bool invalidMeshRejected = false;
+        try
+        {
+            persistent.setMeshComponent(house, invalidMesh);
+        }
+        catch (const std::invalid_argument&)
+        {
+            invalidMeshRejected = true;
+        }
+        require(invalidMeshRejected, "invalid mesh enum must be rejected");
+
+        MeshComponent temporaryMesh;
+        temporaryMesh.primitive = PrimitiveMesh::Sphere;
+        require(
+            persistent.setMeshComponent(deleted, temporaryMesh),
+            "temporary object should accept a component before deletion"
+        );
         require(persistent.removeObject(deleted), "temporary object should be removed before save");
+        require(
+            persistent.meshComponent(deleted) == nullptr,
+            "removing an object must remove its attached components"
+        );
 
         const std::string encoded = serializeWorldJson(persistent);
         World reopened = deserializeWorldJson(encoded);
@@ -189,13 +240,25 @@ int main()
         require(reopened.findObject(door) != nullptr, "round-trip should preserve stable door ID");
         require(reopened.findObject(house)->transform == houseTransform, "round-trip should preserve transforms");
         require(reopened.findObject(door)->parentId == house, "round-trip should preserve hierarchy");
+        require(
+            reopened.meshComponent(house) && *reopened.meshComponent(house) == houseMesh,
+            "round-trip should preserve mesh component"
+        );
+        require(
+            reopened.colliderComponent(house) && *reopened.colliderComponent(house) == houseCollider,
+            "round-trip should preserve collider component"
+        );
+        require(
+            reopened.semanticComponent(house) && *reopened.semanticComponent(house) == houseSemantic,
+            "round-trip should preserve semantic component"
+        );
         require(serializeWorldJson(reopened) == encoded, "serialized world should be deterministic after round-trip");
 
         const auto afterReopen = reopened.createObject("AfterReopen");
         require(afterReopen > deleted, "round-trip must preserve next object ID and never recycle deleted IDs");
 
         std::string unsupported = encoded;
-        const std::string versionNeedle = "\"version\": 1";
+        const std::string versionNeedle = "\"version\": 2";
         const auto versionPos = unsupported.find(versionNeedle);
         require(versionPos != std::string::npos, "serialized world should contain explicit version");
         unsupported.replace(versionPos, versionNeedle.size(), "\"version\": 999");
@@ -210,6 +273,38 @@ int main()
             versionRejected = true;
         }
         require(versionRejected, "unsupported world versions must fail closed");
+
+        const std::string version1World = R"json({
+  "format": "CAFEINA_WORLD",
+  "version": 1,
+  "nextObjectId": 2,
+  "objects": [
+    {
+      "id": 1,
+      "parentId": 0,
+      "name": "LegacyBox",
+      "transform": {
+        "position": [0, 0, 0],
+        "rotationDegrees": [0, 0, 0],
+        "scale": [1, 1, 1]
+      }
+    }
+  ]
+})json";
+
+        World migrated = deserializeWorldJson(version1World);
+        require(migrated.objectCount() == 1, "version 1 world should remain readable");
+        require(migrated.findObject(1) != nullptr, "version 1 object ID should survive migration");
+        require(
+            migrated.meshComponent(1) == nullptr
+                && migrated.colliderComponent(1) == nullptr
+                && migrated.semanticComponent(1) == nullptr,
+            "version 1 world should migrate with empty component stores"
+        );
+        require(
+            serializeWorldJson(migrated).find("\"version\": 2") != std::string::npos,
+            "migrated world should serialize as version 2"
+        );
 
         WorldState invalidState = persistent.state();
         require(invalidState.objects.size() == 2, "state snapshot should contain saved objects");
@@ -290,6 +385,15 @@ int main()
         const auto sample = service.object(sampleId);
         require(sample.has_value(), "service should return object copies safely");
         require(sample->id == sampleId, "service object copy should preserve stable ID");
+
+        MeshComponent serviceMesh;
+        serviceMesh.primitive = PrimitiveMesh::Cylinder;
+        require(service.setMeshComponent(sampleId, serviceMesh), "service should synchronize mesh writes");
+        const auto copiedMesh = service.meshComponent(sampleId);
+        require(
+            copiedMesh.has_value() && copiedMesh->primitive == PrimitiveMesh::Cylinder,
+            "service should return safe component copies"
+        );
     }
 
     std::cout << "world core smoke tests passed\n";

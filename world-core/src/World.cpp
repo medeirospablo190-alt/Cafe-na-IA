@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <cmath>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -20,6 +21,33 @@ bool World::isValidTransform(const Transform& transform)
         && finite(transform.scale);
 }
 
+bool World::isValidMeshComponent(const MeshComponent& component)
+{
+    switch (component.primitive)
+    {
+    case PrimitiveMesh::Box:
+    case PrimitiveMesh::Sphere:
+    case PrimitiveMesh::Cylinder:
+    case PrimitiveMesh::Plane:
+        return true;
+    }
+
+    return false;
+}
+
+bool World::isValidColliderComponent(const ColliderComponent& component)
+{
+    switch (component.shape)
+    {
+    case ColliderShape::Box:
+    case ColliderShape::Sphere:
+    case ColliderShape::Capsule:
+        return true;
+    }
+
+    return false;
+}
+
 bool World::isValidObjectName(const std::string& name)
 {
     if (name.empty() || name.size() > MaxObjectNameBytes)
@@ -28,6 +56,38 @@ bool World::isValidObjectName(const std::string& name)
     for (unsigned char c : name)
     {
         if (std::iscntrl(c))
+            return false;
+    }
+
+    return true;
+}
+
+bool World::isValidSemanticComponent(const SemanticComponent& component)
+{
+    const auto validText = [](const std::string& value, std::size_t maxBytes, bool allowEmpty) {
+        if ((!allowEmpty && value.empty()) || value.size() > maxBytes)
+            return false;
+
+        for (unsigned char c : value)
+        {
+            if (std::iscntrl(c))
+                return false;
+        }
+
+        return true;
+    };
+
+    if (!validText(component.role, SemanticComponent::MaxRoleBytes, true))
+        return false;
+    if (component.tags.size() > SemanticComponent::MaxTags)
+        return false;
+
+    std::set<std::string> uniqueTags;
+    for (const std::string& tag : component.tags)
+    {
+        if (!validText(tag, SemanticComponent::MaxTagBytes, false))
+            return false;
+        if (!uniqueTags.insert(tag).second)
             return false;
     }
 
@@ -71,6 +131,9 @@ bool World::removeObject(ObjectId id)
     }
 
     objects_.erase(target);
+    meshComponents_.erase(id);
+    colliderComponents_.erase(id);
+    semanticComponents_.erase(id);
     return true;
 }
 
@@ -136,6 +199,72 @@ std::vector<ObjectId> World::childrenOf(ObjectId parentId) const
     return children;
 }
 
+bool World::setMeshComponent(ObjectId id, const MeshComponent& component)
+{
+    if (!isValidMeshComponent(component))
+        throw std::invalid_argument("invalid mesh component");
+    if (objects_.find(id) == objects_.end())
+        return false;
+
+    meshComponents_[id] = component;
+    return true;
+}
+
+const MeshComponent* World::meshComponent(ObjectId id) const
+{
+    const auto it = meshComponents_.find(id);
+    return it == meshComponents_.end() ? nullptr : &it->second;
+}
+
+bool World::removeMeshComponent(ObjectId id)
+{
+    return meshComponents_.erase(id) != 0;
+}
+
+bool World::setColliderComponent(ObjectId id, const ColliderComponent& component)
+{
+    if (!isValidColliderComponent(component))
+        throw std::invalid_argument("invalid collider component");
+    if (objects_.find(id) == objects_.end())
+        return false;
+
+    colliderComponents_[id] = component;
+    return true;
+}
+
+const ColliderComponent* World::colliderComponent(ObjectId id) const
+{
+    const auto it = colliderComponents_.find(id);
+    return it == colliderComponents_.end() ? nullptr : &it->second;
+}
+
+bool World::removeColliderComponent(ObjectId id)
+{
+    return colliderComponents_.erase(id) != 0;
+}
+
+bool World::setSemanticComponent(ObjectId id, const SemanticComponent& component)
+{
+    if (!isValidSemanticComponent(component))
+        throw std::invalid_argument("invalid semantic component");
+    if (objects_.find(id) == objects_.end())
+        return false;
+
+    semanticComponents_[id] = component;
+    return true;
+}
+
+const SemanticComponent* World::semanticComponent(ObjectId id) const
+{
+    const auto it = semanticComponents_.find(id);
+    return it == semanticComponents_.end() ? nullptr : &it->second;
+}
+
+bool World::removeSemanticComponent(ObjectId id)
+{
+    return semanticComponents_.erase(id) != 0;
+}
+
 bool World::wouldCreateCycle(ObjectId childId, ObjectId parentId) const
 {
     ObjectId current = parentId;
@@ -176,6 +305,19 @@ WorldState World::state() const
     WorldState snapshot;
     snapshot.nextObjectId = nextId_;
     snapshot.objects = objects();
+
+    snapshot.meshComponents.reserve(meshComponents_.size());
+    for (const auto& entry : meshComponents_)
+        snapshot.meshComponents.push_back(ComponentEntry<MeshComponent>{entry.first, entry.second});
+
+    snapshot.colliderComponents.reserve(colliderComponents_.size());
+    for (const auto& entry : colliderComponents_)
+        snapshot.colliderComponents.push_back(ComponentEntry<ColliderComponent>{entry.first, entry.second});
+
+    snapshot.semanticComponents.reserve(semanticComponents_.size());
+    for (const auto& entry : semanticComponents_)
+        snapshot.semanticComponents.push_back(ComponentEntry<SemanticComponent>{entry.first, entry.second});
+
     return snapshot;
 }
 
@@ -227,13 +369,52 @@ void World::restore(const WorldState& state)
         }
     }
 
+    std::map<ObjectId, MeshComponent> restoredMeshes;
+    for (const auto& entry : state.meshComponents)
+    {
+        if (restored.find(entry.objectId) == restored.end())
+            throw std::invalid_argument("mesh component references missing object");
+        if (!isValidMeshComponent(entry.value))
+            throw std::invalid_argument("invalid mesh component in world state");
+        if (!restoredMeshes.emplace(entry.objectId, entry.value).second)
+            throw std::invalid_argument("duplicate mesh component");
+    }
+
+    std::map<ObjectId, ColliderComponent> restoredColliders;
+    for (const auto& entry : state.colliderComponents)
+    {
+        if (restored.find(entry.objectId) == restored.end())
+            throw std::invalid_argument("collider component references missing object");
+        if (!isValidColliderComponent(entry.value))
+            throw std::invalid_argument("invalid collider component in world state");
+        if (!restoredColliders.emplace(entry.objectId, entry.value).second)
+            throw std::invalid_argument("duplicate collider component");
+    }
+
+    std::map<ObjectId, SemanticComponent> restoredSemantics;
+    for (const auto& entry : state.semanticComponents)
+    {
+        if (restored.find(entry.objectId) == restored.end())
+            throw std::invalid_argument("semantic component references missing object");
+        if (!isValidSemanticComponent(entry.value))
+            throw std::invalid_argument("invalid semantic component in world state");
+        if (!restoredSemantics.emplace(entry.objectId, entry.value).second)
+            throw std::invalid_argument("duplicate semantic component");
+    }
+
     objects_ = std::move(restored);
+    meshComponents_ = std::move(restoredMeshes);
+    colliderComponents_ = std::move(restoredColliders);
+    semanticComponents_ = std::move(restoredSemantics);
     nextId_ = state.nextObjectId;
 }
 
 void World::clear() noexcept
 {
     objects_.clear();
+    meshComponents_.clear();
+    colliderComponents_.clear();
+    semanticComponents_.clear();
 }
 
 } // namespace cafeina::world
