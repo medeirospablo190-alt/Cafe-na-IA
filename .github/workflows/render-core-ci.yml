@@ -29,7 +29,7 @@ jobs:
 
       - name: Build
         working-directory: render-core
-        run: cmake --build build --target cafeina_render_core_smoke cafeina_render_picking_smoke --parallel 2
+        run: cmake --build build --target cafeina_render_core_smoke cafeina_render_picking_smoke cafeina_render_scene_diff_smoke --parallel 2
 
       - name: Smoke tests
         working-directory: render-core
