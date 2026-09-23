@@ -26,7 +26,7 @@ constexpr std::size_t kMaxRuntimeFileBytes = 1024 * 1024;
 constexpr std::size_t kMaxRuntimeFileNameBytes = 120;
 constexpr int kMaxRuntimeFilesListed = 128;
 
-struct ExecutionContext {
+struct VmExecutionContext {
     Clock::time_point deadline;
     std::string* output = nullptr;
     std::string filesRoot;
@@ -44,9 +44,9 @@ std::string stackValueToString(lua_State* L, int index)
     return out;
 }
 
-ExecutionContext* executionContext(lua_State* L)
+VmExecutionContext* executionContext(lua_State* L)
 {
-    return static_cast<ExecutionContext*>(lua_getthreaddata(L));
+    return static_cast<VmExecutionContext*>(lua_getthreaddata(L));
 }
 
 int capturePrint(lua_State* L)
@@ -347,11 +347,7 @@ LuauRuntime::~LuauRuntime()
     delete impl_;
 }
 
-RuntimeResult LuauRuntime::execute(
-    const std::string& source,
-    const RuntimeLimits& limits,
-    const RuntimeHostAccess& hostAccess
-)
+RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
 {
     RuntimeResult result;
     const auto started = Clock::now();
@@ -368,10 +364,10 @@ RuntimeResult LuauRuntime::execute(
 
     luaL_sandboxthread(thread);
 
-    ExecutionContext ctx;
-    ctx.deadline = started + std::chrono::milliseconds(limits.timeoutMs);
+    VmExecutionContext ctx;
+    ctx.deadline = started + std::chrono::milliseconds(request.limits.timeoutMs);
     ctx.output = &result.output;
-    ctx.filesRoot = hostAccess.filesRoot;
+    ctx.filesRoot = request.context.hostAccess.filesRoot;
     lua_setthreaddata(thread, &ctx);
 
     lua_pushcfunction(thread, capturePrint, "print");
@@ -383,7 +379,7 @@ RuntimeResult LuauRuntime::execute(
         exposeFilesystemApi(thread);
 
     size_t bytecodeSize = 0;
-    char* bytecodeRaw = luau_compile(source.data(), source.size(), nullptr, &bytecodeSize);
+    char* bytecodeRaw = luau_compile(request.source.data(), request.source.size(), nullptr, &bytecodeSize);
     std::unique_ptr<char, decltype(&std::free)> bytecode(bytecodeRaw, &std::free);
 
     if (!bytecode)
@@ -420,6 +416,20 @@ RuntimeResult LuauRuntime::execute(
     result.ok = true;
     lua_unref(impl_->global, threadRef);
     return result;
+}
+
+
+RuntimeResult LuauRuntime::execute(
+    const std::string& source,
+    const RuntimeLimits& limits,
+    const RuntimeHostAccess& hostAccess
+)
+{
+    ExecutionRequest request;
+    request.source = source;
+    request.limits = limits;
+    request.context.hostAccess = hostAccess;
+    return execute(request);
 }
 
 } // namespace cafeina
