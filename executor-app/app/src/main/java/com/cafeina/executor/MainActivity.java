@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -29,13 +30,16 @@ public final class MainActivity extends Activity {
     private static final int ACCENT = Color.rgb(59, 139, 254);
     private static final int TEXT = Color.rgb(240, 242, 247);
     private static final int MUTED = Color.rgb(165, 170, 182);
+    private static final String DEFAULT_SOURCE = "print(\"Olá do CAFEÍNA\")\nreturn 6 * 7";
 
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
+    private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
 
     private EditText editor;
     private TextView console;
     private TextView status;
     private Button executeButton;
+    private LinearLayout tabButtons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +63,31 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 2 • editor → runtime → console");
+        subtitle.setText("Phase 3 • tabs → editor → runtime → console");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
-        subtitleParams.setMargins(0, dp(2), 0, dp(10));
+        subtitleParams.setMargins(0, dp(2), 0, dp(8));
         root.addView(subtitle, subtitleParams);
 
+        HorizontalScrollView tabScroll = new HorizontalScrollView(this);
+        tabScroll.setHorizontalScrollBarEnabled(false);
+        tabScroll.setFillViewport(false);
+
+        tabButtons = new LinearLayout(this);
+        tabButtons.setOrientation(LinearLayout.HORIZONTAL);
+        tabScroll.addView(tabButtons, new HorizontalScrollView.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            dp(42)
+        ));
+
+        LinearLayout.LayoutParams tabScrollParams =
+            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(42));
+        tabScrollParams.setMargins(0, 0, 0, dp(8));
+        root.addView(tabScroll, tabScrollParams);
+
         editor = new EditText(this);
-        editor.setText("print(\"Olá do CAFEÍNA\")\nreturn 6 * 7");
+        editor.setText(tabs.activeContent());
         editor.setTextColor(TEXT);
         editor.setHintTextColor(MUTED);
         editor.setBackgroundColor(PANEL);
@@ -105,7 +125,7 @@ public final class MainActivity extends Activity {
         root.addView(actions, matchWrap());
 
         status = new TextView(this);
-        status.setText("Pronto");
+        status.setText("Pronto • " + tabs.activeName());
         status.setTextColor(MUTED);
         status.setTextSize(11);
         LinearLayout.LayoutParams statusParams = matchWrap();
@@ -133,42 +153,94 @@ public final class MainActivity extends Activity {
         root.addView(consoleScroll, consoleParams);
 
         executeButton.setOnClickListener(v -> executeSource());
-        clearButton.setOnClickListener(v -> {
-            editor.setText("");
-            console.setText("");
-            status.setText("Editor limpo");
-        });
+        clearButton.setOnClickListener(v -> clearActiveTab());
 
+        renderTabs();
         return root;
+    }
+
+    private void renderTabs() {
+        tabButtons.removeAllViews();
+
+        for (int i = 0; i < tabs.size(); i++) {
+            final int index = i;
+            boolean active = i == tabs.activeIndex();
+            Button tab = makeTabButton(tabs.nameAt(i), active);
+            tab.setOnClickListener(v -> switchTab(index));
+
+            LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(38));
+            params.setMargins(0, 0, dp(6), 0);
+            tabButtons.addView(tab, params);
+        }
+
+        Button add = makeTabButton("+", false);
+        add.setMinWidth(dp(48));
+        add.setOnClickListener(v -> addTab());
+        tabButtons.addView(add, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            dp(38)
+        ));
+    }
+
+    private void switchTab(int index) {
+        if (index == tabs.activeIndex()) {
+            return;
+        }
+
+        tabs.updateActiveContent(editor.getText().toString());
+        tabs.activate(index);
+        editor.setText(tabs.activeContent());
+        editor.setSelection(editor.length());
+        status.setText("Pronto • " + tabs.activeName());
+        renderTabs();
+    }
+
+    private void addTab() {
+        tabs.updateActiveContent(editor.getText().toString());
+        String name = tabs.addTab();
+        editor.setText("");
+        status.setText("Nova aba • " + name);
+        renderTabs();
+    }
+
+    private void clearActiveTab() {
+        editor.setText("");
+        tabs.updateActiveContent("");
+        console.setText("");
+        status.setText("Editor limpo • " + tabs.activeName());
     }
 
     private void executeSource() {
         final String source = editor.getText().toString();
+        tabs.updateActiveContent(source);
+
         if (source.trim().isEmpty()) {
             console.setText("[ERRO]\nO editor está vazio.");
-            status.setText("Nada para executar");
+            status.setText("Nada para executar • " + tabs.activeName());
             return;
         }
 
+        final String tabName = tabs.activeName();
         executeButton.setEnabled(false);
-        status.setText("Executando...");
+        status.setText("Executando • " + tabName);
         console.setText("");
 
         runtimeExecutor.submit(() -> {
             try {
                 final String raw = LuauBridge.nativeExecute(source, 500);
-                runOnUiThread(() -> renderResult(raw));
+                runOnUiThread(() -> renderResult(raw, tabName));
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     console.setText("[BRIDGE ERROR]\n" + String.valueOf(error.getMessage()));
-                    status.setText("Erro na bridge");
+                    status.setText("Erro na bridge • " + tabName);
                     executeButton.setEnabled(true);
                 });
             }
         });
     }
 
-    private void renderResult(String raw) {
+    private void renderResult(String raw, String tabName) {
         try {
             JSONObject result = new JSONObject(raw);
             boolean ok = result.optBoolean("ok", false);
@@ -192,16 +264,16 @@ public final class MainActivity extends Activity {
                     }
                     rendered.append('\n');
                 }
-                status.setText("Concluído • " + elapsedMs + " ms");
+                status.setText("Concluído • " + tabName + " • " + elapsedMs + " ms");
             } else {
                 rendered.append("[ERRO]\n").append(error).append('\n');
-                status.setText("Falhou • " + elapsedMs + " ms");
+                status.setText("Falhou • " + tabName + " • " + elapsedMs + " ms");
             }
 
             console.setText(rendered.toString().trim());
         } catch (Exception parseError) {
             console.setText("[JSON ERROR]\n" + parseError.getMessage() + "\n\nRaw:\n" + raw);
-            status.setText("Resposta inválida");
+            status.setText("Resposta inválida • " + tabName);
         } finally {
             executeButton.setEnabled(true);
         }
@@ -214,6 +286,19 @@ public final class MainActivity extends Activity {
         button.setTextSize(12);
         button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         button.setBackgroundTintList(ColorStateList.valueOf(color));
+        return button;
+    }
+
+    private Button makeTabButton(String label, boolean active) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setTextColor(Color.WHITE);
+        button.setTextSize(11);
+        button.setTypeface(Typeface.MONOSPACE, active ? Typeface.BOLD : Typeface.NORMAL);
+        button.setMinWidth(dp(96));
+        button.setPadding(dp(10), 0, dp(10), 0);
+        button.setBackgroundTintList(ColorStateList.valueOf(active ? ACCENT : PANEL_2));
         return button;
     }
 
@@ -230,6 +315,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        tabs.updateActiveContent(editor == null ? "" : editor.getText().toString());
         runtimeExecutor.shutdownNow();
         super.onDestroy();
     }
