@@ -53,3 +53,28 @@ That keeps the same scene usable by:
 - Android SurfaceView integration.
 
 Those remain separate layers above this contract.
+
+
+## World transform propagation
+
+Render items now preserve both:
+
+- the object's local `Transform`;
+- a resolved column-major `worldMatrix`.
+
+The world matrix is built as:
+
+`parentWorld * translation * rotationZ * rotationY * rotationX * scale`
+
+This matches the Android preview transform order while keeping the local transform available for editor/inspection tooling.
+
+Hierarchy rules during render extraction:
+
+- root objects use their local transform as world transform;
+- child transforms are composed through all ancestors;
+- parents do not need a MeshComponent to influence child rendering;
+- missing parents fail closed;
+- hierarchy cycles fail closed;
+- invalid transforms anywhere in the resolved ancestry fail closed.
+
+Graphics backends should consume `worldMatrix` for actual drawing. The local `transform` field remains useful for editor UI, diagnostics and serialization-aware tooling.
