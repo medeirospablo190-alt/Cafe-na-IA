@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @RunWith(AndroidJUnit4.class)
@@ -32,6 +33,19 @@ public final class AutoExecuteInstrumentedTest {
 
         cleanup(files, scripts);
         scripts.save("script.lua", "print('auto-start')\nreturn 77");
+
+        Set<String> probe = new LinkedHashSet<>();
+        probe.add("script.lua");
+        auto.save(probe);
+        assertTrue(
+            "AutoExecuteStore could not persist script.lua directly on Android",
+            auto.load().contains("script.lua")
+        );
+        auto.save(new LinkedHashSet<>());
+        assertTrue(
+            "AutoExecuteStore could not clear its direct Android probe",
+            auto.load().isEmpty()
+        );
 
         Activity first = null;
         Activity second = null;
@@ -56,10 +70,19 @@ public final class AutoExecuteInstrumentedTest {
                 Thread.sleep(50);
             }
 
-            assertTrue(
-                "Tapping AUTO EXEC: OFF did not persist script.lua in autoexecute.txt",
-                auto.load().contains("script.lua")
-            );
+            if (!auto.load().contains("script.lua")) {
+                final String[] uiDump = new String[1];
+                instrumentation.runOnMainSync(() -> {
+                    View root = first.findViewById(android.R.id.content);
+                    uiDump[0] = collectText(root);
+                });
+                throw new AssertionError(
+                    "Tapping AUTO EXEC: OFF did not persist script.lua in autoexecute.txt. UI: "
+                        + uiDump[0]
+                        + " | savedScripts="
+                        + scripts.listScripts()
+                );
+            }
 
             instrumentation.runOnMainSync(first::finish);
             instrumentation.waitForIdleSync();
@@ -167,6 +190,29 @@ public final class AutoExecuteInstrumentedTest {
             Thread.sleep(50);
         }
         return found[0];
+    }
+
+    private static String collectText(View root) {
+        StringBuilder out = new StringBuilder();
+        collectText(root, out);
+        return out.toString();
+    }
+
+    private static void collectText(View root, StringBuilder out) {
+        if (root instanceof TextView) {
+            CharSequence value = ((TextView) root).getText();
+            if (value != null && value.length() > 0) {
+                if (out.length() > 0) out.append(" | ");
+                out.append(value);
+            }
+        }
+
+        if (root instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                collectText(group.getChildAt(i), out);
+            }
+        }
     }
 
     private static TextView findTextContaining(View root, String needle) {
