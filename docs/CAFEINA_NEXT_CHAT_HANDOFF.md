@@ -262,14 +262,16 @@ Ao receber “continua”:
 
 ## CONTINUE EXATAMENTE DAQUI
 
-Ordem inicial, sujeita à verificação real do GitHub:
-1. Verificar #117 em um único lote. Como o último estado verificado é CI verde + mergeable, confirmar diff/head e squash-merge se continuar válido.
-2. Verificar #118 sem polling. O último run falhou por download/arquivo ZIP do Android Emulator no runner, não por evidência de erro do código. Reexecutar/obter validação apropriada; se nova falha for de código, diagnosticar e corrigir; se infraestrutura transitória e validação passar depois, verificar diff e integrar.
-3. Se #117 for mergeado antes de #118 e #118 divergir por squash, reconstruir #118 limpo sobre o main atual em vez de misturar commits antigos.
-4. Concluir Fase 14: recovery/versioning/diff/rollback necessários para o POC e garantir regressões de restauração.
-5. Avançar Fase 15 Knowledge Store: DAO/repositórios transacionais, timestamps, project scoping, provenance, estados de conhecimento, migrations versionadas e testes Android/SQLite.
-6. Depois avançar para Fase 16 CAFEÍNA AI core interface, respeitando o Plano Mestre e sem misturar Collector.
-7. Manter sempre o Protocolo Definitivo consolidado: não parar por CI/PR/commit/teste/fim de fase quando houver trabalho autorizado e executável.
+Estado verificado em 2026-09-23:
+1. #123 integrado: repository transacional project-scoped de knowledge.
+2. #128 integrado: migration v1→v2 de provenance.
+3. #132 integrado: fresh installs v2 criam knowledge_links e foreign keys são habilitadas.
+4. #142 integrado: gate obrigatório de saída do protocolo; se existe ação autônoma segura/relevante, resposta final é inválida e o trabalho continua.
+5. #138, #139, #140 e #141 são clean rebuilds sobre bases recentes para support repositories, test evidence, decisions/failures e experiments/snapshots; último estado: CI em execução. Não parar/pollar repetidamente: consumir trabalho independente e integrar/reconstruir conforme o main avançar.
+6. Falha anterior de #137 foi infraestrutura do runner: download do NDK 27.2 retornou `ZipFile unknown archive`; não foi evidência de falha do código. Re-run dos failed jobs foi solicitado.
+7. Continuar Fase 15 até cobrir provenance linking transacional, lifecycle de knowledge, migrations/testes de reopen e repositórios restantes necessários.
+8. Em seguida avançar Fase 16 CAFEÍNA AI core interface sem misturar/tocar o Collector.
+9. Antes de qualquer resposta final, aplicar o gate do Protocolo Definitivo.
 
 ## REGRA FINAL DE HANDOFF
 
