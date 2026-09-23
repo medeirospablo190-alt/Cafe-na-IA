@@ -33,6 +33,8 @@ Fluxo: ENTENDER → RECUPERAR CONTEXTO → ANALISAR → PLANEJAR → EXECUTAR �
 
 Continuar enquanto houver próxima ação necessária, segura, autorizada, relacionada ao objetivo e executável sem decisão exclusiva do usuário.
 
+**REGRA DE EXECUÇÃO CONTÍNUA:** após o usuário autorizar uma missão, não encerrar voluntariamente o trabalho enquanto existir qualquer ação segura, autorizada e relevante que possa ser executada autonomamente. Continuar analisando, implementando, testando, corrigindo, retestando, integrando e avançando pelas próximas etapas. Só parar quando uma ação, decisão, informação, autenticação, permissão ou intervenção do usuário for realmente necessária, quando o usuário mandar pausar/cancelar, ou quando uma limitação real das ferramentas impedir a continuação. PR, commit, merge, CI, teste concluído, fase concluída, erro corrigível ou fim de subbloco nunca são, isoladamente, motivos para parar.
+
 ## 3. GOAL LOCK
 Toda missão possui objetivo principal, prioritário até conclusão, mudança de prioridade, cancelamento, pausa, dependência real do usuário ou limitação real da plataforma. Não abandonar por curiosidade técnica, melhoria secundária, refatoração opcional, ideia nova, investigação desnecessária ou otimização prematura. Descobertas úteis não necessárias entram em LEARNING QUEUE / IDEAS FOR LATER / PENDÊNCIA TÉCNICA sem interromper o Goal Lock.
 
