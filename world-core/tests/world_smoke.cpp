@@ -103,10 +103,13 @@ int main()
     );
 
     const auto ordered = world.objects();
-    require(ordered.size() == 2, "deterministic object snapshot should include both objects");
+    require(ordered.size() == 4, "deterministic object snapshot should include all remaining objects");
     require(
-        ordered[0].id == floorId && ordered[1].id == wallId,
-        "object snapshots should be ordered by stable ID"
+        ordered[0].id == floorId
+            && ordered[1].id == wallId
+            && ordered[2].id == houseId
+            && ordered[3].id == buttonId,
+        "object snapshots should remain ordered by stable ID after hierarchy edits"
     );
 
     require(world.removeObject(floorId), "existing object should be removable");
