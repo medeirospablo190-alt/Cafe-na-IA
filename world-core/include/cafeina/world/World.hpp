@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-namespace cafeina::world {
+#include "cafeina/world/Components.hpp"
 
-using ObjectId = std::uint64_t;
+namespace cafeina::world {
 
 struct Vec3 {
     double x = 0.0;
@@ -44,6 +44,9 @@ struct WorldObject {
 struct WorldState {
     ObjectId nextObjectId = 1;
     std::vector<WorldObject> objects;
+    std::vector<ComponentEntry<MeshComponent>> meshComponents;
+    std::vector<ComponentEntry<ColliderComponent>> colliderComponents;
+    std::vector<ComponentEntry<SemanticComponent>> semanticComponents;
 };
 
 class World {
@@ -62,6 +65,18 @@ public:
     bool setParent(ObjectId childId, ObjectId parentId);
     std::vector<ObjectId> childrenOf(ObjectId parentId) const;
 
+    bool setMeshComponent(ObjectId id, const MeshComponent& component);
+    const MeshComponent* meshComponent(ObjectId id) const;
+    bool removeMeshComponent(ObjectId id);
+
+    bool setColliderComponent(ObjectId id, const ColliderComponent& component);
+    const ColliderComponent* colliderComponent(ObjectId id) const;
+    bool removeColliderComponent(ObjectId id);
+
+    bool setSemanticComponent(ObjectId id, const SemanticComponent& component);
+    const SemanticComponent* semanticComponent(ObjectId id) const;
+    bool removeSemanticComponent(ObjectId id);
+
     std::vector<WorldObject> objects() const;
     std::size_t objectCount() const noexcept;
 
@@ -74,12 +89,16 @@ public:
 
     static bool isValidObjectName(const std::string& name);
     static bool isValidTransform(const Transform& transform);
+    static bool isValidSemanticComponent(const SemanticComponent& component);
 
 private:
     bool wouldCreateCycle(ObjectId childId, ObjectId parentId) const;
 
     ObjectId nextId_ = 1;
     std::map<ObjectId, WorldObject> objects_;
+    std::map<ObjectId, MeshComponent> meshComponents_;
+    std::map<ObjectId, ColliderComponent> colliderComponents_;
+    std::map<ObjectId, SemanticComponent> semanticComponents_;
 };
 
 } // namespace cafeina::world
