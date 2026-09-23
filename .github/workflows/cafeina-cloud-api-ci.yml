@@ -1,0 +1,82 @@
+name: CAFEINA Cloud API CI
+
+on:
+  push:
+    paths:
+      - "cafeina-cloud-api/**"
+      - ".github/workflows/cafeina-cloud-api-ci.yml"
+  pull_request:
+    paths:
+      - "cafeina-cloud-api/**"
+      - ".github/workflows/cafeina-cloud-api-ci.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: cafeina
+          POSTGRES_PASSWORD: cafeina
+          POSTGRES_DB: cafeina
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cafeina -d cafeina"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      PORT: 39100
+      DATABASE_URL: postgresql://cafeina:cafeina@127.0.0.1:5432/cafeina
+      DATABASE_SSL: "false"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: cafeina-cloud-api
+        run: npm install --ignore-scripts
+
+      - name: Syntax check
+        working-directory: cafeina-cloud-api
+        run: npm run check
+
+      - name: Apply isolated migrations
+        working-directory: cafeina-cloud-api
+        run: npm run migrate
+
+      - name: Verify isolated schema
+        run: |
+          PGPASSWORD=cafeina psql             --host 127.0.0.1             --username cafeina             --dbname cafeina             --tuples-only             --command "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'cafeina_ai';"             | grep -q cafeina_ai
+
+      - name: Smoke health endpoint
+        working-directory: cafeina-cloud-api
+        shell: bash
+        run: |
+          set -euo pipefail
+          node src/server.js > /tmp/cafeina-cloud-api.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:39100/v1/health > /tmp/health.json; then
+              cat /tmp/health.json
+              grep -q '"ok":true' /tmp/health.json
+              grep -q '"CAFEINA_CLOUD_API"' /tmp/health.json
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/cafeina-cloud-api.log
+          exit 1
