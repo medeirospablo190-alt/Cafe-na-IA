@@ -50,6 +50,58 @@ int main()
     require(world.setName(wallId, "EntranceWall"), "existing object should be renameable");
     require(world.findObject(wallId)->name == "EntranceWall", "renamed object should retain the same ID");
 
+    const auto houseId = world.createObject("House");
+    const auto doorId = world.createObject("Door");
+    const auto buttonId = world.createObject("Button");
+
+    require(world.setParent(doorId, houseId), "door should be parented under house");
+    require(world.setParent(buttonId, doorId), "button should be parented under door");
+    require(world.findObject(doorId)->parentId == houseId, "door should retain house parent");
+    require(world.findObject(buttonId)->parentId == doorId, "button should retain door parent");
+
+    const auto houseChildren = world.childrenOf(houseId);
+    require(
+        houseChildren.size() == 1 && houseChildren[0] == doorId,
+        "children should be returned deterministically by object ID"
+    );
+
+    const auto rootsBeforeRemoval = world.childrenOf(0);
+    require(
+        rootsBeforeRemoval.size() == 3,
+        "floor, wall and house should be roots before hierarchy removal"
+    );
+
+    bool cycleRejected = false;
+    try
+    {
+        world.setParent(houseId, buttonId);
+    }
+    catch (const std::invalid_argument&)
+    {
+        cycleRejected = true;
+    }
+    require(cycleRejected, "scene graph cycles must be rejected");
+    require(world.findObject(houseId)->parentId == 0, "rejected cycle must not mutate hierarchy");
+
+    bool selfParentRejected = false;
+    try
+    {
+        world.setParent(doorId, doorId);
+    }
+    catch (const std::invalid_argument&)
+    {
+        selfParentRejected = true;
+    }
+    require(selfParentRejected, "self-parenting must be rejected");
+    require(!world.setParent(doorId, 999999), "missing parent should fail without mutation");
+    require(world.findObject(doorId)->parentId == houseId, "failed parent change must preserve old parent");
+
+    require(world.removeObject(doorId), "parent object should be removable");
+    require(
+        world.findObject(buttonId) && world.findObject(buttonId)->parentId == 0,
+        "children of a removed object should be preserved and reparented to root"
+    );
+
     const auto ordered = world.objects();
     require(ordered.size() == 2, "deterministic object snapshot should include both objects");
     require(
@@ -62,7 +114,7 @@ int main()
     require(world.findObject(floorId) == nullptr, "removed object should no longer be findable");
 
     const auto rampId = world.createObject("Ramp");
-    require(rampId > wallId, "removed IDs must not be recycled");
+    require(rampId > buttonId, "removed IDs must not be recycled");
 
     world.clear();
     require(world.objectCount() == 0, "clear should remove current objects");
