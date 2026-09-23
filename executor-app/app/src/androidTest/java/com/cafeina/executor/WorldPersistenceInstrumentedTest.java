@@ -1,7 +1,6 @@
 package com.cafeina.executor;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -87,7 +86,7 @@ public final class WorldPersistenceInstrumentedTest {
                 LuauBridge.nativeRenderSceneSnapshot()
             );
             assertTrue(afterInvalid.optBoolean("ok", false));
-            assertFalse(afterInvalid.getJSONArray("items").isEmpty());
+            assertTrue(afterInvalid.getJSONArray("items").length() > 0);
             assertEquals(
                 "1",
                 afterInvalid.getJSONArray("items").getJSONObject(0).getString("id")
