@@ -197,3 +197,10 @@ World.setScale(part, 2, 2, 2)
 ```
 
 `World.createPart()` creates one World object and atomically attaches a visible Box `MeshComponent`. If attaching the mesh fails, the object is removed again instead of leaving a partial renderable.
+
+
+### RenderScene Android snapshot
+
+`nativeRenderSceneSnapshot()` now includes the resolved column-major `worldMatrix` for every RenderItem in addition to local position/rotation/scale metadata.
+
+Android graphics code should prefer `worldMatrix` for actual drawing. This preserves Scene Graph parent transforms all the way from World Core through RenderScene into Filament.
