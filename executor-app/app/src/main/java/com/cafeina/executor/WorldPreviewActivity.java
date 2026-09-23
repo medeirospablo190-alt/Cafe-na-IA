@@ -206,29 +206,37 @@ public final class WorldPreviewActivity extends Activity {
     }
 
     private void applyTransform(int entity, JSONObject item) throws Exception {
-        JSONArray position = item.getJSONArray("position");
-        JSONArray rotation = item.getJSONArray("rotationDegrees");
-        JSONArray scale = item.getJSONArray("scale");
-
         float[] transform = new float[16];
-        Matrix.setIdentityM(transform, 0);
-        Matrix.translateM(
-            transform,
-            0,
-            (float) position.getDouble(0),
-            (float) position.getDouble(1),
-            (float) position.getDouble(2)
-        );
-        Matrix.rotateM(transform, 0, (float) rotation.getDouble(2), 0f, 0f, 1f);
-        Matrix.rotateM(transform, 0, (float) rotation.getDouble(1), 0f, 1f, 0f);
-        Matrix.rotateM(transform, 0, (float) rotation.getDouble(0), 1f, 0f, 0f);
-        Matrix.scaleM(
-            transform,
-            0,
-            (float) scale.getDouble(0),
-            (float) scale.getDouble(1),
-            (float) scale.getDouble(2)
-        );
+
+        JSONArray worldMatrix = item.optJSONArray("worldMatrix");
+        if (worldMatrix != null && worldMatrix.length() == 16) {
+            for (int i = 0; i < 16; i++) {
+                transform[i] = (float) worldMatrix.getDouble(i);
+            }
+        } else {
+            JSONArray position = item.getJSONArray("position");
+            JSONArray rotation = item.getJSONArray("rotationDegrees");
+            JSONArray scale = item.getJSONArray("scale");
+
+            Matrix.setIdentityM(transform, 0);
+            Matrix.translateM(
+                transform,
+                0,
+                (float) position.getDouble(0),
+                (float) position.getDouble(1),
+                (float) position.getDouble(2)
+            );
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(2), 0f, 0f, 1f);
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(1), 0f, 1f, 0f);
+            Matrix.rotateM(transform, 0, (float) rotation.getDouble(0), 1f, 0f, 0f);
+            Matrix.scaleM(
+                transform,
+                0,
+                (float) scale.getDouble(0),
+                (float) scale.getDouble(1),
+                (float) scale.getDouble(2)
+            );
+        }
 
         TransformManager transformManager = engine.getTransformManager();
         transformManager.setTransform(
