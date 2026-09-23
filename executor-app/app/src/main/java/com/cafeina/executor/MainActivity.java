@@ -402,6 +402,7 @@ public final class MainActivity extends Activity {
                     setEditorText("");
                     status.setText("Nova aba • " + name);
                     renderTabs();
+                    updateAutoExecuteButton();
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
@@ -477,6 +478,7 @@ public final class MainActivity extends Activity {
         tabs.updateActiveContent("");
         console.setText("");
         renderTabs();
+        updateAutoExecuteButton();
         status.setText("Editor limpo • " + tabs.activeName());
     }
 
