@@ -3,6 +3,7 @@
 
 #include <jni.h>
 
+#include <array>
 #include <exception>
 #include <string>
 
@@ -139,6 +140,21 @@ void appendVec3(std::string& out, const cafeina::world::Vec3& value)
     out += ']';
 }
 
+void appendMatrix4(
+    std::string& out,
+    const std::array<double, 16>& matrix
+)
+{
+    out += '[';
+    for (size_t i = 0; i < matrix.size(); ++i)
+    {
+        if (i)
+            out += ',';
+        out += std::to_string(matrix[i]);
+    }
+    out += ']';
+}
+
 std::string renderSceneSnapshotJson()
 {
     try
@@ -164,6 +180,8 @@ std::string renderSceneSnapshotJson()
             appendVec3(out, item.transform.rotationDegrees);
             out += ",\"scale\":";
             appendVec3(out, item.transform.scale);
+            out += ",\"worldMatrix\":";
+            appendMatrix4(out, item.worldMatrix);
             out += '}';
         }
         out += "]}";
