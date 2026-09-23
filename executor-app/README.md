@@ -68,3 +68,20 @@ A interface passa a usar o `ScriptStore` validado na Fase 4.
 - erros de armazenamento aparecem no console sem encerrar o app.
 
 O CI também abre a Activity no emulador, altera o editor, toca SAVE e confirma que `script.lua` foi persistido com o conteúdo esperado.
+
+
+## Phase 6 — restauração e proteção contra perda de alterações
+
+O editor agora trata o estado das abas explicitamente:
+
+- scripts `.lua` já salvos são restaurados como abas ao abrir o app;
+- o editor fica temporariamente bloqueado durante a restauração inicial para impedir sobrescrita por corrida;
+- uma aba alterada recebe `*` no nome;
+- SAVE só remove o `*` quando o conteúdo confirmado em disco corresponde ao snapshot salvo;
+- cada aba possui botão de fechamento;
+- uma aba alterada só fecha após escolher **Salvar e fechar**, **Fechar sem salvar** ou **Cancelar**;
+- o último tab não pode ser fechado, evitando deixar o editor sem estado válido;
+- fechar uma aba não apaga o arquivo salvo em disco;
+- nenhum script é executado automaticamente na restauração.
+
+Continuamos sem servidor e sem banco de dados. Toda essa fase usa exclusivamente o armazenamento privado do Android.

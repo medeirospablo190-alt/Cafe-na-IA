@@ -6,7 +6,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,7 +24,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,10 +48,12 @@ public final class MainActivity extends Activity {
     private TextView console;
     private TextView status;
     private Button executeButton;
+    private Button clearButton;
     private Button saveButton;
     private Button loadButton;
     private Button addTabButton;
     private LinearLayout tabButtons;
+    private boolean suppressEditorWatcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public final class MainActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
+        restoreSavedTabs();
     }
 
     private LinearLayout buildUi() {
@@ -72,7 +79,7 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 5 • tabs + local save/load + runtime");
+        subtitle.setText("Phase 6 • restore + dirty safety + local runtime");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -110,6 +117,33 @@ public final class MainActivity extends Activity {
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         );
         editor.setHorizontallyScrolling(false);
+        editor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable value) {
+                if (suppressEditorWatcher) return;
+
+                boolean wasDirty = tabs.activeDirty();
+                tabs.updateActiveContent(value.toString());
+                boolean nowDirty = tabs.activeDirty();
+
+                if (wasDirty != nowDirty) {
+                    renderTabs();
+                }
+
+                if (nowDirty) {
+                    status.setText("Alterado • " + tabs.activeName());
+                }
+            }
+        });
+
         LinearLayout.LayoutParams editorParams =
             new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
         editorParams.setMargins(0, 0, 0, dp(10));
@@ -119,7 +153,7 @@ public final class MainActivity extends Activity {
         primaryActions.setOrientation(LinearLayout.HORIZONTAL);
 
         executeButton = makeButton("EXECUTE", ACCENT);
-        Button clearButton = makeButton("CLEAR", Color.rgb(61, 66, 81));
+        clearButton = makeButton("CLEAR", Color.rgb(61, 66, 81));
         addTwoButtons(primaryActions, executeButton, clearButton);
         root.addView(primaryActions, matchWrap());
 
@@ -135,7 +169,7 @@ public final class MainActivity extends Activity {
         root.addView(storageActions, storageParams);
 
         status = new TextView(this);
-        status.setText("Pronto • " + tabs.activeName());
+        status.setText("Preparando...");
         status.setTextColor(MUTED);
         status.setTextSize(11);
         LinearLayout.LayoutParams statusParams = matchWrap();
@@ -171,6 +205,73 @@ public final class MainActivity extends Activity {
         return root;
     }
 
+    private void restoreSavedTabs() {
+        setControlsEnabled(false);
+        status.setText("Restaurando scripts locais...");
+
+        ioExecutor.submit(() -> {
+            final Map<String, String> loaded = new LinkedHashMap<>();
+            int failures = 0;
+
+            try {
+                List<String> names = scriptStore.listScripts();
+                for (String name : names) {
+                    try {
+                        loaded.put(name, scriptStore.load(name));
+                    } catch (Exception ignored) {
+                        failures++;
+                    }
+                }
+            } catch (Exception error) {
+                final Exception failure = error;
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    setControlsEnabled(true);
+                    showStorageError("Falha ao restaurar scripts", failure);
+                });
+                return;
+            }
+
+            final int failedCount = failures;
+            runOnUiThread(() -> {
+                if (!activityAlive()) return;
+
+                int firstLoadedIndex = -1;
+                for (Map.Entry<String, String> entry : loaded.entrySet()) {
+                    int index = tabs.openOrReplace(entry.getKey(), entry.getValue());
+                    if (firstLoadedIndex < 0) firstLoadedIndex = index;
+                }
+
+                if (firstLoadedIndex >= 0) {
+                    tabs.activate(firstLoadedIndex);
+                }
+
+                setEditorText(tabs.activeContent());
+                renderTabs();
+                setControlsEnabled(true);
+
+                if (loaded.isEmpty() && failedCount == 0) {
+                    status.setText("Pronto • " + tabs.activeName());
+                } else if (failedCount == 0) {
+                    status.setText("Restaurados " + loaded.size() + " script(s) • " + tabs.activeName());
+                } else {
+                    status.setText(
+                        "Restaurados " + loaded.size() + " • falhas " + failedCount + " • " + tabs.activeName()
+                    );
+                }
+            });
+        });
+    }
+
+    private void setControlsEnabled(boolean enabled) {
+        editor.setEnabled(enabled);
+        executeButton.setEnabled(enabled);
+        clearButton.setEnabled(enabled);
+        saveButton.setEnabled(enabled);
+        loadButton.setEnabled(enabled);
+        if (addTabButton != null) addTabButton.setEnabled(enabled);
+    }
+
     private void addTwoButtons(LinearLayout row, Button left, Button right) {
         LinearLayout.LayoutParams leftParams =
             new LinearLayout.LayoutParams(0, dp(44), 1f);
@@ -184,18 +285,38 @@ public final class MainActivity extends Activity {
     }
 
     private void renderTabs() {
+        if (tabButtons == null) return;
         tabButtons.removeAllViews();
 
         for (int i = 0; i < tabs.size(); i++) {
             final int index = i;
             boolean active = i == tabs.activeIndex();
-            Button tab = makeTabButton(tabs.nameAt(i), active);
+
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.HORIZONTAL);
+
+            String label = tabs.nameAt(i) + (tabs.isDirtyAt(i) ? " *" : "");
+            Button tab = makeTabButton(label, active);
             tab.setOnClickListener(v -> switchTab(index));
+
+            Button close = makeTabButton("×", false);
+            close.setMinWidth(dp(40));
+            close.setEnabled(tabs.size() > 1);
+            close.setOnClickListener(v -> requestCloseTab(index));
+
+            item.addView(tab, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                dp(38)
+            ));
+            item.addView(close, new LinearLayout.LayoutParams(
+                dp(40),
+                dp(38)
+            ));
 
             LinearLayout.LayoutParams params =
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(38));
             params.setMargins(0, 0, dp(6), 0);
-            tabButtons.addView(tab, params);
+            tabButtons.addView(item, params);
         }
 
         addTabButton = makeTabButton("+", false);
@@ -208,9 +329,7 @@ public final class MainActivity extends Activity {
     }
 
     private void switchTab(int index) {
-        if (index == tabs.activeIndex()) {
-            return;
-        }
+        if (index == tabs.activeIndex()) return;
 
         tabs.updateActiveContent(editor.getText().toString());
         tabs.activate(index);
@@ -228,24 +347,84 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
                     String name = tabs.addTab(new HashSet<>(savedNames));
-                    editor.setText("");
+                    setEditorText("");
                     status.setText("Nova aba • " + name);
                     renderTabs();
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
-                    addTabButton.setEnabled(true);
+                    if (addTabButton != null) addTabButton.setEnabled(true);
                     showStorageError("Não foi possível criar a aba", error);
                 });
             }
         });
     }
 
+    private void requestCloseTab(int index) {
+        tabs.updateActiveContent(editor.getText().toString());
+
+        if (tabs.size() <= 1) {
+            status.setText("Mantenha ao menos uma aba aberta");
+            return;
+        }
+
+        final String name = tabs.nameAt(index);
+        if (!tabs.isDirtyAt(index)) {
+            closeTabNow(name);
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Alterações não salvas")
+            .setMessage(name + " possui alterações que ainda não foram salvas.")
+            .setPositiveButton("Salvar e fechar", (dialog, which) -> saveAndCloseTab(name))
+            .setNeutralButton("Fechar sem salvar", (dialog, which) -> closeTabNow(name))
+            .setNegativeButton("Cancelar", null)
+            .show();
+    }
+
+    private void saveAndCloseTab(String name) {
+        int index = tabs.indexOfName(name);
+        if (index < 0) return;
+
+        final String content = tabs.contentAt(index);
+        status.setText("Salvando antes de fechar • " + name);
+
+        ioExecutor.submit(() -> {
+            try {
+                scriptStore.save(name, content);
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    tabs.markSaved(name, content);
+                    closeTabNow(name);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    showStorageError("Falha ao salvar antes de fechar " + name, error);
+                });
+            }
+        });
+    }
+
+    private void closeTabNow(String name) {
+        int index = tabs.indexOfName(name);
+        if (index < 0) return;
+        if (tabs.size() <= 1) {
+            status.setText("Mantenha ao menos uma aba aberta");
+            return;
+        }
+
+        tabs.close(index);
+        showActiveTab("Aba fechada");
+    }
+
     private void clearActiveTab() {
-        editor.setText("");
+        setEditorText("");
         tabs.updateActiveContent("");
         console.setText("");
+        renderTabs();
         status.setText("Editor limpo • " + tabs.activeName());
     }
 
@@ -262,7 +441,9 @@ public final class MainActivity extends Activity {
                 scriptStore.save(name, content);
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
+                    tabs.markSaved(name, content);
                     saveButton.setEnabled(true);
+                    renderTabs();
                     status.setText("Salvo localmente • " + name);
                 });
             } catch (Exception error) {
@@ -336,13 +517,17 @@ public final class MainActivity extends Activity {
         tabs.updateActiveContent(editor.getText().toString());
 
         int existing = tabs.indexOfName(name);
-        if (existing >= 0 && !tabs.contentAt(existing).equals(diskContent)) {
+        if (
+            existing >= 0
+                && tabs.isDirtyAt(existing)
+                && !tabs.contentAt(existing).equals(diskContent)
+        ) {
             new AlertDialog.Builder(this)
                 .setTitle("Substituir conteúdo?")
                 .setMessage(
                     name
-                        + " já está aberto com conteúdo diferente. "
-                        + "Carregar a versão salva substituirá essa aba em memória."
+                        + " já está aberto com alterações não salvas. "
+                        + "Carregar a versão salva substituirá essas alterações em memória."
                 )
                 .setPositiveButton("Carregar", (dialog, which) -> applyLoadedScript(name, diskContent))
                 .setNegativeButton("Cancelar", (dialog, which) -> {
@@ -362,8 +547,7 @@ public final class MainActivity extends Activity {
 
     private void applyLoadedScript(String name, String diskContent) {
         tabs.openOrReplace(name, diskContent);
-        editor.setText(tabs.activeContent());
-        editor.setSelection(editor.length());
+        setEditorText(tabs.activeContent());
         loadButton.setEnabled(true);
         status.setText("Carregado localmente • " + name);
         renderTabs();
@@ -439,10 +623,16 @@ public final class MainActivity extends Activity {
     }
 
     private void showActiveTab(String prefix) {
-        editor.setText(tabs.activeContent());
-        editor.setSelection(editor.length());
+        setEditorText(tabs.activeContent());
         status.setText(prefix + " • " + tabs.activeName());
         renderTabs();
+    }
+
+    private void setEditorText(String value) {
+        suppressEditorWatcher = true;
+        editor.setText(value == null ? "" : value);
+        editor.setSelection(editor.length());
+        suppressEditorWatcher = false;
     }
 
     private void showStorageError(String prefix, Exception error) {
@@ -491,7 +681,9 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        tabs.updateActiveContent(editor == null ? "" : editor.getText().toString());
+        if (editor != null && tabs.size() > 0) {
+            tabs.updateActiveContent(editor.getText().toString());
+        }
         runtimeExecutor.shutdownNow();
         ioExecutor.shutdownNow();
         super.onDestroy();
