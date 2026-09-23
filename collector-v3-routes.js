@@ -7,8 +7,14 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const COLLECTOR_DATA_DIR = path.resolve(
+  process.env.CAFEINA_COLLECTOR_DATA_DIR
+    || process.env.DOWNLOAD_DIR
+    || path.join(__dirname, "private-downloads")
+);
 const TRACE_V3_DIR = path.resolve(
-  process.env.INVENTORY_TRACE_V3_DIR || path.join(__dirname, "private-downloads", "inventory-traces-v3")
+  process.env.INVENTORY_TRACE_V3_DIR
+    || path.join(COLLECTOR_DATA_DIR, "inventory-traces-v3")
 );
 const GITHUB_TOKEN = String(
   process.env.CAFEINA_COLLECTOR_GITHUB_TOKEN
