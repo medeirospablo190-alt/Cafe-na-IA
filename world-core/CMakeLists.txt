@@ -5,10 +5,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(FetchContent)
+
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    URL_HASH SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_library(cafeina_world_core STATIC
     src/World.cpp
+    src/WorldSerialization.cpp
 )
 target_include_directories(cafeina_world_core PUBLIC include)
+target_link_libraries(cafeina_world_core PUBLIC nlohmann_json::nlohmann_json)
 
 enable_testing()
 add_executable(cafeina_world_core_smoke tests/world_smoke.cpp)
