@@ -127,3 +127,33 @@ print(table.concat(fs.list(), ", "))
 ```
 
 Não existe acesso ao armazenamento geral do Android, servidor, banco de dados ou rede.
+
+
+## Phase 8.8 — Project Core foundation
+
+A project storage foundation now exists independently from the current editor storage.
+
+Each project lives under:
+
+`files/projects/<project-id>/`
+
+Initial layout:
+
+- `scripts/`
+- `runtime-fs/`
+- `worlds/`
+- `assets/`
+- `snapshots/`
+- `.cafeina-project` version marker
+
+Rules:
+
+- project IDs are stable storage identifiers and are validated separately from future display names;
+- traversal, hidden IDs, uppercase IDs and unsafe paths are rejected;
+- only directories with a valid CAFEÍNA marker and the complete required layout are listed as projects;
+- unsupported/corrupted marker versions fail closed;
+- duplicate creation never replaces an existing project;
+- partial creation is cleaned up only when that new project creation itself fails;
+- the Project Core is currently isolated and is not yet wired into the editor, Auto Execute or existing `files/scripts` / `files/runtime-fs` data.
+
+Keeping the existing storage untouched avoids a destructive migration before project selection, migration and rollback rules are defined and tested.
