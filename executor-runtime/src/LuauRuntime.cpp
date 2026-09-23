@@ -1,4 +1,5 @@
 #include "cafeina/LuauRuntime.hpp"
+#include "WorldLuauApi.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -321,6 +322,7 @@ void exposeFilesystemApi(lua_State* L)
     lua_setglobal(L, "fs");
 }
 
+
 } // namespace
 
 struct LuauRuntime::Impl {
@@ -373,6 +375,13 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
         return result;
     }
 
+    const bool worldEnabled = request.context.capabilities.has(RuntimeCapability::World);
+    if (worldEnabled && !request.context.hostAccess.worldService)
+    {
+        result.error = "WORLD capability requires a WorldService";
+        return result;
+    }
+
     if (!impl_ || !impl_->global)
     {
         result.error = "failed to initialize Luau VM";
@@ -400,6 +409,8 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
 
     if (!ctx.filesRoot.empty())
         exposeFilesystemApi(thread);
+    if (worldEnabled)
+        exposeWorldApi(thread, request.context.hostAccess.worldService);
 
     size_t bytecodeSize = 0;
     char* bytecodeRaw = luau_compile(request.source.data(), request.source.size(), nullptr, &bytecodeSize);

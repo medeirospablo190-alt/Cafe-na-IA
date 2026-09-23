@@ -8,11 +8,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(CAFEINA_WORLD_BUILD_SERIALIZATION "Build JSON world persistence" ON)
 option(CAFEINA_WORLD_BUILD_TESTS "Build World Core smoke tests" ON)
 
+find_package(Threads REQUIRED)
+
 add_library(cafeina_world_core STATIC
     src/World.cpp
     src/WorldService.cpp
 )
 target_include_directories(cafeina_world_core PUBLIC include)
+target_link_libraries(cafeina_world_core PUBLIC Threads::Threads)
 
 if(CAFEINA_WORLD_BUILD_SERIALIZATION)
     include(FetchContent)

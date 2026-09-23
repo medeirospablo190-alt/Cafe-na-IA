@@ -19,11 +19,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(luau)
 
+set(CAFEINA_WORLD_BUILD_SERIALIZATION OFF)
+set(CAFEINA_WORLD_BUILD_TESTS OFF)
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/../world-core"
+    "${CMAKE_CURRENT_BINARY_DIR}/world-core"
+)
+
 add_library(cafeina_luau_runtime STATIC
     src/LuauRuntime.cpp
+    src/WorldLuauApi.cpp
 )
 target_include_directories(cafeina_luau_runtime PUBLIC include)
-target_link_libraries(cafeina_luau_runtime PUBLIC Luau.VM Luau.Compiler)
+target_link_libraries(
+    cafeina_luau_runtime
+    PUBLIC Luau.VM Luau.Compiler cafeina_world_core
+)
 
 if(ANDROID)
     add_library(cafeina_luau_jni SHARED src/android_jni.cpp)

@@ -135,3 +135,37 @@ Behavior:
 - legacy executor/JNI calls remain unchanged when no token is supplied.
 
 The smoke suite covers both pre-start cancellation and cancellation of a running infinite loop from another host thread. This prepares the runtime for future PAUSE/STOP task controls without putting task management inside the Luau VM.
+
+
+## World capability bridge
+
+The runtime can now receive a shared `WorldService` through explicit host access and grant `RuntimeCapability::World`.
+
+Least-privilege rules:
+
+- a `WorldService*` without the WORLD capability is ignored;
+- WORLD capability without a service fails closed before script execution;
+- without WORLD, the Luau global `World` does not exist;
+- the existing Android JNI entry points do not grant WORLD and therefore keep their current behavior.
+
+Initial Luau API:
+
+```lua
+local house = World.create("House")
+local door = World.create("Door")
+
+World.setParent(door, house)
+World.setPosition(house, 0, 5, 0)
+World.setRotation(house, 0, 45, 0)
+World.setScale(house, 2, 2, 2)
+
+local object = World.get(house)
+local children = World.children(house)
+
+World.setName(house, "MainHouse")
+World.remove(door)
+```
+
+Object IDs cross the Luau boundary as decimal strings rather than floating-point numbers. This preserves full 64-bit identity and avoids precision loss as worlds grow.
+
+The bridge talks only to the synchronized `WorldService`. It does not expose Android internals, renderer state, raw filesystem access or direct `World*` mutation.

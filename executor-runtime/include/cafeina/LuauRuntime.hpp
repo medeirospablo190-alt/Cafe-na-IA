@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "cafeina/world/WorldService.hpp"
+
 namespace cafeina {
 
 struct RuntimeLimits {
@@ -16,10 +18,14 @@ struct RuntimeHostAccess {
     // Empty means no host filesystem API is exposed to Luau.
     // When set, scripts are restricted to flat files inside this directory.
     std::string filesRoot;
+
+    // Null means no shared World service is available to this execution.
+    world::WorldService* worldService = nullptr;
 };
 
 enum class RuntimeCapability : std::uint64_t {
     Files = 1ull << 0,
+    World = 1ull << 1,
 };
 
 struct RuntimeCapabilities {
