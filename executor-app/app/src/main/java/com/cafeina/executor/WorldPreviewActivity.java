@@ -74,7 +74,7 @@ public final class WorldPreviewActivity extends Activity {
 
         statusView = new TextView(this);
         statusView.setId(STATUS_VIEW_ID);
-        statusView.setText("WORLD PREVIEW • FILAMENT 1.77.0");
+        statusView.setText("WORLD PREVIEW • FILAMENT 1.75.1");
         statusView.setTextColor(Color.WHITE);
         statusView.setTextSize(12f);
         statusView.setBackgroundColor(Color.argb(180, 12, 13, 16));
