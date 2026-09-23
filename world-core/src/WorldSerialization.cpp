@@ -1,6 +1,5 @@
 #include "cafeina/world/WorldSerialization.hpp"
 
-#include <limits>
 #include <string>
 #include <utility>
 
@@ -11,9 +10,11 @@ namespace {
 
 using Json = nlohmann::json;
 
-constexpr int kWorldFormatVersion = 1;
+constexpr int kWorldFormatVersion = 2;
+constexpr int kOldestSupportedWorldFormatVersion = 1;
 constexpr std::size_t kMaxSerializedWorldBytes = 16 * 1024 * 1024;
 constexpr std::size_t kMaxSerializedObjects = 100000;
+constexpr std::size_t kMaxSerializedComponents = 300000;
 
 Json vec3ToJson(const Vec3& value)
 {
@@ -57,6 +58,168 @@ Transform transformFromJson(const Json& value)
     return transform;
 }
 
+const char* primitiveMeshName(PrimitiveMesh primitive)
+{
+    switch (primitive)
+    {
+    case PrimitiveMesh::Box:
+        return "box";
+    case PrimitiveMesh::Sphere:
+        return "sphere";
+    case PrimitiveMesh::Cylinder:
+        return "cylinder";
+    case PrimitiveMesh::Plane:
+        return "plane";
+    }
+
+    throw WorldFormatError("unknown primitive mesh");
+}
+
+PrimitiveMesh primitiveMeshFromJson(const Json& value)
+{
+    const std::string name = value.get<std::string>();
+
+    if (name == "box")
+        return PrimitiveMesh::Box;
+    if (name == "sphere")
+        return PrimitiveMesh::Sphere;
+    if (name == "cylinder")
+        return PrimitiveMesh::Cylinder;
+    if (name == "plane")
+        return PrimitiveMesh::Plane;
+
+    throw WorldFormatError("unsupported primitive mesh");
+}
+
+const char* colliderShapeName(ColliderShape shape)
+{
+    switch (shape)
+    {
+    case ColliderShape::Box:
+        return "box";
+    case ColliderShape::Sphere:
+        return "sphere";
+    case ColliderShape::Capsule:
+        return "capsule";
+    }
+
+    throw WorldFormatError("unknown collider shape");
+}
+
+ColliderShape colliderShapeFromJson(const Json& value)
+{
+    const std::string name = value.get<std::string>();
+
+    if (name == "box")
+        return ColliderShape::Box;
+    if (name == "sphere")
+        return ColliderShape::Sphere;
+    if (name == "capsule")
+        return ColliderShape::Capsule;
+
+    throw WorldFormatError("unsupported collider shape");
+}
+
+Json meshComponentsToJson(const WorldState& state)
+{
+    Json result = Json::array();
+    for (const auto& entry : state.meshComponents)
+    {
+        result.push_back(Json{
+            {"objectId", entry.objectId},
+            {"primitive", primitiveMeshName(entry.value.primitive)},
+            {"visible", entry.value.visible}
+        });
+    }
+    return result;
+}
+
+Json colliderComponentsToJson(const WorldState& state)
+{
+    Json result = Json::array();
+    for (const auto& entry : state.colliderComponents)
+    {
+        result.push_back(Json{
+            {"objectId", entry.objectId},
+            {"shape", colliderShapeName(entry.value.shape)},
+            {"enabled", entry.value.enabled},
+            {"solid", entry.value.solid}
+        });
+    }
+    return result;
+}
+
+Json semanticComponentsToJson(const WorldState& state)
+{
+    Json result = Json::array();
+    for (const auto& entry : state.semanticComponents)
+    {
+        result.push_back(Json{
+            {"objectId", entry.objectId},
+            {"role", entry.value.role},
+            {"tags", entry.value.tags}
+        });
+    }
+    return result;
+}
+
+void readVersion2Components(const Json& root, WorldState& state)
+{
+    const Json& components = root.at("components");
+    if (!components.is_object())
+        throw WorldFormatError("components must be an object");
+
+    const Json& meshes = components.at("mesh");
+    const Json& colliders = components.at("collider");
+    const Json& semantics = components.at("semantic");
+
+    if (!meshes.is_array() || !colliders.is_array() || !semantics.is_array())
+        throw WorldFormatError("component stores must be arrays");
+
+    if (meshes.size() + colliders.size() + semantics.size() > kMaxSerializedComponents)
+        throw WorldFormatError("world component count exceeds limit");
+
+    state.meshComponents.reserve(meshes.size());
+    for (const Json& raw : meshes)
+    {
+        if (!raw.is_object())
+            throw WorldFormatError("mesh component entry must be an object");
+
+        ComponentEntry<MeshComponent> entry;
+        entry.objectId = raw.at("objectId").get<ObjectId>();
+        entry.value.primitive = primitiveMeshFromJson(raw.at("primitive"));
+        entry.value.visible = raw.at("visible").get<bool>();
+        state.meshComponents.push_back(std::move(entry));
+    }
+
+    state.colliderComponents.reserve(colliders.size());
+    for (const Json& raw : colliders)
+    {
+        if (!raw.is_object())
+            throw WorldFormatError("collider component entry must be an object");
+
+        ComponentEntry<ColliderComponent> entry;
+        entry.objectId = raw.at("objectId").get<ObjectId>();
+        entry.value.shape = colliderShapeFromJson(raw.at("shape"));
+        entry.value.enabled = raw.at("enabled").get<bool>();
+        entry.value.solid = raw.at("solid").get<bool>();
+        state.colliderComponents.push_back(std::move(entry));
+    }
+
+    state.semanticComponents.reserve(semantics.size());
+    for (const Json& raw : semantics)
+    {
+        if (!raw.is_object())
+            throw WorldFormatError("semantic component entry must be an object");
+
+        ComponentEntry<SemanticComponent> entry;
+        entry.objectId = raw.at("objectId").get<ObjectId>();
+        entry.value.role = raw.at("role").get<std::string>();
+        entry.value.tags = raw.at("tags").get<std::vector<std::string>>();
+        state.semanticComponents.push_back(std::move(entry));
+    }
+}
+
 } // namespace
 
 std::string serializeWorldJson(const World& world)
@@ -80,7 +243,12 @@ std::string serializeWorldJson(const World& world)
             {"format", "CAFEINA_WORLD"},
             {"version", kWorldFormatVersion},
             {"nextObjectId", state.nextObjectId},
-            {"objects", std::move(objects)}
+            {"objects", std::move(objects)},
+            {"components", Json{
+                {"mesh", meshComponentsToJson(state)},
+                {"collider", colliderComponentsToJson(state)},
+                {"semantic", semanticComponentsToJson(state)}
+            }}
         };
 
         std::string result = root.dump(2);
@@ -114,7 +282,9 @@ World deserializeWorldJson(const std::string& jsonText)
             throw WorldFormatError("world root must be an object");
         if (root.at("format").get<std::string>() != "CAFEINA_WORLD")
             throw WorldFormatError("unsupported world format");
-        if (root.at("version").get<int>() != kWorldFormatVersion)
+
+        const int version = root.at("version").get<int>();
+        if (version < kOldestSupportedWorldFormatVersion || version > kWorldFormatVersion)
             throw WorldFormatError("unsupported world version");
 
         const Json& objects = root.at("objects");
@@ -139,6 +309,9 @@ World deserializeWorldJson(const std::string& jsonText)
             object.transform = transformFromJson(raw.at("transform"));
             state.objects.push_back(std::move(object));
         }
+
+        if (version >= 2)
+            readVersion2Components(root, state);
 
         World world;
         world.restore(state);
