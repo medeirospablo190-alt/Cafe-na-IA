@@ -48,7 +48,7 @@ public final class WorldDocumentStoreTest {
 
         try (Stream<Path> entries = Files.list(project.worldsDirectory())) {
             assertEquals(
-                1,
+                0,
                 entries.filter(path ->
                     path.getFileName().toString().startsWith(
                         "." + WorldDocumentStore.MAIN_WORLD_FILE + ".tmp-"
