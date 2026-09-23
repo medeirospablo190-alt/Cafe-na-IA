@@ -28,6 +28,7 @@ add_subdirectory(
 
 add_library(cafeina_luau_runtime STATIC
     src/LuauRuntime.cpp
+    src/WorldLuauApi.cpp
 )
 target_include_directories(cafeina_luau_runtime PUBLIC include)
 target_link_libraries(
