@@ -97,3 +97,35 @@ Safety rules:
 ### JSON dependency
 
 World persistence uses `nlohmann/json` v3.12.0, fetched from the official release archive with a pinned SHA-256 in CMake. The project is open source and its primary class is MIT licensed; the upstream repository also documents bundled third-party licensing metadata. The dependency is build-time/library code only and does not add a server requirement.
+
+
+## Phase 10.6 — synchronized WorldService
+
+A shared scene should not be edited through raw `World*` pointers from unrelated threads.
+
+`WorldService` is now the synchronized host-facing facade for one World instance.
+
+It provides thread-safe single operations for:
+
+- create/remove;
+- read object snapshot;
+- rename;
+- transform;
+- reparent;
+- children lookup;
+- object listing;
+- state snapshot/restore;
+- clear.
+
+The underlying `World` remains the deterministic data model. `WorldService` owns synchronization.
+
+This is deliberately not a multi-operation transaction system yet. Transactions/preview/undo will build above this boundary later.
+
+### Build separation
+
+The CMake project now separates:
+
+- `cafeina_world_core`: World + WorldService, no JSON dependency;
+- `cafeina_world_serialization`: optional JSON persistence target.
+
+This lets the runtime/Android bridge link only the core model when persistence is not required in that binary path.
