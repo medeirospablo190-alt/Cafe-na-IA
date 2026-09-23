@@ -8,6 +8,12 @@ public final class CafeinaKnowledgeDatabase extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "cafeina-knowledge.db";
     public static final int DATABASE_VERSION = 2;
 
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
+    }
+
     public CafeinaKnowledgeDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -26,13 +32,18 @@ public final class CafeinaKnowledgeDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX idx_knowledge_project_state ON knowledge(project_id, state)");
         db.execSQL("CREATE INDEX idx_test_results_project ON test_results(project_id, created_at)");
         db.execSQL("CREATE INDEX idx_failures_signature ON failures(signature)");
+        createKnowledgeLinks(db);
+    }
+
+    private static void createKnowledgeLinks(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE knowledge_links (knowledge_id INTEGER NOT NULL, source_id INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(knowledge_id, source_id), FOREIGN KEY(knowledge_id) REFERENCES knowledge(id) ON DELETE CASCADE, FOREIGN KEY(source_id) REFERENCES sources(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE INDEX idx_knowledge_links_source ON knowledge_links(source_id)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion == 1 && newVersion == 2) {
-            db.execSQL("CREATE TABLE knowledge_links (knowledge_id INTEGER NOT NULL, source_id INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(knowledge_id, source_id), FOREIGN KEY(knowledge_id) REFERENCES knowledge(id) ON DELETE CASCADE, FOREIGN KEY(source_id) REFERENCES sources(id) ON DELETE CASCADE)");
-            db.execSQL("CREATE INDEX idx_knowledge_links_source ON knowledge_links(source_id)");
+            createKnowledgeLinks(db);
             return;
         }
         if (oldVersion != newVersion) throw new IllegalStateException("unsupported knowledge database migration " + oldVersion + " -> " + newVersion);
