@@ -80,6 +80,81 @@ int main()
     }
 
     {
+        const auto r = runtime.execute("return World == nil", {250});
+        require(r.ok, "runtime without WORLD capability should still execute");
+        require(
+            r.returns.size() == 1 && r.returns[0] == "true",
+            "World should not exist without explicit capability"
+        );
+    }
+
+    {
+        cafeina::ExecutionRequest request;
+        request.source = "return true";
+        request.context.capabilities.grant(cafeina::RuntimeCapability::World);
+
+        const auto r = runtime.execute(request);
+        require(!r.ok, "WORLD capability without WorldService should fail closed");
+        require(
+            r.error.find("WORLD capability requires") != std::string::npos,
+            "missing WorldService should have an explicit error"
+        );
+    }
+
+    {
+        cafeina::world::WorldService sharedWorld;
+
+        cafeina::RuntimeHostAccess deniedHost;
+        deniedHost.worldService = &sharedWorld;
+
+        cafeina::ExecutionRequest deniedRequest;
+        deniedRequest.source = "return World == nil";
+        deniedRequest.context.hostAccess = deniedHost;
+
+        const auto denied = runtime.execute(deniedRequest);
+        require(denied.ok, "WorldService host access without capability should remain valid");
+        require(
+            denied.returns.size() == 1 && denied.returns[0] == "true",
+            "WorldService pointer alone must not expose World API"
+        );
+        require(sharedWorld.objectCount() == 0, "denied World access must not mutate host scene");
+
+        cafeina::ExecutionRequest request;
+        request.source =
+            "local house = World.create('House') "
+            "local door = World.create('Door') "
+            "assert(World.setParent(door, house)) "
+            "assert(World.setPosition(house, 1, 2, 3)) "
+            "assert(World.setRotation(house, 0, 45, 0)) "
+            "assert(World.setScale(house, 2, 2, 2)) "
+            "local object = World.get(house) "
+            "local children = World.children(house) "
+            "return house, door, object.name, object.position.x, "
+            "object.rotationDegrees.y, object.scale.x, children[1]";
+        request.limits.timeoutMs = 500;
+        request.context.capabilities.grant(cafeina::RuntimeCapability::World);
+        request.context.hostAccess.worldService = &sharedWorld;
+
+        const auto r = runtime.execute(request);
+        require(r.ok, "WORLD capability should expose the structured World API");
+        require(r.returns.size() == 7, "World script should return seven verification values");
+        require(r.returns[0] == "1" && r.returns[1] == "2", "World IDs should be stable decimal strings");
+        require(r.returns[2] == "House", "World.get should return object name");
+        require(r.returns[3] == "1", "World.setPosition should update position");
+        require(r.returns[4] == "45", "World.setRotation should update rotation");
+        require(r.returns[5] == "2", "World.setScale should update scale");
+        require(r.returns[6] == "2", "World.children should return child IDs as strings");
+
+        require(sharedWorld.objectCount() == 2, "Luau World API should mutate the shared host scene");
+
+        const auto house = sharedWorld.object(1);
+        const auto door = sharedWorld.object(2);
+        require(house.has_value() && house->name == "House", "host should observe Luau-created house");
+        require(door.has_value() && door->parentId == 1, "host should observe Luau-created hierarchy");
+        require(house->transform.position.x == 1.0, "host should observe Luau transform changes");
+    }
+
+    {
         const auto r = runtime.execute("local =", {250});
         require(!r.ok, "syntax error should fail");
         require(!r.error.empty(), "syntax error should have a message");
