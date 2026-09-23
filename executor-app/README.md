@@ -103,3 +103,27 @@ O Auto Execute continua totalmente local e opt-in.
 - nenhuma rede, servidor ou banco de dados é usado.
 
 O CI salva um script de teste, marca explicitamente esse arquivo, reabre a Activity no emulador e exige a saída `autoexec-phase7-ok` e o retorno `123`.
+
+
+## Phase 8 — arquivos do runtime em sandbox própria
+
+Execuções manuais e Auto Execute agora podem usar uma API local de arquivos, mas apenas dentro de:
+
+`files/runtime-fs`
+
+Essa pasta é separada de:
+
+- `files/scripts`;
+- `files/autoexec.list`;
+- demais arquivos privados do app.
+
+Exemplo Luau:
+
+```lua
+fs.write("dados.txt", "42")
+print(fs.read("dados.txt"))
+print(fs.exists("dados.txt"))
+print(table.concat(fs.list(), ", "))
+```
+
+Não existe acesso ao armazenamento geral do Android, servidor, banco de dados ou rede.

@@ -45,20 +45,53 @@ std::string toJson(const cafeina::RuntimeResult& r)
     return out;
 }
 
-} // namespace
-
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_cafeina_runtime_LuauBridge_nativeExecute(JNIEnv* env, jclass, jstring source, jint timeoutMs)
+std::string fromJString(JNIEnv* env, jstring value)
 {
-    const char* chars = env->GetStringUTFChars(source, nullptr);
-    std::string code = chars ? chars : "";
+    if (!value)
+        return {};
+
+    const char* chars = env->GetStringUTFChars(value, nullptr);
+    std::string out = chars ? chars : "";
     if (chars)
-        env->ReleaseStringUTFChars(source, chars);
+        env->ReleaseStringUTFChars(value, chars);
+    return out;
+}
+
+jstring executeToJson(
+    JNIEnv* env,
+    jstring source,
+    jint timeoutMs,
+    const cafeina::RuntimeHostAccess& hostAccess
+)
+{
+    const std::string code = fromJString(env, source);
 
     cafeina::LuauRuntime runtime;
     cafeina::RuntimeLimits limits;
     limits.timeoutMs = timeoutMs > 0 ? static_cast<std::uint32_t>(timeoutMs) : 250;
 
-    const std::string json = toJson(runtime.execute(code, limits));
+    const std::string json = toJson(runtime.execute(code, limits, hostAccess));
     return env->NewStringUTF(json.c_str());
+}
+
+} // namespace
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_cafeina_runtime_LuauBridge_nativeExecute(JNIEnv* env, jclass, jstring source, jint timeoutMs)
+{
+    return executeToJson(env, source, timeoutMs, {});
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_cafeina_runtime_LuauBridge_nativeExecuteWithFiles(
+    JNIEnv* env,
+    jclass,
+    jstring source,
+    jint timeoutMs,
+    jstring sandboxRoot
+)
+{
+    cafeina::RuntimeHostAccess hostAccess;
+    hostAccess.filesRoot = fromJString(env, sandboxRoot);
+    return executeToJson(env, source, timeoutMs, hostAccess);
 }

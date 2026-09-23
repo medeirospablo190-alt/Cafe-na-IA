@@ -10,6 +10,12 @@ struct RuntimeLimits {
     std::uint32_t timeoutMs = 250;
 };
 
+struct RuntimeHostAccess {
+    // Empty means no host filesystem API is exposed to Luau.
+    // When set, scripts are restricted to flat files inside this directory.
+    std::string filesRoot;
+};
+
 struct RuntimeResult {
     bool ok = false;
     std::string output;
@@ -26,7 +32,11 @@ public:
     LuauRuntime(const LuauRuntime&) = delete;
     LuauRuntime& operator=(const LuauRuntime&) = delete;
 
-    RuntimeResult execute(const std::string& source, const RuntimeLimits& limits = {});
+    RuntimeResult execute(
+        const std::string& source,
+        const RuntimeLimits& limits = {},
+        const RuntimeHostAccess& hostAccess = {}
+    );
 
 private:
     struct Impl;

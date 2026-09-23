@@ -1,10 +1,15 @@
 #include "cafeina/LuauRuntime.hpp"
 
+#include <chrono>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 
 namespace {
+
+namespace fs = std::filesystem;
 
 void require(bool condition, const char* message)
 {
@@ -13,6 +18,16 @@ void require(bool condition, const char* message)
         std::cerr << "FAIL: " << message << "\n";
         std::exit(1);
     }
+}
+
+fs::path makeTempRoot()
+{
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    fs::path root = fs::temp_directory_path() / ("cafeina-runtime-fs-" + std::to_string(stamp));
+    std::error_code ec;
+    fs::remove_all(root, ec);
+    fs::create_directories(root);
+    return root;
 }
 
 } // namespace
@@ -26,6 +41,12 @@ int main()
         require(r.ok, "basic script should succeed");
         require(r.output == "hello\t42\n", "print should be captured");
         require(r.returns.size() == 1 && r.returns[0] == "5", "return value should be captured");
+    }
+
+    {
+        const auto r = runtime.execute("return fs == nil", {250});
+        require(r.ok, "runtime without host files should still execute");
+        require(r.returns.size() == 1 && r.returns[0] == "true", "fs should not exist without explicit host access");
     }
 
     {
@@ -45,6 +66,85 @@ int main()
         require(!r.ok, "infinite loop should be interrupted");
         require(r.error.find("timed out") != std::string::npos, "timeout should be reported");
     }
+
+    const fs::path root = makeTempRoot();
+    cafeina::RuntimeHostAccess host;
+    host.filesRoot = root.string();
+
+    {
+        const auto r = runtime.execute(
+            "fs.write('note.txt', 'hello') "
+            "fs.write('b.txt', 'two') "
+            "local files = fs.list() "
+            "return fs.read('note.txt'), fs.exists('note.txt'), table.concat(files, ',')",
+            {500},
+            host
+        );
+
+        require(r.ok, "sandboxed filesystem operations should succeed");
+        require(r.returns.size() == 3, "filesystem script should return three values");
+        require(r.returns[0] == "hello", "fs.read should return saved content");
+        require(r.returns[1] == "true", "fs.exists should report saved file");
+        require(r.returns[2] == "b.txt,note.txt", "fs.list should be sorted and sandbox-scoped");
+        require(fs::is_regular_file(root / "note.txt"), "runtime file should exist inside sandbox root");
+        require(!fs::exists(root.parent_path() / "note.txt"), "runtime file must not escape sandbox root");
+    }
+
+    {
+        const auto r = runtime.execute(
+            "fs.write('../escape.txt', 'bad')",
+            {250},
+            host
+        );
+
+        require(!r.ok, "path traversal should fail");
+        require(
+            r.error.find("invalid runtime file name") != std::string::npos,
+            "path traversal should report invalid runtime file name"
+        );
+        require(!fs::exists(root.parent_path() / "escape.txt"), "path traversal must not create an outside file");
+    }
+
+    {
+        const fs::path outside = root.parent_path() / "cafeina-runtime-outside.txt";
+        {
+            std::ofstream output(outside, std::ios::binary | std::ios::trunc);
+            output << "outside";
+        }
+
+        std::error_code ec;
+        fs::create_symlink(outside, root / "link.txt", ec);
+        if (!ec)
+        {
+            const auto r = runtime.execute("return fs.read('link.txt')", {250}, host);
+            require(!r.ok, "symlink reads should fail");
+            require(
+                r.error.find("symbolic links are not allowed") != std::string::npos,
+                "symlink rejection should be explicit"
+            );
+        }
+
+        fs::remove(outside, ec);
+    }
+
+    {
+        const auto r = runtime.execute(
+            "fs.write('persist.txt', 'saved') return fs.read('persist.txt')",
+            {250},
+            host
+        );
+        require(r.ok, "filesystem data should persist across executions");
+
+        const auto reopened = runtime.execute("return fs.read('persist.txt')", {250}, host);
+        require(reopened.ok, "subsequent execution should read persisted sandbox file");
+        require(
+            reopened.returns.size() == 1 && reopened.returns[0] == "saved",
+            "sandbox file should persist between runtime executions"
+        );
+    }
+
+    std::error_code cleanup;
+    fs::remove_all(root, cleanup);
 
     std::cout << "runtime smoke tests passed\n";
     return 0;

@@ -56,3 +56,26 @@ O retorno é JSON com `ok`, `output`, `error`, `elapsedMs` e `returns`.
 ## Próxima fase
 
 Ligar o runtime ao shell Android do menu reconstruído: editor, botão EXECUTE, console, abas `.lua` e armazenamento local controlado pelo próprio app.
+
+
+## Phase 8 — API local de arquivos sandboxada
+
+O runtime agora aceita opcionalmente um diretório de arquivos fornecido pelo host.
+
+Quando o host não fornece esse diretório, `fs` não existe no ambiente Luau. Quando fornece, os scripts recebem apenas:
+
+- `fs.write(name, content)`;
+- `fs.read(name)`;
+- `fs.exists(name)`;
+- `fs.list()`.
+
+Regras:
+
+- somente nomes de arquivo planos;
+- sem `/`, `\\`, `..` ou nomes ocultos;
+- symlinks são rejeitados;
+- máximo de 1 MiB por arquivo;
+- no máximo 128 nomes retornados por listagem;
+- não há delete nesta fase;
+- a API não alcança `files/scripts`, `autoexec.list` ou outras áreas do app;
+- a bridge Android expõe `nativeExecuteWithFiles(source, timeoutMs, sandboxRoot)`, mantendo `nativeExecute` compatível e sem filesystem.
