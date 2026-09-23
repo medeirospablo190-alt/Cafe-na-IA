@@ -5,7 +5,7 @@ Atualizado em 2026-09-23. Este documento é cumulativo e serve para impedir perd
 ## NÃO PERDER AO TROCAR DE CHAT
 
 1. Ler primeiro `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`.
-2. O protocolo reduzido de 6 regras tem precedência sobre regras operacionais antigas conflitantes.
+2. O Protocolo Definitivo consolidado em `docs/CAFEINA_OPERATIONAL_PROTOCOL.md` substitui os conjuntos operacionais antigos (141 regras e 6 regras intermediárias) e tem precedência sobre interpretações operacionais conflitantes.
 3. Verificar o estado REAL do GitHub antes de qualquer afirmação ou mutação.
 4. Não reconstruir trabalho já concluído.
 5. Preservar regras técnicas e invariantes; elas protegem o software, mas não criam checkpoints de conversa.
@@ -237,12 +237,14 @@ Falhas ocorridas:
 - fragmentar desenvolvimento em operações minúsculas.
 
 Correção vigente:
-- protocolo reduzido de 6 regras em `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`;
-- execução por objetivo;
+- Protocolo Definitivo consolidado em `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`;
+- as 141 regras operacionais antigas e as 6 regras intermediárias NÃO permanecem como sistemas concorrentes;
+- Plano Mestre = especificação do produto; Protocolo = como desenvolver; Handoff = estado mutável;
+- execução por objetivo e em blocos substanciais;
 - consultas em lote;
 - erro corrigível tratado internamente;
 - CI pendente não gera polling;
-- silêncio operacional;
+- mínimo de narração;
 - parada somente por dependência real do usuário;
 - continuidade obrigatória entre chats.
 
@@ -266,8 +268,8 @@ Ordem inicial, sujeita à verificação real do GitHub:
 4. Concluir Fase 14: recovery/versioning/diff/rollback necessários para o POC e garantir regressões de restauração.
 5. Avançar Fase 15 Knowledge Store: DAO/repositórios transacionais, timestamps, project scoping, provenance, estados de conhecimento, migrations versionadas e testes Android/SQLite.
 6. Depois avançar para Fase 16 CAFEÍNA AI core interface, respeitando o Plano Mestre e sem misturar Collector.
-7. Manter sempre o protocolo reduzido: não parar por CI/PR/commit/teste/fim de fase.
+7. Manter sempre o Protocolo Definitivo consolidado: não parar por CI/PR/commit/teste/fim de fase quando houver trabalho autorizado e executável.
 
 ## REGRA FINAL DE HANDOFF
 
-Este documento não autoriza substituir o Plano Mestre de 300 itens por este resumo. Ele registra o estado técnico e operacional para retomada. Quando o texto literal completo dos 300 itens estiver disponível no contexto do chat, ele deve ser preservado integralmente em um artefato canônico, sem reconstrução por memória e sem compressão.
+Este documento não substitui o Plano Mestre de 300 itens. O Plano Mestre é a especificação do produto; o Protocolo Definitivo define como desenvolver; este Handoff registra apenas o estado mutável necessário para retomada. Não é necessário duplicar integralmente o Plano Mestre neste handoff.
