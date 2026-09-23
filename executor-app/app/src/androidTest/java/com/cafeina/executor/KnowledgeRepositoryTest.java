@@ -44,6 +44,13 @@ public final class KnowledgeRepositoryTest {
         assertEquals(20, entry.updatedAt);
     }
 
+    @Test public void rejectsLifecycleStateSkipping() {
+        long id = repository.put("project-a", "fact", "candidate", KnowledgeState.EXPERIMENTAL, null, 10);
+        assertThrows(IllegalArgumentException.class,
+            () -> repository.transition(id, KnowledgeState.EXPERIMENTAL, KnowledgeState.CONSOLIDATED, 20));
+        assertEquals(1, repository.list("project-a", KnowledgeState.EXPERIMENTAL).size());
+    }
+
     @Test public void supportsGlobalKnowledgeWithoutLeakingIntoProjectScope() {
         repository.put(null, "luau", "global", KnowledgeState.CONSOLIDATED, null, 10);
         repository.put("project-a", "luau", "project", KnowledgeState.CONSOLIDATED, null, 11);
