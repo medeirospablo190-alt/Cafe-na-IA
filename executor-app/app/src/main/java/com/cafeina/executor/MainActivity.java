@@ -1,6 +1,7 @@
 package com.cafeina.executor;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -20,6 +21,8 @@ import com.cafeina.runtime.LuauBridge;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,17 +36,23 @@ public final class MainActivity extends Activity {
     private static final String DEFAULT_SOURCE = "print(\"Olá do CAFEÍNA\")\nreturn 6 * 7";
 
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
 
+    private ScriptStore scriptStore;
     private EditText editor;
     private TextView console;
     private TextView status;
     private Button executeButton;
+    private Button saveButton;
+    private Button loadButton;
+    private Button addTabButton;
     private LinearLayout tabButtons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        scriptStore = new ScriptStore(getFilesDir());
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildUi());
@@ -63,7 +72,7 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 3 • tabs → editor → runtime → console");
+        subtitle.setText("Phase 5 • tabs + local save/load + runtime");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -106,23 +115,24 @@ public final class MainActivity extends Activity {
         editorParams.setMargins(0, 0, 0, dp(10));
         root.addView(editor, editorParams);
 
-        LinearLayout actions = new LinearLayout(this);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout primaryActions = new LinearLayout(this);
+        primaryActions.setOrientation(LinearLayout.HORIZONTAL);
 
         executeButton = makeButton("EXECUTE", ACCENT);
         Button clearButton = makeButton("CLEAR", Color.rgb(61, 66, 81));
+        addTwoButtons(primaryActions, executeButton, clearButton);
+        root.addView(primaryActions, matchWrap());
 
-        LinearLayout.LayoutParams actionParams =
-            new LinearLayout.LayoutParams(0, dp(46), 1f);
-        actionParams.setMargins(0, 0, dp(5), 0);
-        actions.addView(executeButton, actionParams);
+        LinearLayout storageActions = new LinearLayout(this);
+        storageActions.setOrientation(LinearLayout.HORIZONTAL);
 
-        LinearLayout.LayoutParams clearParams =
-            new LinearLayout.LayoutParams(0, dp(46), 1f);
-        clearParams.setMargins(dp(5), 0, 0, 0);
-        actions.addView(clearButton, clearParams);
+        saveButton = makeButton("SAVE", Color.rgb(48, 121, 89));
+        loadButton = makeButton("LOAD", Color.rgb(78, 82, 101));
+        addTwoButtons(storageActions, saveButton, loadButton);
 
-        root.addView(actions, matchWrap());
+        LinearLayout.LayoutParams storageParams = matchWrap();
+        storageParams.setMargins(0, dp(6), 0, 0);
+        root.addView(storageActions, storageParams);
 
         status = new TextView(this);
         status.setText("Pronto • " + tabs.activeName());
@@ -154,9 +164,23 @@ public final class MainActivity extends Activity {
 
         executeButton.setOnClickListener(v -> executeSource());
         clearButton.setOnClickListener(v -> clearActiveTab());
+        saveButton.setOnClickListener(v -> saveActiveScript());
+        loadButton.setOnClickListener(v -> showLoadPicker());
 
         renderTabs();
         return root;
+    }
+
+    private void addTwoButtons(LinearLayout row, Button left, Button right) {
+        LinearLayout.LayoutParams leftParams =
+            new LinearLayout.LayoutParams(0, dp(44), 1f);
+        leftParams.setMargins(0, 0, dp(5), 0);
+        row.addView(left, leftParams);
+
+        LinearLayout.LayoutParams rightParams =
+            new LinearLayout.LayoutParams(0, dp(44), 1f);
+        rightParams.setMargins(dp(5), 0, 0, 0);
+        row.addView(right, rightParams);
     }
 
     private void renderTabs() {
@@ -174,10 +198,10 @@ public final class MainActivity extends Activity {
             tabButtons.addView(tab, params);
         }
 
-        Button add = makeTabButton("+", false);
-        add.setMinWidth(dp(48));
-        add.setOnClickListener(v -> addTab());
-        tabButtons.addView(add, new LinearLayout.LayoutParams(
+        addTabButton = makeTabButton("+", false);
+        addTabButton.setMinWidth(dp(48));
+        addTabButton.setOnClickListener(v -> addTab());
+        tabButtons.addView(addTabButton, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             dp(38)
         ));
@@ -190,18 +214,32 @@ public final class MainActivity extends Activity {
 
         tabs.updateActiveContent(editor.getText().toString());
         tabs.activate(index);
-        editor.setText(tabs.activeContent());
-        editor.setSelection(editor.length());
-        status.setText("Pronto • " + tabs.activeName());
-        renderTabs();
+        showActiveTab("Pronto");
     }
 
     private void addTab() {
         tabs.updateActiveContent(editor.getText().toString());
-        String name = tabs.addTab();
-        editor.setText("");
-        status.setText("Nova aba • " + name);
-        renderTabs();
+        addTabButton.setEnabled(false);
+        status.setText("Verificando nomes salvos...");
+
+        ioExecutor.submit(() -> {
+            try {
+                List<String> savedNames = scriptStore.listScripts();
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    String name = tabs.addTab(new HashSet<>(savedNames));
+                    editor.setText("");
+                    status.setText("Nova aba • " + name);
+                    renderTabs();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    addTabButton.setEnabled(true);
+                    showStorageError("Não foi possível criar a aba", error);
+                });
+            }
+        });
     }
 
     private void clearActiveTab() {
@@ -209,6 +247,126 @@ public final class MainActivity extends Activity {
         tabs.updateActiveContent("");
         console.setText("");
         status.setText("Editor limpo • " + tabs.activeName());
+    }
+
+    private void saveActiveScript() {
+        final String name = tabs.activeName();
+        final String content = editor.getText().toString();
+        tabs.updateActiveContent(content);
+
+        saveButton.setEnabled(false);
+        status.setText("Salvando • " + name);
+
+        ioExecutor.submit(() -> {
+            try {
+                scriptStore.save(name, content);
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    saveButton.setEnabled(true);
+                    status.setText("Salvo localmente • " + name);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    saveButton.setEnabled(true);
+                    showStorageError("Falha ao salvar " + name, error);
+                });
+            }
+        });
+    }
+
+    private void showLoadPicker() {
+        tabs.updateActiveContent(editor.getText().toString());
+        loadButton.setEnabled(false);
+        status.setText("Lendo scripts locais...");
+
+        ioExecutor.submit(() -> {
+            try {
+                List<String> names = scriptStore.listScripts();
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    loadButton.setEnabled(true);
+
+                    if (names.isEmpty()) {
+                        status.setText("Nenhum script salvo");
+                        return;
+                    }
+
+                    String[] items = names.toArray(new String[0]);
+                    new AlertDialog.Builder(this)
+                        .setTitle("LOAD SCRIPT")
+                        .setItems(items, (dialog, which) -> loadScript(items[which]))
+                        .setNegativeButton("Cancelar", null)
+                        .show();
+
+                    status.setText(names.size() + " script(s) local(is)");
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    loadButton.setEnabled(true);
+                    showStorageError("Falha ao listar scripts", error);
+                });
+            }
+        });
+    }
+
+    private void loadScript(String name) {
+        loadButton.setEnabled(false);
+        status.setText("Carregando • " + name);
+
+        ioExecutor.submit(() -> {
+            try {
+                String diskContent = scriptStore.load(name);
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    confirmOrApplyLoadedScript(name, diskContent);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    loadButton.setEnabled(true);
+                    showStorageError("Falha ao carregar " + name, error);
+                });
+            }
+        });
+    }
+
+    private void confirmOrApplyLoadedScript(String name, String diskContent) {
+        tabs.updateActiveContent(editor.getText().toString());
+
+        int existing = tabs.indexOfName(name);
+        if (existing >= 0 && !tabs.contentAt(existing).equals(diskContent)) {
+            new AlertDialog.Builder(this)
+                .setTitle("Substituir conteúdo?")
+                .setMessage(
+                    name
+                        + " já está aberto com conteúdo diferente. "
+                        + "Carregar a versão salva substituirá essa aba em memória."
+                )
+                .setPositiveButton("Carregar", (dialog, which) -> applyLoadedScript(name, diskContent))
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    loadButton.setEnabled(true);
+                    status.setText("Carga cancelada • " + name);
+                })
+                .setOnCancelListener(dialog -> {
+                    loadButton.setEnabled(true);
+                    status.setText("Carga cancelada • " + name);
+                })
+                .show();
+            return;
+        }
+
+        applyLoadedScript(name, diskContent);
+    }
+
+    private void applyLoadedScript(String name, String diskContent) {
+        tabs.openOrReplace(name, diskContent);
+        editor.setText(tabs.activeContent());
+        editor.setSelection(editor.length());
+        loadButton.setEnabled(true);
+        status.setText("Carregado localmente • " + name);
+        renderTabs();
     }
 
     private void executeSource() {
@@ -232,6 +390,7 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> renderResult(raw, tabName));
             } catch (Throwable error) {
                 runOnUiThread(() -> {
+                    if (!activityAlive()) return;
                     console.setText("[BRIDGE ERROR]\n" + String.valueOf(error.getMessage()));
                     status.setText("Erro na bridge • " + tabName);
                     executeButton.setEnabled(true);
@@ -279,6 +438,23 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private void showActiveTab(String prefix) {
+        editor.setText(tabs.activeContent());
+        editor.setSelection(editor.length());
+        status.setText(prefix + " • " + tabs.activeName());
+        renderTabs();
+    }
+
+    private void showStorageError(String prefix, Exception error) {
+        String detail = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
+        console.setText("[STORAGE ERROR]\n" + prefix + "\n" + detail);
+        status.setText("Erro de armazenamento");
+    }
+
+    private boolean activityAlive() {
+        return !isFinishing() && !isDestroyed();
+    }
+
     private Button makeButton(String label, int color) {
         Button button = new Button(this);
         button.setText(label);
@@ -317,6 +493,7 @@ public final class MainActivity extends Activity {
     protected void onDestroy() {
         tabs.updateActiveContent(editor == null ? "" : editor.getText().toString());
         runtimeExecutor.shutdownNow();
+        ioExecutor.shutdownNow();
         super.onDestroy();
     }
 }
