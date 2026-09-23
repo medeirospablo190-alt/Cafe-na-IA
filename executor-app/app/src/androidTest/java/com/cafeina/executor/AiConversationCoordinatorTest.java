@@ -15,4 +15,7 @@ public final class AiConversationCoordinatorTest {
   ConversationRepository conversations=new ConversationRepository(db);CafeinaAiCore core=r->new CafeinaAiCore.Response("ok",Collections.emptyList());AiConversationCoordinator c=new AiConversationCoordinator(core,conversations);
   c.send("a","one",1,2);c.send("b","two",3,4);assertEquals(2,conversations.history("a",10).size());assertEquals("one",conversations.history("a",10).get(0).content);
  }
+ @Test public void forwardsRequestedCapabilities(){
+  ConversationRepository conversations=new ConversationRepository(db);final java.util.List<String>[] seen=new java.util.List[]{null};CafeinaAiCore core=r->{seen[0]=r.requestedCapabilities;return new CafeinaAiCore.Response("ok",r.requestedCapabilities);};AiConversationCoordinator c=new AiConversationCoordinator(core,conversations);c.send("p","write",java.util.Collections.singletonList("world.write"),1,2);assertEquals(java.util.Collections.singletonList("world.write"),seen[0]);
+ }
 }
