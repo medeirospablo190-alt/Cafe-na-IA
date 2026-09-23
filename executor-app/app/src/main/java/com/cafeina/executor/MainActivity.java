@@ -814,6 +814,7 @@ public final class MainActivity extends Activity {
             }
         } catch (Exception error) {
             worldPersistence = null;
+            android.util.Log.e("CafeinaProject", "Failed to initialize default World project", error);
         }
     }
 
