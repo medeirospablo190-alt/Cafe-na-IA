@@ -31,7 +31,7 @@ public final class AutoExecuteInstrumentedTest {
         AutoExecuteStore auto = new AutoExecuteStore(files.resolve("autoexecute.txt"));
 
         cleanup(files, scripts);
-        scripts.save("auto.lua", "print('auto-start')\nreturn 77");
+        scripts.save("script.lua", "print('auto-start')\nreturn 77");
 
         Activity first = null;
         Activity second = null;
@@ -39,26 +39,26 @@ public final class AutoExecuteInstrumentedTest {
         try {
             first = start(instrumentation);
 
-            Button autoTab = waitForButton(instrumentation, first, "auto.lua", 7000);
-            assertNotNull("auto.lua tab did not restore before opt-in", autoTab);
+            Button autoTab = waitForButton(instrumentation, first, "script.lua", 7000);
+            assertNotNull("script.lua tab did not restore before opt-in", autoTab);
             instrumentation.runOnMainSync(autoTab::performClick);
             instrumentation.waitForIdleSync();
 
             Button off = waitForButton(instrumentation, first, "AUTO EXEC: OFF", 3000);
-            assertNotNull("AUTO EXEC: OFF did not become available for auto.lua", off);
+            assertNotNull("AUTO EXEC: OFF did not become available for script.lua", off);
 
             instrumentation.runOnMainSync(off::performClick);
 
             long deadline = System.currentTimeMillis() + 5000;
             while (System.currentTimeMillis() < deadline) {
                 Set<String> enabled = auto.load();
-                if (enabled.contains("auto.lua")) break;
+                if (enabled.contains("script.lua")) break;
                 Thread.sleep(50);
             }
 
             assertTrue(
-                "Tapping AUTO EXEC: OFF did not persist auto.lua in autoexecute.txt",
-                auto.load().contains("auto.lua")
+                "Tapping AUTO EXEC: OFF did not persist script.lua in autoexecute.txt",
+                auto.load().contains("script.lua")
             );
 
             instrumentation.runOnMainSync(first::finish);
@@ -70,11 +70,11 @@ public final class AutoExecuteInstrumentedTest {
             TextView report = waitForTextContaining(
                 instrumentation,
                 second,
-                "[AUTO EXEC] auto.lua",
+                "[AUTO EXEC] script.lua",
                 10000
             );
             assertNotNull(
-                "Reopening the Activity did not produce an Auto Execute report for auto.lua",
+                "Reopening the Activity did not produce an Auto Execute report for script.lua",
                 report
             );
 
@@ -91,14 +91,14 @@ public final class AutoExecuteInstrumentedTest {
                 reportText[0].contains("[77]")
             );
 
-            Button restoredAutoTab = waitForButton(instrumentation, second, "auto.lua", 5000);
-            assertNotNull("auto.lua tab did not restore after reopening", restoredAutoTab);
+            Button restoredAutoTab = waitForButton(instrumentation, second, "script.lua", 5000);
+            assertNotNull("script.lua tab did not restore after reopening", restoredAutoTab);
             instrumentation.runOnMainSync(restoredAutoTab::performClick);
             instrumentation.waitForIdleSync();
 
             Button on = waitForButton(instrumentation, second, "AUTO EXEC: ON", 3000);
             assertNotNull(
-                "AUTO EXEC state for auto.lua was not restored as ON after reopening",
+                "AUTO EXEC state for script.lua was not restored as ON after reopening",
                 on
             );
         } finally {
@@ -117,7 +117,7 @@ public final class AutoExecuteInstrumentedTest {
     }
 
     private static void cleanup(Path files, ScriptStore scripts) throws Exception {
-        Files.deleteIfExists(scripts.directory().resolve("auto.lua"));
+        Files.deleteIfExists(scripts.directory().resolve("script.lua"));
         Files.deleteIfExists(files.resolve("autoexecute.txt"));
     }
 
