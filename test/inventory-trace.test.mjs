@@ -21,21 +21,17 @@ async function waitFor(url) {
 }
 
 test("inventory trace recebe, salva latest e retorna recibo", async (t) => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "grupo-lua-inventory-trace-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "cafeina-inventory-trace-"));
   const port = 41_000 + crypto.randomInt(1_000);
-  const internalPort = 43_000 + crypto.randomInt(1_000);
-
-  const child = spawn(process.execPath, ["avatar-gateway.js"], {
+  const child = spawn(process.execPath, ["collector-gateway.js"], {
     cwd: process.cwd(),
     env: {
       ...process.env,
       NODE_ENV: "test",
       PORT: String(port),
-      AVATAR_GATEWAY_INTERNAL_PORT: String(internalPort),
-      DOWNLOAD_DIR: dir,
+      CAFEINA_COLLECTOR_DATA_DIR: dir,
       INVENTORY_TRACE_DIR: path.join(dir, "inventory-traces"),
-      AVATAR_DUMP_GITHUB_TOKEN: "",
-      AVATAR_DUMP_ALLOWED_USER_IDS: "765329164"
+      CAFEINA_COLLECTOR_GITHUB_TOKEN: ""
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
