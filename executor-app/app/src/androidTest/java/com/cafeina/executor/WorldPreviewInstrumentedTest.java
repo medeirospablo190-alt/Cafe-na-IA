@@ -32,9 +32,12 @@ public final class WorldPreviewInstrumentedTest {
         LuauBridge.nativeResetWorld();
 
         String executionRaw = LuauBridge.nativeExecuteWithFilesAndWorld(
-            "local part = World.createPart('PreviewBox') " +
-                "assert(World.setPosition(part, 0, 0, 0)) " +
+            "local parent = World.create('Parent') " +
+                "local part = World.createPart('PreviewBox') " +
+                "assert(World.setPosition(parent, 3, 0, 0)) " +
+                "assert(World.setPosition(part, 2, 0, 0)) " +
                 "assert(World.setScale(part, 2, 2, 2)) " +
+                "assert(World.setParent(part, parent)) " +
                 "return part",
             500,
             runtimeRoot.getAbsolutePath()
@@ -48,8 +51,15 @@ public final class WorldPreviewInstrumentedTest {
 
         JSONArray items = snapshot.getJSONArray("items");
         assertEquals(1, items.length());
-        assertEquals("box", items.getJSONObject(0).getString("primitive"));
-        assertEquals("1", items.getJSONObject(0).getString("id"));
+        JSONObject item = items.getJSONObject(0);
+        assertEquals("box", item.getString("primitive"));
+        assertEquals("2", item.getString("id"));
+
+        JSONArray worldMatrix = item.getJSONArray("worldMatrix");
+        assertEquals(16, worldMatrix.length());
+        assertEquals(5.0, worldMatrix.getDouble(12), 0.0001);
+        assertEquals(0.0, worldMatrix.getDouble(13), 0.0001);
+        assertEquals(0.0, worldMatrix.getDouble(14), 0.0001);
 
         Intent intent = new Intent(context, WorldPreviewActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
