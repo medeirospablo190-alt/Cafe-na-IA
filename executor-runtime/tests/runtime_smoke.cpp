@@ -59,6 +59,19 @@ int main()
     }
 
     {
+        cafeina::ExecutionRequest request;
+        request.source = "return true";
+        request.context.capabilities.grant(cafeina::RuntimeCapability::Files);
+
+        const auto r = runtime.execute(request);
+        require(!r.ok, "FILES capability without a sandbox root should fail closed");
+        require(
+            r.error.find("FILES capability requires") != std::string::npos,
+            "missing FILES host access should have an explicit error"
+        );
+    }
+
+    {
         const auto r = runtime.execute("return fs == nil", {250});
         require(r.ok, "runtime without host files should still execute");
         require(r.returns.size() == 1 && r.returns[0] == "true", "fs should not exist without explicit host access");
@@ -91,6 +104,17 @@ int main()
         cafeina::RuntimeHostAccess requestHost;
         requestHost.filesRoot = requestRoot.string();
 
+        cafeina::ExecutionRequest deniedRequest;
+        deniedRequest.source = "return fs == nil";
+        deniedRequest.context.hostAccess = requestHost;
+
+        const auto denied = runtime.execute(deniedRequest);
+        require(denied.ok, "host access without capability should remain a valid execution");
+        require(
+            denied.returns.size() == 1 && denied.returns[0] == "true",
+            "host access alone must not expose filesystem API"
+        );
+
         cafeina::ExecutionRequest request;
         request.source =
             "fs.write('request.txt', 'context-ok') "
@@ -98,6 +122,7 @@ int main()
         request.limits.timeoutMs = 500;
         request.context.executionId = "smoke-execution-files";
         request.context.projectId = "smoke-project";
+        request.context.capabilities.grant(cafeina::RuntimeCapability::Files);
         request.context.hostAccess = requestHost;
 
         const auto r = runtime.execute(request);
