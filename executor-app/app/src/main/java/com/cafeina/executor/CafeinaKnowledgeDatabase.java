@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public final class CafeinaKnowledgeDatabase extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "cafeina-knowledge.db";
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
 
     @Override
     public void onConfigure(SQLiteDatabase db) {
@@ -33,6 +33,7 @@ public final class CafeinaKnowledgeDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX idx_test_results_project ON test_results(project_id, created_at)");
         db.execSQL("CREATE INDEX idx_failures_signature ON failures(signature)");
         createKnowledgeLinks(db);
+        createMissionCheckpoints(db);
     }
 
     private static void createKnowledgeLinks(SQLiteDatabase db) {
@@ -40,10 +41,19 @@ public final class CafeinaKnowledgeDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX idx_knowledge_links_source ON knowledge_links(source_id)");
     }
 
+    private static void createMissionCheckpoints(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE mission_checkpoints (project_id TEXT NOT NULL, mission_id TEXT NOT NULL, goal TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('CREATED','RUNNING','WAITING_USER','COMPLETED','FAILED','CANCELLED')), updated_at INTEGER NOT NULL, PRIMARY KEY(project_id, mission_id))");
+        db.execSQL("CREATE INDEX idx_mission_checkpoints_project_state ON mission_checkpoints(project_id, state)");
+    }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1 && newVersion == 2) {
+        if (oldVersion == 1 && newVersion >= 2) {
             createKnowledgeLinks(db);
+            oldVersion = 2;
+        }
+        if (oldVersion == 2 && newVersion == 3) {
+            createMissionCheckpoints(db);
             return;
         }
         if (oldVersion != newVersion) throw new IllegalStateException("unsupported knowledge database migration " + oldVersion + " -> " + newVersion);
