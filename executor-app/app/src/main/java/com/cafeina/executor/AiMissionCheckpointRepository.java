@@ -29,9 +29,8 @@ public final class AiMissionCheckpointRepository {
                         throw new IllegalStateException("mission identity cannot change its goal");
                     }
                     AiMissionState old = AiMissionState.valueOf(previous.getString(1));
-                    if (old == AiMissionState.COMPLETED || old == AiMissionState.FAILED
-                            || old == AiMissionState.CANCELLED) {
-                        if (old != snapshot.state) throw new IllegalStateException("terminal mission cannot restart");
+                    if (!allowedTransition(old, snapshot.state)) {
+                        throw new IllegalStateException("invalid checkpoint transition " + old + " -> " + snapshot.state);
                     }
                 }
             }
@@ -41,10 +40,23 @@ public final class AiMissionCheckpointRepository {
             values.put("goal", snapshot.goal);
             values.put("state", snapshot.state.name());
             values.put("updated_at", now);
-            db.insertWithOnConflict("mission_checkpoints", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+            long row = db.insertWithOnConflict("mission_checkpoints", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+            if (row == -1) throw new IllegalStateException("checkpoint was not saved");
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+        }
+    }
+
+    private static boolean allowedTransition(AiMissionState from, AiMissionState to) {
+        if (from == to) return true; // Idempotent checkpoint retry.
+        switch (from) {
+            case CREATED: return to == AiMissionState.RUNNING || to == AiMissionState.CANCELLED;
+            case RUNNING: return to == AiMissionState.WAITING_USER || to == AiMissionState.COMPLETED
+                    || to == AiMissionState.FAILED || to == AiMissionState.CANCELLED;
+            case WAITING_USER: return to == AiMissionState.RUNNING || to == AiMissionState.FAILED
+                    || to == AiMissionState.CANCELLED;
+            default: return false;
         }
     }
 
