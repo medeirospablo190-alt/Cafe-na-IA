@@ -1,21 +1,12 @@
-# CAFEÍNA
+# CAFEÍNA Collector
 
-Este repositório agora mantém dois blocos independentes:
+Repositório do coletor de dados dos jogos Roblox, dos scripts Lua relacionados e do histórico de traces. O coletor V2.1/V3 continua independente.
 
-1. **CAFEÍNA App/Runtime** — editor Luau, World Core, Render Core e Android.
-2. **CAFEÍNA Collector** — gateway de coleta V2.1/V3 e histórico de traces.
+## Gateway
 
-O produto legado anterior foi removido da árvore ativa. A CAFEÍNA mantém somente sua infraestrutura atual, o coletor e a base neutra de backend.
+O serviço principal usa `collector-gateway.js` (entrada `npm start`). Os aliases `server.js` e `avatar-gateway.js` permanecem para compatibilidade com Start Commands existentes.
 
-## Coletor
-
-Entrypoint canônico:
-
-```bash
-npm start
-```
-
-Rotas preservadas:
+Rotas mantidas:
 
 - `GET /api/health`
 - `GET /api/inventory-trace/health`
@@ -27,33 +18,12 @@ Rotas preservadas:
 - `POST /api/inventory-trace-v3/batch`
 - `GET /api/inventory-trace-v3/:gameId/:placeId/latest`
 
-Os arquivos `avatar-gateway.js` e `server.js` permanecem somente como aliases temporários para não quebrar Start Commands antigos do Render. Eles não expõem Avatar Dump nem portal de downloads.
+O histórico e o espelho do GitHub permanecem em `inventory-traces/` e `inventory-traces-v3/`. Consulte `docs/CAFEINA_TRACE_V3_README.md` para detalhes do coletor V3.
 
-Dados históricos e espelho GitHub continuam em `inventory-traces/` e `inventory-traces-v3/`.
-
-## Cloud API
-
-A base PostgreSQL reutilizável foi preservada em `cafeina-cloud-api/`.
-
-Ela usa o mesmo `DATABASE_URL` que pode apontar para o banco existente, porém toda estrutura nova da CAFEÍNA fica no schema PostgreSQL `cafeina_ai`.
-
-**Importante:** tabelas legadas do banco não são apagadas automaticamente. Isso evita perda acidental de dados; a remoção física do legado deve ocorrer somente após auditoria do banco em produção.
-
-## Desenvolvimento do app
-
-- `executor-runtime/` — runtime Luau e bridge nativa.
-- `executor-app/` — app Android/editor.
-- `world-core/` — estado/hierarquia/componentes/persistência do mundo.
-- `render-core/` — snapshots/render/picking e infraestrutura gráfica.
-
-## Validação do coletor
+## Verificação
 
 ```bash
 npm install
 npm run check
 npm test
 ```
-
-## Método de desenvolvimento
-
-O trabalho de agentes segue [AGENTS.md](AGENTS.md) e o [fluxo de blocos longos](docs/DEVELOPMENT_WORKFLOW.md): meta de 25 minutos de trabalho útil por execução quando possível, implementação por fase, CI em checkpoints, continuidade durante esperas e aprovação explícita antes de merge na `main`. Essas regras não flexibilizam segurança, testes nem isolamento do Collector.
