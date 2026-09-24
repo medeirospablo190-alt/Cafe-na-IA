@@ -35,6 +35,11 @@ public final class AiOperationCoreIntegrationTest {
             assertThrows(IllegalArgumentException.class, () -> core.handle(new CafeinaAiCore.Request(
                 "alpha", "operation:unknown", Collections.emptyList())));
             assertFalse(modelCalled[0]);
+            DefaultCafeinaAiCore legacyCore = new DefaultCafeinaAiCore(
+                new AiContextAssembler(new KnowledgeRepository(db)), model, granted);
+            assertThrows(IllegalStateException.class, () -> legacyCore.handle(new CafeinaAiCore.Request(
+                "alpha", "operation:project.info", Collections.singletonList(AiOperationRouter.PROJECT_READ))));
+            assertFalse(modelCalled[0]);
         } finally {
             db.close();
         }
