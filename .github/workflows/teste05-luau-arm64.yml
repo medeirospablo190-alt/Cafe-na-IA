@@ -1,0 +1,100 @@
+name: CAFEINA T05 - Compilar GDLuau Android ARM64
+
+on:
+  push:
+    branches:
+      - experimentos/teste05-luau-arm64-20260924
+    paths:
+      - .github/workflows/teste05-luau-arm64.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-arm64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Baixar GDLuau v1.2 e dependencias fixadas
+        uses: actions/checkout@v4
+        with:
+          repository: Manonox/GDLuau
+          ref: v1.2
+          path: gdluau-src
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Preparar SCons em ambiente isolado
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/scons-venv"
+          "$RUNNER_TEMP/scons-venv/bin/pip" install "scons==4.9.1"
+          echo "$RUNNER_TEMP/scons-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Configurar NDK Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${ANDROID_SDK_ROOT:?SDK Android ausente no runner}"
+          NDK="$ANDROID_SDK_ROOT/ndk/27.2.12479018"
+          if [ ! -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" ]; then
+            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;27.2.12479018'
+          fi
+          test -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
+          echo "ANDROID_NDK_ROOT=$NDK" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$NDK" >> "$GITHUB_ENV"
+
+      - name: Compilar GDExtension ARM64 debug
+        working-directory: gdluau-src
+        shell: bash
+        run: scons -j2 platform=android target=template_debug arch=arm64
+
+      - name: Compilar GDExtension ARM64 release
+        working-directory: gdluau-src
+        shell: bash
+        run: scons -j2 platform=android target=template_release arch=arm64
+
+      - name: Verificar arquitetura e preparar extensao
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/cafeina-t05/addons/gdluau"
+          mkdir -p "$OUT/bin/android"
+          cp gdluau-src/LICENSE "$OUT/LICENSE_GDLuau.txt"
+          if [ -f gdluau-src/luau/LICENSE.txt ]; then
+            cp gdluau-src/luau/LICENSE.txt "$OUT/LICENSE_Luau.txt"
+          elif [ -f gdluau-src/luau/LICENSE ]; then
+            cp gdluau-src/luau/LICENSE "$OUT/LICENSE_Luau.txt"
+          fi
+          cp gdluau-src/demo/addons/gdluau/bin/android/libgdluau.android.template_debug.arm64.so "$OUT/bin/android/"
+          cp gdluau-src/demo/addons/gdluau/bin/android/libgdluau.android.template_release.arm64.so "$OUT/bin/android/"
+          for so in "$OUT"/bin/android/*.so; do
+            test -s "$so"
+            file "$so"
+            readelf -h "$so" | grep -q 'Machine:.*AArch64'
+          done
+          cat > "$OUT/gdluau.gdextension" <<'EXTENSION'
+          [configuration]
+          entry_symbol = "gdluau_library_init"
+          compatibility_minimum = "4.7"
+
+          [libraries]
+          android.debug.arm64 = "res://addons/gdluau/bin/android/libgdluau.android.template_debug.arm64.so"
+          android.release.arm64 = "res://addons/gdluau/bin/android/libgdluau.android.template_release.arm64.so"
+          EXTENSION
+          cat > "$RUNNER_TEMP/cafeina-t05/BUILD_INFO.txt" <<'INFO'
+          CAFEINA Teste 05 - GDLuau v1.2 - Godot 4.7
+          Android ARM64; binarios debug e release compilados no GitHub Actions.
+          Este artifact contem SOMENTE a extensao. Copiar a pasta addons/ para a raiz do projeto T05.
+          Nao foi testado no Motorola Edge 30; valide no Godot Editor Android.
+          INFO
+
+      - name: Disponibilizar binarios ARM64
+        uses: actions/upload-artifact@v4
+        with:
+          name: CAFEINA-T05-GDLuau-Android-ARM64
+          path: ${{ runner.temp }}/cafeina-t05/
+          if-no-files-found: error
+          retention-days: 7
