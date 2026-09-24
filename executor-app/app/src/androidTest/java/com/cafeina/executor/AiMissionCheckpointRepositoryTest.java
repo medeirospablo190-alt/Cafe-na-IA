@@ -45,6 +45,15 @@ public final class AiMissionCheckpointRepositoryTest {
                 AiMissionState.CREATED), 1));
     }
 
+    @Test public void rejectsMissionIdentityChangeAndTerminalRestart() {
+        repository.save(new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.COMPLETED), 1);
+        assertThrows(IllegalStateException.class, () -> repository.save(
+            new AiMissionSnapshot("m", "project-a", "changed", AiMissionState.COMPLETED), 2));
+        assertThrows(IllegalStateException.class, () -> repository.save(
+            new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.RUNNING), 2));
+        assertEquals(AiMissionState.COMPLETED, repository.load("project-a", "m").state);
+    }
+
     @Test public void upgradesExistingV2WithoutLosingKnowledge() {
         database.close();
         context.deleteDatabase(CafeinaKnowledgeDatabase.DATABASE_NAME);
