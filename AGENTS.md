@@ -39,4 +39,4 @@ Estas instruções orientam agentes e colaboradores que desenvolvem a CAFEÍNA n
 
 Relatar apenas resultados verificáveis: arquivos/commits/PRs, testes efetivamente executados e seus resultados, riscos remanescentes e o próximo passo. Evitar repetir o mesmo status do CI. Se uma etapa depender do usuário, apresentar a decisão exata e continuar qualquer trabalho independente possível.
 
-Documentação complementar: `docs/DEVELOPMENT_WORKFLOW.md`. Regras específicas de componentes podem ser mais restritivas; nenhuma regra de ritmo revoga controles de segurança.
+Documentação complementar: `docs/DEVELOPMENT_WORKFLOW.md`. Em troca de chat/agente ou limite de sessão, usar `docs/DEVELOPMENT_HANDOFF_TEMPLATE.md`. Regras específicas de componentes podem ser mais restritivas; nenhuma regra de ritmo revoga controles de segurança.
