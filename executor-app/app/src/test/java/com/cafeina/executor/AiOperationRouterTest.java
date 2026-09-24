@@ -22,6 +22,10 @@ public final class AiOperationRouterTest {
         assertThrows(IllegalStateException.class, () -> router.dispatch(
             request("other", "operation:project.info", AiOperationRouter.PROJECT_READ), granted));
         assertEquals(Collections.singletonList("alpha"), projects.listProjectIds());
+        ProjectStore missingRoot = new ProjectStore(temp.getRoot().toPath().resolve("absent-projects"));
+        assertThrows(IllegalStateException.class, () -> AiOperationRouter.forProjects(missingRoot).dispatch(
+            request("alpha", "operation:project.info", AiOperationRouter.PROJECT_READ), granted));
+        assertFalse(java.nio.file.Files.exists(missingRoot.projectsDirectory()));
     }
 
     @Test public void missingPermissionFailsBeforeOperationRuns() {
@@ -35,6 +39,18 @@ public final class AiOperationRouterTest {
         assertThrows(SecurityException.class, () -> router.dispatch(
             request("alpha", "operation:test.read", "test.read"), AiCapabilitySet.none()));
         assertFalse(called[0]);
+    }
+
+    @Test public void rejectsFalseCapabilityReports() {
+        AiCapabilitySet granted = new AiCapabilitySet(Collections.singleton("test.read"));
+        AiOperationRouter router = new AiOperationRouter().register("test.read", "test.read", request ->
+            new CafeinaAiCore.Response("ok", Arrays.asList("test.read", "world.write")));
+        assertThrows(SecurityException.class, () -> router.dispatch(
+            request("alpha", "operation:test.read", "test.read"), granted));
+        AiOperationRouter missingReport = new AiOperationRouter().register("test.read", "test.read", request ->
+            new CafeinaAiCore.Response("ok", Collections.emptyList()));
+        assertThrows(IllegalStateException.class, () -> missingReport.dispatch(
+            request("alpha", "operation:test.read", "test.read"), granted));
     }
 
     @Test public void unknownAndDuplicateOperationsFailExplicitly() {
