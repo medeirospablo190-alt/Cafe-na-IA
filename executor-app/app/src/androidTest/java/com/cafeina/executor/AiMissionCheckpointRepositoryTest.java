@@ -54,6 +54,17 @@ public final class AiMissionCheckpointRepositoryTest {
         assertEquals(AiMissionState.COMPLETED, repository.load("project-a", "m").state);
     }
 
+    @Test public void rejectsInvalidTransitionsWithoutOverwritingCheckpoint() {
+        repository.save(new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.CREATED), 1);
+        assertThrows(IllegalStateException.class, () -> repository.save(
+            new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.COMPLETED), 2));
+        assertEquals(AiMissionState.CREATED, repository.load("project-a", "m").state);
+        repository.save(new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.RUNNING), 3);
+        repository.save(new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.WAITING_USER), 4);
+        repository.save(new AiMissionSnapshot("m", "project-a", "goal", AiMissionState.RUNNING), 5);
+        assertEquals(AiMissionState.RUNNING, repository.load("project-a", "m").state);
+    }
+
     @Test public void upgradesExistingV2WithoutLosingKnowledge() {
         database.close();
         context.deleteDatabase(CafeinaKnowledgeDatabase.DATABASE_NAME);
