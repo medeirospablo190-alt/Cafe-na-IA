@@ -1,5 +1,7 @@
 # Fluxo de desenvolvimento da CAFEÍNA — blocos longos
 
+**Autoridade:** `docs/CAFEINA_OPERATIONAL_PROTOCOL.md` (seções 2.1 e 64). Este documento é guia de aplicação, não fonte concorrente.
+
 ## Método adotado
 
 O fluxo adapta o método usado nos aplicativos Grupo Lua/Gestão: diagnóstico concentrado no início, execução silenciosa de um bloco grande, correção interna de erros, validação em checkpoints e entrega de resultados consolidados. O objetivo é reduzir chamadas externas, PRs fragmentados, reconstruções após squash e espera ociosa por CI.
