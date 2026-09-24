@@ -4,7 +4,7 @@ Atualizado em 2026-09-23. Este documento é cumulativo e serve para impedir perd
 
 ## NÃO PERDER AO TROCAR DE CHAT
 
-1. Ler primeiro `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`.
+1. Ler primeiro `docs/CAFEINA_OPERATIONAL_PROTOCOL.md` (incluindo a seção 2.1 de blocos de 25 minutos) e usar `AGENTS.md` como entrada resumida.
 2. O Protocolo Definitivo consolidado em `docs/CAFEINA_OPERATIONAL_PROTOCOL.md` substitui os conjuntos operacionais antigos (141 regras e 6 regras intermediárias) e tem precedência sobre interpretações operacionais conflitantes.
 3. Verificar o estado REAL do GitHub antes de qualquer afirmação ou mutação.
 4. Não reconstruir trabalho já concluído.
@@ -283,3 +283,11 @@ Este documento não substitui o Plano Mestre de 300 itens. O Plano Mestre é a e
 - #152 falhou corretamente por dependências AI ainda não integradas; substituído por integração coesa #155 sobre main atual.
 - #153/#154 são rebuilds intermediários; #155 consolida capabilities fail-closed + trusted project context + provider boundary sobre CafeinaAiCore já integrado.
 - Próximo fluxo: integrar lifecycle quando verde; integrar #155 quando verde; adicionar testes do DefaultCafeinaAiCore e persistência/reopen da Knowledge Store; então avançar chat/missões da Fase 17.
+
+## ATUALIZAÇÃO DE PROCESSO — 2026-09-24
+
+- O usuário determinou blocos de criação com **meta mínima de 25 minutos de trabalho útil contínuo por execução**, quando sessão/ferramentas permitirem; não fazer espera artificial nem prometer execução após encerrar resposta.
+- A regra está incorporada à seção 2.1 do protocolo canônico. `AGENTS.md` e `docs/DEVELOPMENT_WORKFLOW.md` são resumos/procedimentos, não protocolos concorrentes; `docs/DEVELOPMENT_HANDOFF_TEMPLATE.md` preserva estado entre sessões.
+- Não encerrar por CI pendente, commit, PR ou etapa; trabalhar em outra frente segura sem misturar diffs. Não usar polling repetitivo. O gate da seção 64 continua aplicável também após os 25 minutos.
+- PR #165: contrato inicial de operações AI; consultar o estado atual do GitHub antes de afirmar CI/merge. PR #166: atualização do processo, incluindo este handoff. Nenhum estado de CI aqui substitui consulta ao SHA atual.
+- O pedido de alterar o método não autoriza merge do código de IA do PR #165, deploy, mudanças destrutivas ou alterações do Collector. Merge de qualquer mudança exige autorização explícita e revisão/testes pertinentes.

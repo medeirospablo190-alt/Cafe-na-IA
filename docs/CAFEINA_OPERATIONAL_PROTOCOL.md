@@ -35,6 +35,16 @@ Continuar enquanto houver próxima ação necessária, segura, autorizada, relac
 
 **REGRA DE EXECUÇÃO CONTÍNUA:** após o usuário autorizar uma missão, não encerrar voluntariamente o trabalho enquanto existir qualquer ação segura, autorizada e relevante que possa ser executada autonomamente. Continuar analisando, implementando, testando, corrigindo, retestando, integrando e avançando pelas próximas etapas. Só parar quando uma ação, decisão, informação, autenticação, permissão ou intervenção do usuário for realmente necessária, quando o usuário mandar pausar/cancelar, ou quando uma limitação real das ferramentas impedir a continuação. PR, commit, merge, CI, teste concluído, fase concluída, erro corrigível ou fim de subbloco nunca são, isoladamente, motivos para parar.
 
+## 2.1. META DE BLOCO LONGO — 25 MINUTOS
+
+A partir da atualização de 2026-09-24, a meta operacional é **no mínimo 25 minutos de trabalho útil por execução autorizada**, quando os limites reais da sessão e das ferramentas permitirem. Não encerrar voluntariamente antes disso enquanto houver trabalho seguro, relevante e executável. O tempo deve ser preenchido com implementação, testes, revisão, diagnóstico, documentação ou preparação de dependências — nunca espera artificial, polling ou texto de progresso para completar relógio.
+
+A meta de 25 minutos **não é promessa de execução em segundo plano**, não cria temporizador no GitHub, não permite ignorar limites da plataforma e não substitui o gate de saída da seção 64: se ainda houver trabalho seguro após 25 minutos, continuar quando possível. Se um limite real interromper a execução antes, registrar o estado verificável e a próxima ação exata sem declarar duração não medida.
+
+Adotar o método de blocos dos aplicativos Grupo Lua/Gestão somente como **método de execução**: diagnóstico concentrado, ações em lote, branch/PR tecnicamente focados, correção interna de falhas, CI em checkpoints, trabalho independente durante esperas e handoff preciso. Não importar código, regras de negócio, credenciais ou dependências desses aplicativos para o produto CAFEÍNA.
+
+A autorização para implementar não autoriza automaticamente merge em `main`, deploy de produção, alteração destrutiva ou uso de credenciais. **Neste projeto, merge em `main` exige autorização explícita do usuário para a mudança**, além da revisão e dos testes pertinentes. Enquanto um merge aguarda autorização, executar trabalho independente em branch isolada quando houver.
+
 ## 3. GOAL LOCK
 Toda missão possui objetivo principal, prioritário até conclusão, mudança de prioridade, cancelamento, pausa, dependência real do usuário ou limitação real da plataforma. Não abandonar por curiosidade técnica, melhoria secundária, refatoração opcional, ideia nova, investigação desnecessária ou otimização prematura. Descobertas úteis não necessárias entram em LEARNING QUEUE / IDEAS FOR LATER / PENDÊNCIA TÉCNICA sem interromper o Goal Lock.
 
@@ -249,6 +259,10 @@ Antes de emitir qualquer resposta final durante uma missão autorizada, executar
 - Não usar mensagens como “continuando” como substituto de execução: continuidade significa executar a próxima ação no mesmo turno.
 
 Este gate é controle de execução do protocolo existente, não uma nova família de regras concorrentes.
+
+## 64.1. FONTES OPERACIONAIS CANÔNICAS
+
+Este arquivo é a **única fonte normativa do processo**. `AGENTS.md` é o ponto de entrada e resumo para agentes; `docs/DEVELOPMENT_WORKFLOW.md` é o procedimento prático; `docs/DEVELOPMENT_HANDOFF_TEMPLATE.md` é o modelo de estado. Em conflito, este protocolo prevalece, respeitada a precedência da seção 1. O handoff `docs/CAFEINA_NEXT_CHAT_HANDOFF.md` registra fatos históricos e estado, não cria regras concorrentes. Não ressuscitar as antigas 141 regras nem as 6 regras intermediárias como sistemas separados.
 
 ## 65. REGRA FINAL
 O PROCESSO EXISTE PARA AJUDAR A CONSTRUIR O CAFEÍNA. O CAFEÍNA NÃO EXISTE PARA SATISFAZER O PROCESSO.
