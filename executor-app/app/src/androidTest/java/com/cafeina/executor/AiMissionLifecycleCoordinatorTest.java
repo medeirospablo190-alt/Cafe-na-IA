@@ -66,6 +66,15 @@ public final class AiMissionLifecycleCoordinatorTest {
         assertEquals(AiMissionState.RUNNING, resumed.state());
     }
 
+    @Test public void newProcessCannotCompleteOldRunningHandle() throws Exception {
+        AiMission old = lifecycle.transition(lifecycle.create("m", "project-a", "goal"), AiMission::start);
+        lifecycle = new AiMissionLifecycleCoordinator(projects, checkpoints, () -> 200);
+        assertThrows(IllegalStateException.class, () -> lifecycle.transition(old, AiMission::complete));
+        AiMission paused = lifecycle.restore("project-a", "m");
+        assertEquals(AiMissionState.WAITING_USER, paused.state());
+        assertEquals(AiMissionState.WAITING_USER, checkpoints.load("project-a", "m").state);
+    }
+
     @Test public void rejectsUnknownProjectAndDuplicateIdentity() throws Exception {
         assertThrows(java.io.IOException.class, () -> lifecycle.create("m", "missing", "goal"));
         lifecycle.create("m", "project-a", "goal");
