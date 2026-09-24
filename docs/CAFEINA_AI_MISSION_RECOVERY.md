@@ -11,7 +11,7 @@ O estado em memória de `AiMission` agora pode produzir um `AiMissionSnapshot` i
 
 ## Persistência adicionada no PR dependente
 
-`AiMissionCheckpointRepository` salva por `(project_id, mission_id)` na versão 3 do banco local, rejeita projeto inválido, mudança de objetivo para a mesma identidade e reinício de missão terminal. Há testes de reabertura, isolamento por projeto e migração de v2 para v3. O armazenamento não concede capabilities e não executa operações.
+`AiMissionCheckpointRepository` salva por `(project_id, mission_id)` na versão 3 do banco local, rejeita projeto inválido, mudança de objetivo para a mesma identidade, transições de estado inválidas e reinício de missão terminal. Retransmissões do mesmo estado são idempotentes. Há testes de reabertura, isolamento por projeto e migração de v2 para v3. O armazenamento não concede capabilities e não executa operações.
 
 ## Próxima etapa
 
