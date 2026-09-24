@@ -53,3 +53,7 @@ npm install
 npm run check
 npm test
 ```
+
+## Método de desenvolvimento
+
+O trabalho de agentes segue [AGENTS.md](AGENTS.md) e o [fluxo de blocos longos](docs/DEVELOPMENT_WORKFLOW.md): meta de 25 minutos de trabalho útil por execução quando possível, implementação por fase, CI em checkpoints, continuidade durante esperas e aprovação explícita antes de merge na `main`. Essas regras não flexibilizam segurança, testes nem isolamento do Collector.
