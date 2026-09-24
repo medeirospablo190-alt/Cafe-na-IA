@@ -1,6 +1,8 @@
 package com.cafeina.executor;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Host-owned mission lifecycle boundary. Every transition is persisted before
@@ -13,6 +15,7 @@ public final class AiMissionLifecycleCoordinator {
     private final ProjectStore projects;
     private final AiMissionCheckpointRepository checkpoints;
     private final Clock clock;
+    private final Map<String, AiMission> activeHandles = new HashMap<>();
 
     public AiMissionLifecycleCoordinator(ProjectStore projects,
             AiMissionCheckpointRepository checkpoints, Clock clock) {
@@ -31,6 +34,7 @@ public final class AiMissionLifecycleCoordinator {
             throw new IllegalStateException("mission already exists");
         }
         checkpoints.save(mission.snapshot(), clock.now());
+        activeHandles.put(key(projectId, id), mission);
         return mission;
     }
 
@@ -46,6 +50,7 @@ public final class AiMissionLifecycleCoordinator {
         if (stored.state == AiMissionState.RUNNING) {
             checkpoints.save(recovered.snapshot(), clock.now());
         }
+        activeHandles.put(key(projectId, missionId), recovered);
         return recovered;
     }
 
@@ -58,6 +63,9 @@ public final class AiMissionLifecycleCoordinator {
             throw new IllegalArgumentException("mission and transition are required");
         }
         requireProject(mission.projectId);
+        if (activeHandles.get(key(mission.projectId, mission.id)) != mission) {
+            throw new IllegalStateException("mission handle is not active in this process");
+        }
         AiMissionSnapshot stored = checkpoints.load(mission.projectId, mission.id);
         if (stored == null || !stored.goal.equals(mission.goal) || stored.state != mission.state()) {
             throw new IllegalStateException("mission is missing or stale; restore and reconcile first");
@@ -69,7 +77,12 @@ public final class AiMissionLifecycleCoordinator {
         }
         transition.apply(candidate);
         checkpoints.save(candidate.snapshot(), clock.now());
+        activeHandles.put(key(candidate.projectId, candidate.id), candidate);
         return candidate;
+    }
+
+    private static String key(String projectId, String missionId) {
+        return projectId + "\\u0000" + missionId;
     }
 
     private void requireProject(String projectId) throws IOException {
