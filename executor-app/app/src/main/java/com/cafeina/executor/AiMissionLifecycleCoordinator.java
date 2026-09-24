@@ -40,21 +40,36 @@ public final class AiMissionLifecycleCoordinator {
      */
     public synchronized AiMission restore(String projectId, String missionId) throws IOException {
         requireProject(projectId);
-        return checkpoints.restore(projectId, missionId);
+        AiMissionSnapshot stored = checkpoints.load(projectId, missionId);
+        if (stored == null) return null;
+        AiMission recovered = AiMission.restore(stored);
+        if (stored.state == AiMissionState.RUNNING) {
+            checkpoints.save(recovered.snapshot(), clock.now());
+        }
+        return recovered;
     }
 
     /**
      * Read the persisted state, apply one legal transition and persist it.
      * Never trust a stale in-memory mission as the authority.
      */
-    public synchronized AiMission transition(String projectId, String missionId,
-            Transition transition) throws IOException {
-        if (transition == null) throw new IllegalArgumentException("transition is required");
-        AiMission mission = restore(projectId, missionId);
-        if (mission == null) throw new IllegalArgumentException("mission not found");
-        transition.apply(mission);
-        checkpoints.save(mission.snapshot(), clock.now());
-        return mission;
+    public synchronized AiMission transition(AiMission mission, Transition transition) throws IOException {
+        if (mission == null || transition == null) {
+            throw new IllegalArgumentException("mission and transition are required");
+        }
+        requireProject(mission.projectId);
+        AiMissionSnapshot stored = checkpoints.load(mission.projectId, mission.id);
+        if (stored == null || !stored.goal.equals(mission.goal) || stored.state != mission.state()) {
+            throw new IllegalStateException("mission is missing or stale; restore and reconcile first");
+        }
+        AiMission candidate = AiMission.restore(mission.snapshot());
+        // A live RUNNING mission must not be mistaken for a process-recovery snapshot.
+        if (mission.state() == AiMissionState.RUNNING) {
+            candidate = mission.copyForLiveTransition();
+        }
+        transition.apply(candidate);
+        checkpoints.save(candidate.snapshot(), clock.now());
+        return candidate;
     }
 
     private void requireProject(String projectId) throws IOException {
