@@ -30,6 +30,7 @@ public final class AiOperationRouter {
     public static AiOperationRouter forProjects(ProjectStore projects) {
         if (projects == null) throw new IllegalArgumentException("projects are required");
         return new AiOperationRouter().register(PROJECT_INFO, PROJECT_READ, request -> {
+            if (!projects.exists(request.projectId)) throw new IOException("project not found or invalid");
             ProjectStore.Project project = projects.open(request.projectId);
             return new CafeinaAiCore.Response(
                 "Project " + project.id() + " is available with its validated storage layout.",
@@ -52,7 +53,16 @@ public final class AiOperationRouter {
         }
         granted.require(registered.capability);
         try {
-            return registered.operation.execute(request);
+            CafeinaAiCore.Response result = registered.operation.execute(request);
+            if (result == null || !result.usedCapabilities.contains(registered.capability)) {
+                throw new IllegalStateException("operation did not report its required capability: " + name);
+            }
+            for (String used : result.usedCapabilities) {
+                if (!request.requestedCapabilities.contains(used) || !granted.allows(used)) {
+                    throw new SecurityException("operation reported unauthorized capability: " + used);
+                }
+            }
+            return result;
         } catch (IOException failure) {
             throw new IllegalStateException("operation failed: " + name, failure);
         }
