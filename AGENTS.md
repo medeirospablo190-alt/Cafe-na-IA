@@ -1,5 +1,7 @@
 # Regras de trabalho — CAFEÍNA
 
+**Fonte normativa:** `docs/CAFEINA_OPERATIONAL_PROTOCOL.md`. Este arquivo é a entrada resumida para agentes e não cria um protocolo concorrente. Em conflito, seguir o protocolo e sua precedência.
+
 Estas instruções orientam agentes e colaboradores que desenvolvem a CAFEÍNA neste repositório. O objetivo é entregar blocos grandes, coerentes e testáveis, como no fluxo de desenvolvimento do Grupo Lua/Gestão, sem transformar cada commit, PR ou consulta de CI em uma pausa para o usuário.
 
 ## 1. Ritmo e autonomia
