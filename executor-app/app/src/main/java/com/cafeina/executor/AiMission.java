@@ -5,6 +5,15 @@ public final class AiMission {
  public AiMission(String id,String projectId,String goal){
   require(id,"id");require(projectId,"projectId");require(goal,"goal");this.id=id;this.projectId=projectId;this.goal=goal;state=AiMissionState.CREATED;
  }
+ /** Restore a checkpoint without re-running an interrupted mission. */
+ public static AiMission restore(AiMissionSnapshot checkpoint){
+  if(checkpoint==null)throw new IllegalArgumentException("checkpoint is required");
+  AiMission mission=new AiMission(checkpoint.id,checkpoint.projectId,checkpoint.goal);
+  // An interrupted execution must not silently resume or repeat side effects.
+  mission.state=checkpoint.state==AiMissionState.RUNNING?AiMissionState.WAITING_USER:checkpoint.state;
+  return mission;
+ }
+ public AiMissionSnapshot snapshot(){return new AiMissionSnapshot(id,projectId,goal,state);}
  public AiMissionState state(){return state;}
  public void start(){transition(AiMissionState.CREATED,AiMissionState.RUNNING);}
  public void waitForUser(){transition(AiMissionState.RUNNING,AiMissionState.WAITING_USER);}
