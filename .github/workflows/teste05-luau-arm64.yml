@@ -46,6 +46,14 @@ jobs:
           echo "ANDROID_NDK_ROOT=$NDK" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$NDK" >> "$GITHUB_ENV"
 
+      - name: Habilitar excecoes C++ usadas pelo compilador Luau
+        working-directory: gdluau-src
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's/lua_env.Append(CXXFLAGS=\["-std=c++17"\])/lua_env.Append(CXXFLAGS=["-std=c++17", "-fexceptions"])/' SConstruct
+          grep -F 'lua_env.Append(CXXFLAGS=["-std=c++17", "-fexceptions"])' SConstruct
+
       - name: Compilar GDExtension ARM64 debug
         working-directory: gdluau-src
         shell: bash
