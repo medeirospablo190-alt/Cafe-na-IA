@@ -13,6 +13,8 @@ public final class AiMission {
   mission.state=checkpoint.state==AiMissionState.RUNNING?AiMissionState.WAITING_USER:checkpoint.state;
   return mission;
  }
+ /** Copy only for a live, state-checked transition; never use for process recovery. */
+ AiMission copyForLiveTransition(){AiMission copy=new AiMission(id,projectId,goal);copy.state=state;return copy;}
  public AiMissionSnapshot snapshot(){return new AiMissionSnapshot(id,projectId,goal,state);}
  public AiMissionState state(){return state;}
  public void start(){transition(AiMissionState.CREATED,AiMissionState.RUNNING);}
