@@ -25,7 +25,8 @@ public final class DefaultCafeinaAiCore implements CafeinaAiCore {
     @Override public Response handle(Request request) {
         if (request == null) throw new IllegalArgumentException("request is required");
         for (String capability : request.requestedCapabilities) capabilities.require(capability);
-        if (operations != null && operations.isOperationRequest(request.message)) {
+        if (request.message.startsWith(AiOperationRouter.PREFIX)) {
+            if (operations == null) throw new IllegalStateException("operation router is not configured");
             return operations.dispatch(request, capabilities);
         }
         // Preserve existing model behavior for ordinary messages.
