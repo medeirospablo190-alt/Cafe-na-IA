@@ -38,9 +38,9 @@ jobs:
         run: |
           set -euo pipefail
           : "${ANDROID_SDK_ROOT:?SDK Android ausente no runner}"
-          NDK="$ANDROID_SDK_ROOT/ndk/27.2.12479018"
+          NDK="$ANDROID_SDK_ROOT/ndk/28.1.13356709"
           if [ ! -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" ]; then
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;27.2.12479018'
+            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;28.1.13356709'
           fi
           test -x "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
           echo "ANDROID_NDK_ROOT=$NDK" >> "$GITHUB_ENV"
