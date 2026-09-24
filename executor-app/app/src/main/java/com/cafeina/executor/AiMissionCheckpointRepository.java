@@ -21,6 +21,20 @@ public final class AiMissionCheckpointRepository {
         SQLiteDatabase db = database.getWritableDatabase();
         db.beginTransaction();
         try {
+            try (Cursor previous = db.query("mission_checkpoints", new String[]{"goal", "state"},
+                    "project_id=? AND mission_id=?", new String[]{snapshot.projectId, snapshot.id},
+                    null, null, null)) {
+                if (previous.moveToFirst()) {
+                    if (!snapshot.goal.equals(previous.getString(0))) {
+                        throw new IllegalStateException("mission identity cannot change its goal");
+                    }
+                    AiMissionState old = AiMissionState.valueOf(previous.getString(1));
+                    if (old == AiMissionState.COMPLETED || old == AiMissionState.FAILED
+                            || old == AiMissionState.CANCELLED) {
+                        if (old != snapshot.state) throw new IllegalStateException("terminal mission cannot restart");
+                    }
+                }
+            }
             ContentValues values = new ContentValues();
             values.put("project_id", snapshot.projectId);
             values.put("mission_id", snapshot.id);
