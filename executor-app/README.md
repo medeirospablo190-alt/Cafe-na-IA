@@ -173,10 +173,14 @@ the source passed to the runtime or saved to disk.
   the selected tab into view after switching/restoring;
 - CLEAR asks for confirmation before removing nonempty editor text; it does not
   delete a saved script on disk;
+- DESFAZER/REFAZER keep up to 24 bounded snapshots independently per tab;
+  they also recover a confirmed CLEAR, but do not survive an app restart;
+- files larger than 96,000 characters remain editable without copying their
+  full contents into the in-memory undo stack;
 - Save and close keeps the tab open if the user made more edits after the
   background save started;
 - the Android editor activity requests resize when the software keyboard opens.
 
-This pass does not add persistent autosave of unsaved drafts, undo/redo,
-renaming, search/replace, or an expandable console. Those remain separate tasks
+This pass does not add persistent autosave of unsaved drafts, tab renaming,
+search/replace, or an expandable console. Those remain separate tasks
 and must not be described as implemented.
