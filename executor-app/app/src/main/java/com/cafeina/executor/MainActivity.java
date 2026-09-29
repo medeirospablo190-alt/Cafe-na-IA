@@ -6,12 +6,17 @@ import android.content.Intent;
 import android.net.Uri;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.View;
+import android.view.WindowInsets;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -49,6 +54,7 @@ public final class MainActivity extends Activity {
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
+    private final EditorUndoHistory editorHistory = new EditorUndoHistory();
 
     private ScriptStore scriptStore;
     private AutoExecuteStore autoExecuteStore;
@@ -64,7 +70,10 @@ public final class MainActivity extends Activity {
     private Button loadButton;
     private Button autoExecuteButton;
     private Button addTabButton;
+    private Button undoButton;
+    private Button redoButton;
     private LinearLayout tabButtons;
+    private HorizontalScrollView tabScroll;
     private boolean suppressEditorWatcher;
     private boolean autoExecStartupTriggered;
     private LinearLayout screenHost;
@@ -113,7 +122,8 @@ public final class MainActivity extends Activity {
         app.setBackgroundColor(BG);
 
         TextView brand = new TextView(this);
-        brand.setText("CAFEÍNA • " + workspace.label());
+        brand.setText((getPackageName().endsWith(".preview") ? "CAFEÍNA TESTE" : "CAFEÍNA")
+            + " • " + workspace.label());
         brand.setTextColor(TEXT);
         brand.setTextSize(21);
         brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -281,7 +291,7 @@ public final class MainActivity extends Activity {
         subtitleParams.setMargins(0, dp(2), 0, dp(8));
         root.addView(subtitle, subtitleParams);
 
-        HorizontalScrollView tabScroll = new HorizontalScrollView(this);
+        tabScroll = new HorizontalScrollView(this);
         tabScroll.setHorizontalScrollBarEnabled(false);
         tabScroll.setFillViewport(false);
 
@@ -315,7 +325,22 @@ public final class MainActivity extends Activity {
         fontControls.addView(fontUp, fontUpParams);
         root.addView(fontControls, matchWrap());
 
-        editor = new EditText(this);
+        LinearLayout historyControls = new LinearLayout(this);
+        historyControls.setOrientation(LinearLayout.HORIZONTAL);
+        undoButton = makeButton("DESFAZER", PANEL_2);
+        redoButton = makeButton("REFAZER", PANEL_2);
+        undoButton.setContentDescription("Desfazer alteração no código");
+        redoButton.setContentDescription("Refazer alteração no código");
+        addTwoButtons(historyControls, undoButton, redoButton);
+        LinearLayout.LayoutParams historyParams = matchWrap();
+        historyParams.setMargins(0, 0, 0, dp(6));
+        root.addView(historyControls, historyParams);
+        undoButton.setOnClickListener(v -> restoreEditorHistory(false));
+        redoButton.setOnClickListener(v -> restoreEditorHistory(true));
+        undoButton.setEnabled(false);
+        redoButton.setEnabled(false);
+
+        editor = new LuauCodeEditor(this);
         editor.setText(tabs.activeContent());
         editor.setTextColor(TEXT);
         editor.setHintTextColor(MUTED);
@@ -323,7 +348,7 @@ public final class MainActivity extends Activity {
         editor.setTypeface(Typeface.MONOSPACE);
         editor.setTextSize(editorFontSp);
         editor.setGravity(Gravity.TOP | Gravity.START);
-        editor.setPadding(dp(12), dp(12), dp(12), dp(12));
+        // LuauCodeEditor reserves its own gutter and responsive padding.
         editor.setInputType(
             InputType.TYPE_CLASS_TEXT
                 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
@@ -344,7 +369,9 @@ public final class MainActivity extends Activity {
                 if (suppressEditorWatcher) return;
 
                 boolean wasDirty = tabs.activeDirty();
+                editorHistory.record(tabs.activeName(), tabs.activeContent(), value.toString());
                 tabs.updateActiveContent(value.toString());
+                refreshHistoryButtons();
                 boolean nowDirty = tabs.activeDirty();
 
                 if (wasDirty != nowDirty) {
@@ -433,10 +460,47 @@ public final class MainActivity extends Activity {
         loadButton.setOnClickListener(v -> showLoadPicker());
         autoExecuteButton.setOnClickListener(v -> toggleAutoExecute());
 
+        installKeyboardLayout(root, primaryActions, storageActions, archiveActions, consoleScroll);
         renderTabs();
         return root;
     }
 
+
+    /**
+     * The editor occupies the remaining screen height. When the IME appears,
+     * fixed action rows and the console would otherwise leave no room for code.
+     * Keep tabs/font/history visible and restore the other controls on dismissal.
+     */
+    private void installKeyboardLayout(LinearLayout root, View primaryActions,
+            View storageActions, View archiveActions, View consoleScroll) {
+        final int[] fullHeight = {0};
+        final boolean[] compact = {false};
+        final Rect visible = new Rect();
+        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (!root.isAttachedToWindow() || root.getHeight() <= 0) return;
+            WindowInsets insets = root.getRootWindowInsets();
+            boolean imeVisible = Build.VERSION.SDK_INT >= 30 && insets != null
+                && insets.isVisible(WindowInsets.Type.ime());
+
+            // Older Android versions: track the expanded layout and visible frame.
+            root.getWindowVisibleDisplayFrame(visible);
+            int covered = Math.max(0, root.getRootView().getHeight() - visible.bottom);
+            if (!imeVisible && covered < dp(160)) {
+                fullHeight[0] = Math.max(fullHeight[0], root.getHeight());
+            }
+            boolean shouldCompact = imeVisible || covered > dp(160)
+                || (fullHeight[0] > 0 && fullHeight[0] - root.getHeight() > dp(120));
+            if (shouldCompact == compact[0]) return;
+            compact[0] = shouldCompact;
+            int visibility = shouldCompact ? View.GONE : View.VISIBLE;
+            primaryActions.setVisibility(visibility);
+            storageActions.setVisibility(visibility);
+            archiveActions.setVisibility(visibility);
+            autoExecuteButton.setVisibility(visibility);
+            consoleScroll.setVisibility(visibility);
+            status.setVisibility(visibility);
+        });
+    }
 
     private boolean hasUnsavedTabs() {
         tabs.updateActiveContent(editor.getText().toString());
@@ -522,8 +586,10 @@ public final class MainActivity extends Activity {
                     runOnUiThread(() -> {
                         if (!activityAlive()) return;
                         for (Map.Entry<String, String> script : importedContents.entrySet()) {
+                            editorHistory.forget(script.getKey());
                             tabs.openOrReplace(script.getKey(), script.getValue());
                         }
+                        refreshHistoryButtons();
                         if (!importedContents.isEmpty()) {
                             setEditorText(tabs.activeContent());
                             renderTabs();
@@ -615,6 +681,28 @@ public final class MainActivity extends Activity {
         loadButton.setEnabled(enabled);
         if (autoExecuteButton != null) autoExecuteButton.setEnabled(enabled);
         if (addTabButton != null) addTabButton.setEnabled(enabled);
+        refreshHistoryButtons();
+    }
+
+    private void refreshHistoryButtons() {
+        if (undoButton == null || redoButton == null || editor == null) return;
+        boolean editable = editor.isEnabled();
+        undoButton.setEnabled(editable && editorHistory.canUndo(tabs.activeName()));
+        redoButton.setEnabled(editable && editorHistory.canRedo(tabs.activeName()));
+    }
+
+    private void restoreEditorHistory(boolean redo) {
+        if (!editor.isEnabled()) return;
+        String name = tabs.activeName();
+        String current = editor.getText().toString();
+        if (redo ? !editorHistory.canRedo(name) : !editorHistory.canUndo(name)) return;
+        String restored = redo ? editorHistory.redo(name, current) : editorHistory.undo(name, current);
+        setEditorText(restored);
+        tabs.updateActiveContent(restored);
+        renderTabs();
+        refreshAutoExecButton();
+        refreshHistoryButtons();
+        status.setText((redo ? "Refeito • " : "Desfeito • ") + name);
     }
 
     private void addTwoButtons(LinearLayout row, Button left, Button right) {
@@ -642,6 +730,10 @@ public final class MainActivity extends Activity {
 
             String label = tabs.nameAt(i) + (tabs.isDirtyAt(i) ? " *" : "");
             Button tab = makeTabButton(label, active);
+            tab.setMaxWidth(dp(192));
+            tab.setSingleLine(true);
+            tab.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            tab.setContentDescription(label);
             tab.setOnClickListener(v -> switchTab(index));
 
             Button close = makeTabButton("×", false);
@@ -671,6 +763,22 @@ public final class MainActivity extends Activity {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             dp(38)
         ));
+
+        // Keep the current script visible after opening, restoring or switching tabs.
+        final android.view.View activeTab = tabButtons.getChildAt(tabs.activeIndex());
+        if (tabScroll != null && activeTab != null) {
+            tabScroll.post(() -> {
+                if (activeTab.getParent() != tabButtons || tabScroll.getWidth() == 0) return;
+                int left = activeTab.getLeft();
+                int right = activeTab.getRight();
+                int start = tabScroll.getScrollX();
+                int visible = tabScroll.getWidth();
+                if (left < start) tabScroll.smoothScrollTo(Math.max(0, left - dp(8)), 0);
+                else if (right > start + visible) {
+                    tabScroll.smoothScrollTo(Math.max(0, right - visible + dp(8)), 0);
+                }
+            });
+        }
     }
 
     private void switchTab(int index) {
@@ -743,6 +851,12 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
                     tabs.markSaved(name, content);
+                    int currentIndex = tabs.indexOfName(name);
+                    if (currentIndex >= 0 && tabs.isDirtyAt(currentIndex)) {
+                        renderTabs();
+                        status.setText("Versão anterior salva • alterações recentes mantidas em " + name);
+                        return;
+                    }
                     closeTabNow(name);
                 });
             } catch (Exception error) {
@@ -763,16 +877,40 @@ public final class MainActivity extends Activity {
         }
 
         tabs.close(index);
+        editorHistory.forget(name);
         showActiveTab("Aba fechada");
     }
 
     private void clearActiveTab() {
-        setEditorText("");
-        tabs.updateActiveContent("");
-        console.setText("");
-        renderTabs();
-        refreshAutoExecButton();
-        status.setText("Editor limpo • " + tabs.activeName());
+        if (editor.getText().length() == 0) {
+            console.setText("");
+            status.setText("Editor já está vazio • " + tabs.activeName());
+            return;
+        }
+        final String name = tabs.activeName();
+        final boolean undoAvailable = editor.getText().length()
+            <= EditorUndoHistory.MAX_SNAPSHOT_CHARS;
+        String warning = undoAvailable
+            ? "O conteúdo de " + name + " será apagado do editor. Você poderá usar DESFAZER."
+            : "Este código é grande demais para o histórico em memória. DESFAZER não recuperará "
+                + "o texto apagado. Salve uma cópia antes de limpar.";
+        new AlertDialog.Builder(this)
+            .setTitle("Limpar o código?")
+            .setMessage(warning + " O arquivo salvo em disco não será excluído.")
+            .setPositiveButton(undoAvailable ? "Limpar" : "Limpar mesmo assim", (dialog, which) -> {
+                if (!name.equals(tabs.activeName())) return;
+                editorHistory.record(name, editor.getText().toString(), "");
+                setEditorText("");
+                tabs.updateActiveContent("");
+                console.setText("");
+                renderTabs();
+                refreshAutoExecButton();
+                refreshHistoryButtons();
+                status.setText("Editor limpo • " + name + (editorHistory.canUndo(name)
+                    ? " (DESFAZER recupera o código)" : " (arquivo salvo preservado)"));
+            })
+            .setNegativeButton("Cancelar", null)
+            .show();
     }
 
     private void saveActiveScript() {
@@ -894,10 +1032,12 @@ public final class MainActivity extends Activity {
     }
 
     private void applyLoadedScript(String name, String diskContent) {
+        editorHistory.forget(name);
         tabs.openOrReplace(name, diskContent);
         setEditorText(tabs.activeContent());
         loadButton.setEnabled(true);
         status.setText("Carregado localmente • " + name);
+        refreshHistoryButtons();
         renderTabs();
         refreshAutoExecButton();
     }
@@ -1179,6 +1319,7 @@ public final class MainActivity extends Activity {
         status.setText(prefix + " • " + tabs.activeName());
         renderTabs();
         refreshAutoExecButton();
+        refreshHistoryButtons();
     }
 
     private void setEditorText(String value) {

@@ -15,6 +15,9 @@ var look_touch_id: int = -1
 var joystick_center: Vector2 = Vector2.ZERO
 var jump_requested: bool = false
 var joystick_knob: ColorRect
+var joystick_base: ColorRect
+var jump_button: Button
+var reset_button: Button
 var hud_status: Label
 
 const BLOCKS := [
@@ -32,11 +35,15 @@ const BLOCKS := [
 ]
 
 func _ready() -> void:
+    # The native editor stays portrait; only the embedded world uses landscape.
+    DisplayServer.screen_set_orientation(DisplayServer.SCREEN_LANDSCAPE)
     _create_lighting()
     for entry in BLOCKS:
         _create_block(entry[0], entry[1], entry[2], entry[3], entry[4])
     _create_player()
     _create_mobile_ui()
+    get_viewport().size_changed.connect(_layout_mobile_ui)
+    _layout_mobile_ui()
 
 func _create_lighting() -> void:
     var light := DirectionalLight3D.new()
@@ -134,6 +141,7 @@ func _create_mobile_ui() -> void:
     base.position = Vector2(26, screen.y - 158)
     base.mouse_filter = Control.MOUSE_FILTER_IGNORE
     overlay.add_child(base)
+    joystick_base = base
     joystick_center = base.position + Vector2(66, 66)
     joystick_knob = ColorRect.new()
     joystick_knob.color = Color(0.69, 0.88, 1.0, 0.72)
@@ -149,6 +157,7 @@ func _create_mobile_ui() -> void:
     jump.add_theme_font_size_override("font_size", 22)
     jump.pressed.connect(func() -> void: jump_requested = true)
     overlay.add_child(jump)
+    jump_button = jump
 
     var reset := Button.new()
     reset.text = "REINICIAR PERSONAGEM"
@@ -156,6 +165,17 @@ func _create_mobile_ui() -> void:
     reset.size = Vector2(225, 52)
     reset.pressed.connect(_reset_player)
     overlay.add_child(reset)
+    reset_button = reset
+
+func _layout_mobile_ui() -> void:
+    if not is_instance_valid(joystick_base):
+        return
+    var screen := get_viewport().get_visible_rect().size
+    joystick_base.position = Vector2(26, screen.y - 158)
+    joystick_center = joystick_base.position + Vector2(66, 66)
+    joystick_knob.position = joystick_center + move_axis * 53.0 - joystick_knob.size / 2.0
+    jump_button.position = Vector2(screen.x - 170, screen.y - 118)
+    reset_button.position = Vector2(screen.x - 245, 17)
 
 func _input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:

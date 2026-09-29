@@ -61,6 +61,7 @@ jobs:
           unzip -l "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
           unzip -l "$APK" | grep -F "assets/project.godot"
           unzip -l "$APK" | grep -F "assets/world.gd"
+          unzip -p "$APK" assets/project.godot | grep -qx "window/handheld/orientation=0"
 
       - name: Enable KVM
         run: |
@@ -94,6 +95,7 @@ jobs:
           test -s "$APK"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
+          unzip -p "$APK" assets/project.godot | grep -qx "window/handheld/orientation=0"
           if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
             echo "Unexpected non-ARM64 library in installable APK"
             exit 1
@@ -104,4 +106,30 @@ jobs:
         with:
           name: cafeina-android-arm64-apk
           path: executor-app/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Build side-by-side ARM64 world preview APK
+        working-directory: executor-app
+        run: gradle -PcafeinaArm64Only=true :app:assemblePreview --stacktrace
+
+      - name: Verify isolated preview package and world orientation
+        working-directory: executor-app
+        shell: bash
+        run: |
+          APK="$(find app/build/outputs/apk/preview -name '*.apk' -print -quit)"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.cafeina.executor.preview'"
+          unzip -p "$APK" assets/project.godot | grep -qx "window/handheld/orientation=0"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
+          if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
+            echo "Unexpected non-ARM64 library in preview APK"
+            exit 1
+          fi
+
+      - name: Upload independent ARM64 preview APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cafeina-world-landscape-preview-arm64-apk
+          path: executor-app/app/build/outputs/apk/preview/*.apk
           if-no-files-found: error

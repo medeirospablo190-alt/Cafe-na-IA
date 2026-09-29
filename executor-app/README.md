@@ -157,3 +157,50 @@ Rules:
 - the Project Core is currently isolated and is not yet wired into the editor, Auto Execute or existing `files/scripts` / `files/runtime-fs` data.
 
 Keeping the existing storage untouched avoids a destructive migration before project selection, migration and rollback rules are defined and tested.
+
+
+## Mobile Luau editor — first usability pass
+
+The native CÓDIGO screen now uses LuauCodeEditor, an EditText subclass. The text
+remains editable plain Luau; coloring only adds Android spans and never changes
+the source passed to the runtime or saved to disk.
+
+- line numbers mark logical source lines, not extra lines created by wrapping;
+- syntax coloring covers keywords, builtins, strings, comments and numbers;
+- coloring is debounced and limited to the first 24,000 characters to protect
+  typing responsiveness on large scripts; code beyond that limit stays editable;
+- the tab strip remains horizontally scrollable, caps long labels and brings
+  the selected tab into view after switching/restoring;
+- CLEAR asks for confirmation before removing nonempty editor text; it does not
+  delete a saved script on disk;
+- DESFAZER/REFAZER keep up to 24 bounded snapshots independently per tab;
+  they also recover a confirmed CLEAR, but do not survive an app restart;
+- files larger than 96,000 characters remain editable without copying their
+  full contents into the in-memory undo stack;
+- Save and close keeps the tab open if the user made more edits after the
+  background save started;
+- the Android editor activity requests resize when the software keyboard opens;
+  while typing, the console and nonessential action rows are temporarily hidden
+  to preserve enough height for code, and return when the keyboard closes.
+
+This pass does not add persistent autosave of unsaved drafts, tab renaming,
+search/replace, or an expandable console. Those remain separate tasks
+and must not be described as implemented.
+
+## Android world orientation — landscape fix
+
+The native editor stays portrait. The separate Godot world Activity declares
+landscape in the Android manifest, and the embedded `assets/project.godot` now
+uses `window/handheld/orientation=0` (Godot's landscape enum). The world scene
+also requests landscape when it starts, so its engine settings do not undo the
+Android Activity orientation. The world startup instrumentation test checks
+both settings and waits for the emulator display to become wider than tall.
+
+The CI also publishes `cafeina-world-landscape-preview-arm64-apk` with a
+different Android application ID (`com.cafeina.executor.preview`) and label
+`CAFEÍNA TESTE`. It installs **beside** the existing CAFEÍNA, without
+replacing it or reading its private scripts, projects, worlds, or Auto Execute
+settings. Use it to check the landscape world without uninstalling or risking
+the original app. The normal `cafeina-android-arm64-apk` remains the original
+package ID and may be rejected by Android if its debug-signing key differs
+from the previously installed build; it is not an in-place update guarantee.
