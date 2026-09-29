@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public final class EditorUndoHistory {
     private static final int MAX_STEPS = 24;
-    private static final int MAX_SNAPSHOT_CHARS = 96 * 1024;
+    static final int MAX_SNAPSHOT_CHARS = 96 * 1024;
 
     private static final class State {
         final ArrayDeque<String> undo = new ArrayDeque<>();
