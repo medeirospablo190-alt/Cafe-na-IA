@@ -20,7 +20,7 @@ public final class LaboratoryRunner {
         LaboratoryReportStore store = new LaboratoryReportStore(appFilesDirectory, projectId);
         // Refuse a run before executing if the report vault cannot be accessed.
         // An unsuccessful save still fails the call; never report unrecorded success.
-        store.list();
+        store.ensureWritable();
         LaboratoryEngine.Report result = LaboratoryEngine.run(request, cancellation);
         store.save(result);
         return result;
