@@ -157,3 +157,26 @@ Rules:
 - the Project Core is currently isolated and is not yet wired into the editor, Auto Execute or existing `files/scripts` / `files/runtime-fs` data.
 
 Keeping the existing storage untouched avoids a destructive migration before project selection, migration and rollback rules are defined and tested.
+
+
+## Mobile Luau editor — first usability pass
+
+The native CÓDIGO screen now uses LuauCodeEditor, an EditText subclass. The text
+remains editable plain Luau; coloring only adds Android spans and never changes
+the source passed to the runtime or saved to disk.
+
+- line numbers mark logical source lines, not extra lines created by wrapping;
+- syntax coloring covers keywords, builtins, strings, comments and numbers;
+- coloring is debounced and limited to the first 24,000 characters to protect
+  typing responsiveness on large scripts; code beyond that limit stays editable;
+- the tab strip remains horizontally scrollable, caps long labels and brings
+  the selected tab into view after switching/restoring;
+- CLEAR asks for confirmation before removing nonempty editor text; it does not
+  delete a saved script on disk;
+- Save and close keeps the tab open if the user made more edits after the
+  background save started;
+- the Android editor activity requests resize when the software keyboard opens.
+
+This pass does not add persistent autosave of unsaved drafts, undo/redo,
+renaming, search/replace, or an expandable console. Those remain separate tasks
+and must not be described as implemented.
