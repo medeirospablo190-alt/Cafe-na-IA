@@ -57,6 +57,8 @@ android {
 
 dependencies {
     implementation("org.godotengine:godot:4.7.0.stable")
+    // GodotActivity extends FragmentActivity; the Godot AAR marks this as runtime-only.
+    implementation("androidx.fragment:fragment:1.8.6")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
