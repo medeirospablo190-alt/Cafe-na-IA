@@ -82,9 +82,26 @@ jobs:
             adb logcat -d -v brief > godot-world-android-logcat.txt
             ! grep -Ei 'SCRIPT ERROR|Parse Error|Failed to load script|Failed to load main scene' godot-world-android-logcat.txt
 
-      - name: Upload debug APK
+      - name: Package installable ARM64 APK
+        working-directory: executor-app
+        run: gradle -PcafeinaArm64Only=true :app:assembleDebug --stacktrace
+
+      - name: Verify ARM64 APK contains no emulator libraries
+        working-directory: executor-app
+        shell: bash
+        run: |
+          APK="$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)"
+          test -s "$APK"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
+          if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
+            echo "Unexpected non-ARM64 library in installable APK"
+            exit 1
+          fi
+
+      - name: Upload ARM64 APK
         uses: actions/upload-artifact@v4
         with:
-          name: cafeina-android-app-debug
+          name: cafeina-android-arm64-apk
           path: executor-app/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error

@@ -2,6 +2,10 @@ plugins {
     id("com.android.application")
 }
 
+val cafeinaArm64Only = providers.gradleProperty("cafeinaArm64Only").orNull == "true"
+val cafeinaAbis = if (cafeinaArm64Only) listOf("arm64-v8a")
+    else listOf("arm64-v8a", "x86_64")
+
 android {
     namespace = "com.cafeina.executor"
     compileSdk = 36
@@ -15,11 +19,16 @@ android {
         versionName = "0.10.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // Also filter JNI libraries brought by the Godot AAR, not only CMake outputs.
+        ndk {
+            abiFilters += cafeinaAbis
+        }
+
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++17"
                 arguments += listOf("-DANDROID_STL=c++_shared")
-                abiFilters += listOf("arm64-v8a", "x86_64")
+                abiFilters += cafeinaAbis
             }
         }
     }

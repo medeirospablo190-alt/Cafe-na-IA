@@ -29,4 +29,4 @@ Esta é a base do **aplicativo Android instalável** da CAFEÍNA, não uma nova 
 
 `cd executor-app && gradle :app:assembleDebug`
 
-A rotina `.github/workflows/executor-app-ci.yml` executa testes automatizados e gera o APK debug como artefato de CI. Não exigir nova sequência de testes manuais no Godot.
+A rotina `.github/workflows/executor-app-ci.yml` compila a versão ARM64+x86_64 para os testes automáticos no emulador e depois gera um APK instalável ARM64 sem as bibliotecas extras. O artefato publicado chama-se `cafeina-android-arm64-apk`. A GDExtension Luau do T14 permanece fora do novo mundo até a integração segura; nenhum teste manual no Godot é necessário.
