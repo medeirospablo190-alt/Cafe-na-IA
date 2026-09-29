@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class LaboratoryEngine {
     public static final String FINGERPRINT_TOOL = "source-fingerprint";
     public static final String FINGERPRINT_VERSION = "1.0.0";
+    public static final String WORLD_CONTACT_TOOL = LaboratoryTestWorld.TOOL_ID;
+    public static final String WORLD_CONTACT_VERSION = LaboratoryTestWorld.TOOL_VERSION;
     public static final int MAX_CASES = 16;
     public static final int MAX_SOURCE_CHARS = 16 * 1024;
     public static final int MAX_TOTAL_SOURCE_CHARS = 96 * 1024;
@@ -62,7 +64,11 @@ public final class LaboratoryEngine {
 
         public Request(String toolId, String toolVersion, long seed, int timeoutMs,
                 List<TestCase> cases) {
-            if (!FINGERPRINT_TOOL.equals(toolId) || !FINGERPRINT_VERSION.equals(toolVersion)) {
+            boolean fingerprint = FINGERPRINT_TOOL.equals(toolId)
+                && FINGERPRINT_VERSION.equals(toolVersion);
+            boolean world = WORLD_CONTACT_TOOL.equals(toolId)
+                && WORLD_CONTACT_VERSION.equals(toolVersion);
+            if (!fingerprint && !world) {
                 throw new IllegalArgumentException("tool is not allowlisted for host laboratory");
             }
             if (timeoutMs < 1 || timeoutMs > MAX_RUNTIME_MS) {
@@ -74,6 +80,7 @@ public final class LaboratoryEngine {
             int total = 0;
             for (TestCase test : cases) {
                 Objects.requireNonNull(test, "laboratory test");
+                if (world) LaboratoryTestWorld.parseProbe(test.candidateSource);
                 total += test.candidateSource.length();
                 if (total > MAX_TOTAL_SOURCE_CHARS) {
                     throw new IllegalArgumentException("laboratory batch exceeds input budget");
@@ -115,6 +122,7 @@ public final class LaboratoryEngine {
         public final long startedAtEpochMs;
         public final long durationMs;
         public final String candidateBatchSha256;
+        public final String environmentSha256;
         public final Status status;
         public final int passed;
         public final int failed;
@@ -130,6 +138,8 @@ public final class LaboratoryEngine {
             this.startedAtEpochMs = started;
             this.durationMs = duration;
             this.candidateBatchSha256 = batchHash;
+            this.environmentSha256 = WORLD_CONTACT_TOOL.equals(request.toolId)
+                ? LaboratoryTestWorld.fixtureSha256() : "";
             this.status = status;
             this.passed = passed;
             this.failed = failed;
@@ -141,7 +151,8 @@ public final class LaboratoryEngine {
 
     /**
      * No file system, network, Android app data or runtime bridge is passed to
-     * this harness. The only supported probe fingerprints bounded source text.
+     * this harness. Allowlisted probes fingerprint bounded inputs or query an
+     * immutable geometry fixture. Neither executes candidate source code.
      */
     public static Report run(Request request, Cancellation cancellation) {
         Objects.requireNonNull(request, "request");
@@ -164,7 +175,9 @@ public final class LaboratoryEngine {
                 status = Status.TIMEOUT;
                 break;
             }
-            String actual = fingerprint(test.candidateSource);
+            String actual = WORLD_CONTACT_TOOL.equals(request.toolId)
+                ? LaboratoryTestWorld.contact(test.candidateSource).outputLine()
+                : fingerprint(test.candidateSource);
             boolean matches = actual.equals(test.expectedOutput);
             if (matches) passed++;
             else failed++;
