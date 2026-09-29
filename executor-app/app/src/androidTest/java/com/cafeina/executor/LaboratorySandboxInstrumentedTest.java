@@ -17,6 +17,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,6 +43,46 @@ public final class LaboratorySandboxInstrumentedTest {
         assertEquals(denied.error, "EXECUTED", denied.status);
         assertEquals("true", denied.firstReturn);
         assertNotEquals(Process.myUid(), denied.workerUid);
+    }
+
+    @Test
+    public void isolatedCandidateTestMustRecordPrivacySafeReport() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String projectId = "isolated-" + UUID.randomUUID().toString().substring(0, 8);
+        String fixture = "return 2 + 2 -- never persist this original candidate text";
+        CountDownLatch done = new CountDownLatch(1);
+        AtomicReference<LaboratorySandboxClient.Result> execution = new AtomicReference<>();
+        AtomicReference<Throwable> problem = new AtomicReference<>();
+        new Thread(() -> {
+            try {
+                LaboratoryCandidateRunner.runInternal(app, projectId, fixture, "4", 42L,
+                    1000, (result, passed, recordingError) -> {
+                        execution.set(result);
+                        if (!passed || recordingError != null) {
+                            problem.set(recordingError == null
+                                ? new AssertionError("candidate test did not pass")
+                                : recordingError);
+                        }
+                        done.countDown();
+                    });
+            } catch (Throwable error) {
+                problem.set(error);
+                done.countDown();
+            }
+        }, "lab-test-caller").start();
+
+        assertTrue("Candidate report was not recorded",
+            done.await(40, TimeUnit.SECONDS));
+        if (problem.get() != null) throw new AssertionError(problem.get());
+        assertNotNull(execution.get());
+        LaboratoryReportStore vault = new LaboratoryReportStore(app.getFilesDir(), projectId);
+        assertEquals(1, vault.list().size());
+        LaboratoryReportStore.Entry entry = vault.list().get(0);
+        assertEquals("luau-isolated-candidate", entry.toolId);
+        assertEquals("PASS", entry.status);
+        assertFalse(entry.reportText.contains(fixture));
+        assertFalse(entry.reportText.contains("return 2 + 2"));
+        assertTrue(entry.reportText.contains(execution.get().sourceSha256));
     }
 
     private static LaboratorySandboxClient.Result run(Context app, String source, int timeoutMs)
