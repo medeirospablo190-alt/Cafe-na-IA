@@ -10,7 +10,9 @@ Esta é a base do **aplicativo Android instalável** da CAFEÍNA, não uma nova 
 - SISTEMA permite criar, listar e **abrir projetos no editor**; scripts, Auto Execute e arquivos do runtime ficam isolados por projeto.
 - O projeto ativo é restaurado ao reabrir o app e é possível voltar aos scripts antigos sem migração.
 - Controle A−/A+ ajusta o tamanho da fonte do código entre 14 e 26 sp e guarda a preferência.
-- O aplicativo avisa antes de entrar na seleção de projetos caso haja alterações não salvas.
+- EXPORTAR ZIP e IMPORTAR ZIP usam o seletor de arquivos nativo do Android; cada backup contém os scripts salvos do projeto ativo.
+- A importação valida nomes, quantidade, tamanho e UTF-8 antes de gravar; nomes já existentes são renomeados, sem sobrescrever o original ou ativar Auto Execute.
+- O aplicativo bloqueia a troca de projeto e a importação/exportação se houver alterações não salvas.
 - O app mantém o mesmo applicationId (`com.cafeina.executor`) para preservar os arquivos privados de instalações anteriores.
 - Nenhuma migração ou exclusão automática dos scripts antigos.
 

@@ -3,6 +3,7 @@ package com.cafeina.executor;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -24,6 +25,8 @@ import com.cafeina.runtime.LuauBridge;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +41,9 @@ public final class MainActivity extends Activity {
     private static final int ACCENT = Color.rgb(59, 139, 254);
     private static final int TEXT = Color.rgb(240, 242, 247);
     private static final int MUTED = Color.rgb(165, 170, 182);
+    private static final int REQUEST_EXPORT_ARCHIVE = 9101;
+    private static final int REQUEST_IMPORT_ARCHIVE = 9102;
+    private static final String ZIP_MIME = "application/zip";
     private static final String DEFAULT_SOURCE = "print(\"Olá do CAFEÍNA\")\nreturn 6 * 7";
 
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
@@ -218,11 +224,9 @@ public final class MainActivity extends Activity {
         if (hasUnsaved) {
             new AlertDialog.Builder(this)
                 .setTitle("Alterações não salvas")
-                .setMessage("Há scripts alterados. Salve cada aba antes de trocar de projeto. "
-                    + "Se abrir outro projeto agora, as alterações não salvas podem ser perdidas.")
+                .setMessage("Salve todas as abas alteradas antes de trocar de projeto. "
+                    + "A troca não descarta rascunhos.")
                 .setPositiveButton("VOLTAR E SALVAR", null)
-                .setNegativeButton("ABRIR PROJETOS", (dialog, which) ->
-                    startActivity(new Intent(this, ProjectManagerActivity.class)))
                 .show();
             return;
         }
@@ -358,6 +362,17 @@ public final class MainActivity extends Activity {
         storageParams.setMargins(0, dp(6), 0, 0);
         root.addView(storageActions, storageParams);
 
+        LinearLayout archiveActions = new LinearLayout(this);
+        archiveActions.setOrientation(LinearLayout.HORIZONTAL);
+        Button exportArchive = makeButton("EXPORTAR ZIP", Color.rgb(52, 100, 121));
+        Button importArchive = makeButton("IMPORTAR ZIP", Color.rgb(92, 76, 119));
+        addTwoButtons(archiveActions, exportArchive, importArchive);
+        LinearLayout.LayoutParams archiveParams = matchWrap();
+        archiveParams.setMargins(0, dp(6), 0, 0);
+        root.addView(archiveActions, archiveParams);
+        exportArchive.setOnClickListener(v -> requestExportArchive());
+        importArchive.setOnClickListener(v -> requestImportArchive());
+
         autoExecuteButton = makeButton("AUTOEXEC: CHECKING", Color.rgb(89, 74, 120));
         autoExecuteButton.setEnabled(false);
         LinearLayout.LayoutParams autoExecParams = matchWrap();
@@ -400,6 +415,116 @@ public final class MainActivity extends Activity {
 
         renderTabs();
         return root;
+    }
+
+
+    private boolean hasUnsavedTabs() {
+        tabs.updateActiveContent(editor.getText().toString());
+        for (int i = 0; i < tabs.size(); i++) {
+            if (tabs.isDirtyAt(i)) return true;
+        }
+        return false;
+    }
+
+    private boolean requireSavedForArchive() {
+        if (!editor.isEnabled() || !executeButton.isEnabled() || !saveButton.isEnabled()
+                || !loadButton.isEnabled()) {
+            status.setText("Aguarde a operação atual antes de usar o backup.");
+            return false;
+        }
+        if (!hasUnsavedTabs()) return true;
+        new AlertDialog.Builder(this)
+            .setTitle("Salve antes do backup")
+            .setMessage("Salve as abas alteradas para garantir que o ZIP contenha a versão correta "
+                + "e que a importação não substitua nenhum rascunho.")
+            .setPositiveButton("VOLTAR E SALVAR", null)
+            .show();
+        return false;
+    }
+
+    private void requestExportArchive() {
+        if (!requireSavedForArchive()) return;
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(ZIP_MIME);
+        String prefix = workspace.id().isEmpty() ? "scripts-antigos" : workspace.id();
+        intent.putExtra(Intent.EXTRA_TITLE, "cafeina-" + prefix + "-scripts.zip");
+        startActivityForResult(intent, REQUEST_EXPORT_ARCHIVE);
+    }
+
+    private void requestImportArchive() {
+        if (!requireSavedForArchive()) return;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(ZIP_MIME);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivityForResult(intent, REQUEST_IMPORT_ARCHIVE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if ((requestCode != REQUEST_EXPORT_ARCHIVE && requestCode != REQUEST_IMPORT_ARCHIVE)
+                || resultCode != RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
+        if (!requireSavedForArchive()) return;
+
+        final Uri document = data.getData();
+        final ScriptStore targetStore = scriptStore;
+        setControlsEnabled(false);
+        status.setText(requestCode == REQUEST_EXPORT_ARCHIVE
+            ? "Exportando scripts…" : "Importando scripts…");
+        ioExecutor.submit(() -> {
+            try {
+                if (requestCode == REQUEST_EXPORT_ARCHIVE) {
+                    try (OutputStream output = getContentResolver().openOutputStream(document, "w")) {
+                        if (output == null) throw new java.io.IOException("O arquivo de destino não abriu.");
+                        int count = ScriptArchive.exportScripts(targetStore, output);
+                        runOnUiThread(() -> {
+                            if (!activityAlive()) return;
+                            status.setText("Backup concluído • " + count + " script(s)");
+                            console.setText("ZIP salvo no local escolhido. Os arquivos originais não foram alterados.");
+                            setControlsEnabled(true);
+                            refreshAutoExecButton();
+                        });
+                    }
+                } else {
+                    final ScriptArchive.ImportResult imported;
+                    try (InputStream input = getContentResolver().openInputStream(document)) {
+                        if (input == null) throw new java.io.IOException("Não foi possível abrir o ZIP.");
+                        imported = ScriptArchive.importScripts(targetStore, input);
+                    }
+                    runOnUiThread(() -> {
+                        if (!activityAlive()) return;
+                        for (String name : imported.names()) {
+                            try {
+                                tabs.openOrReplace(name, targetStore.load(name));
+                            } catch (Exception error) {
+                                console.setText("Importado, mas não foi possível abrir " + name
+                                    + ": " + error.getMessage());
+                            }
+                        }
+                        if (!imported.names().isEmpty()) {
+                            setEditorText(tabs.activeContent());
+                            renderTabs();
+                        }
+                        status.setText("Importados " + imported.names().size() + " script(s); "
+                            + imported.renamedCount() + " renomeado(s)");
+                        setControlsEnabled(true);
+                        refreshAutoExecButton();
+                    });
+                }
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    status.setText("Falha no ZIP; os scripts salvos não foram apagados");
+                    console.setText("[ARQUIVO ZIP] " + error.getMessage());
+                    setControlsEnabled(true);
+                    refreshAutoExecButton();
+                });
+            }
+        });
     }
 
     private void restoreSavedTabs() {
