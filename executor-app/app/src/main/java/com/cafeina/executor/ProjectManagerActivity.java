@@ -68,6 +68,11 @@ public final class ProjectManagerActivity extends Activity {
             startActivity(new Intent(this, LaboratoryReportsActivity.class)));
         root.addView(laboratoryReports, matchWrap());
 
+        Button laboratoryReview = button("REVISAR FERRAMENTAS CANDIDATAS");
+        laboratoryReview.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryReviewActivity.class)));
+        root.addView(laboratoryReview, matchWrap());
+
         Button legacy = button("ABRIR SCRIPTS ANTIGOS");
         legacy.setOnClickListener(v -> activateProject(""));
         root.addView(legacy, matchWrap());
