@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -65,6 +66,7 @@ public final class MainActivity extends Activity {
     private Button autoExecuteButton;
     private Button addTabButton;
     private LinearLayout tabButtons;
+    private HorizontalScrollView tabScroll;
     private boolean suppressEditorWatcher;
     private boolean autoExecStartupTriggered;
     private LinearLayout screenHost;
@@ -281,7 +283,7 @@ public final class MainActivity extends Activity {
         subtitleParams.setMargins(0, dp(2), 0, dp(8));
         root.addView(subtitle, subtitleParams);
 
-        HorizontalScrollView tabScroll = new HorizontalScrollView(this);
+        tabScroll = new HorizontalScrollView(this);
         tabScroll.setHorizontalScrollBarEnabled(false);
         tabScroll.setFillViewport(false);
 
@@ -315,7 +317,7 @@ public final class MainActivity extends Activity {
         fontControls.addView(fontUp, fontUpParams);
         root.addView(fontControls, matchWrap());
 
-        editor = new EditText(this);
+        editor = new LuauCodeEditor(this);
         editor.setText(tabs.activeContent());
         editor.setTextColor(TEXT);
         editor.setHintTextColor(MUTED);
@@ -323,7 +325,7 @@ public final class MainActivity extends Activity {
         editor.setTypeface(Typeface.MONOSPACE);
         editor.setTextSize(editorFontSp);
         editor.setGravity(Gravity.TOP | Gravity.START);
-        editor.setPadding(dp(12), dp(12), dp(12), dp(12));
+        // LuauCodeEditor reserves its own gutter and responsive padding.
         editor.setInputType(
             InputType.TYPE_CLASS_TEXT
                 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
@@ -642,6 +644,10 @@ public final class MainActivity extends Activity {
 
             String label = tabs.nameAt(i) + (tabs.isDirtyAt(i) ? " *" : "");
             Button tab = makeTabButton(label, active);
+            tab.setMaxWidth(dp(192));
+            tab.setSingleLine(true);
+            tab.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            tab.setContentDescription(label);
             tab.setOnClickListener(v -> switchTab(index));
 
             Button close = makeTabButton("×", false);
@@ -671,6 +677,22 @@ public final class MainActivity extends Activity {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             dp(38)
         ));
+
+        // Keep the current script visible after opening, restoring or switching tabs.
+        final android.view.View activeTab = tabButtons.getChildAt(tabs.activeIndex());
+        if (tabScroll != null && activeTab != null) {
+            tabScroll.post(() -> {
+                if (activeTab.getParent() != tabButtons || tabScroll.getWidth() == 0) return;
+                int left = activeTab.getLeft();
+                int right = activeTab.getRight();
+                int start = tabScroll.getScrollX();
+                int visible = tabScroll.getWidth();
+                if (left < start) tabScroll.smoothScrollTo(Math.max(0, left - dp(8)), 0);
+                else if (right > start + visible) {
+                    tabScroll.smoothScrollTo(Math.max(0, right - visible + dp(8)), 0);
+                }
+            });
+        }
     }
 
     private void switchTab(int index) {
@@ -743,6 +765,12 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
                     tabs.markSaved(name, content);
+                    int currentIndex = tabs.indexOfName(name);
+                    if (currentIndex >= 0 && tabs.isDirtyAt(currentIndex)) {
+                        renderTabs();
+                        status.setText("Versão anterior salva • alterações recentes mantidas em " + name);
+                        return;
+                    }
                     closeTabNow(name);
                 });
             } catch (Exception error) {
@@ -767,12 +795,26 @@ public final class MainActivity extends Activity {
     }
 
     private void clearActiveTab() {
-        setEditorText("");
-        tabs.updateActiveContent("");
-        console.setText("");
-        renderTabs();
-        refreshAutoExecButton();
-        status.setText("Editor limpo • " + tabs.activeName());
+        if (editor.getText().length() == 0) {
+            console.setText("");
+            status.setText("Editor já está vazio • " + tabs.activeName());
+            return;
+        }
+        final String name = tabs.activeName();
+        new AlertDialog.Builder(this)
+            .setTitle("Limpar o código?")
+            .setMessage("O conteúdo de " + name + " será apagado do editor. O arquivo salvo não será excluído.")
+            .setPositiveButton("Limpar", (dialog, which) -> {
+                if (!name.equals(tabs.activeName())) return;
+                setEditorText("");
+                tabs.updateActiveContent("");
+                console.setText("");
+                renderTabs();
+                refreshAutoExecButton();
+                status.setText("Editor limpo • " + name + " (salve apenas se quiser substituir o arquivo)");
+            })
+            .setNegativeButton("Cancelar", null)
+            .show();
     }
 
     private void saveActiveScript() {
