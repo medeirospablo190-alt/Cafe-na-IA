@@ -68,6 +68,13 @@ public final class LaboratoryReportStore {
         }
     }
 
+    public synchronized void ensureWritable() throws IOException {
+        prepareDirectory();
+        if (countReports() >= MAX_REPORTS) {
+            throw new IOException("report limit reached; no existing reports were deleted");
+        }
+    }
+
     public synchronized void save(LaboratoryEngine.Report report) throws IOException {
         if (report == null || !isValidRunId(report.runId)) {
             throw new IOException("invalid laboratory report");
