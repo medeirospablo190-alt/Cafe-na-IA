@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
  * Messenger, executes native Luau WITHOUT the filesystem capability, and
  * returns bounded results. It does not access app private directories.
  *
- * Only one run is allowed per service instance. ABORT kills this isolated
+ * Only one run is active at a time. ABORT kills this isolated
  * process, including a VM that has stopped responding to its native timeout.
  */
 public final class LaboratorySandboxService extends Service {
@@ -111,8 +111,18 @@ public final class LaboratorySandboxService extends Service {
             } catch (Throwable failure) {
                 error = "Isolated worker failed: " + failure.getClass().getSimpleName();
             }
-            respond(reply, id, status, output, error, returnValue,
-                SystemClock.elapsedRealtime() - started);
+            final String finalStatus = status;
+            final String finalOutput = output;
+            final String finalError = error;
+            final String finalReturn = returnValue;
+            final long elapsed = SystemClock.elapsedRealtime() - started;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (id.equals(activeRunId)) {
+                    busy = false;
+                    activeRunId = null;
+                }
+                respond(reply, id, finalStatus, finalOutput, finalError, finalReturn, elapsed);
+            });
         });
         return true;
     }
