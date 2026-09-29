@@ -91,14 +91,16 @@ public final class LaboratoryEngine {
         public final String name;
         public final boolean passed;
         public final String actualOutput;
+        public final String expectedOutput;
         public final String inputSha256;
         public final String reason;
 
         private Check(String name, boolean passed, String actualOutput,
-                String inputSha256, String reason) {
+                String expectedOutput, String inputSha256, String reason) {
             this.name = name;
             this.passed = passed;
             this.actualOutput = actualOutput;
+            this.expectedOutput = expectedOutput;
             this.inputSha256 = inputSha256;
             this.reason = reason;
         }
@@ -166,7 +168,7 @@ public final class LaboratoryEngine {
             boolean matches = actual.equals(test.expectedOutput);
             if (matches) passed++;
             else failed++;
-            checks.add(new Check(test.name, matches, actual,
+            checks.add(new Check(test.name, matches, actual, test.expectedOutput,
                 sha256(test.candidateSource.getBytes(StandardCharsets.UTF_8)),
                 matches ? "expected output matched" : "expected output mismatch"));
             if (cancellation.isCancelled()) {
