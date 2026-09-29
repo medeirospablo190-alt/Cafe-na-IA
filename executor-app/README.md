@@ -186,3 +186,21 @@ the source passed to the runtime or saved to disk.
 This pass does not add persistent autosave of unsaved drafts, tab renaming,
 search/replace, or an expandable console. Those remain separate tasks
 and must not be described as implemented.
+
+## Android world orientation — landscape fix
+
+The native editor stays portrait. The separate Godot world Activity declares
+landscape in the Android manifest, and the embedded `assets/project.godot` now
+uses `window/handheld/orientation=0` (Godot's landscape enum). The world scene
+also requests landscape when it starts, so its engine settings do not undo the
+Android Activity orientation. The world startup instrumentation test checks
+both settings and waits for the emulator display to become wider than tall.
+
+The CI also publishes `cafeina-world-landscape-preview-arm64-apk` with a
+different Android application ID (`com.cafeina.executor.preview`) and label
+`CAFEÍNA TESTE`. It installs **beside** the existing CAFEÍNA, without
+replacing it or reading its private scripts, projects, worlds, or Auto Execute
+settings. Use it to check the landscape world without uninstalling or risking
+the original app. The normal `cafeina-android-arm64-apk` remains the original
+package ID and may be rejected by Android if its debug-signing key differs
+from the previously installed build; it is not an in-place update guarantee.
