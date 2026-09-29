@@ -179,7 +179,9 @@ the source passed to the runtime or saved to disk.
   full contents into the in-memory undo stack;
 - Save and close keeps the tab open if the user made more edits after the
   background save started;
-- the Android editor activity requests resize when the software keyboard opens.
+- the Android editor activity requests resize when the software keyboard opens;
+  while typing, the console and nonessential action rows are temporarily hidden
+  to preserve enough height for code, and return when the keyboard closes.
 
 This pass does not add persistent autosave of unsaved drafts, tab renaming,
 search/replace, or an expandable console. Those remain separate tasks
