@@ -169,7 +169,9 @@ public final class LaboratorySnapshotStore {
 
     /** Does not hide corrupted snapshots by silently removing their records. */
     public synchronized List<Snapshot> listVerified() throws IOException {
-        if (!Files.exists(laboratoryRoot, LinkOption.NOFOLLOW_LINKS)) {
+        if (!Files.exists(laboratoryRoot, LinkOption.NOFOLLOW_LINKS)
+                || !Files.exists(projectRoot, LinkOption.NOFOLLOW_LINKS)
+                || !Files.exists(snapshotRoot, LinkOption.NOFOLLOW_LINKS)) {
             return Collections.emptyList();
         }
         requireExistingDirectory();
