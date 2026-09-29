@@ -1,0 +1,118 @@
+package com.cafeina.executor;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.pm.ServiceInfo;
+import android.os.Process;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+@RunWith(AndroidJUnit4.class)
+public final class LaboratorySandboxInstrumentedTest {
+    @Test
+    public void workerHasIsolatedUidAndNoFilesystemCapability() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        ServiceInfo info = app.getPackageManager().getServiceInfo(
+            new ComponentName(app, LaboratorySandboxService.class), 0);
+        assertFalse("Laboratory service must not be exported", info.exported);
+        assertTrue("Laboratory service must have an isolated Android UID",
+            (info.flags & ServiceInfo.FLAG_ISOLATED_PROCESS) != 0);
+
+        LaboratorySandboxClient.Result arithmetic = run(app, "return 2 + 2", 1000);
+        assertEquals(arithmetic.error, "EXECUTED", arithmetic.status);
+        assertEquals("4", arithmetic.firstReturn);
+        assertNotEquals("Worker UID must differ from host UID",
+            Process.myUid(), arithmetic.workerUid);
+
+        LaboratorySandboxClient.Result denied = run(app, "return fs == nil", 1000);
+        assertEquals(denied.error, "EXECUTED", denied.status);
+        assertEquals("true", denied.firstReturn);
+        assertNotEquals(Process.myUid(), denied.workerUid);
+    }
+
+    @Test
+    public void hostCanCancelACandidateWithoutModelCooperation() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        CountDownLatch done = new CountDownLatch(1);
+        AtomicReference<LaboratorySandboxClient.Result> outcome = new AtomicReference<>();
+        LaboratorySandboxClient.Session session = LaboratorySandboxClient.execute(
+            app, "while true do end", 3000, result -> {
+                outcome.set(result);
+                done.countDown();
+            });
+        session.cancel();
+        assertTrue("Host cancellation did not finish",
+            done.await(10, TimeUnit.SECONDS));
+        assertNotNull(outcome.get());
+        assertEquals("CANCELLED", outcome.get().status);
+    }
+
+    @Test
+    public void isolatedCandidateTestMustRecordPrivacySafeReport() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String projectId = "isolated-" + UUID.randomUUID().toString().substring(0, 8);
+        String fixture = "return 2 + 2 -- never persist this original candidate text";
+        CountDownLatch done = new CountDownLatch(1);
+        AtomicReference<LaboratorySandboxClient.Result> execution = new AtomicReference<>();
+        AtomicReference<Throwable> problem = new AtomicReference<>();
+        new Thread(() -> {
+            try {
+                LaboratoryCandidateRunner.runInternal(app, projectId, fixture, "4", 42L,
+                    1000, (result, passed, recordingError) -> {
+                        execution.set(result);
+                        if (!passed || recordingError != null) {
+                            problem.set(recordingError == null
+                                ? new AssertionError("candidate test did not pass")
+                                : recordingError);
+                        }
+                        done.countDown();
+                    });
+            } catch (Throwable error) {
+                problem.set(error);
+                done.countDown();
+            }
+        }, "lab-test-caller").start();
+
+        assertTrue("Candidate report was not recorded",
+            done.await(40, TimeUnit.SECONDS));
+        if (problem.get() != null) throw new AssertionError(problem.get());
+        assertNotNull(execution.get());
+        LaboratoryReportStore vault = new LaboratoryReportStore(app.getFilesDir(), projectId);
+        assertEquals(1, vault.list().size());
+        LaboratoryReportStore.Entry entry = vault.list().get(0);
+        assertEquals("luau-isolated-candidate", entry.toolId);
+        assertEquals("PASS", entry.status);
+        assertFalse(entry.reportText.contains(fixture));
+        assertFalse(entry.reportText.contains("return 2 + 2"));
+        assertTrue(entry.reportText.contains(execution.get().sourceSha256));
+    }
+
+    private static LaboratorySandboxClient.Result run(Context app, String source, int timeoutMs)
+            throws Exception {
+        CountDownLatch done = new CountDownLatch(1);
+        AtomicReference<LaboratorySandboxClient.Result> outcome = new AtomicReference<>();
+        LaboratorySandboxClient.execute(app, source, timeoutMs, result -> {
+            outcome.set(result);
+            done.countDown();
+        });
+        assertTrue("Isolated worker did not answer before host watchdog",
+            done.await(30, TimeUnit.SECONDS));
+        assertNotNull(outcome.get());
+        return outcome.get();
+    }
+}
