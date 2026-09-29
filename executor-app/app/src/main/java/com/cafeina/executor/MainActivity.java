@@ -887,10 +887,16 @@ public final class MainActivity extends Activity {
             return;
         }
         final String name = tabs.activeName();
+        final boolean undoAvailable = editor.getText().length()
+            <= EditorUndoHistory.MAX_SNAPSHOT_CHARS;
+        String warning = undoAvailable
+            ? "O conteúdo de " + name + " será apagado do editor. Você poderá usar DESFAZER."
+            : "Este código é grande demais para o histórico em memória. DESFAZER não recuperará "
+                + "o texto apagado. Salve uma cópia antes de limpar.";
         new AlertDialog.Builder(this)
             .setTitle("Limpar o código?")
-            .setMessage("O conteúdo de " + name + " será apagado do editor. O arquivo salvo não será excluído.")
-            .setPositiveButton("Limpar", (dialog, which) -> {
+            .setMessage(warning + " O arquivo salvo em disco não será excluído.")
+            .setPositiveButton(undoAvailable ? "Limpar" : "Limpar mesmo assim", (dialog, which) -> {
                 if (!name.equals(tabs.activeName())) return;
                 editorHistory.record(name, editor.getText().toString(), "");
                 setEditorText("");
@@ -898,8 +904,9 @@ public final class MainActivity extends Activity {
                 console.setText("");
                 renderTabs();
                 refreshAutoExecButton();
-                status.setText("Editor limpo • " + name + " (DESFAZER recupera o código)");
                 refreshHistoryButtons();
+                status.setText("Editor limpo • " + name + (editorHistory.canUndo(name)
+                    ? " (DESFAZER recupera o código)" : " (arquivo salvo preservado)"));
             })
             .setNegativeButton("Cancelar", null)
             .show();
