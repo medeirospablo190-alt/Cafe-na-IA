@@ -46,6 +46,23 @@ public final class LaboratorySandboxInstrumentedTest {
     }
 
     @Test
+    public void hostCanCancelACandidateWithoutModelCooperation() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        CountDownLatch done = new CountDownLatch(1);
+        AtomicReference<LaboratorySandboxClient.Result> outcome = new AtomicReference<>();
+        LaboratorySandboxClient.Session session = LaboratorySandboxClient.execute(
+            app, "while true do end", 3000, result -> {
+                outcome.set(result);
+                done.countDown();
+            });
+        session.cancel();
+        assertTrue("Host cancellation did not finish",
+            done.await(10, TimeUnit.SECONDS));
+        assertNotNull(outcome.get());
+        assertEquals("CANCELLED", outcome.get().status);
+    }
+
+    @Test
     public void isolatedCandidateTestMustRecordPrivacySafeReport() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String projectId = "isolated-" + UUID.randomUUID().toString().substring(0, 8);
