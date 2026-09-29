@@ -160,7 +160,8 @@ public final class LaboratorySandboxClient {
             }
             String status = data.getString(LaboratorySandboxService.STATUS, "WORKER_ERROR");
             if (!("EXECUTED".equals(status) || "LUAU_ERROR".equals(status)
-                    || "WORKER_ERROR".equals(status) || "REJECTED".equals(status))) {
+                    || "WORKER_ERROR".equals(status) || "REJECTED".equals(status)
+                    || "TIMEOUT".equals(status))) {
                 status = "WORKER_ERROR";
             }
             finish(status, workerUid,
