@@ -15,8 +15,8 @@ android {
         applicationId = "com.cafeina.executor"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.10.0"
+        versionCode = 11
+        versionName = "0.10.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Also filter JNI libraries brought by the Godot AAR, not only CMake outputs.
@@ -59,6 +59,14 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = false
+        }
+        // Side-by-side test build: never attempts to replace the user's installed
+        // com.cafeina.executor or access its private scripts and projects.
+        create("preview") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".preview"
+            versionNameSuffix = "-preview"
+            matchingFallbacks += listOf("debug")
         }
     }
 }
