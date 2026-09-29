@@ -73,3 +73,15 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM verificam versões imutáveis, IDs, escopos, integridade do manifesto e snapshot e negativa de revisão sem relatório correspondente. Testes Android verificam que a orquestração cria CANDIDATE apenas após PASS, e que falhas continuam EXPERIMENTAL. Os relatórios não armazenam a fonte do candidato.
 
 **Limites de segurança:** estes registros são uma política da aplicação, não um ledger resistente a adulterações para processos com o mesmo UID/root. Um futuro modelo de linguagem operando no processo principal precisará de um controlador de permissões independente. A aprovação humana e a promoção de uma versão STABLE não estão implementadas: não se pode tratar CANDIDATE como liberação de uso no projeto. A integração da IA principal continua bloqueada até o laboratório e o controlador de permissões estarem completos.
+
+
+## Sexta entrega — revisão humana vinculada ao candidato, sem ativação
+
+- A tela `SISTEMA > REVISAR FERRAMENTAS CANDIDATAS` permite ao usuário consultar ID, versão, capacidade, hash SHA-256, snapshot e relatório comprovando PASS. É uma tela separada dos relatórios, que permanecem somente para leitura.
+- Depois de abrir uma candidata, o usuário pode digitar uma frase de confirmação para registrar **AUTORIZAR MAIS TESTES** ou **REJEITAR POR ENQUANTO**. A escolha é explícita e individual por versão; não existe execução de ferramenta nem alteração dos scripts, do Mundo ou do núcleo ao registrar a decisão.
+- `LaboratoryReviewDecisionStore` grava exatamente um registro por ferramenta/versão/projeto, em diretório privado separado, vinculado a manifesto, hash da fonte, snapshot, UUID e hash do relatório. O registro é `CREATE_NEW`, tem digest e não oferece sobrescrita nem apagamento automático. Leitura revalida o catálogo e as evidências. Falha de integridade gera erro visível, nunca uma aprovação implícita.
+- A decisão `CONTINUE_TESTING` é **somente autorização para continuar estudando essa candidata**. Mesmo após a decisão humana, o estado do registro continua `CANDIDATE`. Não existe API para STABLE, aumento de permissões, instalação ou publicação nesta entrega.
+- A frase digitada é confirmação de intenção na interface, não autenticação forte contra código malicioso que já execute com o UID do aplicativo. Registros no armazenamento privado não provam identidade criptográfica e não podem, por si só, ser usados como concessão de poderes por uma IA. A futura ativação de ferramentas estáveis exigirá um controlador de permissões independente e testes adicionais.
+- Testes Android cobrem decisão vinculada à evidência correta, bloqueio de segunda decisão e recusa de ferramentas experimentais que falharam.
+
+A IA principal permanece fora do laboratório; não há testes iniciados automaticamente por modelo nesta entrega.
