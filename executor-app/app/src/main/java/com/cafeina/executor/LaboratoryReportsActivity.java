@@ -35,6 +35,7 @@ public final class LaboratoryReportsActivity extends Activity {
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LaboratoryReportStore reports;
+    private LaboratoryToolRegistry registry;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -77,6 +78,7 @@ public final class LaboratoryReportsActivity extends Activity {
 
         try {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
+            registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -87,10 +89,55 @@ public final class LaboratoryReportsActivity extends Activity {
         io.execute(() -> {
             try {
                 List<LaboratoryReportStore.Entry> items = reports.list();
+                List<LaboratoryToolRegistry.Tool> catalog;
+                String registryProblem = null;
+                try {
+                    catalog = registry.list();
+                } catch (Exception error) {
+                    // A damaged registry must not hide unrelated test reports.
+                    catalog = java.util.Collections.emptyList();
+                    registryProblem = "Catálogo de ferramentas indisponível: "
+                        + error.getMessage();
+                }
+                final List<LaboratoryToolRegistry.Tool> toolItems = catalog;
+                final String registryWarning = registryProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
-                    feedback.setText(items.size() + " relatório(s) • somente leitura");
+                    feedback.setText(items.size() + " relatório(s) • " + toolItems.size()
+                        + " versão(ões) de ferramenta • somente leitura");
+
+                    TextView toolsTitle = text("FERRAMENTAS INTERNAS", 17, FG, true);
+                    toolsTitle.setPadding(0, dp(12), 0, dp(4));
+                    entries.addView(toolsTitle, matchWrap());
+                    entries.addView(text(
+                        "EXPERIMENTAL: não aprovada. CANDIDATA: aguardando revisão "
+                            + "e aprovação humana. Nenhuma pode ativar uma versão estável.",
+                        13, MUTED, false), matchWrap());
+                    if (registryWarning != null) {
+                        entries.addView(text(registryWarning, 14, FG, false), matchWrap());
+                    } else if (toolItems.isEmpty()) {
+                        entries.addView(text(
+                            "Nenhuma ferramenta candidata registrada neste projeto.",
+                            14, MUTED, false), matchWrap());
+                    }
+                    for (LaboratoryToolRegistry.Tool tool : toolItems) {
+                        Button entryButton = button(tool.id + " @ " + tool.version
+                            + "\n" + (tool.state == LaboratoryToolRegistry.State.CANDIDATE
+                                ? "CANDIDATA • NÃO APROVADA" : "EXPERIMENTAL"));
+                        entryButton.setAllCaps(false);
+                        entryButton.setTextSize(14);
+                        entryButton.setGravity(android.view.Gravity.START
+                            | android.view.Gravity.CENTER_VERTICAL);
+                        entryButton.setBackgroundTintList(ColorStateList.valueOf(PANEL));
+                        entryButton.setOnClickListener(v -> showTool(tool));
+                        LinearLayout.LayoutParams params = matchWrap();
+                        params.setMargins(0, dp(8), 0, 0);
+                        entries.addView(entryButton, params);
+                    }
+                    TextView reportTitle = text("HISTÓRICO DE TESTES", 17, FG, true);
+                    reportTitle.setPadding(0, dp(18), 0, dp(4));
+                    entries.addView(reportTitle, matchWrap());
                     if (items.isEmpty()) {
                         entries.addView(text(
                             "Ainda não há relatórios. Eles aparecerão quando as ferramentas "
@@ -121,6 +168,35 @@ public final class LaboratoryReportsActivity extends Activity {
                 });
             }
         });
+    }
+
+    private void showTool(LaboratoryToolRegistry.Tool tool) {
+        String stage = tool.state == LaboratoryToolRegistry.State.CANDIDATE
+            ? "CANDIDATA PARA REVISÃO • NÃO APROVADA"
+            : "EXPERIMENTAL • NÃO APROVADA";
+        String details = "Ferramenta: " + tool.id
+            + "\nVersão: " + tool.version
+            + "\nEstado: " + stage
+            + "\nCapacidade: " + tool.capability
+            + "\nLimite de execução: " + tool.timeoutMs + " ms"
+            + "\nCriada: " + time(tool.createdAtEpochMs)
+            + "\nSHA-256 da fonte: " + tool.sourceSha256
+            + "\nSHA-256 do manifesto: " + tool.manifestSha256
+            + "\nSnapshot: " + tool.snapshotId
+            + (tool.evidenceRunId.isEmpty() ? "\nSem teste aprovado para revisão"
+                : "\nRelatório de evidência: " + tool.evidenceRunId)
+            + "\n\nO registro não executa ferramentas nem altera versões estáveis.";
+        TextView text = text(details, 13, FG, false);
+        text.setTypeface(Typeface.MONOSPACE);
+        text.setTextIsSelectable(true);
+        text.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(text);
+        new AlertDialog.Builder(this)
+            .setTitle("Versão de ferramenta • somente leitura")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
     }
 
     private void showReport(LaboratoryReportStore.Entry entry) {

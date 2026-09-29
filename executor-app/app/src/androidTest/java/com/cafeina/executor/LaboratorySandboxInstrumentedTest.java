@@ -112,6 +112,42 @@ public final class LaboratorySandboxInstrumentedTest {
         assertEquals(fixture, new String(saved.contentCopy(),
             java.nio.charset.StandardCharsets.UTF_8));
         assertEquals(1, snapshots.listVerified().size());
+
+        // Only an actually persisted PASS of this exact snapshot can open
+        // a review request. A candidate is not STABLE or auto-activated.
+        LaboratoryToolRegistry registry =
+            new LaboratoryToolRegistry(app.getFilesDir(), projectId);
+        LaboratoryToolRegistry.Tool experimental =
+            registry.registerExperimental("isolation-checker", "0.1.0", snapshotId, 1000);
+        assertEquals(LaboratoryToolRegistry.State.EXPERIMENTAL, experimental.state);
+        assertEquals(saved.sha256, experimental.sourceSha256);
+        LaboratoryToolRegistry.Tool candidate =
+            registry.requestCandidateReview("isolation-checker", "0.1.0", entry.runId);
+        assertEquals(LaboratoryToolRegistry.State.CANDIDATE, candidate.state);
+        assertEquals(entry.runId, candidate.evidenceRunId);
+        assertEquals("LUAU_ISOLATED_NO_FILES", candidate.capability);
+        assertEquals(LaboratoryToolRegistry.State.CANDIDATE,
+            registry.read("isolation-checker", "0.1.0").state);
+
+        try {
+            registry.requestCandidateReview("isolation-checker", "0.1.0", entry.runId);
+            org.junit.Assert.fail("Duplicate candidate review must fail");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("already"));
+        }
+
+        LaboratorySnapshotStore.Snapshot different = snapshots.create(
+            "candidate-luau", "return 'not the tested source'".getBytes(
+                java.nio.charset.StandardCharsets.UTF_8));
+        registry.registerExperimental("different-tool", "0.1.0", different.id, 1000);
+        try {
+            registry.requestCandidateReview("different-tool", "0.1.0", entry.runId);
+            org.junit.Assert.fail("Evidence for another source must be rejected");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("does not prove"));
+        }
+        assertEquals(LaboratoryToolRegistry.State.EXPERIMENTAL,
+            registry.read("different-tool", "0.1.0").state);
     }
 
     private static LaboratorySandboxClient.Result run(Context app, String source, int timeoutMs)
