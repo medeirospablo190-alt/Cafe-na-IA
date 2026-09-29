@@ -100,9 +100,10 @@ public final class LaboratorySandboxService extends Service {
                     error = "Worker produced an oversized result";
                 } else {
                     JSONObject result = new JSONObject(raw);
-                    status = result.optBoolean("ok", false) ? "EXECUTED" : "LUAU_ERROR";
                     output = bounded(result.optString("output", ""));
                     error = bounded(result.optString("error", ""));
+                    status = result.optBoolean("ok", false) ? "EXECUTED"
+                        : error.contains("execution timed out") ? "TIMEOUT" : "LUAU_ERROR";
                     JSONArray returns = result.optJSONArray("returns");
                     if (returns != null && returns.length() > 0) {
                         returnValue = bounded(returns.optString(0, ""));
