@@ -62,6 +62,49 @@ public final class LuauCodeEditorInstrumentedTest {
     }
 
     @Test
+    public void undoAndRedoRestoreEditorWithoutSavingFiles() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        Intent intent = new Intent(instrumentation.getTargetContext(), MainActivity.class)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Activity activity = instrumentation.startActivitySync(intent);
+        assertNotNull(activity);
+
+        try {
+            final EditText[] editor = new EditText[1];
+            final Button[] undo = new Button[1];
+            final Button[] redo = new Button[1];
+            long deadline = System.currentTimeMillis() + 5000;
+            while (System.currentTimeMillis() < deadline) {
+                instrumentation.runOnMainSync(() -> {
+                    View root = activity.findViewById(android.R.id.content);
+                    editor[0] = MainActivityStorageUiTest.findFirst(root, EditText.class, null);
+                    undo[0] = MainActivityStorageUiTest.findFirst(root, Button.class, "DESFAZER");
+                    redo[0] = MainActivityStorageUiTest.findFirst(root, Button.class, "REFAZER");
+                });
+                if (editor[0] != null && editor[0].isEnabled() && undo[0] != null
+                    && redo[0] != null) break;
+                Thread.sleep(50);
+            }
+            assertNotNull(editor[0]);
+            assertNotNull(undo[0]);
+            assertNotNull(redo[0]);
+
+            instrumentation.runOnMainSync(() -> {
+                editor[0].setText("local value = 1");
+                editor[0].setText("local value = 2");
+                assertTrue(undo[0].isEnabled());
+                undo[0].performClick();
+                assertEquals("local value = 1", editor[0].getText().toString());
+                assertTrue(redo[0].isEnabled());
+                redo[0].performClick();
+                assertEquals("local value = 2", editor[0].getText().toString());
+            });
+        } finally {
+            instrumentation.runOnMainSync(activity::finish);
+        }
+    }
+
+    @Test
     public void decorationLeavesEnteredLuauUntouchedAndReservesLineNumberGutter() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         Intent intent = new Intent(instrumentation.getTargetContext(), MainActivity.class)
