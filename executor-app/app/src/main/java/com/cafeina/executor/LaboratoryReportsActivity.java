@@ -139,6 +139,12 @@ public final class LaboratoryReportsActivity extends Activity {
                 .append("\nSeed: ").append(report.optLong("seed"))
                 .append("\nDuração: ").append(report.optLong("durationMs")).append(" ms")
                 .append("\nSHA-256 do lote: ").append(report.optString("candidateBatchSha256"));
+            if (report.has("candidateSnapshotId")) {
+                body.append("\nSnapshot de recuperação: ")
+                    .append(report.optString("candidateSnapshotId"))
+                    .append("\nIntegridade do snapshot no teste: ")
+                    .append(report.optBoolean("snapshotVerified") ? "CONFIRMADA" : "FALHOU");
+            }
             JSONArray checks = report.optJSONArray("checks");
             if (checks != null) {
                 for (int i = 0; i < checks.length(); i++) {
