@@ -79,27 +79,77 @@ public final class LaboratoryReportStore {
         if (report == null || !isValidRunId(report.runId)) {
             throw new IOException("invalid laboratory report");
         }
-        prepareDirectory();
-        if (countReports() >= MAX_REPORTS) {
-            throw new IOException("report limit reached; no existing reports were deleted");
-        }
-        Path destination = reportDirectory.resolve(report.runId + ".json");
-        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IOException("laboratory run already recorded");
-        }
-
-        final byte[] bytes;
         try {
-            bytes = toJson(report).toString(2).getBytes(StandardCharsets.UTF_8);
+            writeNew(report.runId, toJson(report));
         } catch (JSONException error) {
             throw new IOException("could not encode laboratory report", error);
         }
+    }
+
+    /**
+     * Records a candidate run without persisting its source, stdout, runtime
+     * error strings or return values. Execution success is NOT test success:
+     * PASS requires an explicit expected first return to match.
+     */
+    public synchronized void saveSandboxResult(LaboratorySandboxClient.Result result,
+            String caseName, String expectedFirstReturn, long seed) throws IOException {
+        if (result == null || !isValidRunId(result.runId) || caseName == null
+                || !caseName.matches("[a-zA-Z0-9_-]{1,64}")
+                || expectedFirstReturn == null || expectedFirstReturn.length() > 256) {
+            throw new IOException("invalid isolated test report");
+        }
+        boolean matched = "EXECUTED".equals(result.status)
+            && expectedFirstReturn.equals(result.firstReturn);
+        String outcome = matched ? "PASS" :
+            ("TIMEOUT".equals(result.status) || "CANCELLED".equals(result.status)
+                ? result.status : "FAIL");
+        try {
+            JSONObject report = new JSONObject();
+            report.put("schemaVersion", 2);
+            report.put("runId", result.runId);
+            report.put("toolId", "luau-isolated-candidate");
+            report.put("toolVersion", "0.1.0");
+            report.put("stage", "EXPERIMENTAL");
+            report.put("seed", seed);
+            report.put("startedAtEpochMs", result.startedAtEpochMs);
+            report.put("durationMs", result.durationMs);
+            report.put("candidateBatchSha256", result.sourceSha256);
+            report.put("status", outcome);
+            report.put("workerStatus", result.status);
+            report.put("workerUid", result.workerUid);
+            report.put("passed", matched ? 1 : 0);
+            report.put("failed", matched || "CANCELLED".equals(outcome)
+                || "TIMEOUT".equals(outcome) ? 0 : 1);
+            JSONObject check = new JSONObject();
+            check.put("name", caseName);
+            check.put("passed", matched);
+            check.put("expectedOutput",
+                LaboratoryEngine.fingerprint(expectedFirstReturn).substring(7, 71));
+            check.put("actualOutput",
+                LaboratoryEngine.fingerprint(result.firstReturn).substring(7, 71));
+            check.put("inputSha256", result.sourceSha256);
+            check.put("reason", matched ? "isolated return matched expected value"
+                : "worker: " + result.status + "; return mismatch or execution failed");
+            report.put("checks", new JSONArray().put(check));
+            writeNew(result.runId, report);
+        } catch (JSONException error) {
+            throw new IOException("could not encode isolated report", error);
+        }
+    }
+
+    private void writeNew(String runId, JSONObject report) throws IOException, JSONException {
+        ensureWritable();
+        Path destination = reportDirectory.resolve(runId + ".json");
+        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException("laboratory run already recorded");
+        }
+        byte[] bytes = report.toString(2).getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_REPORT_BYTES) {
             throw new IOException("laboratory report exceeds size budget");
         }
 
         // A unique temporary file is synced before the final path is exposed.
-        Path temporary = reportDirectory.resolve("." + report.runId + ".tmp-" + UUID.randomUUID());
+        Path temporary = reportDirectory.resolve("." + runId + ".tmp-" + UUID.randomUUID());
         boolean complete = false;
         try {
             Files.createFile(temporary);
