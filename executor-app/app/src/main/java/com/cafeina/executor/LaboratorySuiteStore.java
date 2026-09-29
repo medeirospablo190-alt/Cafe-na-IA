@@ -180,6 +180,14 @@ public final class LaboratorySuiteStore {
         if (started.status != Status.RUNNING_OR_INTERRUPTED) {
             throw new IOException("suite already has a terminal record");
         }
+        int expectedRuns = started.requested * ("REPLAY".equals(started.mode) ? 2 : 1);
+        if ((finalStatus == Status.PASS
+                    && (passed != started.requested || failed != 0
+                        || reportIds.size() != expectedRuns
+                        || !"ALL_CASES_MATCHED".equals(reason)))
+                || (finalStatus == Status.FAIL && failed == 0)) {
+            throw new IOException("suite result does not match the completed work");
+        }
         JSONArray references = new JSONArray();
         for (String reportId : reportIds) {
             if (!LaboratorySnapshotStore.validId(reportId)) {
@@ -188,7 +196,9 @@ public final class LaboratorySuiteStore {
             JSONObject item = new JSONObject();
             try {
                 item.put("id", reportId);
-                item.put("sha256", sha256(reports.read(reportId)));
+                String rawReport = reports.read(reportId);
+                if (finalStatus == Status.PASS) verifyPassingBuiltInReport(rawReport);
+                item.put("sha256", sha256(rawReport));
             } catch (JSONException malformed) {
                 throw new IOException("could not encode suite evidence", malformed);
             }
@@ -273,9 +283,21 @@ public final class LaboratorySuiteStore {
             List<String> refs = new ArrayList<>();
             JSONArray records = end.getJSONArray("reports");
             if (records.length() > 8) throw new IOException("too many suite evidence records");
+            if (status == Status.PASS
+                    && (end.getInt("passed") != start.getInt("requested")
+                        || end.getInt("failed") != 0
+                        || records.length() != start.getInt("requested")
+                            * ("REPLAY".equals(mode) ? 2 : 1)
+                        || !"ALL_CASES_MATCHED".equals(end.getString("reason")))) {
+                throw new IOException("suite PASS lacks complete evidence");
+            }
+            if (status == Status.FAIL && end.getInt("failed") == 0) {
+                throw new IOException("suite FAIL lacks a failed request");
+            }
             for (int i = 0; i < records.length(); i++) {
                 JSONObject reference = records.getJSONObject(i);
-                verifyReference(reference);
+                JSONObject report = verifyReference(reference);
+                if (status == Status.PASS) verifyPassingBuiltInReport(report.toString());
                 refs.add(reference.getString("id"));
             }
             return new Summary(suiteId, mode, start.getString("planSha256"),
@@ -320,12 +342,34 @@ public final class LaboratorySuiteStore {
         return Collections.unmodifiableList(summaries);
     }
 
-    private void verifyReference(JSONObject reference) throws IOException, JSONException {
+    private JSONObject verifyReference(JSONObject reference) throws IOException, JSONException {
         String id = reference.getString("id");
         String digest = reference.getString("sha256");
-        if (!LaboratorySnapshotStore.validId(id) || !digest.matches("[0-9a-f]{64}")
-                || !digest.equals(sha256(reports.read(id)))) {
+        if (!LaboratorySnapshotStore.validId(id) || !digest.matches("[0-9a-f]{64}")) {
+            throw new IOException("invalid suite report reference");
+        }
+        String raw = reports.read(id);
+        if (!digest.equals(sha256(raw))) {
             throw new IOException("suite report evidence has changed or is outside project");
+        }
+        return new JSONObject(raw);
+    }
+
+    private static void verifyPassingBuiltInReport(String raw) throws IOException {
+        try {
+            JSONObject report = new JSONObject(raw);
+            String tool = report.getString("toolId");
+            boolean allowlisted = LaboratoryEngine.FINGERPRINT_TOOL.equals(tool)
+                || LaboratoryEngine.WORLD_CONTACT_TOOL.equals(tool);
+            if (!allowlisted || report.getInt("schemaVersion") != 1
+                    || !"PASS".equals(report.getString("status"))
+                    || !"EXPERIMENTAL".equals(report.getString("stage"))
+                    || report.getInt("failed") != 0
+                    || report.getInt("passed") != report.getJSONArray("checks").length()) {
+                throw new IOException("suite PASS refers to non-passing or non-built-in evidence");
+            }
+        } catch (JSONException invalid) {
+            throw new IOException("suite PASS evidence is malformed", invalid);
         }
     }
 
