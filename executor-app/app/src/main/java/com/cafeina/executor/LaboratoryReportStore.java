@@ -300,6 +300,9 @@ public final class LaboratoryReportStore {
         object.put("startedAtEpochMs", report.startedAtEpochMs);
         object.put("durationMs", report.durationMs);
         object.put("candidateBatchSha256", report.candidateBatchSha256);
+        if (!report.environmentSha256.isEmpty()) {
+            object.put("environmentSha256", report.environmentSha256);
+        }
         object.put("status", report.status.name());
         object.put("passed", report.passed);
         object.put("failed", report.failed);
