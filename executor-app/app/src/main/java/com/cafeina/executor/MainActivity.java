@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -58,6 +59,9 @@ public final class MainActivity extends Activity {
     private LinearLayout tabButtons;
     private boolean suppressEditorWatcher;
     private boolean autoExecStartupTriggered;
+    private LinearLayout screenHost;
+    private LinearLayout codeScreen;
+    private final Map<String, Button> navigation = new LinkedHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +71,105 @@ public final class MainActivity extends Activity {
         runtimeFilesRoot = getFilesDir().toPath().resolve("runtime-fs").toString();
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
-        setContentView(buildUi());
+        setContentView(buildAppUi());
         restoreSavedTabs();
+    }
+
+
+    // Product shell: the editor stays alive when moving between sections.
+    private LinearLayout buildAppUi() {
+        LinearLayout app = new LinearLayout(this);
+        app.setOrientation(LinearLayout.VERTICAL);
+        app.setBackgroundColor(BG);
+
+        TextView brand = new TextView(this);
+        brand.setText("CAFEÍNA");
+        brand.setTextColor(TEXT);
+        brand.setTextSize(21);
+        brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        brand.setPadding(dp(16), dp(13), dp(16), dp(8));
+        app.addView(brand, matchWrap());
+
+        HorizontalScrollView navigationScroll = new HorizontalScrollView(this);
+        navigationScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout navigationBar = new LinearLayout(this);
+        navigationBar.setPadding(dp(10), 0, dp(10), dp(6));
+        navigationBar.setOrientation(LinearLayout.HORIZONTAL);
+        navigationScroll.addView(navigationBar);
+
+        for (String name : new String[]{"IA", "CÓDIGO", "MUNDO", "3D", "SISTEMA"}) {
+            Button section = makeButton(name, name.equals("CÓDIGO") ? ACCENT : PANEL_2);
+            section.setAllCaps(false);
+            section.setTextSize(13);
+            section.setMinWidth(dp(82));
+            LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46));
+            params.setMargins(dp(3), 0, dp(3), 0);
+            navigationBar.addView(section, params);
+            navigation.put(name, section);
+            section.setOnClickListener(v -> showSection(name));
+        }
+
+        app.addView(navigationScroll, matchWrap());
+        screenHost = new LinearLayout(this);
+        screenHost.setOrientation(LinearLayout.VERTICAL);
+        app.addView(screenHost,
+            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        codeScreen = buildUi();
+        screenHost.addView(codeScreen,
+            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        return app;
+    }
+
+    private void showSection(String name) {
+        if ("SISTEMA".equals(name)) {
+            startActivity(new Intent(this, ProjectManagerActivity.class));
+            return;
+        }
+        for (Map.Entry<String, Button> item : navigation.entrySet()) {
+            item.getValue().setBackgroundTintList(ColorStateList.valueOf(
+                item.getKey().equals(name) ? ACCENT : PANEL_2
+            ));
+        }
+        screenHost.removeAllViews();
+        if ("CÓDIGO".equals(name)) {
+            screenHost.addView(codeScreen,
+                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            return;
+        }
+
+        LinearLayout section = new LinearLayout(this);
+        section.setOrientation(LinearLayout.VERTICAL);
+        section.setPadding(dp(20), dp(30), dp(20), dp(20));
+        TextView title = new TextView(this);
+        title.setText(name);
+        title.setTextSize(22);
+        title.setTextColor(TEXT);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        section.addView(title, matchWrap());
+
+        TextView detail = new TextView(this);
+        detail.setTextSize(16);
+        detail.setTextColor(MUTED);
+        detail.setPadding(0, dp(15), 0, dp(22));
+        if ("MUNDO".equals(name)) {
+            detail.setText("A integração do mundo Godot já validado no T14 ainda não foi incorporada a este APK. O desenvolvimento será feito aqui no aplicativo, sem outra sequência de testes no editor do Godot.");
+        } else if ("3D".equals(name)) {
+            detail.setText("O módulo de criação e edição 3D ainda está em desenvolvimento. Nenhuma alteração será feita nos seus scripts ao entrar nesta área.");
+        } else {
+            detail.setText("A IA local ainda não foi integrada. A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
+        }
+        section.addView(detail, matchWrap());
+
+        Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
+        back.setOnClickListener(v -> showSection("CÓDIGO"));
+        section.addView(back, matchWrap());
+        screenHost.addView(section,
+            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     private LinearLayout buildUi() {
@@ -78,14 +179,14 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(BG);
 
         TextView title = new TextView(this);
-        title.setText("CAFEÍNA • LUAU RUNTIME");
+        title.setText("CÓDIGO • LUAU");
         title.setTextColor(TEXT);
         title.setTextSize(17);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Phase 8 • sandboxed local files API + runtime");
+        subtitle.setText("Scripts locais • VM Luau isolada");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -114,7 +215,7 @@ public final class MainActivity extends Activity {
         editor.setHintTextColor(MUTED);
         editor.setBackgroundColor(PANEL);
         editor.setTypeface(Typeface.MONOSPACE);
-        editor.setTextSize(14);
+        editor.setTextSize(17);
         editor.setGravity(Gravity.TOP | Gravity.START);
         editor.setPadding(dp(12), dp(12), dp(12), dp(12));
         editor.setInputType(
@@ -184,7 +285,7 @@ public final class MainActivity extends Activity {
         status = new TextView(this);
         status.setText("Preparando...");
         status.setTextColor(MUTED);
-        status.setTextSize(11);
+        status.setTextSize(13);
         LinearLayout.LayoutParams statusParams = matchWrap();
         statusParams.setMargins(0, dp(8), 0, dp(6));
         root.addView(status, statusParams);
@@ -196,7 +297,7 @@ public final class MainActivity extends Activity {
         console = new TextView(this);
         console.setText("Console aguardando execução.");
         console.setTextColor(TEXT);
-        console.setTextSize(12);
+        console.setTextSize(14);
         console.setTypeface(Typeface.MONOSPACE);
         console.setPadding(dp(12), dp(10), dp(12), dp(10));
         console.setTextIsSelectable(true);
@@ -875,7 +976,7 @@ public final class MainActivity extends Activity {
         Button button = new Button(this);
         button.setText(label);
         button.setTextColor(Color.WHITE);
-        button.setTextSize(12);
+        button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         button.setBackgroundTintList(ColorStateList.valueOf(color));
         return button;
@@ -886,7 +987,7 @@ public final class MainActivity extends Activity {
         button.setText(label);
         button.setAllCaps(false);
         button.setTextColor(Color.WHITE);
-        button.setTextSize(11);
+        button.setTextSize(13);
         button.setTypeface(Typeface.MONOSPACE, active ? Typeface.BOLD : Typeface.NORMAL);
         button.setMinWidth(dp(96));
         button.setPadding(dp(10), 0, dp(10), 0);

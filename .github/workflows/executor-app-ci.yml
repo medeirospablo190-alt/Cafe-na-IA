@@ -1,4 +1,4 @@
-name: CAFEINA Executor App CI
+name: CAFEINA Android App CI
 
 on:
   push:
@@ -78,6 +78,6 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: cafeina-runtime-phase8-debug
+          name: cafeina-android-app-debug
           path: executor-app/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
