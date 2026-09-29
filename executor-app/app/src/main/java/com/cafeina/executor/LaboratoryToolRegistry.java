@@ -5,9 +5,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -393,28 +395,18 @@ public final class LaboratoryToolRegistry {
 
     private static void writeNew(Path destination, String content) throws IOException {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        if (bytes.length > MAX_RECORD_BYTES
-                || Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IOException("tool record too large or already exists");
+        if (bytes.length > MAX_RECORD_BYTES) {
+            throw new IOException("tool record exceeds size limit");
         }
-        Path temp = destination.getParent().resolve("." + UUID.randomUUID() + ".tmp");
-        boolean committed = false;
-        try {
-            Files.createFile(temp);
-            try (FileOutputStream output = new FileOutputStream(temp.toFile(), false)) {
-                output.write(bytes);
-                output.flush();
-                output.getFD().sync();
-            }
-            // createLink is an atomic create-only operation: never replaces a
-            // concurrent version/review file, unlike rename on some filesystems.
-            Files.createLink(destination, temp);
-            committed = true;
-        } finally {
-            Files.deleteIfExists(temp);
-            if (!committed && Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
-                // Do not delete a record that might belong to another writer.
-            }
+        // Hard links are blocked on some Android app data filesystems. CREATE_NEW
+        // reserves the destination atomically and never replaces an old version.
+        // If the app crashes during this small bounded write, the incomplete
+        // record stays visible and fails its digest check; do not auto-delete it.
+        try (FileChannel output = FileChannel.open(destination,
+                StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+            ByteBuffer data = ByteBuffer.wrap(bytes);
+            while (data.hasRemaining()) output.write(data);
+            output.force(true);
         }
     }
 
