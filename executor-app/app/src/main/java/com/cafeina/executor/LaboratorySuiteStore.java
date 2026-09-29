@@ -317,21 +317,31 @@ public final class LaboratorySuiteStore {
         }
         requireExistingVault();
         List<String> ids = new ArrayList<>();
+        java.util.Set<String> completedIds = new java.util.HashSet<>();
         try (Stream<Path> stream = Files.list(suiteRoot)) {
             List<Path> paths = new ArrayList<>();
             stream.forEach(paths::add);
             if (paths.size() > MAX_ENTRIES) throw new IOException("suite vault exceeds limit");
             for (Path path : paths) {
-                String name = path.getFileName().toString();
-                if (name.endsWith(".start")) {
-                    String id = name.substring(0, name.length() - 6);
-                    if (!LaboratorySnapshotStore.validId(id)) {
-                        throw new IOException("invalid suite ID in vault");
-                    }
-                    ids.add(id);
-                } else if (!name.endsWith(".done")) {
-                    throw new IOException("unexpected suite record");
+                if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+                        || Files.isSymbolicLink(path)) {
+                    throw new IOException("unsafe suite record");
                 }
+                String name = path.getFileName().toString();
+                boolean start = name.endsWith(".start");
+                boolean done = name.endsWith(".done");
+                if (!start && !done) throw new IOException("unexpected suite record");
+                String id = name.substring(0, name.length() - (start ? 6 : 5));
+                if (!LaboratorySnapshotStore.validId(id)) {
+                    throw new IOException("invalid suite ID in vault");
+                }
+                if (start) ids.add(id);
+                else completedIds.add(id);
+            }
+        }
+        for (String id : completedIds) {
+            if (!ids.contains(id)) {
+                throw new IOException("suite completion is missing its START record");
             }
         }
         if (ids.size() > MAX_SUITES) throw new IOException("too many suite records");
