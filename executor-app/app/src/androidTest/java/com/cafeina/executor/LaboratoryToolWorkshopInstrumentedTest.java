@@ -74,6 +74,37 @@ public final class LaboratoryToolWorkshopInstrumentedTest {
         assertFalse(reports.read(passing.execution.runId).contains("return 20 + 22"));
         assertFalse(reports.read(failing.execution.runId).contains("return 7"));
 
+        LaboratoryReviewDecisionStore review =
+            new LaboratoryReviewDecisionStore(app.getFilesDir(), projectId);
+        assertNull(review.read(toolId, "0.1.0"));
+        LaboratoryReviewDecisionStore.Entry decision = review.recordDecision(
+            toolId, "0.1.0",
+            LaboratoryReviewDecisionStore.Decision.CONTINUE_TESTING);
+        assertEquals(LaboratoryReviewDecisionStore.Decision.CONTINUE_TESTING,
+            decision.decision);
+        assertEquals(passing.tool.manifestSha256, decision.manifestSha256);
+        assertEquals(passing.tool.sourceSha256, decision.sourceSha256);
+        assertEquals(passing.execution.runId, decision.evidenceRunId);
+        assertEquals(decision.evidenceSha256,
+            review.read(toolId, "0.1.0").evidenceSha256);
+        assertEquals(LaboratoryToolRegistry.State.CANDIDATE,
+            registry.read(toolId, "0.1.0").state);
+
+        try {
+            review.recordDecision(toolId, "0.1.0",
+                LaboratoryReviewDecisionStore.Decision.REJECT_FOR_NOW);
+            org.junit.Assert.fail("A review decision must never be overwritten");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("already"));
+        }
+        try {
+            review.recordDecision(toolId, "0.1.1",
+                LaboratoryReviewDecisionStore.Decision.CONTINUE_TESTING);
+            org.junit.Assert.fail("Experimental/failed tools cannot receive human review");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("tested candidate"));
+        }
+
         try {
             registry.requestCandidateReview(toolId, "0.1.1", failing.execution.runId);
             org.junit.Assert.fail("Failing candidate must never qualify for review");
