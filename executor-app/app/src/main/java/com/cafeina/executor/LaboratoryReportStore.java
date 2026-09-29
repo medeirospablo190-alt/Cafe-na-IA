@@ -93,14 +93,28 @@ public final class LaboratoryReportStore {
      */
     public synchronized void saveSandboxResult(LaboratorySandboxClient.Result result,
             String caseName, String expectedFirstReturn, long seed) throws IOException {
+        saveSandboxResult(result, caseName, expectedFirstReturn, seed, null, true);
+    }
+
+    /**
+     * A snapshot reference is valid only after the recovery core rechecks its
+     * bytes and digest. An integrity failure must never be marked PASS even if
+     * the sandbox returned the expected value.
+     */
+    public synchronized void saveSandboxResult(LaboratorySandboxClient.Result result,
+            String caseName, String expectedFirstReturn, long seed,
+            String snapshotId, boolean snapshotVerified) throws IOException {
+        if (snapshotId != null && !LaboratorySnapshotStore.validId(snapshotId)) {
+            throw new IOException("invalid candidate snapshot id");
+        }
         if (result == null || !isValidRunId(result.runId) || caseName == null
                 || !caseName.matches("[a-zA-Z0-9_-]{1,64}")
                 || expectedFirstReturn == null || expectedFirstReturn.length() > 256) {
             throw new IOException("invalid isolated test report");
         }
-        boolean matched = "EXECUTED".equals(result.status)
+        boolean matched = snapshotVerified && "EXECUTED".equals(result.status)
             && expectedFirstReturn.equals(result.firstReturn);
-        String outcome = matched ? "PASS" :
+        String outcome = !snapshotVerified ? "FAIL" : matched ? "PASS" :
             ("TIMEOUT".equals(result.status) || "CANCELLED".equals(result.status)
                 ? result.status : "FAIL");
         try {
@@ -114,6 +128,8 @@ public final class LaboratoryReportStore {
             report.put("startedAtEpochMs", result.startedAtEpochMs);
             report.put("durationMs", result.durationMs);
             report.put("candidateBatchSha256", result.sourceSha256);
+            if (snapshotId != null) report.put("candidateSnapshotId", snapshotId);
+            report.put("snapshotVerified", snapshotVerified);
             report.put("status", outcome);
             report.put("workerStatus", result.status);
             report.put("workerUid", result.workerUid);
@@ -128,7 +144,9 @@ public final class LaboratoryReportStore {
             check.put("actualOutput",
                 LaboratoryEngine.fingerprint(result.firstReturn).substring(7, 71));
             check.put("inputSha256", result.sourceSha256);
-            check.put("reason", matched ? "isolated return matched expected value"
+            check.put("reason", !snapshotVerified
+                ? "snapshot integrity check failed; test candidate not approved"
+                : matched ? "isolated return matched expected value"
                 : "worker: " + result.status + "; return mismatch or execution failed");
             report.put("checks", new JSONArray().put(check));
             writeNew(result.runId, report);

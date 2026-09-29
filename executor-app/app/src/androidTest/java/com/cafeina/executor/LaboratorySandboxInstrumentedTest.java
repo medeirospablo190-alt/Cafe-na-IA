@@ -14,6 +14,7 @@ import android.os.Process;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -100,6 +101,17 @@ public final class LaboratorySandboxInstrumentedTest {
         assertFalse(entry.reportText.contains(fixture));
         assertFalse(entry.reportText.contains("return 2 + 2"));
         assertTrue(entry.reportText.contains(execution.get().sourceSha256));
+        JSONObject report = new JSONObject(entry.reportText);
+        assertTrue("Candidate source baseline must have been verified",
+            report.getBoolean("snapshotVerified"));
+        String snapshotId = report.getString("candidateSnapshotId");
+        LaboratorySnapshotStore snapshots =
+            new LaboratorySnapshotStore(app.getFilesDir(), projectId);
+        LaboratorySnapshotStore.Snapshot saved = snapshots.readCopy(snapshotId);
+        assertEquals(execution.get().sourceSha256, saved.sha256);
+        assertEquals(fixture, new String(saved.contentCopy(),
+            java.nio.charset.StandardCharsets.UTF_8));
+        assertEquals(1, snapshots.listVerified().size());
     }
 
     private static LaboratorySandboxClient.Result run(Context app, String source, int timeoutMs)
