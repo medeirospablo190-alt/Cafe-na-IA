@@ -101,6 +101,23 @@ public final class LaboratoryToolRegistry {
     }
 
     /**
+     * Fail before starting an expensive candidate run if this immutable tool
+     * version already exists or the private registry has reached its budget.
+     */
+    public synchronized void assertVersionAvailable(String toolId, String version)
+            throws IOException {
+        checkIdentity(toolId, version);
+        ensureWritable();
+        if (countManifestFiles() >= MAX_VERSIONS) {
+            throw new IOException("tool version limit reached; no existing tools deleted");
+        }
+        if (Files.exists(manifests.resolve(key(toolId, version) + ".tool"),
+                LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException("tool version already registered; replacing is forbidden");
+        }
+    }
+
+    /**
      * Explicitly register an already-snapshotted candidate; never read editor
      * state, grant permissions or auto-execute the candidate.
      */
@@ -123,15 +140,9 @@ public final class LaboratoryToolRegistry {
             throw new IOException("candidate does not fit the isolated worker source budget");
         }
 
-        ensureWritable();
-        if (countManifestFiles() >= MAX_VERSIONS) {
-            throw new IOException("tool version limit reached; no existing tools deleted");
-        }
+        assertVersionAvailable(toolId, version);
         String key = key(toolId, version);
         Path destination = manifests.resolve(key + ".tool");
-        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IOException("tool version already registered; replacing is forbidden");
-        }
         long created = System.currentTimeMillis();
         String payload = lines(MANIFEST_MAGIC, FORMAT, toolId, version,
             snapshotId, baseline.sha256, Integer.toString(timeoutMs),
