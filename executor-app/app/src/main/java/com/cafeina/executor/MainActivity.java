@@ -50,6 +50,7 @@ public final class MainActivity extends Activity {
     private final ExecutorService runtimeExecutor = Executors.newSingleThreadExecutor();
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final EditorTabs tabs = new EditorTabs(DEFAULT_SOURCE);
+    private final EditorUndoHistory editorHistory = new EditorUndoHistory();
 
     private ScriptStore scriptStore;
     private AutoExecuteStore autoExecuteStore;
@@ -65,6 +66,8 @@ public final class MainActivity extends Activity {
     private Button loadButton;
     private Button autoExecuteButton;
     private Button addTabButton;
+    private Button undoButton;
+    private Button redoButton;
     private LinearLayout tabButtons;
     private HorizontalScrollView tabScroll;
     private boolean suppressEditorWatcher;
@@ -317,6 +320,21 @@ public final class MainActivity extends Activity {
         fontControls.addView(fontUp, fontUpParams);
         root.addView(fontControls, matchWrap());
 
+        LinearLayout historyControls = new LinearLayout(this);
+        historyControls.setOrientation(LinearLayout.HORIZONTAL);
+        undoButton = makeButton("DESFAZER", PANEL_2);
+        redoButton = makeButton("REFAZER", PANEL_2);
+        undoButton.setContentDescription("Desfazer alteração no código");
+        redoButton.setContentDescription("Refazer alteração no código");
+        addTwoButtons(historyControls, undoButton, redoButton);
+        LinearLayout.LayoutParams historyParams = matchWrap();
+        historyParams.setMargins(0, 0, 0, dp(6));
+        root.addView(historyControls, historyParams);
+        undoButton.setOnClickListener(v -> restoreEditorHistory(false));
+        redoButton.setOnClickListener(v -> restoreEditorHistory(true));
+        undoButton.setEnabled(false);
+        redoButton.setEnabled(false);
+
         editor = new LuauCodeEditor(this);
         editor.setText(tabs.activeContent());
         editor.setTextColor(TEXT);
@@ -346,7 +364,9 @@ public final class MainActivity extends Activity {
                 if (suppressEditorWatcher) return;
 
                 boolean wasDirty = tabs.activeDirty();
+                editorHistory.record(tabs.activeName(), tabs.activeContent(), value.toString());
                 tabs.updateActiveContent(value.toString());
+                refreshHistoryButtons();
                 boolean nowDirty = tabs.activeDirty();
 
                 if (wasDirty != nowDirty) {
@@ -524,8 +544,10 @@ public final class MainActivity extends Activity {
                     runOnUiThread(() -> {
                         if (!activityAlive()) return;
                         for (Map.Entry<String, String> script : importedContents.entrySet()) {
+                            editorHistory.forget(script.getKey());
                             tabs.openOrReplace(script.getKey(), script.getValue());
                         }
+                        refreshHistoryButtons();
                         if (!importedContents.isEmpty()) {
                             setEditorText(tabs.activeContent());
                             renderTabs();
@@ -617,6 +639,28 @@ public final class MainActivity extends Activity {
         loadButton.setEnabled(enabled);
         if (autoExecuteButton != null) autoExecuteButton.setEnabled(enabled);
         if (addTabButton != null) addTabButton.setEnabled(enabled);
+        refreshHistoryButtons();
+    }
+
+    private void refreshHistoryButtons() {
+        if (undoButton == null || redoButton == null || editor == null) return;
+        boolean editable = editor.isEnabled();
+        undoButton.setEnabled(editable && editorHistory.canUndo(tabs.activeName()));
+        redoButton.setEnabled(editable && editorHistory.canRedo(tabs.activeName()));
+    }
+
+    private void restoreEditorHistory(boolean redo) {
+        if (!editor.isEnabled()) return;
+        String name = tabs.activeName();
+        String current = editor.getText().toString();
+        if (redo ? !editorHistory.canRedo(name) : !editorHistory.canUndo(name)) return;
+        String restored = redo ? editorHistory.redo(name, current) : editorHistory.undo(name, current);
+        setEditorText(restored);
+        tabs.updateActiveContent(restored);
+        renderTabs();
+        refreshAutoExecButton();
+        refreshHistoryButtons();
+        status.setText((redo ? "Refeito • " : "Desfeito • ") + name);
     }
 
     private void addTwoButtons(LinearLayout row, Button left, Button right) {
@@ -791,6 +835,7 @@ public final class MainActivity extends Activity {
         }
 
         tabs.close(index);
+        editorHistory.forget(name);
         showActiveTab("Aba fechada");
     }
 
@@ -806,12 +851,14 @@ public final class MainActivity extends Activity {
             .setMessage("O conteúdo de " + name + " será apagado do editor. O arquivo salvo não será excluído.")
             .setPositiveButton("Limpar", (dialog, which) -> {
                 if (!name.equals(tabs.activeName())) return;
+                editorHistory.record(name, editor.getText().toString(), "");
                 setEditorText("");
                 tabs.updateActiveContent("");
                 console.setText("");
                 renderTabs();
                 refreshAutoExecButton();
-                status.setText("Editor limpo • " + name + " (salve apenas se quiser substituir o arquivo)");
+                status.setText("Editor limpo • " + name + " (DESFAZER recupera o código)");
+                refreshHistoryButtons();
             })
             .setNegativeButton("Cancelar", null)
             .show();
@@ -936,10 +983,12 @@ public final class MainActivity extends Activity {
     }
 
     private void applyLoadedScript(String name, String diskContent) {
+        editorHistory.forget(name);
         tabs.openOrReplace(name, diskContent);
         setEditorText(tabs.activeContent());
         loadButton.setEnabled(true);
         status.setText("Carregado localmente • " + name);
+        refreshHistoryButtons();
         renderTabs();
         refreshAutoExecButton();
     }
@@ -1221,6 +1270,7 @@ public final class MainActivity extends Activity {
         status.setText(prefix + " • " + tabs.activeName());
         renderTabs();
         refreshAutoExecButton();
+        refreshHistoryButtons();
     }
 
     private void setEditorText(String value) {
