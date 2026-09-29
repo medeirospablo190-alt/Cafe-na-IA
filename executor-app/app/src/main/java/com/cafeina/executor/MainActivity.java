@@ -122,7 +122,8 @@ public final class MainActivity extends Activity {
         app.setBackgroundColor(BG);
 
         TextView brand = new TextView(this);
-        brand.setText("CAFEÍNA • " + workspace.label());
+        brand.setText((getPackageName().endsWith(".preview") ? "CAFEÍNA TESTE" : "CAFEÍNA")
+            + " • " + workspace.label());
         brand.setTextColor(TEXT);
         brand.setTextSize(21);
         brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
