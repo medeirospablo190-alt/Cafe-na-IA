@@ -36,6 +36,7 @@ public final class LaboratoryReportsActivity extends Activity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LaboratoryReportStore reports;
     private LaboratoryToolRegistry registry;
+    private LaboratorySuiteStore suites;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -79,6 +80,7 @@ public final class LaboratoryReportsActivity extends Activity {
         try {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
             registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
+            suites = new LaboratorySuiteStore(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -99,8 +101,18 @@ public final class LaboratoryReportsActivity extends Activity {
                     registryProblem = "Catálogo de ferramentas indisponível: "
                         + error.getMessage();
                 }
+                List<LaboratorySuiteStore.Summary> suiteHistory;
+                String suiteProblem = null;
+                try {
+                    suiteHistory = suites.list();
+                } catch (Exception error) {
+                    suiteHistory = java.util.Collections.emptyList();
+                    suiteProblem = "Histórico de lotes indisponível: " + error.getMessage();
+                }
                 final List<LaboratoryToolRegistry.Tool> toolItems = catalog;
                 final String registryWarning = registryProblem;
+                final List<LaboratorySuiteStore.Summary> suiteItems = suiteHistory;
+                final String suiteWarning = suiteProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
@@ -134,6 +146,34 @@ public final class LaboratoryReportsActivity extends Activity {
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(entryButton, params);
+                    }
+                    TextView suitesTitle = text("LOTES E REGRESSÕES", 17, FG, true);
+                    suitesTitle.setPadding(0, dp(18), 0, dp(4));
+                    entries.addView(suitesTitle, matchWrap());
+                    entries.addView(text(
+                        "BATCH: casos em lote. REPLAY: repetição dos mesmos casos. "
+                            + "REGRESSION: comparação com um relatório anterior do projeto.",
+                        13, MUTED, false), matchWrap());
+                    if (suiteWarning != null) {
+                        entries.addView(text(suiteWarning, 14, FG, false), matchWrap());
+                    } else if (suiteItems.isEmpty()) {
+                        entries.addView(text(
+                            "Ainda não há lotes registrados neste projeto.",
+                            14, MUTED, false), matchWrap());
+                    }
+                    for (LaboratorySuiteStore.Summary suite : suiteItems) {
+                        Button summary = button(suite.mode + " • " + suite.status.name()
+                            + "\n" + time(suite.startedAtEpochMs) + "  |  "
+                            + suite.passed + " passou / " + suite.failed + " falhou");
+                        summary.setAllCaps(false);
+                        summary.setTextSize(14);
+                        summary.setGravity(android.view.Gravity.START
+                            | android.view.Gravity.CENTER_VERTICAL);
+                        summary.setBackgroundTintList(ColorStateList.valueOf(PANEL));
+                        summary.setOnClickListener(v -> showSuite(suite));
+                        LinearLayout.LayoutParams params = matchWrap();
+                        params.setMargins(0, dp(8), 0, 0);
+                        entries.addView(summary, params);
                     }
                     TextView reportTitle = text("HISTÓRICO DE TESTES", 17, FG, true);
                     reportTitle.setPadding(0, dp(18), 0, dp(4));
@@ -194,6 +234,40 @@ public final class LaboratoryReportsActivity extends Activity {
         scroll.addView(text);
         new AlertDialog.Builder(this)
             .setTitle("Versão de ferramenta • somente leitura")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
+    private void showSuite(LaboratorySuiteStore.Summary suite) {
+        StringBuilder body = new StringBuilder()
+            .append("Modalidade: ").append(suite.mode)
+            .append("\nEstado: ").append(suite.status.name())
+            .append("\nMotivo: ").append(suite.reason)
+            .append("\nInício: ").append(time(suite.startedAtEpochMs))
+            .append("\nFim: ").append(time(suite.completedAtEpochMs))
+            .append("\nPlanejados: ").append(suite.requested)
+            .append("\nAprovados: ").append(suite.passed)
+            .append("\nFalharam: ").append(suite.failed)
+            .append("\nPlano SHA-256: ").append(suite.planSha256)
+            .append("\nLote: ").append(suite.suiteId);
+        if (suite.status == LaboratorySuiteStore.Status.RUNNING_OR_INTERRUPTED) {
+            body.append("\n\nHá um início registrado sem conclusão. "
+                + "O teste pode estar em andamento ou ter sido interrompido; "
+                + "ele NÃO é considerado aprovado.");
+        }
+        if (!suite.reportIds.isEmpty()) {
+            body.append("\n\nRelatórios individuais:");
+            for (String id : suite.reportIds) body.append("\n").append(id);
+        }
+        TextView details = text(body.toString(), 13, FG, false);
+        details.setTypeface(Typeface.MONOSPACE);
+        details.setTextIsSelectable(true);
+        details.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(details);
+        new AlertDialog.Builder(this)
+            .setTitle("Lote do laboratório • somente leitura")
             .setView(scroll)
             .setPositiveButton("FECHAR", null)
             .show();
