@@ -78,8 +78,7 @@ jobs:
           disable-animations: true
           script: |
             adb logcat -c
-            cd executor-app
-            gradle :app:connectedDebugAndroidTest --stacktrace
+            gradle -p executor-app :app:connectedDebugAndroidTest --stacktrace
             adb logcat -d -v brief > godot-world-android-logcat.txt
             if grep -Ei 'SCRIPT ERROR|Parse Error|Failed to load script|Failed to load main scene' godot-world-android-logcat.txt; then
               tail -n 120 godot-world-android-logcat.txt
