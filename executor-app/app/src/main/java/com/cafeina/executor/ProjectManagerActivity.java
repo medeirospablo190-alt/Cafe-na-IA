@@ -62,6 +62,12 @@ public final class ProjectManagerActivity extends Activity {
         current.setPadding(0, dp(14), 0, dp(8));
         root.addView(current, matchWrap());
 
+        // The laboratory is AI-operated. The user can only inspect its reports.
+        Button laboratoryReports = button("RELATÓRIOS DO LABORATÓRIO");
+        laboratoryReports.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryReportsActivity.class)));
+        root.addView(laboratoryReports, matchWrap());
+
         Button legacy = button("ABRIR SCRIPTS ANTIGOS");
         legacy.setOnClickListener(v -> activateProject(""));
         root.addView(legacy, matchWrap());
