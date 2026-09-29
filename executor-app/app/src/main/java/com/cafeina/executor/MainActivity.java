@@ -495,17 +495,16 @@ public final class MainActivity extends Activity {
                         if (input == null) throw new java.io.IOException("Não foi possível abrir o ZIP.");
                         imported = ScriptArchive.importScripts(targetStore, input);
                     }
+                    final Map<String, String> importedContents = new LinkedHashMap<>();
+                    for (String name : imported.names()) {
+                        importedContents.put(name, targetStore.load(name));
+                    }
                     runOnUiThread(() -> {
                         if (!activityAlive()) return;
-                        for (String name : imported.names()) {
-                            try {
-                                tabs.openOrReplace(name, targetStore.load(name));
-                            } catch (Exception error) {
-                                console.setText("Importado, mas não foi possível abrir " + name
-                                    + ": " + error.getMessage());
-                            }
+                        for (Map.Entry<String, String> script : importedContents.entrySet()) {
+                            tabs.openOrReplace(script.getKey(), script.getValue());
                         }
-                        if (!imported.names().isEmpty()) {
+                        if (!importedContents.isEmpty()) {
                             setEditorText(tabs.activeContent());
                             renderTabs();
                         }
