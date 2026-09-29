@@ -6,13 +6,17 @@ import android.content.Intent;
 import android.net.Uri;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.View;
+import android.view.WindowInsets;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -455,10 +459,47 @@ public final class MainActivity extends Activity {
         loadButton.setOnClickListener(v -> showLoadPicker());
         autoExecuteButton.setOnClickListener(v -> toggleAutoExecute());
 
+        installKeyboardLayout(root, primaryActions, storageActions, archiveActions, consoleScroll);
         renderTabs();
         return root;
     }
 
+
+    /**
+     * The editor occupies the remaining screen height. When the IME appears,
+     * fixed action rows and the console would otherwise leave no room for code.
+     * Keep tabs/font/history visible and restore the other controls on dismissal.
+     */
+    private void installKeyboardLayout(LinearLayout root, View primaryActions,
+            View storageActions, View archiveActions, View consoleScroll) {
+        final int[] fullHeight = {0};
+        final boolean[] compact = {false};
+        final Rect visible = new Rect();
+        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (!root.isAttachedToWindow() || root.getHeight() <= 0) return;
+            WindowInsets insets = root.getRootWindowInsets();
+            boolean imeVisible = Build.VERSION.SDK_INT >= 30 && insets != null
+                && insets.isVisible(WindowInsets.Type.ime());
+
+            // Older Android versions: track the expanded layout and visible frame.
+            root.getWindowVisibleDisplayFrame(visible);
+            int covered = Math.max(0, root.getRootView().getHeight() - visible.bottom);
+            if (!imeVisible && covered < dp(160)) {
+                fullHeight[0] = Math.max(fullHeight[0], root.getHeight());
+            }
+            boolean shouldCompact = imeVisible || covered > dp(160)
+                || (fullHeight[0] > 0 && fullHeight[0] - root.getHeight() > dp(120));
+            if (shouldCompact == compact[0]) return;
+            compact[0] = shouldCompact;
+            int visibility = shouldCompact ? View.GONE : View.VISIBLE;
+            primaryActions.setVisibility(visibility);
+            storageActions.setVisibility(visibility);
+            archiveActions.setVisibility(visibility);
+            autoExecuteButton.setVisibility(visibility);
+            consoleScroll.setVisibility(visibility);
+            status.setVisibility(visibility);
+        });
+    }
 
     private boolean hasUnsavedTabs() {
         tabs.updateActiveContent(editor.getText().toString());
