@@ -12,6 +12,12 @@ on:
       - "executor-runtime/**"
       - ".github/workflows/executor-app-ci.yml"
 
+# New pushes supersede tests for older commits on the same branch/PR.
+# Avoid consuming Android emulator minutes for already superseded snapshots.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
