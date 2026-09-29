@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -50,8 +51,20 @@ public final class ProjectManagerActivity extends Activity {
         title.setPadding(0, dp(16), 0, dp(6));
         root.addView(title, matchWrap());
         root.addView(text(
-            "Projetos salvos somente neste aparelho. Seus scripts atuais permanecem onde estão; nenhuma migração automática é feita.",
+            "Escolha um projeto para abrir no editor. Cada projeto guarda scripts e arquivos Luau separados. Seus scripts antigos continuam disponíveis.",
             15, MUTED, false), matchWrap());
+
+        String currentId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
+            .getString("project_id", "");
+        TextView current = text(
+            "Área atual: " + (currentId.isEmpty() ? "Scripts antigos" : currentId),
+            16, FG, true);
+        current.setPadding(0, dp(14), 0, dp(8));
+        root.addView(current, matchWrap());
+
+        Button legacy = button("ABRIR SCRIPTS ANTIGOS");
+        legacy.setOnClickListener(v -> activateProject(""));
+        root.addView(legacy, matchWrap());
 
         projectId = new EditText(this);
         projectId.setSingleLine(true);
@@ -64,7 +77,7 @@ public final class ProjectManagerActivity extends Activity {
         inputParams.setMargins(0, dp(16), 0, dp(8));
         root.addView(projectId, inputParams);
 
-        createButton = button("CRIAR PROJETO");
+        createButton = button("CRIAR E ABRIR PROJETO");
         createButton.setOnClickListener(v -> createProject());
         root.addView(createButton, matchWrap());
 
@@ -97,7 +110,7 @@ public final class ProjectManagerActivity extends Activity {
                     projectId.setText("");
                     feedback.setText("Projeto criado: " + id);
                     createButton.setEnabled(true);
-                    refresh();
+                    activateProject(id);
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
@@ -122,7 +135,7 @@ public final class ProjectManagerActivity extends Activity {
                         return;
                     }
                     for (String id : ids) {
-                        Button item = button(id + "  •  DETALHES");
+                        Button item = button(id + "  •  ABRIR");
                         item.setOnClickListener(v -> showProject(id));
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, 0, 0, dp(8));
@@ -145,8 +158,9 @@ public final class ProjectManagerActivity extends Activity {
                     if (!alive()) return;
                     new AlertDialog.Builder(this)
                         .setTitle("Projeto: " + id)
-                        .setMessage("Pastas criadas: scripts, runtime-fs, worlds, assets e snapshots. A ligação desses projetos ao editor será implementada sem alterar seus arquivos antigos.")
-                        .setPositiveButton("OK", null)
+                        .setMessage("Abrir este projeto no editor? Os arquivos do projeto ficam separados dos scripts antigos e dos outros projetos.")
+                        .setPositiveButton("ABRIR", (dialog, which) -> activateProject(id))
+                        .setNegativeButton("CANCELAR", null)
                         .show();
                 });
             } catch (Exception error) {
@@ -155,6 +169,19 @@ public final class ProjectManagerActivity extends Activity {
                 });
             }
         });
+    }
+
+
+    private void activateProject(String id) {
+        if (!getSharedPreferences("cafeina_workspace", MODE_PRIVATE).edit()
+                .putString("project_id", id).commit()) {
+            feedback.setText("Não foi possível guardar a escolha do projeto.");
+            return;
+        }
+        Intent openEditor = new Intent(this, MainActivity.class);
+        openEditor.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(openEditor);
+        finish();
     }
 
     private TextView text(String value, int sp, int color, boolean bold) {

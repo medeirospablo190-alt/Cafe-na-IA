@@ -47,6 +47,8 @@ public final class MainActivity extends Activity {
     private ScriptStore scriptStore;
     private AutoExecuteStore autoExecuteStore;
     private String runtimeFilesRoot;
+    private ProjectWorkspace workspace;
+    private int editorFontSp = 17;
     private EditText editor;
     private TextView console;
     private TextView status;
@@ -66,12 +68,34 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        scriptStore = new ScriptStore(getFilesDir());
-        autoExecuteStore = new AutoExecuteStore(getFilesDir());
-        runtimeFilesRoot = getFilesDir().toPath().resolve("runtime-fs").toString();
+        String requestedProject = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
+            .getString("project_id", "");
+        String workspaceWarning = null;
+        try {
+            workspace = ProjectWorkspace.open(getFilesDir(), requestedProject);
+        } catch (Exception error) {
+            workspaceWarning = "O projeto selecionado não está disponível: " + error.getMessage()
+                + ". Seus arquivos não foram apagados. Usando os scripts antigos.";
+            getSharedPreferences("cafeina_workspace", MODE_PRIVATE).edit()
+                .remove("project_id").apply();
+            workspace = ProjectWorkspace.openLegacy(getFilesDir());
+        }
+        scriptStore = workspace.scriptStore();
+        autoExecuteStore = workspace.autoExecuteStore();
+        runtimeFilesRoot = workspace.runtimeFilesRoot();
+        editorFontSp = getSharedPreferences("cafeina_ui", MODE_PRIVATE)
+            .getInt("editor_font_sp", 17);
+        editorFontSp = Math.max(14, Math.min(26, editorFontSp));
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         setContentView(buildAppUi());
+        if (workspaceWarning != null) {
+            new AlertDialog.Builder(this)
+                .setTitle("Projeto indisponível")
+                .setMessage(workspaceWarning)
+                .setPositiveButton("OK", null)
+                .show();
+        }
         restoreSavedTabs();
     }
 
@@ -83,7 +107,7 @@ public final class MainActivity extends Activity {
         app.setBackgroundColor(BG);
 
         TextView brand = new TextView(this);
-        brand.setText("CAFEÍNA");
+        brand.setText("CAFEÍNA • " + workspace.label());
         brand.setTextColor(TEXT);
         brand.setTextSize(21);
         brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -125,7 +149,7 @@ public final class MainActivity extends Activity {
 
     private void showSection(String name) {
         if ("SISTEMA".equals(name)) {
-            startActivity(new Intent(this, ProjectManagerActivity.class));
+            openProjectManager();
             return;
         }
         for (Map.Entry<String, Button> item : navigation.entrySet()) {
@@ -172,6 +196,46 @@ public final class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
+
+    private void openProjectManager() {
+        if (!editor.isEnabled() || !executeButton.isEnabled() || !saveButton.isEnabled()
+                || !loadButton.isEnabled()) {
+            new AlertDialog.Builder(this)
+                .setTitle("Operação em andamento")
+                .setMessage("Aguarde a execução ou a gravação terminar antes de trocar de projeto.")
+                .setPositiveButton("OK", null)
+                .show();
+            return;
+        }
+        tabs.updateActiveContent(editor.getText().toString());
+        boolean hasUnsaved = false;
+        for (int i = 0; i < tabs.size(); i++) {
+            if (tabs.isDirtyAt(i)) {
+                hasUnsaved = true;
+                break;
+            }
+        }
+        if (hasUnsaved) {
+            new AlertDialog.Builder(this)
+                .setTitle("Alterações não salvas")
+                .setMessage("Há scripts alterados. Salve cada aba antes de trocar de projeto. "
+                    + "Se abrir outro projeto agora, as alterações não salvas podem ser perdidas.")
+                .setPositiveButton("VOLTAR E SALVAR", null)
+                .setNegativeButton("ABRIR PROJETOS", (dialog, which) ->
+                    startActivity(new Intent(this, ProjectManagerActivity.class)))
+                .show();
+            return;
+        }
+        startActivity(new Intent(this, ProjectManagerActivity.class));
+    }
+
+    private void changeEditorFont(int difference) {
+        editorFontSp = Math.max(14, Math.min(26, editorFontSp + difference));
+        editor.setTextSize(editorFontSp);
+        getSharedPreferences("cafeina_ui", MODE_PRIVATE).edit()
+            .putInt("editor_font_sp", editorFontSp).apply();
+    }
+
     private LinearLayout buildUi() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -186,7 +250,7 @@ public final class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Scripts locais • VM Luau isolada");
+        subtitle.setText("Projeto: " + workspace.label() + " • VM Luau isolada");
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(11);
         LinearLayout.LayoutParams subtitleParams = matchWrap();
@@ -209,13 +273,31 @@ public final class MainActivity extends Activity {
         tabScrollParams.setMargins(0, 0, 0, dp(8));
         root.addView(tabScroll, tabScrollParams);
 
+        LinearLayout fontControls = new LinearLayout(this);
+        fontControls.setOrientation(LinearLayout.HORIZONTAL);
+        TextView fontLabel = new TextView(this);
+        fontLabel.setText("TAMANHO DO CÓDIGO");
+        fontLabel.setTextColor(MUTED);
+        fontLabel.setTextSize(13);
+        fontControls.addView(fontLabel, new LinearLayout.LayoutParams(0, dp(48), 1f));
+        fontLabel.setGravity(Gravity.CENTER_VERTICAL);
+        Button fontDown = makeButton("A−", PANEL_2);
+        Button fontUp = makeButton("A+", PANEL_2);
+        fontDown.setOnClickListener(v -> changeEditorFont(-1));
+        fontUp.setOnClickListener(v -> changeEditorFont(1));
+        fontControls.addView(fontDown, new LinearLayout.LayoutParams(dp(64), dp(48)));
+        LinearLayout.LayoutParams fontUpParams = new LinearLayout.LayoutParams(dp(64), dp(48));
+        fontUpParams.setMargins(dp(6), 0, 0, 0);
+        fontControls.addView(fontUp, fontUpParams);
+        root.addView(fontControls, matchWrap());
+
         editor = new EditText(this);
         editor.setText(tabs.activeContent());
         editor.setTextColor(TEXT);
         editor.setHintTextColor(MUTED);
         editor.setBackgroundColor(PANEL);
         editor.setTypeface(Typeface.MONOSPACE);
-        editor.setTextSize(17);
+        editor.setTextSize(editorFontSp);
         editor.setGravity(Gravity.TOP | Gravity.START);
         editor.setPadding(dp(12), dp(12), dp(12), dp(12));
         editor.setInputType(
