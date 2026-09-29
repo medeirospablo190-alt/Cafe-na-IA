@@ -32,6 +32,8 @@ const BLOCKS := [
 ]
 
 func _ready() -> void:
+    # The native editor stays portrait; only the embedded world uses landscape.
+    DisplayServer.screen_set_orientation(DisplayServer.SCREEN_LANDSCAPE)
     _create_lighting()
     for entry in BLOCKS:
         _create_block(entry[0], entry[1], entry[2], entry[3], entry[4])
