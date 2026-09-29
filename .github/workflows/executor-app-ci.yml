@@ -36,7 +36,7 @@ jobs:
           SDKMANAGER="$(command -v sdkmanager || find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
           test -n "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
 
       - name: Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -58,6 +58,9 @@ jobs:
           test -n "$APK"
           unzip -l "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
           unzip -l "$APK" | grep -F "lib/x86_64/libcafeina_luau_jni.so"
+          unzip -l "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
+          unzip -l "$APK" | grep -F "assets/project.godot"
+          unzip -l "$APK" | grep -F "assets/world.gd"
 
       - name: Enable KVM
         run: |

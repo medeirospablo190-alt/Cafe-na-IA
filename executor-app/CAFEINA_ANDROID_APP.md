@@ -18,8 +18,10 @@ Esta é a base do **aplicativo Android instalável** da CAFEÍNA, não uma nova 
 
 ## Ainda não integrado
 
-- A cena Godot/Luau do T14 não está versionada neste ramo do GitHub e **não está embutida neste APK**.
-- Execução de Luau no mundo 3D, interface da IA e ferramentas 3D ainda precisam ser integradas.
+- A aba MUNDO abre uma cena Godot 4.7 dentro do APK, com os 11 blocos, personagem, colisão, gravidade 15 e controles de toque. A posição, os tamanhos e as cores dos 11 blocos seguem o arquivo `scripts/world_real.luau` do projeto T14 recebido.
+- A GDExtension Luau e o anti-cheat específicos do T14 **ainda não foram integrados** à nova cena; ela é o ponto de entrada 3D do aplicativo, não uma revalidação do T14.
+- Execução de Luau na cena Godot, anti-cheat do T14, interface da IA e ferramentas de edição 3D ainda precisam ser integradas.
+- O MUNDO usa a biblioteca oficial `org.godotengine:godot:4.7.0.stable` em uma Activity separada, dentro do mesmo aplicativo, sem passar pelo editor Godot.
 - Projetos novos usam `files/projects/<id>/scripts` e `runtime-fs`; os scripts existentes continuam em `files/scripts` e podem ser reabertos pela opção **Scripts antigos**.
 - A importação ou cópia de scripts entre projetos ainda não foi implementada; nenhuma migração automática é feita.
 

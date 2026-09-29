@@ -4,15 +4,15 @@ plugins {
 
 android {
     namespace = "com.cafeina.executor"
-    compileSdk = 35
-    ndkVersion = "27.2.12479018"
+    compileSdk = 36
+    ndkVersion = "29.0.14206865"
 
     defaultConfig {
         applicationId = "com.cafeina.executor"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 10
+        versionName = "0.10.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
@@ -37,6 +37,13 @@ android {
         }
     }
 
+    // Luau JNI and the Godot AAR both use the shared C++ runtime.
+    packaging {
+        jniLibs {
+            pickFirsts += setOf("**/libc++_shared.so")
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = false
@@ -49,6 +56,7 @@ android {
 
 
 dependencies {
+    implementation("org.godotengine:godot:4.7.0.stable")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")

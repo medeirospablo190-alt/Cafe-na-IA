@@ -8,6 +8,12 @@
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity android:name=".ProjectManagerActivity" android:exported="false" />
         <activity
+            android:name=".GodotWorldActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"
+            android:process=":world" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">

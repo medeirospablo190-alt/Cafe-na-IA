@@ -154,6 +154,10 @@ public final class MainActivity extends Activity {
     }
 
     private void showSection(String name) {
+        if ("MUNDO".equals(name)) {
+            openWorld();
+            return;
+        }
         if ("SISTEMA".equals(name)) {
             openProjectManager();
             return;
@@ -185,9 +189,7 @@ public final class MainActivity extends Activity {
         detail.setTextSize(16);
         detail.setTextColor(MUTED);
         detail.setPadding(0, dp(15), 0, dp(22));
-        if ("MUNDO".equals(name)) {
-            detail.setText("A integração do mundo Godot já validado no T14 ainda não foi incorporada a este APK. O desenvolvimento será feito aqui no aplicativo, sem outra sequência de testes no editor do Godot.");
-        } else if ("3D".equals(name)) {
+        if ("3D".equals(name)) {
             detail.setText("O módulo de criação e edição 3D ainda está em desenvolvimento. Nenhuma alteração será feita nos seus scripts ao entrar nesta área.");
         } else {
             detail.setText("A IA local ainda não foi integrada. A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
@@ -202,6 +204,24 @@ public final class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
+
+
+    private void openWorld() {
+        if (!editor.isEnabled() || !executeButton.isEnabled() || !saveButton.isEnabled()
+                || !loadButton.isEnabled()) {
+            status.setText("Aguarde a operação atual antes de abrir o mundo.");
+            return;
+        }
+        if (hasUnsavedTabs()) {
+            new AlertDialog.Builder(this)
+                .setTitle("Salve o código antes de abrir o mundo")
+                .setMessage("Salve as abas alteradas. O mundo abre dentro deste aplicativo e seus scripts não serão modificados.")
+                .setPositiveButton("VOLTAR E SALVAR", null)
+                .show();
+            return;
+        }
+        startActivity(new Intent(this, GodotWorldActivity.class));
+    }
 
     private void openProjectManager() {
         if (!editor.isEnabled() || !executeButton.isEnabled() || !saveButton.isEnabled()
