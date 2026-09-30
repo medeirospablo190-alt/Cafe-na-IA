@@ -161,12 +161,32 @@ public final class LaboratoryToolRegistryInstrumentedTest {
             Collections.singletonList(e1.runId), "user-v1", approve);
 
         LaboratoryToolRegistry.Descriptor v2 =
-            descriptor("1.1.0", "stable-two", Collections.singletonList("artifact"));
-        LaboratoryEngine.Report e2 = passEvidence(app, project, "stable-two", "artifact");
+            descriptor("1.1.0", "stable-one", Collections.singletonList("artifact"));
+        LaboratoryEngine.Report e2 = passEvidence(app, project, "stable-one", "artifact");
         registry.registerExperimental(v2);
         registry.qualifyCandidate(v2.toolId, v2.version, Collections.singletonList(e2.runId));
+
+        try {
+            registry.activateStable(v2.toolId, v2.version,
+                Collections.singletonList(e2.runId), "user-v2", approve);
+            throw new AssertionError("stable upgrade must require regression evidence");
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("regression evidence"));
+        }
+
+        LaboratoryRegressionStore regressionStore =
+            new LaboratoryRegressionStore(app.getFilesDir(), project);
+        LaboratoryRegressionStore.Record comparison = regressionStore.compareAndSave(
+            e1.runId, e2.runId,
+            new LaboratoryRegressionEngine.Policy(1000, 60_000, true));
+        assertEquals("PASS", comparison.verdict);
+        assertEquals(v1.artifactSha256, comparison.baselineInputSha256);
+        assertEquals(v2.artifactSha256, comparison.candidateInputSha256);
+
         registry.activateStable(v2.toolId, v2.version,
-            Collections.singletonList(e2.runId), "user-v2", approve);
+            Collections.singletonList(e2.runId),
+            Collections.singletonList(comparison.comparisonId),
+            "user-v2", approve);
 
         registry.rollbackStable(v2.toolId, "1.0.0", "user-rollback", approve);
 
@@ -179,6 +199,12 @@ public final class LaboratoryToolRegistryInstrumentedTest {
         for (int i = 0; i < registry.history(v2.toolId).size(); i++) {
             assertEquals(i + 1, registry.history(v2.toolId).get(i).sequence);
         }
+        LaboratoryToolRegistry.Event promotion =
+            registry.history(v2.toolId).get(3);
+        assertEquals("ACTIVATE_STABLE", promotion.action);
+        assertEquals(Collections.singletonList(comparison.comparisonId),
+            promotion.regressionComparisonIds);
+
         LaboratoryToolRegistry.Event last =
             registry.history(v2.toolId).get(registry.history(v2.toolId).size() - 1);
         assertEquals("ROLLBACK_STABLE", last.action);
