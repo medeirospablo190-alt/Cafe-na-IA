@@ -65,7 +65,7 @@ public final class LaboratoryAiLiveSessionActivity extends Activity {
 
         root.addView(text(
             "Controles exclusivos do usuário/host. A IA não recebe acesso a "
-                + "pausar, continuar ou cancelar a própria sessão.",
+                + "pausar, continuar, finalizar ou cancelar a própria sessão.",
             14, MUTED, false), matchWrap());
 
         feedback = text("Carregando sessões vivas…", 14, MUTED, false);
@@ -196,6 +196,10 @@ public final class LaboratoryAiLiveSessionActivity extends Activity {
                 actions.addView(resume, actionParams());
             }
 
+            Button finish = button("FINALIZAR", Color.rgb(55, 116, 82));
+            finish.setOnClickListener(v -> confirmComplete(info.sessionId));
+            actions.addView(finish, actionParams());
+
             Button cancel = button("CANCELAR", CANCEL_COLOR);
             cancel.setOnClickListener(v -> confirmCancel(info.sessionId));
             actions.addView(cancel, actionParams());
@@ -293,6 +297,34 @@ public final class LaboratoryAiLiveSessionActivity extends Activity {
                 });
             } catch (Exception error) {
                 showOperationError("Não foi possível continuar", error);
+            }
+        });
+    }
+
+    private void confirmComplete(String sessionId) {
+        new AlertDialog.Builder(this)
+            .setTitle("Finalizar sessão da IA")
+            .setMessage("Marcar esta sessão como concluída normalmente? "
+                + "Não pode haver ferramenta executando e a sessão não poderá "
+                + "ser retomada depois.")
+            .setNegativeButton("VOLTAR", null)
+            .setPositiveButton("FINALIZAR", (dialog, which) ->
+                complete(sessionId))
+            .show();
+    }
+
+    private void complete(String sessionId) {
+        feedback.setText("Finalizando sessão…");
+        io.execute(() -> {
+            try {
+                LaboratoryAiLiveSessionRegistry.complete(projectId, sessionId);
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    feedback.setText("Sessão finalizada normalmente.");
+                    refresh(false);
+                });
+            } catch (Exception error) {
+                showOperationError("Não foi possível finalizar", error);
             }
         });
     }

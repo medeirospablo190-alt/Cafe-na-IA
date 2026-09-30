@@ -131,6 +131,8 @@ public final class LaboratoryAiSessionController {
 
         public void cancel() { session.cancelFromHost(); }
 
+        public void complete() throws IOException { session.completeFromHost(); }
+
         public Snapshot snapshot() { return session.snapshot(); }
 
         public String sessionId() { return session.id; }
@@ -387,6 +389,26 @@ public final class LaboratoryAiSessionController {
             } catch (IOException auditFailure) {
                 failAuditLocked();
                 throw new IOException("AI session audit failed on resume", auditFailure);
+            }
+        }
+
+        synchronized void completeFromHost() throws IOException {
+            updateExpiredLocked();
+            if (auditBroken) {
+                throw new IOException("AI session audit is unavailable");
+            }
+            if (state == State.CANCELLED) {
+                throw new IOException("AI session is cancelled");
+            }
+            if (state == State.FINISHED) return;
+            if (activeInvocation != null) {
+                throw new IOException(
+                    "AI session cannot complete while a tool invocation is active");
+            }
+            finishLocked("HOST_COMPLETED");
+            if (auditBroken || !terminalAudited) {
+                throw new IOException(
+                    "AI session finished but completion audit failed");
             }
         }
 

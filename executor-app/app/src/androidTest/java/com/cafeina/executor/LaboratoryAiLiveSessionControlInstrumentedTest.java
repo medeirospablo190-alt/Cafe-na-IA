@@ -96,7 +96,43 @@ public final class LaboratoryAiLiveSessionControlInstrumentedTest {
         assertFalse(aiMethods.contains("pause"));
         assertFalse(aiMethods.contains("resume"));
         assertFalse(aiMethods.contains("cancel"));
+        assertFalse(aiMethods.contains("complete"));
         assertFalse(aiMethods.contains("snapshot"));
+    }
+
+    @Test
+    public void normalHostCompletionFinishesAndAuditsSession() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "livecomplete"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "live-complete-tool";
+        prepareGrantedStable(app, project, toolId);
+
+        LaboratoryAiSessionController.Handles handles =
+            LaboratoryAiSessionController.create(
+                app,
+                project,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    3,
+                    256,
+                    30_000L));
+
+        LaboratoryAiSessionController.Snapshot finished =
+            LaboratoryAiLiveSessionRegistry.complete(
+                project, handles.host.sessionId());
+        assertEquals(LaboratoryAiSessionController.State.FINISHED, finished.state);
+        assertEquals(
+            LaboratoryAiSessionController.State.FINISHED,
+            handles.host.snapshot().state);
+        assertTrue(LaboratoryAiLiveSessionRegistry.list(project).isEmpty());
+
+        LaboratoryAiSessionStore store =
+            new LaboratoryAiSessionStore(app.getFilesDir(), project);
+        assertTrue(store.readEvents(handles.host.sessionId()).stream()
+            .anyMatch(event ->
+                LaboratoryAiSessionStore.FINISH.equals(event.type)
+                    && "HOST_COMPLETED".equals(event.outcome)));
     }
 
     @Test
