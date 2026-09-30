@@ -176,7 +176,7 @@ public final class LaboratoryToolRegistry {
         }
         List<String> evidence = validateEvidence(descriptor, evidenceRunIds);
         writeEvent(toolId, "QUALIFY_CANDIDATE", version, "", version,
-            evidence, "");
+            evidence, Collections.emptyList(), "");
     }
 
     public synchronized void activateStable(String toolId, String version,
@@ -191,7 +191,7 @@ public final class LaboratoryToolRegistry {
         String current = activeStableVersion(toolId);
         requireApproval(gate, "ACTIVATE_STABLE", toolId, current, version, approvalId);
         writeEvent(toolId, "ACTIVATE_STABLE", version, current, version,
-            evidence, sha256(approvalId));
+            evidence, Collections.emptyList(), sha256(approvalId));
     }
 
     public synchronized void rollbackStable(String toolId, String targetVersion,
@@ -205,7 +205,7 @@ public final class LaboratoryToolRegistry {
         if (current.equals(targetVersion)) throw new IOException("rollback target is already active");
         requireApproval(gate, "ROLLBACK_STABLE", toolId, current, targetVersion, approvalId);
         writeEvent(toolId, "ROLLBACK_STABLE", target.version, current, targetVersion,
-            Collections.emptyList(), sha256(approvalId));
+            Collections.emptyList(), Collections.emptyList(), sha256(approvalId));
     }
 
     public synchronized Stage stage(String toolId, String version) throws IOException {
@@ -341,7 +341,7 @@ public final class LaboratoryToolRegistry {
 
     private void writeEvent(String toolId, String action, String version,
             String fromVersion, String toVersion, List<String> evidence,
-            String approvalSha256) throws IOException {
+            List<String> regressionComparisonIds, String approvalSha256) throws IOException {
         Path toolRoot = prepareTool(toolId);
         Path history = toolRoot.resolve("history");
         if (countJson(history) >= MAX_EVENTS_PER_TOOL) {
@@ -370,6 +370,9 @@ public final class LaboratoryToolRegistry {
             json.put("fromVersion", fromVersion);
             json.put("toVersion", toVersion);
             json.put("evidenceRunIds", new JSONArray(evidence));
+            if (!regressionComparisonIds.isEmpty()) {
+                json.put("regressionComparisonIds", new JSONArray(regressionComparisonIds));
+            }
             if (!approvalSha256.isEmpty()) json.put("approvalSha256", approvalSha256);
             writeCreateOnly(history.resolve(fileName), json, MAX_EVENT_BYTES);
         } catch (JSONException error) {
@@ -435,6 +438,9 @@ public final class LaboratoryToolRegistry {
             json.optString("fromVersion"),
             json.optString("toVersion"),
             strings(json.getJSONArray("evidenceRunIds")),
+            json.has("regressionComparisonIds")
+                ? strings(json.getJSONArray("regressionComparisonIds"))
+                : Collections.emptyList(),
             json.optString("approvalSha256"));
     }
 
