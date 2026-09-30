@@ -99,14 +99,26 @@ final class LaboratoryAiLiveSessionRegistry {
             String projectId, String sessionId) throws IOException {
         Entry entry = require(projectId, sessionId);
         entry.host.pause();
-        return entry.host.snapshot();
+        LaboratoryAiSessionController.Snapshot snapshot = entry.host.snapshot();
+        if (snapshot.state != LaboratoryAiSessionController.State.PAUSED) {
+            unregister(sessionId);
+            throw new IOException(
+                "AI session could not enter PAUSED state");
+        }
+        return snapshot;
     }
 
     static LaboratoryAiSessionController.Snapshot resume(
             String projectId, String sessionId) throws IOException {
         Entry entry = require(projectId, sessionId);
         entry.host.resume();
-        return entry.host.snapshot();
+        LaboratoryAiSessionController.Snapshot snapshot = entry.host.snapshot();
+        if (snapshot.state != LaboratoryAiSessionController.State.ACTIVE) {
+            unregister(sessionId);
+            throw new IOException(
+                "AI session could not return to ACTIVE state");
+        }
+        return snapshot;
     }
 
     static void cancel(String projectId, String sessionId) throws IOException {
