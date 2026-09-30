@@ -136,3 +136,19 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 **Regra de uso futuro:** a IA só poderá chamar uma ferramenta quando o controlador de permissões confirmar uma seleção STABLE válida. O catálogo ou um relatório PASS isoladamente não deverão conceder uso.
 
 **Limite de segurança:** o timestamp de autenticação continua sendo uma regra da aplicação acionada após `RESULT_OK` da tela de credencial; não é uma assinatura criptográfica do Android contra código arbitrário com o mesmo UID ou root. Antes de conectar a IA principal, a trilha de aprovação/ativação deverá ser reforçada por um controlador sem API disponível ao modelo e, idealmente, por uma chave Android Keystore com autenticação do usuário para operações de promoção.
+
+
+## Décima segunda entrega — gate exclusivo para execução de ferramentas STABLE
+
+- `LaboratoryStableToolExecutor` é o caminho estreito preparado para o futuro controlador da IA. O chamador informa apenas `toolId` e `tool_input`; não escolhe fonte, versão, snapshot, permissão ou timeout.
+- Antes de executar, o gate reconstrói e valida a cadeia STABLE, resolve a versão ativa, confere registro/aprovação/snapshot/capacidade e recusa ferramentas sem seleção ativa. A única capacidade aceita continua `LUAU_ISOLATED_NO_FILES`.
+- A fonte aprovada é recuperada do snapshot por hash e enviada ao mesmo worker Android `isolatedProcess=true`. A entrada continua limitada e separada da fonte. O processo principal não executa Luau.
+- Depois da resposta do worker, o gate verifica novamente se o mesmo evento STABLE ainda está ativo. Se houver troca, rollback ou desativação durante a execução, o resultado é registrado como não utilizável e não é entregue como sucesso ao chamador.
+- `LaboratoryStableUseStore` grava um recibo create-only para cada tentativa: ferramenta/versão, manifesto, fonte, snapshot, evento STABLE, hash da entrada, hashes do retorno/stdout/erro, status, UID e duração. O texto da entrada, saída, retorno e erro não é persistido.
+- O resultado só é devolvido ao futuro chamador se: o worker retornou `EXECUTED`, a seleção STABLE permaneceu válida até o final e o recibo de auditoria foi salvo. Falha de auditoria descarta o resultado para o chamador.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou `AUDITORIA DE USO STABLE`, somente leitura, exibindo hashes, status e vínculo com o evento de ativação.
+- Testes Android preparam uma candidata real, registram aprovação e STABLE, executam entrada privada, comprovam que dados brutos não entram no recibo, auditam erro Luau sem liberar resultado e verificam que uma ferramenta desativada é recusada antes da execução.
+
+**Fronteira para a IA:** quando a IA principal existir, ela não deverá receber APIs de `LaboratoryToolRegistry`, `LaboratoryHumanApprovalStore` ou `LaboratoryStableActivationStore`. A interface de uso prevista é somente o gate STABLE com `toolId + entrada`, mantendo criação/testes/aprovação/ativação em planos de controle separados.
+
+**Ainda pendente antes da IA principal:** fortalecer a autenticação/assinatura das decisões humanas, medir CPU/memória/bateria no aparelho real, completar Test World de física/renderização e definir o controlador que limita frequência/prioridade/cancelamento entre múltiplas ferramentas.
