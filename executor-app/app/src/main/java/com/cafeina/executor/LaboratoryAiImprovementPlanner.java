@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 public final class LaboratoryAiImprovementPlanner {
     private static final ExecutorService IO =
         Executors.newSingleThreadExecutor();
+    private static final Object REFRESH_LOCK = new Object();
 
     private LaboratoryAiImprovementPlanner() {}
 
@@ -38,26 +39,28 @@ public final class LaboratoryAiImprovementPlanner {
                 "improvement planner context missing");
         }
 
-        LaboratoryAiTeamDiagnosticStore diagnostics =
-            new LaboratoryAiTeamDiagnosticStore(
-                context.getFilesDir(), projectId);
-        LaboratoryAiImprovementProposalStore proposals =
-            new LaboratoryAiImprovementProposalStore(
-                context.getFilesDir(), projectId);
+        synchronized (REFRESH_LOCK) {
+            LaboratoryAiTeamDiagnosticStore diagnostics =
+                new LaboratoryAiTeamDiagnosticStore(
+                    context.getFilesDir(), projectId);
+            LaboratoryAiImprovementProposalStore proposals =
+                new LaboratoryAiImprovementProposalStore(
+                    context.getFilesDir(), projectId);
 
-        for (LaboratoryAiTeamDiagnosticStore.Report report
-                : diagnostics.list()) {
-            for (String recommendation : report.recommendationCodes) {
-                Mapping mapping = map(recommendation);
-                if (mapping == null) continue;
-                proposals.createIfAbsent(
-                    report,
-                    recommendation,
-                    mapping.actionCode,
-                    mapping.targetRole);
+            for (LaboratoryAiTeamDiagnosticStore.Report report
+                    : diagnostics.list()) {
+                for (String recommendation : report.recommendationCodes) {
+                    Mapping mapping = map(recommendation);
+                    if (mapping == null) continue;
+                    proposals.createIfAbsent(
+                        report,
+                        recommendation,
+                        mapping.actionCode,
+                        mapping.targetRole);
+                }
             }
+            return proposals.list();
         }
-        return proposals.list();
     }
 
     private static Mapping map(String recommendation) {
