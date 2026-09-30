@@ -39,6 +39,7 @@ public final class LaboratoryReportsActivity extends Activity {
     private LaboratoryToolRegistry registry;
     private LaboratoryHumanApprovalStore approvals;
     private LaboratorySuiteStore suites;
+    private LaboratoryCandidateSuiteStore candidateSuites;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -91,6 +92,7 @@ public final class LaboratoryReportsActivity extends Activity {
             registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
             approvals = new LaboratoryHumanApprovalStore(getFilesDir(), projectId);
             suites = new LaboratorySuiteStore(getFilesDir(), projectId);
+            candidateSuites = new LaboratoryCandidateSuiteStore(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -133,6 +135,18 @@ public final class LaboratoryReportsActivity extends Activity {
                 }
                 final List<LaboratorySuiteStore.Summary> suiteItems = suiteHistory;
                 final String suiteWarning = suiteProblem;
+                List<LaboratoryCandidateSuiteStore.Summary> candidateSuiteHistory;
+                String candidateSuiteProblem = null;
+                try {
+                    candidateSuiteHistory = candidateSuites.list();
+                } catch (Exception error) {
+                    candidateSuiteHistory = java.util.Collections.emptyList();
+                    candidateSuiteProblem =
+                        "Lotes de candidatas indisponíveis: " + error.getMessage();
+                }
+                final List<LaboratoryCandidateSuiteStore.Summary> candidateSuiteItems =
+                    candidateSuiteHistory;
+                final String candidateSuiteWarning = candidateSuiteProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
@@ -201,6 +215,43 @@ public final class LaboratoryReportsActivity extends Activity {
                             | android.view.Gravity.CENTER_VERTICAL);
                         summary.setBackgroundTintList(ColorStateList.valueOf(PANEL));
                         summary.setOnClickListener(v -> showSuite(suite));
+                        LinearLayout.LayoutParams params = matchWrap();
+                        params.setMargins(0, dp(8), 0, 0);
+                        entries.addView(summary, params);
+                    }
+
+                    TextView candidateTitle =
+                        text("LOTES DE CANDIDATAS LUAU", 17, FG, true);
+                    candidateTitle.setPadding(0, dp(18), 0, dp(4));
+                    entries.addView(candidateTitle, matchWrap());
+                    entries.addView(text(
+                        "A mesma versão isolada recebe várias entradas de teste. "
+                            + "Um lote PASS é evidência; não promove nem ativa a ferramenta.",
+                        13, MUTED, false), matchWrap());
+                    if (candidateSuiteWarning != null) {
+                        entries.addView(text(
+                            candidateSuiteWarning, 14, FG, false), matchWrap());
+                    } else if (candidateSuiteItems.isEmpty()) {
+                        entries.addView(text(
+                            "Ainda não há lotes de candidatas neste projeto.",
+                            14, MUTED, false), matchWrap());
+                    }
+                    for (LaboratoryCandidateSuiteStore.Summary suite :
+                            candidateSuiteItems) {
+                        Button summary = button(
+                            suite.toolId + " @ " + suite.toolVersion + " • "
+                                + suite.status.name() + "\n"
+                                + time(suite.startedAtEpochMs) + "  |  "
+                                + suite.passed + " passou / "
+                                + suite.failed + " falhou");
+                        summary.setAllCaps(false);
+                        summary.setTextSize(14);
+                        summary.setGravity(android.view.Gravity.START
+                            | android.view.Gravity.CENTER_VERTICAL);
+                        summary.setBackgroundTintList(
+                            ColorStateList.valueOf(PANEL));
+                        summary.setOnClickListener(v ->
+                            showCandidateSuite(suite));
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(summary, params);
@@ -307,6 +358,47 @@ public final class LaboratoryReportsActivity extends Activity {
             .show();
     }
 
+    private void showCandidateSuite(
+            LaboratoryCandidateSuiteStore.Summary suite) {
+        StringBuilder body = new StringBuilder()
+            .append("Ferramenta: ").append(suite.toolId)
+            .append("\nVersão: ").append(suite.toolVersion)
+            .append("\nEstado do lote: ").append(suite.status.name())
+            .append("\nMotivo: ").append(suite.reason)
+            .append("\nInício: ").append(time(suite.startedAtEpochMs))
+            .append("\nFim: ").append(time(suite.completedAtEpochMs))
+            .append("\nCasos: ").append(suite.requested)
+            .append("\nAprovados: ").append(suite.passed)
+            .append("\nFalharam: ").append(suite.failed)
+            .append("\nPlano SHA-256: ").append(suite.planSha256)
+            .append("\nManifesto SHA-256: ").append(suite.manifestSha256)
+            .append("\nFonte SHA-256: ").append(suite.sourceSha256)
+            .append("\nSnapshot: ").append(suite.snapshotId)
+            .append("\nLote: ").append(suite.suiteId);
+        if (suite.status
+                == LaboratoryCandidateSuiteStore.Status.RUNNING_OR_INTERRUPTED) {
+            body.append("\n\nExiste START sem END. O lote pode ter sido interrompido "
+                + "e não é considerado aprovado.");
+        }
+        if (!suite.reportIds.isEmpty()) {
+            body.append("\n\nRelatórios por caso:");
+            for (String id : suite.reportIds) body.append("\n").append(id);
+        }
+        body.append("\n\nPASS neste lote não altera EXPERIMENTAL/CANDIDATE "
+            + "nem cria ativação STABLE.");
+        TextView details = text(body.toString(), 13, FG, false);
+        details.setTypeface(Typeface.MONOSPACE);
+        details.setTextIsSelectable(true);
+        details.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(details);
+        new AlertDialog.Builder(this)
+            .setTitle("Lote de candidata • somente leitura")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
     private void showReport(LaboratoryReportStore.Entry entry) {
         StringBuilder body = new StringBuilder()
             .append("Ferramenta: ").append(entry.toolId)
@@ -406,7 +498,8 @@ public final class LaboratoryReportsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (reports != null && registry != null && approvals != null && suites != null) refresh();
+        if (reports != null && registry != null && approvals != null
+                && suites != null && candidateSuites != null) refresh();
     }
 
     @Override
