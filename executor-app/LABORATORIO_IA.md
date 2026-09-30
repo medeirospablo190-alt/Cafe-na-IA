@@ -86,3 +86,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM validam equivalência funcional, regressão de duração, diferenças de seed/ambiente/harness, mudança de casos e limites da política. Testes Android validam persistência real de comparações PASS/FAIL e impedem usar o mesmo run como sua própria baseline.
 
 **Limite técnico:** esta entrega cria a evidência objetiva de regressão, mas ainda não a torna requisito automático para promover uma nova versão a STABLE. A ligação entre o registro de versões e essas comparações será feita como gate separado, para não permitir que uma ferramenta se autopromova apenas por produzir seu próprio relatório.
+
+
+## Sétima entrega — gate de regressão para promoção STABLE
+
+- A primeira versão STABLE de uma ferramenta ainda pode ser aprovada sem baseline anterior. A partir da segunda versão, `LaboratoryToolRegistry` exige comparações de regressão PASS antes de aceitar a promoção.
+- Cada comparação usada no gate precisa ligar o hash de entrada da baseline ao SHA-256 da versão STABLE atual e o hash candidato ao SHA-256 da versão que está sendo promovida. Comparações genéricas sem um único hash de entrada não servem como prova de promoção.
+- O run candidato da comparação precisa estar entre os próprios runs de evidência da promoção, e o conjunto de comparações precisa cobrir todos os `requiredTests` declarados pela ferramenta.
+- Um PASS criado com política frouxa é recusado. A política inicial de promoção exige o mesmo ambiente, no máximo **25% de slowdown** e **50 ms de tolerância absoluta**. Esses limites são controlados pelo núcleo do registro, não pela ferramenta candidata.
+- Os IDs das comparações aprovadas são gravados no evento append-only de `ACTIVATE_STABLE`, junto com os runs de teste e o hash da aprovação. Assim o motivo exato de uma promoção pode ser reconstruído posteriormente.
+- Rollback continua permitido apenas para uma versão que já foi STABLE e continua exigindo aprovação explícita do usuário; não é necessário retestar uma versão previamente aprovada só para voltar a ela.
+- Testes Android verificam que upgrade sem regressão é recusado, política permissiva é recusada, comparação estrita é aceita, hashes são vinculados e o histórico preserva a referência da regressão.
+
+**Limite técnico:** os limites de 25%/50 ms são a política inicial fixa do núcleo. Se futuramente eles forem configuráveis, essa configuração deverá pertencer ao usuário/host confiável e nunca ser alterável pelo código candidato ou pela IA isolada.

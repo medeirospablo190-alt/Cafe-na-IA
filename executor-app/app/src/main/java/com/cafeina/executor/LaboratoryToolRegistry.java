@@ -32,6 +32,8 @@ public final class LaboratoryToolRegistry {
     public static final int MAX_EVENTS_PER_TOOL = 256;
     public static final int MAX_DESCRIPTOR_BYTES = 16 * 1024;
     public static final int MAX_EVENT_BYTES = 12 * 1024;
+    public static final int STABLE_MAX_SLOWDOWN_PERCENT = 25;
+    public static final long STABLE_MAX_GRACE_MS = 50;
 
     public enum Stage { EXPERIMENTAL, CANDIDATE, STABLE }
 
@@ -109,11 +111,13 @@ public final class LaboratoryToolRegistry {
         public final String fromVersion;
         public final String toVersion;
         public final List<String> evidenceRunIds;
+        public final List<String> regressionComparisonIds;
         public final String approvalSha256;
 
         private Event(String eventId, int sequence, long createdAtEpochMs, String action,
                 String toolId, String version, String fromVersion, String toVersion,
-                List<String> evidenceRunIds, String approvalSha256) {
+                List<String> evidenceRunIds, List<String> regressionComparisonIds,
+                String approvalSha256) {
             this.eventId = eventId;
             this.sequence = sequence;
             this.createdAtEpochMs = createdAtEpochMs;
@@ -124,6 +128,8 @@ public final class LaboratoryToolRegistry {
             this.toVersion = toVersion;
             this.evidenceRunIds = Collections.unmodifiableList(
                 new ArrayList<>(evidenceRunIds));
+            this.regressionComparisonIds = Collections.unmodifiableList(
+                new ArrayList<>(regressionComparisonIds));
             this.approvalSha256 = approvalSha256;
         }
     }
@@ -176,12 +182,19 @@ public final class LaboratoryToolRegistry {
         }
         List<String> evidence = validateEvidence(descriptor, evidenceRunIds);
         writeEvent(toolId, "QUALIFY_CANDIDATE", version, "", version,
-            evidence, "");
+            evidence, Collections.emptyList(), "");
     }
 
     public synchronized void activateStable(String toolId, String version,
             List<String> evidenceRunIds, String approvalId, ApprovalGate gate)
             throws IOException {
+        activateStable(toolId, version, evidenceRunIds, Collections.emptyList(),
+            approvalId, gate);
+    }
+
+    public synchronized void activateStable(String toolId, String version,
+            List<String> evidenceRunIds, List<String> regressionComparisonIds,
+            String approvalId, ApprovalGate gate) throws IOException {
         Descriptor descriptor = readDescriptor(toolId, version);
         Stage stage = stage(toolId, version);
         if (stage != Stage.CANDIDATE) {
@@ -189,9 +202,13 @@ public final class LaboratoryToolRegistry {
         }
         List<String> evidence = validateEvidence(descriptor, evidenceRunIds);
         String current = activeStableVersion(toolId);
+        List<String> regressions = current.isEmpty()
+            ? Collections.emptyList()
+            : validateRegressionEvidence(toolId, current, descriptor,
+                evidence, regressionComparisonIds);
         requireApproval(gate, "ACTIVATE_STABLE", toolId, current, version, approvalId);
         writeEvent(toolId, "ACTIVATE_STABLE", version, current, version,
-            evidence, sha256(approvalId));
+            evidence, regressions, sha256(approvalId));
     }
 
     public synchronized void rollbackStable(String toolId, String targetVersion,
@@ -205,7 +222,7 @@ public final class LaboratoryToolRegistry {
         if (current.equals(targetVersion)) throw new IOException("rollback target is already active");
         requireApproval(gate, "ROLLBACK_STABLE", toolId, current, targetVersion, approvalId);
         writeEvent(toolId, "ROLLBACK_STABLE", target.version, current, targetVersion,
-            Collections.emptyList(), sha256(approvalId));
+            Collections.emptyList(), Collections.emptyList(), sha256(approvalId));
     }
 
     public synchronized Stage stage(String toolId, String version) throws IOException {
@@ -330,6 +347,51 @@ public final class LaboratoryToolRegistry {
         return Collections.unmodifiableList(result);
     }
 
+    private List<String> validateRegressionEvidence(String toolId,
+            String currentVersion, Descriptor candidate, List<String> evidenceRunIds,
+            List<String> comparisonIds) throws IOException {
+        if (comparisonIds == null || comparisonIds.isEmpty() || comparisonIds.size() > 32) {
+            throw new IOException("stable upgrade requires regression evidence");
+        }
+        Descriptor baseline = readDescriptor(toolId, currentVersion);
+        LaboratoryRegressionStore regressions =
+            new LaboratoryRegressionStore(appFilesDirectory, projectId);
+        List<String> result = new ArrayList<>();
+        List<String> coveredRequiredTests = new ArrayList<>();
+        for (String comparisonId : comparisonIds) {
+            if (comparisonId == null || result.contains(comparisonId)) {
+                throw new IOException("invalid or duplicate regression comparison");
+            }
+            LaboratoryRegressionStore.Record record = regressions.read(comparisonId);
+            if (!"PASS".equals(record.verdict)) {
+                throw new IOException("regression comparison did not pass");
+            }
+            if (!record.requireSameEnvironment
+                    || record.maxSlowdownPercent > STABLE_MAX_SLOWDOWN_PERCENT
+                    || record.graceMs > STABLE_MAX_GRACE_MS) {
+                throw new IOException("regression policy is too permissive for stable promotion");
+            }
+            if (!baseline.artifactSha256.equals(record.baselineInputSha256)
+                    || !candidate.artifactSha256.equals(record.candidateInputSha256)) {
+                throw new IOException("regression comparison does not match tool version hashes");
+            }
+            if (!evidenceRunIds.contains(record.candidateRunId)) {
+                throw new IOException("regression candidate run is not promotion evidence");
+            }
+            for (String testName : record.coveredTests) {
+                if (candidate.requiredTests.contains(testName)
+                        && !coveredRequiredTests.contains(testName)) {
+                    coveredRequiredTests.add(testName);
+                }
+            }
+            result.add(comparisonId);
+        }
+        if (!coveredRequiredTests.containsAll(candidate.requiredTests)) {
+            throw new IOException("regression evidence misses required tool tests");
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     private void requireApproval(ApprovalGate gate, String action, String toolId,
             String fromVersion, String toVersion, String approvalId) {
         if (gate == null || approvalId == null || approvalId.isEmpty()
@@ -341,7 +403,7 @@ public final class LaboratoryToolRegistry {
 
     private void writeEvent(String toolId, String action, String version,
             String fromVersion, String toVersion, List<String> evidence,
-            String approvalSha256) throws IOException {
+            List<String> regressionComparisonIds, String approvalSha256) throws IOException {
         Path toolRoot = prepareTool(toolId);
         Path history = toolRoot.resolve("history");
         if (countJson(history) >= MAX_EVENTS_PER_TOOL) {
@@ -370,6 +432,9 @@ public final class LaboratoryToolRegistry {
             json.put("fromVersion", fromVersion);
             json.put("toVersion", toVersion);
             json.put("evidenceRunIds", new JSONArray(evidence));
+            if (!regressionComparisonIds.isEmpty()) {
+                json.put("regressionComparisonIds", new JSONArray(regressionComparisonIds));
+            }
             if (!approvalSha256.isEmpty()) json.put("approvalSha256", approvalSha256);
             writeCreateOnly(history.resolve(fileName), json, MAX_EVENT_BYTES);
         } catch (JSONException error) {
@@ -435,6 +500,9 @@ public final class LaboratoryToolRegistry {
             json.optString("fromVersion"),
             json.optString("toVersion"),
             strings(json.getJSONArray("evidenceRunIds")),
+            json.has("regressionComparisonIds")
+                ? strings(json.getJSONArray("regressionComparisonIds"))
+                : Collections.emptyList(),
             json.optString("approvalSha256"));
     }
 

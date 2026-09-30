@@ -40,6 +40,8 @@ public final class LaboratoryRegressionStore {
         public final String environmentSha256;
         public final String baselineBatchSha256;
         public final String candidateBatchSha256;
+        public final String baselineInputSha256;
+        public final String candidateInputSha256;
         public final long baselineDurationMs;
         public final long candidateDurationMs;
         public final long allowedDurationMs;
@@ -54,6 +56,7 @@ public final class LaboratoryRegressionStore {
                 String baselineRunId, String candidateRunId, String toolId,
                 String toolVersion, long seed, String environmentSha256,
                 String baselineBatchSha256, String candidateBatchSha256,
+                String baselineInputSha256, String candidateInputSha256,
                 long baselineDurationMs, long candidateDurationMs,
                 long allowedDurationMs, long durationDeltaMs,
                 int maxSlowdownPercent, long graceMs, boolean requireSameEnvironment,
@@ -69,6 +72,8 @@ public final class LaboratoryRegressionStore {
             this.environmentSha256 = environmentSha256;
             this.baselineBatchSha256 = baselineBatchSha256;
             this.candidateBatchSha256 = candidateBatchSha256;
+            this.baselineInputSha256 = baselineInputSha256;
+            this.candidateInputSha256 = candidateInputSha256;
             this.baselineDurationMs = baselineDurationMs;
             this.candidateDurationMs = candidateDurationMs;
             this.allowedDurationMs = allowedDurationMs;
@@ -236,6 +241,12 @@ public final class LaboratoryRegressionStore {
         }
         json.put("baselineBatchSha256", result.baselineBatchSha256);
         json.put("candidateBatchSha256", result.candidateBatchSha256);
+        if (!result.baselineInputSha256.isEmpty()) {
+            json.put("baselineInputSha256", result.baselineInputSha256);
+        }
+        if (!result.candidateInputSha256.isEmpty()) {
+            json.put("candidateInputSha256", result.candidateInputSha256);
+        }
         json.put("baselineDurationMs", result.baselineDurationMs);
         json.put("candidateDurationMs", result.candidateDurationMs);
         json.put("allowedDurationMs", result.allowedDurationMs);
@@ -264,6 +275,8 @@ public final class LaboratoryRegressionStore {
             json.optString("environmentSha256"),
             json.getString("baselineBatchSha256"),
             json.getString("candidateBatchSha256"),
+            json.optString("baselineInputSha256"),
+            json.optString("candidateInputSha256"),
             json.getLong("baselineDurationMs"),
             json.getLong("candidateDurationMs"),
             json.getLong("allowedDurationMs"),
