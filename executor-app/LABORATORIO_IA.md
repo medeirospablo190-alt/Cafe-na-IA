@@ -99,3 +99,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam que upgrade sem regressão é recusado, política permissiva é recusada, comparação estrita é aceita, hashes são vinculados e o histórico preserva a referência da regressão.
 
 **Limite técnico:** os limites de 25%/50 ms são a política inicial fixa do núcleo. Se futuramente eles forem configuráveis, essa configuração deverá pertencer ao usuário/host confiável e nunca ser alterável pelo código candidato ou pela IA isolada.
+
+
+## Oitava entrega — vínculo imutável da versão ao artefato executável
+
+- `LaboratoryToolArtifactStore` liga uma versão registrada ao snapshot exato que contém seu artefato executável. A primeira modalidade suportada é `LUAU_SOURCE_V1`.
+- O vínculo só pode ser criado enquanto a versão ainda está `EXPERIMENTAL`. Depois que vira `CANDIDATE`, a fonte executável fica congelada e não pode ser trocada.
+- Antes de gravar o vínculo, o store relê o snapshot pelo Recovery Core e exige que o SHA-256 seja exatamente o `artifactSha256` imutável do registro da ferramenta.
+- O arquivo de vínculo guarda somente identidade, tipo, snapshot, hash e data. O código Luau não é duplicado nesse registro.
+- Toda leitura futura revalida descriptor + vínculo + snapshot + SHA-256. Snapshot ausente, adulterado, symlink, hash divergente, UTF-8 inválido ou fonte acima do limite do sandbox falham de forma fechada.
+- `readActiveStableVerified(toolId)` é o caminho estreito preparado para o futuro executor: o chamador informa apenas o ID da ferramenta; a versão STABLE ativa e o snapshot correto são resolvidos internamente.
+- Testes Android verificam vínculo válido, rejeição de hash incorreto, impossibilidade de vincular depois de CANDIDATE, resolução da STABLE ativa e detecção de adulteração física do snapshot.
+
+**Limite técnico:** esta etapa ainda não executa ferramentas STABLE. Ela elimina a ambiguidade entre “versão aprovada” e “bytes que serão executados”. O próximo gate poderá executar somente o artefato retornado por `readActiveStableVerified`, sem aceitar fonte ou versão fornecidas pela futura IA.
