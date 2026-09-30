@@ -216,6 +216,24 @@ public final class LaboratoryAiTestAgent {
             return report;
         }
 
+        try {
+            LaboratoryAiTeamRegistry team =
+                new LaboratoryAiTeamRegistry(app.getFilesDir(), projectId);
+            team.registerMember(
+                "test-agent",
+                "IA de Teste",
+                LaboratoryAiTeamRegistry.ROLE_TESTER);
+            team.bindSession(
+                admitted.ai.sessionId(),
+                "test-agent",
+                contract.contractId);
+        } catch (IOException attributionFailure) {
+            admitted.host.cancel();
+            throw new IOException(
+                "test-agent session could not be attributed to AI team",
+                attributionFailure);
+        }
+
         List<StepEvidence> evidence = new ArrayList<>();
         int passed = 0;
         int failed = 0;

@@ -320,3 +320,23 @@ aproximação dos orçamentos de chamadas/bytes, estouro de tempo e necessidade 
 reduzir ou dividir um plano. O painel privado **DIAGNÓSTICO DAS IAS** mostra o
 último diagnóstico de cada sessão e mantém a decisão de correção no lado do
 host/usuário.
+
+
+## Diagnóstico contínuo por membro da equipe de IAs
+
+- `LaboratoryAiTeamRegistry` adiciona identidades imutáveis para membros da equipe. Cada membro possui `agentId`, nome visível, papel e hash de integridade. Papéis iniciais: `TESTER`, `DIAGNOSTIC`, `CREATOR`, `REVIEWER`, `RESEARCHER`, `ORCHESTRATOR` e `SPECIALIST`.
+- Identidade não é sessão. O vínculo `sessão → IA` fica em um registro create-only separado. Uma sessão já atribuída não pode ser transferida silenciosamente para outra IA.
+- O vínculo não armazena prompt, objetivo, entrada, retorno ou transcript. Mantém somente `sessionId`, `agentId`, `contractId` opcional, data e SHA-256.
+- A IA de Teste agora se registra automaticamente como `test-agent / TESTER` e toda sessão dela é atribuída a essa identidade. Se a atribuição falhar, a sessão é cancelada por segurança.
+- A própria IA de Diagnóstico aparece na equipe como `diagnostic-agent / DIAGNOSTIC`, mas não recebe `AiHandle`, `HostHandle` nem sessão para realizar a análise.
+- `LaboratoryAiTeamDiagnostics` consome somente diagnósticos de sessão já sanitizados e os vínculos imutáveis da equipe.
+- Por membro, ele agrega: quantidade de sessões, sessões saudáveis/atenção/falha, falhas de ferramentas, cancelamentos, pausas, média de uso dos orçamentos e última severidade.
+- Sinais repetidos são identificados como recorrentes quando aparecem em pelo menos duas sessões e em pelo menos metade das sessões diagnosticadas daquele membro.
+- Com pelo menos quatro sessões, o diagnóstico compara as duas mais antigas do bloco recente com as duas mais novas e classifica tendência como `IMPROVING`, `STABLE` ou `DEGRADING`. Com menos dados usa `INSUFFICIENT_DATA`.
+- Recomendações agregadas incluem revisão de falhas repetidas, cancelamentos repetidos, interrupções frequentes, adequação de orçamento, regressões e sinais recorrentes. Nenhuma recomendação é aplicada automaticamente.
+- Sempre que um diagnóstico individual é atualizado, o diagnóstico agregado da equipe é agendado depois dele e roda fora do caminho de controle da sessão.
+- `LaboratoryAiTeamDiagnosticsActivity` é privada e somente leitura. Mostra cada IA, papel, sessões, falhas, tendência e recomendações sem oferecer botões de alteração.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso separado a `DIAGNÓSTICO DA EQUIPE DE IAS`.
+- Testes Android verificam Activity privada, identidade/vínculo imutáveis, integração automática da IA de Teste, duas sessões saudáveis seguidas de duas falhas gerando tendência `DEGRADING`, detecção de `INSPECT_TOOL_FAILURES` recorrente e ausência dos dados privados — inclusive seus hashes de entrada — no relatório agregado.
+
+**Fronteira de segurança:** diagnóstico de equipe é observação e recomendação. Ele não executa ferramenta, não altera outra IA, não muda orçamento, não promove versão e não aplica melhoria sozinho.

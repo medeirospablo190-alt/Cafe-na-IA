@@ -98,6 +98,16 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
 
         assertTrue(LaboratoryAiLiveSessionRegistry.list(project).isEmpty());
 
+        LaboratoryAiTeamRegistry team =
+            new LaboratoryAiTeamRegistry(app.getFilesDir(), project);
+        LaboratoryAiTeamRegistry.Member member =
+            team.readMember("test-agent");
+        assertEquals(LaboratoryAiTeamRegistry.ROLE_TESTER, member.role);
+        LaboratoryAiTeamRegistry.Binding binding =
+            team.readBinding(report.sessionId);
+        assertEquals("test-agent", binding.agentId);
+        assertEquals(contract.contractId, binding.contractId);
+
         Set<String> methods = new HashSet<>();
         for (Method method :
                 LaboratoryAiTaskAdmission.AiTaskHandle.class.getDeclaredMethods()) {

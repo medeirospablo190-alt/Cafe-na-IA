@@ -166,6 +166,7 @@ public final class LaboratoryAiDiagnostics {
                 recommendations);
         new LaboratoryAiDiagnosticStore(
             context.getFilesDir(), projectId).save(report);
+        LaboratoryAiTeamDiagnostics.schedule(context, projectId);
         return report;
     }
 
