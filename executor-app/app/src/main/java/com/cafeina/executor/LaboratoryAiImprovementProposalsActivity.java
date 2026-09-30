@@ -146,6 +146,7 @@ public final class LaboratoryAiImprovementProposalsActivity extends Activity {
             + "\nSinal do diagnóstico: "
             + proposal.sourceRecommendationCode
             + "\nAção sugerida: " + proposal.suggestedActionCode
+            + "\nExplicação: " + actionDescription(proposal.suggestedActionCode)
             + "\nPapel sugerido para revisar: " + proposal.targetRole
             + "\nTendência de origem: " + proposal.sourceTrend
             + "\nSessões observadas: " + proposal.sourceSessionCount
@@ -168,6 +169,28 @@ public final class LaboratoryAiImprovementProposalsActivity extends Activity {
             .setView(scroll)
             .setPositiveButton("FECHAR", null)
             .show();
+    }
+
+    private static String actionDescription(String code) {
+        if ("RUN_TARGETED_FAILURE_REVIEW".equals(code)) {
+            return "revisar as falhas repetidas e isolar a causa antes de mudar a IA";
+        }
+        if ("REVIEW_SESSION_CONTROL_FLOW".equals(code)) {
+            return "revisar por que sessões estão sendo canceladas repetidamente";
+        }
+        if ("REVIEW_TASK_DECOMPOSITION".equals(code)) {
+            return "avaliar se a tarefa deve ser dividida em etapas menores";
+        }
+        if ("REVIEW_BUDGET_POLICY".equals(code)) {
+            return "comparar o orçamento atual com o consumo real das sessões";
+        }
+        if ("RUN_REGRESSION_SUITE".equals(code)) {
+            return "rodar novamente os cenários de regressão relevantes";
+        }
+        if ("CORRELATE_RECURRENT_FAILURE_PATTERN".equals(code)) {
+            return "correlacionar sinais recorrentes antes de propor uma correção";
+        }
+        return "ação de revisão registrada pelo diagnóstico";
     }
 
     private Button button(String label) {
