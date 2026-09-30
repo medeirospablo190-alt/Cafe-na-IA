@@ -28,6 +28,7 @@ import java.util.UUID;
  * permissive/default approval implementation.
  */
 public final class LaboratoryToolRegistry {
+    public static final int MAX_TOOL_IDS = 128;
     public static final int MAX_VERSIONS_PER_TOOL = 64;
     public static final int MAX_EVENTS_PER_TOOL = 256;
     public static final int MAX_DESCRIPTOR_BYTES = 16 * 1024;
@@ -243,6 +244,56 @@ public final class LaboratoryToolRegistry {
     public synchronized Descriptor activeStable(String toolId) throws IOException {
         String version = activeStableVersion(toolId);
         return version.isEmpty() ? null : readDescriptor(toolId, version);
+    }
+
+    public synchronized List<Descriptor> listRegisteredVersions() throws IOException {
+        Path laboratoryRoot = registryRoot.getParent().getParent();
+        Path projectRoot = registryRoot.getParent();
+        ensureSafeDirectory(laboratoryRoot);
+        ensureSafeDirectory(projectRoot);
+        ensureSafeDirectory(registryRoot);
+
+        List<Descriptor> result = new ArrayList<>();
+        try (java.util.stream.Stream<Path> tools = Files.list(registryRoot)) {
+            List<Path> toolPaths = new ArrayList<>();
+            tools.forEach(toolPaths::add);
+            if (toolPaths.size() > MAX_TOOL_IDS) {
+                throw new IOException("tool registry exceeds tool id limit");
+            }
+            for (Path toolRoot : toolPaths) {
+                if (!Files.isDirectory(toolRoot, LinkOption.NOFOLLOW_LINKS)
+                        || Files.isSymbolicLink(toolRoot)) {
+                    throw new IOException("unexpected or unsafe tool registry entry");
+                }
+                String toolId = toolRoot.getFileName().toString();
+                validateToolId(toolId);
+                Path versions = toolRoot.resolve("versions");
+                if (!Files.isDirectory(versions, LinkOption.NOFOLLOW_LINKS)
+                        || Files.isSymbolicLink(versions)) {
+                    throw new IOException("tool version directory missing or unsafe");
+                }
+                try (java.util.stream.Stream<Path> versionFiles = Files.list(versions)) {
+                    List<Path> paths = new ArrayList<>();
+                    versionFiles.forEach(paths::add);
+                    if (paths.size() > MAX_VERSIONS_PER_TOOL) {
+                        throw new IOException("tool version directory exceeds limit");
+                    }
+                    for (Path path : paths) {
+                        String name = path.getFileName().toString();
+                        if (!name.endsWith(".json")) {
+                            throw new IOException("unexpected tool version record");
+                        }
+                        String version = name.substring(0, name.length() - 5);
+                        validateVersion(version);
+                        result.add(readDescriptor(toolId, version));
+                    }
+                }
+            }
+        }
+        result.sort(Comparator
+            .comparing((Descriptor descriptor) -> descriptor.toolId)
+            .thenComparing(descriptor -> descriptor.version));
+        return Collections.unmodifiableList(result);
     }
 
     public synchronized List<Event> history(String toolId) throws IOException {
