@@ -82,14 +82,17 @@ public final class LaboratorySandboxInstrumentedTest {
     public void isolatedCandidateTestMustRecordPrivacySafeReport() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String projectId = "isolated-" + UUID.randomUUID().toString().substring(0, 8);
-        String fixture = "return 2 + 2 -- never persist this original candidate text";
+        String fixture = "if #tool_input > 0 then return 4 end return 0 "
+            + "-- never persist this original candidate text";
+        String toolInput = "private fixture input -- store only its hash";
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<LaboratorySandboxClient.Result> execution = new AtomicReference<>();
         AtomicReference<Throwable> problem = new AtomicReference<>();
         new Thread(() -> {
             try {
-                LaboratoryCandidateRunner.runInternal(app, projectId, fixture, "4", 42L,
-                    1000, (result, passed, recordingError) -> {
+                LaboratoryCandidateRunner.runInternal(app, projectId, fixture,
+                    toolInput, "4", 42L, 1000,
+                    (result, passed, recordingError) -> {
                         execution.set(result);
                         if (!passed || recordingError != null) {
                             problem.set(recordingError == null
@@ -114,9 +117,12 @@ public final class LaboratorySandboxInstrumentedTest {
         assertEquals("luau-isolated-candidate", entry.toolId);
         assertEquals("PASS", entry.status);
         assertFalse(entry.reportText.contains(fixture));
-        assertFalse(entry.reportText.contains("return 2 + 2"));
+        assertFalse(entry.reportText.contains(toolInput));
         assertTrue(entry.reportText.contains(execution.get().sourceSha256));
+        assertTrue(entry.reportText.contains(execution.get().inputSha256));
         JSONObject report = new JSONObject(entry.reportText);
+        assertEquals(execution.get().inputSha256,
+            report.getString("toolInputSha256"));
         assertTrue("Candidate source baseline must have been verified",
             report.getBoolean("snapshotVerified"));
         String snapshotId = report.getString("candidateSnapshotId");
