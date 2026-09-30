@@ -171,6 +171,11 @@ public final class LaboratoryAiTestAgentReportStore {
     private Entry parse(String reportId, String raw) throws IOException {
         try {
             JSONObject json = new JSONObject(raw);
+            int planned = json.getInt("plannedSteps");
+            int executed = json.getInt("executedSteps");
+            int passed = json.getInt("passed");
+            int failed = json.getInt("failed");
+            String terminalReason = json.optString("terminalReason");
             if (json.getInt("schemaVersion") != 1
                     || !reportId.equals(json.getString("reportId"))
                     || !validUuid(json.getString("contractId"))
@@ -180,19 +185,52 @@ public final class LaboratoryAiTestAgentReportStore {
                     || (!json.optString("sessionId").isEmpty()
                         && !validUuid(json.optString("sessionId")))
                     || !validStatus(json.getString("status"))
-                    || json.optString("terminalReason").length() > 64
+                    || terminalReason.length() > 64
+                    || (!terminalReason.isEmpty()
+                        && !terminalReason.matches("[A-Za-z0-9_-]{1,64}"))
                     || json.getLong("startedAtEpochMs") <= 0
                     || json.getLong("durationMs") < 0
-                    || json.getInt("plannedSteps") < 1
-                    || json.getInt("executedSteps") < 0
-                    || json.getInt("passed") < 0
-                    || json.getInt("failed") < 0) {
+                    || planned < 1 || planned > LaboratoryAiTestAgent.MAX_STEPS
+                    || executed < 0 || executed > planned
+                    || passed < 0 || failed < 0
+                    || passed + failed != executed) {
                 throw new IOException("test-agent report failed validation");
             }
             JSONArray steps = json.getJSONArray("steps");
-            if (steps.length() != json.getInt("executedSteps")
+            if (steps.length() != executed
                     || steps.length() > LaboratoryAiTestAgent.MAX_STEPS) {
                 throw new IOException("test-agent report step count mismatch");
+            }
+            int countedPassed = 0;
+            int countedFailed = 0;
+            for (int i = 0; i < steps.length(); i++) {
+                JSONObject step = steps.getJSONObject(i);
+                String runId = step.optString("runId");
+                String version = step.optString("toolVersion");
+                if (!step.getString("name").matches("[a-zA-Z0-9_-]{1,64}")
+                        || !step.getString("toolId")
+                            .matches("[a-z0-9][a-z0-9._-]{0,63}")
+                        || version.length() > 64
+                        || (!version.isEmpty()
+                            && !version.matches("[0-9A-Za-z._-]{1,64}"))
+                        || (!runId.isEmpty() && !validUuid(runId))
+                        || !step.getString("reason")
+                            .matches("[A-Za-z0-9_-]{1,64}")
+                        || !step.getString("inputSha256").matches("[0-9a-f]{64}")
+                        || !step.getString("expectedReturnSha256")
+                            .matches("[0-9a-f]{64}")
+                        || !step.getString("actualReturnSha256")
+                            .matches("[0-9a-f]{64}")
+                        || !step.getString("outputSha256")
+                            .matches("[0-9a-f]{64}")
+                        || step.getLong("durationMs") < 0) {
+                    throw new IOException("invalid test-agent step evidence");
+                }
+                if (step.getBoolean("passed")) countedPassed++;
+                else countedFailed++;
+            }
+            if (countedPassed != passed || countedFailed != failed) {
+                throw new IOException("test-agent pass/fail counters do not match steps");
             }
             return new Entry(
                 reportId,
@@ -200,10 +238,10 @@ public final class LaboratoryAiTestAgentReportStore {
                 json.optString("sessionId"),
                 json.getString("status"),
                 json.getLong("startedAtEpochMs"),
-                json.getInt("plannedSteps"),
-                json.getInt("executedSteps"),
-                json.getInt("passed"),
-                json.getInt("failed"),
+                planned,
+                executed,
+                passed,
+                failed,
                 raw);
         } catch (JSONException error) {
             throw new IOException("invalid test-agent report", error);
