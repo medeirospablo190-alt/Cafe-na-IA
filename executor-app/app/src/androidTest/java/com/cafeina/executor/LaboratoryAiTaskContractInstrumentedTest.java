@@ -134,6 +134,46 @@ public final class LaboratoryAiTaskContractInstrumentedTest {
     }
 
     @Test
+    public void tamperedGoalInvalidatesGoalLockBeforeAdmission() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "tasktamper"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "tamper-goal-tool";
+        prepareGrantedStable(app, project, toolId);
+
+        String originalGoal = "Objetivo original protegido.";
+        LaboratoryAiTaskContractStore.Contract contract =
+            LaboratoryAiTaskAdmission.createContract(
+                app,
+                project,
+                LaboratoryAiTaskContractStore.Mode.CREATION,
+                originalGoal,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    2,
+                    128,
+                    30_000L));
+
+        Path path = app.getFilesDir().toPath().resolve(
+            "laboratory/project-" + project + "/ai-task-contracts/"
+                + contract.contractId + "/contract.json");
+        String raw = new String(
+            Files.readAllBytes(path), StandardCharsets.UTF_8);
+        raw = raw.replace(
+            originalGoal,
+            "Objetivo adulterado e diferente.");
+        Files.write(path, raw.getBytes(StandardCharsets.UTF_8));
+
+        LaboratoryAiTaskContractStore store =
+            new LaboratoryAiTaskContractStore(app.getFilesDir(), project);
+        assertThrows(java.io.IOException.class, () ->
+            store.read(contract.contractId));
+        assertThrows(java.io.IOException.class, () ->
+            LaboratoryAiTaskAdmission.admit(
+                app, project, contract.contractId));
+    }
+
+    @Test
     public void failedAdmissionConsumesContractAndCannotBeReplayed()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
