@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * Host-side asynchronous sandbox client. Only the isolated service receives
- * the source. Callbacks run on the Android main thread; each session is
+ * the source and bounded tool input. Callbacks run on the Android main thread; each session is
  * single-use and has a host-owned watchdog independent from native Luau.
  */
 public final class LaboratorySandboxClient {
@@ -29,6 +29,7 @@ public final class LaboratorySandboxClient {
     public static final class Result {
         public final String runId;
         public final String sourceSha256;
+        public final String inputSha256;
         public final long startedAtEpochMs;
         public final long durationMs;
         public final int workerUid;
@@ -37,10 +38,12 @@ public final class LaboratorySandboxClient {
         public final String error;
         public final String firstReturn;
 
-        private Result(String id, String hash, long started, long duration, int workerUid,
+        private Result(String id, String sourceHash, String inputHash,
+                long started, long duration, int workerUid,
                 String status, String output, String error, String firstReturn) {
             this.runId = id;
-            this.sourceSha256 = hash;
+            this.sourceSha256 = sourceHash;
+            this.inputSha256 = inputHash;
             this.startedAtEpochMs = started;
             this.durationMs = duration;
             this.workerUid = workerUid;
@@ -53,14 +56,21 @@ public final class LaboratorySandboxClient {
 
     public static Session execute(Context context, String source, int timeoutMs,
             Callback callback) {
+        return execute(context, source, "", timeoutMs, callback);
+    }
+
+    public static Session execute(Context context, String source, String input,
+            int timeoutMs, Callback callback) {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(callback, "callback");
-        if (source == null || source.length() > LaboratorySandboxService.MAX_SOURCE_CHARS
+        if (source == null || input == null
+                || source.length() > LaboratorySandboxService.MAX_SOURCE_CHARS
+                || input.length() > LaboratorySandboxService.MAX_INPUT_CHARS
                 || timeoutMs < 1 || timeoutMs > LaboratorySandboxService.MAX_TIMEOUT_MS) {
             throw new IllegalArgumentException("sandbox request exceeds limits");
         }
         Session session = new Session(context.getApplicationContext(), source,
-            timeoutMs, callback);
+            input, timeoutMs, callback);
         session.main.post(session::start);
         return session;
     }
@@ -70,11 +80,13 @@ public final class LaboratorySandboxClient {
     public static final class Session implements ServiceConnection {
         private final Context context;
         private final String source;
+        private final String input;
         private final int timeoutMs;
         private final Callback callback;
         private final Handler main = new Handler(Looper.getMainLooper());
         private final String id = UUID.randomUUID().toString();
-        private final String hash;
+        private final String sourceHash;
+        private final String inputHash;
         private final long started = System.currentTimeMillis();
         private final Messenger inbound;
         private Messenger outbound;
@@ -82,12 +94,15 @@ public final class LaboratorySandboxClient {
         private boolean finished;
         private String stoppingReason;
 
-        private Session(Context context, String source, int timeoutMs, Callback callback) {
+        private Session(Context context, String source, String input,
+                int timeoutMs, Callback callback) {
             this.context = context;
             this.source = source;
+            this.input = input;
             this.timeoutMs = timeoutMs;
             this.callback = callback;
-            this.hash = LaboratoryEngine.fingerprint(source).substring(7, 71);
+            this.sourceHash = LaboratoryEngine.fingerprint(source).substring(7, 71);
+            this.inputHash = LaboratoryEngine.fingerprint(input).substring(7, 71);
             this.inbound = new Messenger(new Handler(Looper.getMainLooper(), message -> {
                 handleResult(message);
                 return true;
@@ -119,6 +134,7 @@ public final class LaboratorySandboxClient {
             Bundle data = new Bundle();
             data.putString(LaboratorySandboxService.RUN_ID, id);
             data.putString(LaboratorySandboxService.SOURCE, source);
+            data.putString(LaboratorySandboxService.INPUT, input);
             data.putInt(LaboratorySandboxService.TIMEOUT_MS, timeoutMs);
             Message message = Message.obtain(null, LaboratorySandboxService.RUN);
             message.setData(data);
@@ -192,7 +208,7 @@ public final class LaboratorySandboxClient {
                 context.unbindService(this);
                 bound = false;
             }
-            Result result = new Result(id, hash, started,
+            Result result = new Result(id, sourceHash, inputHash, started,
                 Math.max(0, System.currentTimeMillis() - started), workerUid,
                 status, output, error, firstReturn);
             callback.onFinished(result);
