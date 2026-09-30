@@ -58,7 +58,7 @@ public final class LaboratoryAiTeamDiagnosticsInstrumentedTest {
                 app, project, sessionId, secrets[i], i >= 2);
             team.bindSession(sessionId, "creator-agent", "");
             LaboratoryAiDiagnostics.analyzeNow(app, project, sessionId);
-            Thread.sleep(3L);
+            Thread.sleep(20L);
         }
 
         List<LaboratoryAiTeamDiagnosticStore.Report> reports =
@@ -106,6 +106,13 @@ public final class LaboratoryAiTeamDiagnosticsInstrumentedTest {
             assertFalse(raw.contains(
                 LaboratoryEngine.fingerprint(secret).substring(7, 71)));
         }
+
+        Path spoofed = persisted.getParent().resolve("other-agent.json");
+        Files.copy(persisted, spoofed);
+        assertThrows(java.io.IOException.class, () ->
+            new LaboratoryAiTeamDiagnosticStore(
+                app.getFilesDir(), project).read("other-agent"));
+        Files.deleteIfExists(spoofed);
     }
 
     @Test
