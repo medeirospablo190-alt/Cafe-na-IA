@@ -308,6 +308,8 @@ public final class LaboratoryAiTestAgent {
 
         try {
             reportStore.save(report);
+            LaboratoryAiDiagnostics.schedule(
+                app, projectId, admitted.ai.sessionId());
         } catch (IOException saveFailure) {
             LaboratoryAiSessionController.Snapshot snapshot =
                 admitted.host.snapshot();
