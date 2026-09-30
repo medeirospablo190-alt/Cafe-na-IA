@@ -114,12 +114,32 @@ public final class LaboratoryAiDiagnostics {
         if (terminalReason.contains("BUDGET")) {
             recommendations.add("REDUCE_OR_SPLIT_PLAN");
         }
+
+        boolean logicalTestFailure = false;
+        try {
+            LaboratoryAiTestAgentReportStore testReports =
+                new LaboratoryAiTestAgentReportStore(
+                    context.getFilesDir(), projectId);
+            for (LaboratoryAiTestAgentReportStore.Entry entry
+                    : testReports.list()) {
+                if (sessionId.equals(entry.sessionId)
+                        && (entry.failed > 0 || "FAIL".equals(entry.status))) {
+                    logicalTestFailure = true;
+                    recommendations.add("REVIEW_TEST_ASSERTIONS");
+                    break;
+                }
+            }
+        } catch (IOException ignored) {
+            // Generic diagnostics remain usable without test-agent history.
+        }
+
         if (recommendations.isEmpty()) {
             recommendations.add("NO_ACTION");
         }
 
         String severity;
-        if (failedInvocations > 0 || "CANCELLED".equals(summary.state)) {
+        if (failedInvocations > 0 || logicalTestFailure
+                || "CANCELLED".equals(summary.state)) {
             severity = "FAILURE";
         } else if (recommendations.size() > 1
                 || !"NO_ACTION".equals(recommendations.get(0))) {
