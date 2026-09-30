@@ -48,7 +48,7 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
                 goal,
                 new LaboratoryAiSessionController.Policy(
                     Collections.singletonList(toolId),
-                    2,
+                    3,
                     512,
                     30_000L));
 
