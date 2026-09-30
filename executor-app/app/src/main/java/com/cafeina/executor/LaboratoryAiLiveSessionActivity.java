@@ -72,6 +72,22 @@ public final class LaboratoryAiLiveSessionActivity extends Activity {
         feedback.setPadding(0, dp(12), 0, dp(8));
         root.addView(feedback, matchWrap());
 
+        LinearLayout globalActions = new LinearLayout(this);
+        globalActions.setOrientation(LinearLayout.HORIZONTAL);
+        Button pauseAll = button("PAUSAR TODAS", PAUSE_COLOR);
+        pauseAll.setOnClickListener(v -> pauseAll());
+        globalActions.addView(pauseAll, actionParams());
+        Button resumeAll = button("CONTINUAR TODAS", ACCENT);
+        resumeAll.setOnClickListener(v -> resumeAll());
+        globalActions.addView(resumeAll, actionParams());
+        root.addView(globalActions, matchWrap());
+
+        Button cancelAll = button("CANCELAR TODAS", CANCEL_COLOR);
+        cancelAll.setOnClickListener(v -> confirmCancelAll());
+        LinearLayout.LayoutParams cancelAllParams = matchWrap();
+        cancelAllParams.setMargins(0, dp(6), 0, dp(8));
+        root.addView(cancelAll, cancelAllParams);
+
         ScrollView scroll = new ScrollView(this);
         entries = new LinearLayout(this);
         entries.setOrientation(LinearLayout.VERTICAL);
@@ -192,6 +208,61 @@ public final class LaboratoryAiLiveSessionActivity extends Activity {
             cardParams.setMargins(0, dp(8), 0, 0);
             entries.addView(card, cardParams);
         }
+    }
+
+    private void pauseAll() {
+        feedback.setText("Pausando sessões do projeto…");
+        io.execute(() -> {
+            LaboratoryAiLiveSessionRegistry.BulkResult result =
+                LaboratoryAiLiveSessionRegistry.pauseAll(projectId);
+            showBulkResult("Pausa global", result);
+        });
+    }
+
+    private void resumeAll() {
+        feedback.setText("Continuando sessões pausadas…");
+        io.execute(() -> {
+            LaboratoryAiLiveSessionRegistry.BulkResult result =
+                LaboratoryAiLiveSessionRegistry.resumeAll(projectId);
+            showBulkResult("Retomada global", result);
+        });
+    }
+
+    private void confirmCancelAll() {
+        new AlertDialog.Builder(this)
+            .setTitle("Cancelar todas as sessões")
+            .setMessage("Cancelar todas as sessões vivas deste projeto? "
+                + "Workers ativos serão cancelados e o histórico será preservado.")
+            .setNegativeButton("VOLTAR", null)
+            .setPositiveButton("CANCELAR TODAS", (dialog, which) -> cancelAll())
+            .show();
+    }
+
+    private void cancelAll() {
+        feedback.setText("Cancelando todas as sessões…");
+        io.execute(() -> {
+            LaboratoryAiLiveSessionRegistry.BulkResult result =
+                LaboratoryAiLiveSessionRegistry.cancelAll(projectId);
+            showBulkResult("Cancelamento global", result);
+        });
+    }
+
+    private void showBulkResult(String label,
+            LaboratoryAiLiveSessionRegistry.BulkResult result) {
+        runOnUiThread(() -> {
+            if (!alive()) return;
+            if (result.attempted == 0) {
+                feedback.setText(label + ": nenhuma sessão aplicável.");
+            } else if (result.complete()) {
+                feedback.setText(label + ": " + result.changed
+                    + " sessão(ões) atualizada(s).");
+            } else {
+                feedback.setText(label + ": " + result.changed + "/"
+                    + result.attempted + " concluída(s); "
+                    + result.failures.size() + " falha(s).");
+            }
+            refresh(false);
+        });
     }
 
     private void pause(String sessionId) {
