@@ -430,7 +430,7 @@ public final class LaboratoryAiSessionController {
 
         private void failAuditLocked() {
             auditBroken = true;
-            state = State.CANCELLED;
+            if (state != State.FINISHED) state = State.CANCELLED;
             MAIN.removeCallbacks(expireTask);
             if (activeInvocation != null) activeInvocation.cancel();
         }
