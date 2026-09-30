@@ -93,7 +93,8 @@ public final class LaboratoryRegressionEngineTest {
     public void changedCaseSetAndDuplicatesCannotBeHidden() {
         LaboratoryRegressionEngine.RunEvidence baseline =
             new LaboratoryRegressionEngine.RunEvidence(
-                "base", "PASS", 1, 10, sha('a'), "", Arrays.asList(
+                "base", "luau-isolated-candidate", "0.1.0", "PASS",
+                1, 10, sha('a'), "", Arrays.asList(
                     new LaboratoryRegressionEngine.CheckEvidence(
                         "caseA", true, "a", "a", sha('1')),
                     new LaboratoryRegressionEngine.CheckEvidence(
