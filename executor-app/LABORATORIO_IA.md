@@ -225,3 +225,20 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam Activity privada, marcação de sessão órfã, preservação do orçamento restante, `RECOVERY_PENDING`, encerramento explícito, histórico dos eventos e proteção contra falso positivo em uma sessão ACTIVE/PAUSED que ainda está viva no processo.
 
 **Limite atual:** `RECOVERY_PENDING` registra a decisão de continuar, mas a nova sessão ainda não é criada porque o orquestrador principal da IA não está conectado. Quando ele existir, poderá consumir essa policy restante para criar uma sessão nova, com novo ID e nova auditoria, sem reaproveitar a sessão interrompida.
+
+
+## Décima sexta entrega — painel host-only de sessões vivas
+
+- `LaboratoryAiLiveSessionRegistry` mantém somente em memória os `HostHandle` das sessões vivas do processo atual. Ele não é persistente e não substitui a recuperação após morte do processo.
+- Toda sessão criada pelo `LaboratoryAiSessionController` é registrada automaticamente para controle do host. Se o registro falhar, a sessão é cancelada por segurança.
+- O registro é escopado por projeto. Uma tela ou componente de outro projeto não consegue pausar, continuar ou cancelar uma sessão que não lhe pertence.
+- `LaboratoryAiLiveSessionActivity` é privada (`exported=false`) e mostra, em atualização periódica feita fora da UI thread: estado, ferramentas permitidas, chamadas usadas/restantes, bytes usados/restantes, tempo decorrido/restante e existência de worker ativo.
+- A tela oferece `PAUSAR`, `CONTINUAR` e `CANCELAR`. As ações passam exclusivamente pelo `HostHandle`; a Activity não recebe `AiHandle` e nunca executa uma ferramenta diretamente.
+- O painel também oferece `PAUSAR TODAS`, `CONTINUAR TODAS` e `CANCELAR TODAS` para o projeto atual. Operações globais são best-effort por sessão: uma falha isolada é relatada, mas não impede o host de controlar as demais.
+- Pausar uma sessão ACTIVE cancela o worker isolado atualmente ativo e mantém a sessão em `PAUSED`. Continuar só é aceito se o controlador realmente voltar para `ACTIVE`.
+- Se uma falha de auditoria impedir a transição de estado, o painel não informa sucesso incorretamente: o registro valida o estado resultante e falha fechado.
+- Cancelar remove a sessão do painel imediatamente; sessões que terminam por orçamento/tempo são podadas automaticamente na próxima leitura do registro.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso separado para `CONTROLAR SESSÕES AO VIVO`, distinto da recuperação de sessões antigas.
+- Testes Android verificam Activity privada, isolamento por projeto, pausa/resume/cancel pelo host registry, remoção de sessões terminadas, cancelamento do worker ativo ao pausar e a superfície do `AiHandle`: ele continua sem `pause`, `resume`, `cancel` ou `snapshot`.
+
+**Fronteira para a IA:** o modelo futuro poderá receber apenas o `AiHandle`. O `HostHandle`, o registro ao vivo e as telas de controle ficam fora da superfície entregue ao modelo.

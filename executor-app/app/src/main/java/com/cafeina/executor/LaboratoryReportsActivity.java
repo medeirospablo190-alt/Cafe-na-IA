@@ -87,6 +87,14 @@ public final class LaboratoryReportsActivity extends Activity {
         recoveryParams.setMargins(0, dp(8), 0, 0);
         root.addView(recoveryButton, recoveryParams);
 
+        Button liveSessionsButton = button("CONTROLAR SESSÕES AO VIVO");
+        liveSessionsButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiLiveSessionActivity.class)));
+        LinearLayout.LayoutParams liveSessionParams = matchWrap();
+        liveSessionParams.setMargins(0, dp(8), 0, 0);
+        root.addView(liveSessionsButton, liveSessionParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
