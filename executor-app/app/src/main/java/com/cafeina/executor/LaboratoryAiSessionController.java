@@ -193,9 +193,15 @@ public final class LaboratoryAiSessionController {
             this.projectId = projectId;
             this.policy = policy;
             this.audit = new LaboratoryAiSessionStore(app.getFilesDir(), projectId);
-            this.audit.begin(id, startedAt, policy.allowedToolIds,
-                policy.maxInvocations, policy.maxTotalInputBytes, policy.maxSessionMs);
             LIVE_SESSION_IDS.add(id);
+            try {
+                this.audit.begin(id, startedAt, policy.allowedToolIds,
+                    policy.maxInvocations, policy.maxTotalInputBytes,
+                    policy.maxSessionMs);
+            } catch (IOException creationFailure) {
+                LIVE_SESSION_IDS.remove(id);
+                throw creationFailure;
+            }
             this.expireTask = this::expire;
             MAIN.postDelayed(expireTask, policy.maxSessionMs);
         }
