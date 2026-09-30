@@ -113,6 +113,38 @@ public final class LaboratoryAiSessionRecoveryInstrumentedTest {
     }
 
     @Test
+    public void recoveryTimeBudgetNeverFreezesWhileAppIsClosed() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "expiredrecover"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String sessionId = UUID.randomUUID().toString();
+
+        LaboratoryAiSessionStore store =
+            new LaboratoryAiSessionStore(app.getFilesDir(), project);
+        store.begin(
+            sessionId,
+            System.currentTimeMillis() - 70_000L,
+            Collections.singletonList("expired-tool"),
+            3,
+            128,
+            60_000L);
+
+        LaboratoryAiSessionRecovery recovery =
+            new LaboratoryAiSessionRecovery(app.getFilesDir(), project);
+        LaboratoryAiSessionRecovery.Item item =
+            recovery.markInterruptedOrphans().get(0);
+
+        assertEquals("INTERRUPTED", item.state);
+        assertEquals(0L, item.remainingSessionMs);
+        assertFalse(item.canRequestRestart());
+        assertThrows(java.io.IOException.class, () ->
+            recovery.requestRestart(sessionId));
+
+        recovery.close(sessionId);
+        assertEquals("FINISHED", store.list().get(0).state);
+    }
+
+    @Test
     public void liveSessionInCurrentProcessIsNeverMarkedInterrupted()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
