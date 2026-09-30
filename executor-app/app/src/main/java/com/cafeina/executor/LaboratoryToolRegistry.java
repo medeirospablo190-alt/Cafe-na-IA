@@ -32,6 +32,8 @@ public final class LaboratoryToolRegistry {
     public static final int MAX_EVENTS_PER_TOOL = 256;
     public static final int MAX_DESCRIPTOR_BYTES = 16 * 1024;
     public static final int MAX_EVENT_BYTES = 12 * 1024;
+    public static final int STABLE_MAX_SLOWDOWN_PERCENT = 25;
+    public static final long STABLE_MAX_GRACE_MS = 50;
 
     public enum Stage { EXPERIMENTAL, CANDIDATE, STABLE }
 
@@ -359,6 +361,11 @@ public final class LaboratoryToolRegistry {
             LaboratoryRegressionStore.Record record = regressions.read(comparisonId);
             if (!"PASS".equals(record.verdict)) {
                 throw new IOException("regression comparison did not pass");
+            }
+            if (!record.requireSameEnvironment
+                    || record.maxSlowdownPercent > STABLE_MAX_SLOWDOWN_PERCENT
+                    || record.graceMs > STABLE_MAX_GRACE_MS) {
+                throw new IOException("regression policy is too permissive for stable promotion");
             }
             if (!baseline.artifactSha256.equals(record.baselineInputSha256)
                     || !candidate.artifactSha256.equals(record.candidateInputSha256)) {
