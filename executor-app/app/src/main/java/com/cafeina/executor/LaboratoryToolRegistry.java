@@ -182,6 +182,13 @@ public final class LaboratoryToolRegistry {
     public synchronized void activateStable(String toolId, String version,
             List<String> evidenceRunIds, String approvalId, ApprovalGate gate)
             throws IOException {
+        activateStable(toolId, version, evidenceRunIds, Collections.emptyList(),
+            approvalId, gate);
+    }
+
+    public synchronized void activateStable(String toolId, String version,
+            List<String> evidenceRunIds, List<String> regressionComparisonIds,
+            String approvalId, ApprovalGate gate) throws IOException {
         Descriptor descriptor = readDescriptor(toolId, version);
         Stage stage = stage(toolId, version);
         if (stage != Stage.CANDIDATE) {
@@ -189,9 +196,13 @@ public final class LaboratoryToolRegistry {
         }
         List<String> evidence = validateEvidence(descriptor, evidenceRunIds);
         String current = activeStableVersion(toolId);
+        List<String> regressions = current.isEmpty()
+            ? Collections.emptyList()
+            : validateRegressionEvidence(toolId, current, descriptor,
+                evidence, regressionComparisonIds);
         requireApproval(gate, "ACTIVATE_STABLE", toolId, current, version, approvalId);
         writeEvent(toolId, "ACTIVATE_STABLE", version, current, version,
-            evidence, Collections.emptyList(), sha256(approvalId));
+            evidence, regressions, sha256(approvalId));
     }
 
     public synchronized void rollbackStable(String toolId, String targetVersion,
