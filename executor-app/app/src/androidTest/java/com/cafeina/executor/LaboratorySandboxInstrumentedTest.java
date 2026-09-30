@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import android.content.ComponentName;
@@ -44,6 +45,20 @@ public final class LaboratorySandboxInstrumentedTest {
         assertEquals(denied.error, "EXECUTED", denied.status);
         assertEquals("true", denied.firstReturn);
         assertNotEquals(Process.myUid(), denied.workerUid);
+
+        LaboratorySandboxClient.Result withInput = run(app,
+            "return tool_input .. ':' .. tostring(fs == nil)", "case-42", 1000);
+        assertEquals(withInput.error, "EXECUTED", withInput.status);
+        assertEquals("case-42:true", withInput.firstReturn);
+        assertEquals(LaboratoryEngine.fingerprint("case-42").substring(7, 71),
+            withInput.inputSha256);
+        assertEquals(64, withInput.sourceSha256.length());
+        assertNotEquals(withInput.sourceSha256, withInput.inputSha256);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            LaboratorySandboxClient.execute(app, "return tool_input",
+                new String(new char[LaboratorySandboxService.MAX_INPUT_CHARS + 1]),
+                1000, result -> { }));
     }
 
     @Test
@@ -152,9 +167,14 @@ public final class LaboratorySandboxInstrumentedTest {
 
     private static LaboratorySandboxClient.Result run(Context app, String source, int timeoutMs)
             throws Exception {
+        return run(app, source, "", timeoutMs);
+    }
+
+    private static LaboratorySandboxClient.Result run(Context app, String source,
+            String input, int timeoutMs) throws Exception {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<LaboratorySandboxClient.Result> outcome = new AtomicReference<>();
-        LaboratorySandboxClient.execute(app, source, timeoutMs, result -> {
+        LaboratorySandboxClient.execute(app, source, input, timeoutMs, result -> {
             outcome.set(result);
             done.countDown();
         });
