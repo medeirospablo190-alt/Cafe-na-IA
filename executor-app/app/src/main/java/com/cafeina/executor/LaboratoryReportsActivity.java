@@ -181,7 +181,8 @@ public final class LaboratoryReportsActivity extends Activity {
                     entries.addView(suitesTitle, matchWrap());
                     entries.addView(text(
                         "BATCH: casos em lote. REPLAY: repetição dos mesmos casos. "
-                            + "REGRESSION: comparação com um relatório anterior do projeto.",
+                            + "STRESS: três execuções idênticas. REGRESSION: comparação "
+                            + "com um relatório anterior do projeto.",
                         13, MUTED, false), matchWrap());
                     if (suiteWarning != null) {
                         entries.addView(text(suiteWarning, 14, FG, false), matchWrap());
