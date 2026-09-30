@@ -113,7 +113,7 @@ public final class LaboratoryToolRegistry {
 
         private Event(String eventId, int sequence, long createdAtEpochMs, String action,
                 String toolId, String version, String fromVersion, String toVersion,
-                List<String> evidenceRunIds, String approvalSha256) {
+                List<String> evidenceRunIds, List<String> regressionComparisonIds,\n                String approvalSha256) {
             this.eventId = eventId;
             this.sequence = sequence;
             this.createdAtEpochMs = createdAtEpochMs;
