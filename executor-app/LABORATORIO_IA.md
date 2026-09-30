@@ -259,6 +259,6 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - O ledger de sessão não recebe o texto do objetivo. O objetivo bruto vive somente no cofre privado do contrato; a sessão continua registrando orçamento/estado e hashes.
 - `LaboratoryAiTaskContractsActivity` é privada e somente leitura. Mostra modo, estado de consumo, hash do objetivo, ferramentas e orçamento; o usuário pode abrir o objetivo exato e o resultado da admissão.
 - `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `CONTRATOS GOAL LOCK`.
-- Testes Android verificam preservação literal do objetivo, hash, Activity privada, contrato de uso único, criação da sessão, execução pelo `AiTaskHandle`, impossibilidade de replay, falha após revogação de permissão e ausência do objetivo bruto no manifesto da sessão.
+- Testes Android verificam preservação literal do objetivo, hash, Activity privada, contrato de uso único, criação da sessão, execução pelo `AiTaskHandle`, impossibilidade de replay, falha após revogação de permissão, rejeição de objetivo adulterado e ausência do objetivo bruto no manifesto da sessão.
 
 **Fronteira preparada:** quando o orquestrador principal for conectado, ele não deverá criar sessões a partir de `Policy` livre. O caminho previsto passa por contrato Goal Lock → claim único → sessão → `AiTaskHandle`.
