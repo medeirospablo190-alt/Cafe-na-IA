@@ -71,6 +71,13 @@ public final class LaboratoryReportsActivity extends Activity {
         approvalParams.setMargins(0, dp(10), 0, 0);
         root.addView(approvalsButton, approvalParams);
 
+        Button aiPermissionsButton = button("PERMISSÕES DA IA");
+        aiPermissionsButton.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryAiPermissionsActivity.class)));
+        LinearLayout.LayoutParams aiPermissionParams = matchWrap();
+        aiPermissionParams.setMargins(0, dp(8), 0, 0);
+        root.addView(aiPermissionsButton, aiPermissionParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
