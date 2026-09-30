@@ -141,7 +141,7 @@ public final class LaboratoryAiTeamDiagnosticStore {
     public synchronized Report read(String agentId) throws IOException {
         validateAgentId(agentId);
         ensureRoot();
-        return readFile(root.resolve(agentId + ".json"));
+        return readFile(root.resolve(agentId + ".json"), agentId);
     }
 
     public synchronized List<Report> list() throws IOException {
@@ -161,8 +161,9 @@ public final class LaboratoryAiTeamDiagnosticStore {
                 if (!name.endsWith(".json") || Files.isSymbolicLink(path)) {
                     throw new IOException("unexpected AI-team diagnostic entry");
                 }
-                validateAgentId(name.substring(0, name.length() - 5));
-                result.add(readFile(path));
+                String agentId = name.substring(0, name.length() - 5);
+                validateAgentId(agentId);
+                result.add(readFile(path, agentId));
             }
         }
         result.sort(Comparator
@@ -173,7 +174,7 @@ public final class LaboratoryAiTeamDiagnosticStore {
         return Collections.unmodifiableList(result);
     }
 
-    private Report readFile(Path path) throws IOException {
+    private Report readFile(Path path, String expectedAgentId) throws IOException {
         if (!root.equals(path.getParent())
                 || !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
                 || Files.isSymbolicLink(path)
@@ -209,6 +210,10 @@ public final class LaboratoryAiTeamDiagnosticStore {
                 strings(json.getJSONArray("recurrentSignals")),
                 strings(json.getJSONArray("recommendationCodes")));
             validate(report);
+            if (!expectedAgentId.equals(report.agentId)) {
+                throw new IOException(
+                    "AI-team diagnostic file identity does not match content");
+            }
             String stored = json.getString("recordSha256");
             if (!validSha(stored) || !stored.equals(recordSha(report))) {
                 throw new IOException("AI-team diagnostic integrity failed");
