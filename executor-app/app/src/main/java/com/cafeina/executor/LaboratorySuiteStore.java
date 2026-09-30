@@ -35,6 +35,7 @@ public final class LaboratorySuiteStore {
     public static final int MAX_SUITES = 64;
     private static final int MAX_ENTRIES = MAX_SUITES * 2;
     private static final int MAX_RECORD_BYTES = 12 * 1024;
+    private static final int MAX_REPORT_REFERENCES = 12;
     private static final int FORMAT = 1;
 
     public enum Status {
@@ -122,7 +123,7 @@ public final class LaboratorySuiteStore {
     public synchronized Summary begin(String mode, String planSha256, int requested,
             List<String> baselineReportIds) throws IOException {
         if (!("BATCH".equals(mode) || "REPLAY".equals(mode)
-                || "REGRESSION".equals(mode))
+                || "REGRESSION".equals(mode) || "STRESS".equals(mode))
                 || planSha256 == null || !planSha256.matches("[0-9a-f]{64}")
                 || requested < 1 || requested > 8 || baselineReportIds == null
                 || baselineReportIds.size() > 4
@@ -171,7 +172,8 @@ public final class LaboratorySuiteStore {
             throws IOException {
         if (!LaboratorySnapshotStore.validId(suiteId)
                 || finalStatus == null || finalStatus == Status.RUNNING_OR_INTERRUPTED
-                || reportIds == null || reportIds.size() > 8 || passed < 0 || failed < 0
+                || reportIds == null || reportIds.size() > MAX_REPORT_REFERENCES
+                || passed < 0 || failed < 0
                 || passed + failed > 8 || reason == null
                 || !reason.matches("[A-Z_]{3,40}")) {
             throw new IllegalArgumentException("invalid suite completion");
@@ -180,7 +182,9 @@ public final class LaboratorySuiteStore {
         if (started.status != Status.RUNNING_OR_INTERRUPTED) {
             throw new IOException("suite already has a terminal record");
         }
-        int expectedRuns = started.requested * ("REPLAY".equals(started.mode) ? 2 : 1);
+        int expectedRuns = started.requested * ("REPLAY".equals(started.mode) ? 2
+            : "STRESS".equals(started.mode)
+                ? LaboratorySuiteRunner.STRESS_ITERATIONS : 1);
         if ((finalStatus == Status.PASS
                     && (passed != started.requested || failed != 0
                         || reportIds.size() != expectedRuns
@@ -245,7 +249,7 @@ public final class LaboratorySuiteStore {
             }
             String mode = start.getString("mode");
             if (!("BATCH".equals(mode) || "REPLAY".equals(mode)
-                    || "REGRESSION".equals(mode))) {
+                    || "REGRESSION".equals(mode) || "STRESS".equals(mode))) {
                 throw new IOException("unknown suite mode");
             }
             if ("REGRESSION".equals(mode)
@@ -282,12 +286,16 @@ public final class LaboratorySuiteStore {
             }
             List<String> refs = new ArrayList<>();
             JSONArray records = end.getJSONArray("reports");
-            if (records.length() > 8) throw new IOException("too many suite evidence records");
+            if (records.length() > MAX_REPORT_REFERENCES) {
+                throw new IOException("too many suite evidence records");
+            }
             if (status == Status.PASS
                     && (end.getInt("passed") != start.getInt("requested")
                         || end.getInt("failed") != 0
                         || records.length() != start.getInt("requested")
-                            * ("REPLAY".equals(mode) ? 2 : 1)
+                            * ("REPLAY".equals(mode) ? 2
+                                : "STRESS".equals(mode)
+                                    ? LaboratorySuiteRunner.STRESS_ITERATIONS : 1)
                         || !"ALL_CASES_MATCHED".equals(end.getString("reason")))) {
                 throw new IOException("suite PASS lacks complete evidence");
             }
