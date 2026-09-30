@@ -96,9 +96,14 @@ public final class LaboratoryAiImprovementProposalInstrumentedTest {
             LaboratoryAiImprovementPlanner.refreshNow(app, project);
         assertEquals(3, sameEvidence.size());
         assertEquals(
-            first.stream().map(item -> item.proposalKeySha256).sorted().toList(),
+            first.stream()
+                .map(item -> item.proposalKeySha256)
+                .sorted()
+                .collect(java.util.stream.Collectors.toList()),
             sameEvidence.stream()
-                .map(item -> item.proposalKeySha256).sorted().toList());
+                .map(item -> item.proposalKeySha256)
+                .sorted()
+                .collect(java.util.stream.Collectors.toList()));
 
         diagnostics.save(report(
             UUID.randomUUID().toString(),
