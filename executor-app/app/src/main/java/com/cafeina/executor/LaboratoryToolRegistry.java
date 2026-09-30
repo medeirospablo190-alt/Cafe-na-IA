@@ -341,6 +341,46 @@ public final class LaboratoryToolRegistry {
         return Collections.unmodifiableList(result);
     }
 
+    private List<String> validateRegressionEvidence(String toolId,
+            String currentVersion, Descriptor candidate, List<String> evidenceRunIds,
+            List<String> comparisonIds) throws IOException {
+        if (comparisonIds == null || comparisonIds.isEmpty() || comparisonIds.size() > 32) {
+            throw new IOException("stable upgrade requires regression evidence");
+        }
+        Descriptor baseline = readDescriptor(toolId, currentVersion);
+        LaboratoryRegressionStore regressions =
+            new LaboratoryRegressionStore(appFilesDirectory, projectId);
+        List<String> result = new ArrayList<>();
+        List<String> coveredRequiredTests = new ArrayList<>();
+        for (String comparisonId : comparisonIds) {
+            if (comparisonId == null || result.contains(comparisonId)) {
+                throw new IOException("invalid or duplicate regression comparison");
+            }
+            LaboratoryRegressionStore.Record record = regressions.read(comparisonId);
+            if (!"PASS".equals(record.verdict)) {
+                throw new IOException("regression comparison did not pass");
+            }
+            if (!baseline.artifactSha256.equals(record.baselineInputSha256)
+                    || !candidate.artifactSha256.equals(record.candidateInputSha256)) {
+                throw new IOException("regression comparison does not match tool version hashes");
+            }
+            if (!evidenceRunIds.contains(record.candidateRunId)) {
+                throw new IOException("regression candidate run is not promotion evidence");
+            }
+            for (String testName : record.coveredTests) {
+                if (candidate.requiredTests.contains(testName)
+                        && !coveredRequiredTests.contains(testName)) {
+                    coveredRequiredTests.add(testName);
+                }
+            }
+            result.add(comparisonId);
+        }
+        if (!coveredRequiredTests.containsAll(candidate.requiredTests)) {
+            throw new IOException("regression evidence misses required tool tests");
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     private void requireApproval(ApprovalGate gate, String action, String toolId,
             String fromVersion, String toVersion, String approvalId) {
         if (gate == null || approvalId == null || approvalId.isEmpty()
