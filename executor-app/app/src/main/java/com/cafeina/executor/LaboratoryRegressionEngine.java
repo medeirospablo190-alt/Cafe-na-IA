@@ -38,9 +38,15 @@ public final class LaboratoryRegressionEngine {
         public final String expectedOutput;
         public final String actualOutput;
         public final String inputSha256;
+        public final String toolInputSha256;
 
         public CheckEvidence(String name, boolean passed, String expectedOutput,
                 String actualOutput, String inputSha256) {
+            this(name, passed, expectedOutput, actualOutput, inputSha256, "");
+        }
+
+        public CheckEvidence(String name, boolean passed, String expectedOutput,
+                String actualOutput, String inputSha256, String toolInputSha256) {
             if (name == null || !name.matches("[a-zA-Z0-9_-]{1,64}")) {
                 throw new IllegalArgumentException("invalid regression check name");
             }
@@ -50,11 +56,17 @@ public final class LaboratoryRegressionEngine {
             if (inputSha256 == null || !inputSha256.matches("[0-9a-f]{64}")) {
                 throw new IllegalArgumentException("invalid regression input hash");
             }
+            if (toolInputSha256 == null
+                    || (!toolInputSha256.isEmpty()
+                        && !toolInputSha256.matches("[0-9a-f]{64}"))) {
+                throw new IllegalArgumentException("invalid tool input hash");
+            }
             this.name = name;
             this.passed = passed;
             this.expectedOutput = expectedOutput;
             this.actualOutput = actualOutput;
             this.inputSha256 = inputSha256;
+            this.toolInputSha256 = toolInputSha256;
         }
     }
 
@@ -197,6 +209,10 @@ public final class LaboratoryRegressionEngine {
             }
             if (!before.expectedOutput.equals(after.expectedOutput)) {
                 reasons.add("expected output changed: " + name);
+                comparable = false;
+            }
+            if (!before.toolInputSha256.equals(after.toolInputSha256)) {
+                reasons.add("tool input differs: " + name);
                 comparable = false;
             }
             if (comparable) covered.add(name);

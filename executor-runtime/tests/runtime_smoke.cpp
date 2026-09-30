@@ -60,6 +60,32 @@ int main()
 
     {
         cafeina::ExecutionRequest request;
+        request.source = "return tool_input, fs == nil";
+        request.limits.timeoutMs = 250;
+        request.context.executionId = "smoke-tool-input";
+        request.context.projectId = "smoke-project";
+        request.context.inputText = "case-42";
+
+        const auto r = runtime.execute(request);
+        require(r.ok, "bounded tool input should execute");
+        require(r.returns.size() == 2 && r.returns[0] == "case-42",
+            "tool_input should be visible as execution data");
+        require(r.returns[1] == "true",
+            "tool input must not grant filesystem capability");
+    }
+
+    {
+        cafeina::ExecutionRequest request;
+        request.source = "return #tool_input";
+        request.context.inputText = std::string(16 * 1024 + 1, 'x');
+        const auto r = runtime.execute(request);
+        require(!r.ok, "oversized tool input must fail closed");
+        require(r.error.find("tool input exceeds") != std::string::npos,
+            "oversized input should report its runtime limit");
+    }
+
+    {
+        cafeina::ExecutionRequest request;
         request.source = "return true";
         request.context.capabilities.grant(cafeina::RuntimeCapability::Files);
 

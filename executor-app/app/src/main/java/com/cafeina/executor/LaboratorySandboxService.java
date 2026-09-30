@@ -22,8 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Must run with android:isolatedProcess=true. Receives bounded source by
- * Messenger, executes native Luau WITHOUT the filesystem capability, and
+ * Must run with android:isolatedProcess=true. Receives bounded source and
+ * bounded tool input by Messenger, executes native Luau WITHOUT the filesystem
+ * capability, and
  * returns bounded results. It does not access app private directories.
  *
  * Only one run is active at a time. ABORT kills this isolated
@@ -35,6 +36,7 @@ public final class LaboratorySandboxService extends Service {
     static final int RESULT = 3;
     static final String RUN_ID = "run_id";
     static final String SOURCE = "source";
+    static final String INPUT = "input";
     static final String TIMEOUT_MS = "timeout_ms";
     static final String STATUS = "status";
     static final String OUTPUT = "output";
@@ -43,6 +45,7 @@ public final class LaboratorySandboxService extends Service {
     static final String WORKER_UID = "worker_uid";
     static final String ELAPSED_MS = "elapsed_ms";
     static final int MAX_SOURCE_CHARS = 16 * 1024;
+    static final int MAX_INPUT_CHARS = 4096;
     static final int MAX_TIMEOUT_MS = 3000;
     static final int MAX_RESPONSE_CHARS = 2048;
 
@@ -77,10 +80,12 @@ public final class LaboratorySandboxService extends Service {
         Bundle request = message.getData();
         String id = request.getString(RUN_ID, "");
         String source = request.getString(SOURCE);
+        String input = request.getString(INPUT, "");
         int timeoutMs = request.getInt(TIMEOUT_MS, 0);
 
-        if (busy || !validId(id) || source == null
-                || source.length() > MAX_SOURCE_CHARS || timeoutMs < 1
+        if (busy || !validId(id) || source == null || input == null
+                || source.length() > MAX_SOURCE_CHARS
+                || input.length() > MAX_INPUT_CHARS || timeoutMs < 1
                 || timeoutMs > MAX_TIMEOUT_MS) {
             respond(reply, id, "REJECTED", "", "Invalid or busy sandbox request", "", 0);
             return true;
@@ -94,8 +99,10 @@ public final class LaboratorySandboxService extends Service {
             String error = "";
             String returnValue = "";
             try {
-                // Crucial: nativeExecute DOES NOT grant the Luau fs capability.
-                String raw = LuauBridge.nativeExecute(source, timeoutMs);
+                // tool_input is data only; this JNI path never grants the
+                // Luau filesystem capability.
+                String raw = LuauBridge.nativeExecuteWithInput(
+                    source, input, timeoutMs);
                 if (raw == null || raw.length() > 128 * 1024) {
                     error = "Worker produced an oversized result";
                 } else {

@@ -206,7 +206,8 @@ public final class LaboratoryRegressionStore {
                     check.getBoolean("passed"),
                     check.getString("expectedOutput"),
                     check.getString("actualOutput"),
-                    check.getString("inputSha256")));
+                    check.getString("inputSha256"),
+                    check.optString("toolInputSha256")));
             }
             return new LaboratoryRegressionEngine.RunEvidence(
                 report.getString("runId"),

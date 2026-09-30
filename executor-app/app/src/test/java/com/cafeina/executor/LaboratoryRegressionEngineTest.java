@@ -114,6 +114,29 @@ public final class LaboratoryRegressionEngineTest {
     }
 
     @Test
+    public void differentToolInputCannotBeComparedAsSameCase() {
+        LaboratoryRegressionEngine.RunEvidence baseline =
+            new LaboratoryRegressionEngine.RunEvidence(
+                "base", "luau-isolated-candidate", "0.1.0", "PASS",
+                1, 10, sha('a'), "", Collections.singletonList(
+                    new LaboratoryRegressionEngine.CheckEvidence(
+                        "caseA", true, "ok", "ok", sha('1'), sha('8'))));
+        LaboratoryRegressionEngine.RunEvidence candidate =
+            new LaboratoryRegressionEngine.RunEvidence(
+                "candidate", "luau-isolated-candidate", "0.1.0", "PASS",
+                1, 10, sha('b'), "", Collections.singletonList(
+                    new LaboratoryRegressionEngine.CheckEvidence(
+                        "caseA", true, "ok", "ok", sha('2'), sha('9'))));
+
+        LaboratoryRegressionEngine.Result result = LaboratoryRegressionEngine.evaluate(
+            baseline, candidate, new LaboratoryRegressionEngine.Policy(0, 0, true));
+
+        assertEquals(LaboratoryRegressionEngine.Verdict.FAIL, result.verdict);
+        assertTrue(result.reasons.contains("tool input differs: caseA"));
+        assertTrue(result.coveredTests.isEmpty());
+    }
+
+    @Test
     public void policyAndEvidenceBoundsAreValidated() {
         assertThrows(IllegalArgumentException.class,
             () -> new LaboratoryRegressionEngine.Policy(-1, 0, true));
