@@ -100,6 +100,67 @@ public final class LaboratoryAiLiveSessionControlInstrumentedTest {
     }
 
     @Test
+    public void globalControlsAffectOnlyCurrentProject() throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "livebulk"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String otherProject = "liveother"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "bulk-tool";
+        String otherToolId = "other-bulk-tool";
+
+        prepareGrantedStable(app, project, toolId);
+        prepareGrantedStable(app, otherProject, otherToolId);
+
+        LaboratoryAiSessionController.Handles first =
+            LaboratoryAiSessionController.create(
+                app, project,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId), 4, 256, 30_000L));
+        LaboratoryAiSessionController.Handles second =
+            LaboratoryAiSessionController.create(
+                app, project,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId), 4, 256, 30_000L));
+        LaboratoryAiSessionController.Handles other =
+            LaboratoryAiSessionController.create(
+                app, otherProject,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(otherToolId), 4, 256, 30_000L));
+
+        LaboratoryAiLiveSessionRegistry.BulkResult paused =
+            LaboratoryAiLiveSessionRegistry.pauseAll(project);
+        assertEquals(2, paused.attempted);
+        assertEquals(2, paused.changed);
+        assertTrue(paused.complete());
+        assertEquals(LaboratoryAiSessionController.State.PAUSED,
+            first.host.snapshot().state);
+        assertEquals(LaboratoryAiSessionController.State.PAUSED,
+            second.host.snapshot().state);
+        assertEquals(LaboratoryAiSessionController.State.ACTIVE,
+            other.host.snapshot().state);
+
+        LaboratoryAiLiveSessionRegistry.BulkResult resumed =
+            LaboratoryAiLiveSessionRegistry.resumeAll(project);
+        assertEquals(2, resumed.attempted);
+        assertEquals(2, resumed.changed);
+        assertTrue(resumed.complete());
+
+        LaboratoryAiLiveSessionRegistry.BulkResult cancelled =
+            LaboratoryAiLiveSessionRegistry.cancelAll(project);
+        assertEquals(2, cancelled.attempted);
+        assertEquals(2, cancelled.changed);
+        assertTrue(cancelled.complete());
+        assertTrue(LaboratoryAiLiveSessionRegistry.list(project).isEmpty());
+        assertEquals(1,
+            LaboratoryAiLiveSessionRegistry.list(otherProject).size());
+        assertEquals(LaboratoryAiSessionController.State.ACTIVE,
+            other.host.snapshot().state);
+
+        LaboratoryAiLiveSessionRegistry.cancelAll(otherProject);
+    }
+
+    @Test
     public void livePauseCancelsCurrentWorkerAndKeepsSessionPaused()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
