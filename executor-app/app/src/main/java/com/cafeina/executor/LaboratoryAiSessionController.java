@@ -315,6 +315,7 @@ public final class LaboratoryAiSessionController {
                                 audit.append(id, LaboratoryAiSessionStore.INVOKE_RESULT,
                                     state.name(), toolId, inputSha256, inputBytes,
                                     runId, outcome, invocationsUsed, inputBytesUsed);
+                                LaboratoryAiDiagnostics.schedule(app, projectId, id);
                             } catch (IOException auditFailure) {
                                 failAuditLocked();
                                 failure = new IOException(
@@ -332,6 +333,7 @@ public final class LaboratoryAiSessionController {
                         audit.append(id, LaboratoryAiSessionStore.INVOKE_RESULT,
                             state.name(), toolId, inputSha256, inputBytes, "",
                             "LAUNCH_FAILED", invocationsUsed, inputBytesUsed);
+                        LaboratoryAiDiagnostics.schedule(app, projectId, id);
                     } catch (IOException auditFailure) {
                         failAuditLocked();
                         launchFailure.addSuppressed(auditFailure);
@@ -422,6 +424,7 @@ public final class LaboratoryAiSessionController {
                 audit.append(id, LaboratoryAiSessionStore.CANCEL, state.name(),
                     "", "", 0, "", "HOST_CANCEL", invocationsUsed, inputBytesUsed);
                 terminalAudited = true;
+                LaboratoryAiDiagnostics.schedule(app, projectId, id);
             } catch (IOException auditFailure) {
                 auditBroken = true;
             }
@@ -468,6 +471,7 @@ public final class LaboratoryAiSessionController {
                 audit.append(id, LaboratoryAiSessionStore.FINISH, state.name(),
                     "", "", 0, "", reason, invocationsUsed, inputBytesUsed);
                 terminalAudited = true;
+                LaboratoryAiDiagnostics.schedule(app, projectId, id);
             } catch (IOException auditFailure) {
                 auditBroken = true;
             }
