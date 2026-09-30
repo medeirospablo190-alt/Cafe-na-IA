@@ -9,6 +9,12 @@ public final class LuauBridge {
 
     public static native String nativeExecute(String source, int timeoutMs);
 
+    public static native String nativeExecuteWithInput(
+        String source,
+        String inputText,
+        int timeoutMs
+    );
+
     public static native String nativeExecuteWithFiles(
         String source,
         int timeoutMs,

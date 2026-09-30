@@ -327,6 +327,10 @@ public final class LaboratoryReportsActivity extends Activity {
                 body.append("\nSHA-256 do ambiente de teste: ")
                     .append(report.optString("environmentSha256"));
             }
+            if (report.has("toolInputSha256")) {
+                body.append("\nSHA-256 da entrada da ferramenta: ")
+                    .append(report.optString("toolInputSha256"));
+            }
             if (report.has("candidateSnapshotId")) {
                 body.append("\nSnapshot de recuperação: ")
                     .append(report.optString("candidateSnapshotId"))

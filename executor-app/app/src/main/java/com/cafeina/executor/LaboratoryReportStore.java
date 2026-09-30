@@ -128,6 +128,7 @@ public final class LaboratoryReportStore {
             report.put("startedAtEpochMs", result.startedAtEpochMs);
             report.put("durationMs", result.durationMs);
             report.put("candidateBatchSha256", result.sourceSha256);
+            report.put("toolInputSha256", result.inputSha256);
             if (snapshotId != null) report.put("candidateSnapshotId", snapshotId);
             report.put("snapshotVerified", snapshotVerified);
             report.put("status", outcome);
@@ -144,6 +145,7 @@ public final class LaboratoryReportStore {
             check.put("actualOutput",
                 LaboratoryEngine.fingerprint(result.firstReturn).substring(7, 71));
             check.put("inputSha256", result.sourceSha256);
+            check.put("toolInputSha256", result.inputSha256);
             check.put("reason", !snapshotVerified
                 ? "snapshot integrity check failed; test candidate not approved"
                 : matched ? "isolated return matched expected value"

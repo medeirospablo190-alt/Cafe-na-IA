@@ -31,6 +31,13 @@ public final class LaboratoryCandidateRunner {
     public static LaboratorySandboxClient.Session runInternal(Context context, String projectId,
             String candidate, String expectedFirstReturn, long seed, int timeoutMs,
             Completion completion) throws IOException {
+        return runInternal(context, projectId, candidate, "", expectedFirstReturn,
+            seed, timeoutMs, completion);
+    }
+
+    public static LaboratorySandboxClient.Session runInternal(Context context, String projectId,
+            String candidate, String toolInput, String expectedFirstReturn,
+            long seed, int timeoutMs, Completion completion) throws IOException {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(completion, "completion");
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -39,10 +46,12 @@ public final class LaboratoryCandidateRunner {
         if (expectedFirstReturn == null || expectedFirstReturn.length() > 256) {
             throw new IllegalArgumentException("invalid expected Luau return");
         }
-        if (candidate == null || candidate.isEmpty()
+        if (candidate == null || candidate.isEmpty() || toolInput == null
                 || candidate.length() > LaboratorySandboxService.MAX_SOURCE_CHARS
+                || toolInput.length() > LaboratorySandboxService.MAX_INPUT_CHARS
                 || timeoutMs < 1 || timeoutMs > LaboratorySandboxService.MAX_TIMEOUT_MS) {
-            throw new IllegalArgumentException("invalid laboratory candidate or timeout");
+            throw new IllegalArgumentException(
+                "invalid laboratory candidate, tool input or timeout");
         }
         LaboratoryReportStore reports =
             new LaboratoryReportStore(context.getFilesDir(), projectId);
@@ -53,7 +62,8 @@ public final class LaboratoryCandidateRunner {
         // Never scan or snapshot the user's editor/scripts/project directories.
         LaboratorySnapshotStore.Snapshot baseline = snapshots.create(
             "candidate-luau", candidate.getBytes(StandardCharsets.UTF_8));
-        return LaboratorySandboxClient.execute(context, candidate, timeoutMs, result ->
+        return LaboratorySandboxClient.execute(
+            context, candidate, toolInput, timeoutMs, result ->
             REPORT_IO.execute(() -> {
                 IOException recordingError = null;
                 boolean snapshotVerified = false;

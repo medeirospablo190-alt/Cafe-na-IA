@@ -49,6 +49,10 @@ struct ExecutionContext {
 
     RuntimeCapabilities capabilities;
     RuntimeHostAccess hostAccess;
+
+    // Optional, caller-provided test input. The runtime exposes this value to
+    // Luau as the global string "tool_input". It never grants host access.
+    std::string inputText;
 };
 
 // Canonical request shape for the runtime platform.

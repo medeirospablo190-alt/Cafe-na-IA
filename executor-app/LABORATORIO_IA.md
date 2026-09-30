@@ -99,3 +99,14 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 **Integração desta pilha:** esta etapa foi portada sobre a revisão com aprovação humana via credencial do Android. As suítes continuam independentes dessa aprovação e não ativam ferramentas. `CANDIDATE`, recibo de aprovação e execução de BATCH/REPLAY/STRESS/REGRESSION permanecem conceitos separados.
 
 **Limites:** a comparação de regressão não é um teste completo de física/renderização do Godot e não prova equivalência semântica geral de ferramentas Luau. O executor de suítes não testa candidatos arbitrários: eles continuam no trabalhador Luau isolado. A suíte registra um histórico recuperável, mas não aplica restauração automática ao projeto do usuário. Os hashes são verificação de integridade casual, não autenticação contra código com o mesmo UID/root.
+
+
+## Nona entrega — entrada explícita para ferramentas Luau isoladas
+
+- O contrato nativo de execução ganhou `ExecutionContext.inputText`. Em Luau, esse dado aparece somente como a string global `tool_input`. O runtime aplica limite próprio de 16 KiB em bytes; o laboratório Android aplica limite mais restrito de 4096 caracteres antes do IPC.
+- `tool_input` é **dado**, não capacidade. Fornecer uma entrada não habilita `fs`, rede, acesso ao projeto, Mundo, credenciais ou qualquer API do host. O worker continua em `isolatedProcess=true` e usa a JNI `nativeExecuteWithInput`, que não recebe `filesRoot`.
+- `LaboratorySandboxClient` mantém a API antiga (entrada vazia) e adiciona a sessão com entrada separada. O resultado registra SHA-256 da fonte e SHA-256 da entrada separadamente. A entrada original não volta no relatório.
+- `LaboratoryCandidateRunner` e `LaboratoryToolWorkshop` possuem sobrecargas compatíveis para testar a **mesma fonte candidata** com um `tool_input` explícito sem incorporá-lo ao código ou alterar o hash do snapshot. Relatórios de candidato armazenam apenas `toolInputSha256`.
+- Testes nativos verificam o global `tool_input`, o limite de tamanho e a ausência de `fs`. Testes Android atravessam IPC/processo isolado, verificam o hash da entrada e confirmam que o texto da entrada não é persistido no relatório.
+
+**Por que isso existe:** ferramentas complexas precisam receber casos de teste sem gerar uma nova versão de código para cada caso. Esta etapa prepara o laboratório para lotes de candidatos Luau. Ainda não autoriza a IA a disparar lotes arbitrários nem muda as regras de CANDIDATE/STABLE; a suíte de candidatos com múltiplas entradas será uma etapa posterior e continuará limitada pelo worker isolado.
