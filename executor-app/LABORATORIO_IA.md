@@ -73,3 +73,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM verificam versões imutáveis, IDs, escopos, integridade do manifesto e snapshot e negativa de revisão sem relatório correspondente. Testes Android verificam que a orquestração cria CANDIDATE apenas após PASS, e que falhas continuam EXPERIMENTAL. Os relatórios não armazenam a fonte do candidato.
 
 **Limites de segurança:** estes registros são uma política da aplicação, não um ledger resistente a adulterações para processos com o mesmo UID/root. Um futuro modelo de linguagem operando no processo principal precisará de um controlador de permissões independente. A aprovação humana e a promoção de uma versão STABLE não estão implementadas: não se pode tratar CANDIDATE como liberação de uso no projeto. A integração da IA principal continua bloqueada até o laboratório e o controlador de permissões estarem completos.
+
+
+## Sexta entrega — aprovação humana separada da execução e da ativação
+
+- \`LaboratoryApprovalActivity\` é uma tela privada (\`exported=false\`) dedicada à decisão do usuário. Ela lista somente versões \`CANDIDATE\` que já possuem evidência válida; não possui campo de código, botão de execução, edição de manifesto ou controle de permissões da ferramenta.
+- Para registrar a decisão, a tela exige uma confirmação explícita e depois abre a confirmação de credencial do próprio Android (PIN/senha/bloqueio seguro do aparelho). Se o dispositivo não possuir bloqueio seguro configurado, a aprovação fica indisponível.
+- Depois do retorno \`RESULT_OK\`, a candidata é relida e revalidada. \`LaboratoryHumanApprovalStore\` cria um recibo único contendo versão, hash do manifesto, relatório de evidência, hash da fonte, horário e o método \`ANDROID_DEVICE_CREDENTIAL\`. A gravação usa \`CREATE_NEW\`; um recibo existente nunca é substituído.
+- A leitura do recibo revalida o estado CANDIDATE e os mesmos hashes/evidências. Recibo corrompido, divergente, ligado simbolicamente ou associado a versão diferente falha de forma explícita. Aprovações ficam separadas por projeto.
+- A tela de relatórios mostra \`APROVADA PELO USUÁRIO • NÃO ATIVA\` quando o recibo é válido e oferece um atalho para a área de revisão. O conteúdo da ferramenta continua indisponível nessa interface.
+- **Aprovação não é ativação.** O catálogo continua tendo apenas EXPERIMENTAL e CANDIDATE. Não existe API de STABLE, instalador de ferramenta, troca automática da versão ativa ou caminho para a IA invocar a tela de credencial como se fosse uma decisão do usuário.
+- Teste Android confirma que a Activity de aprovação não é exportada, que somente uma CANDIDATE aceita recibo, que duplicidade/credencial expirada falham e que o estado do registro continua CANDIDATE após a aprovação.
+
+**Limitação real:** a confirmação de credencial é uma barreira de interface do Android e o recibo é uma política local do aplicativo; não é uma prova criptográfica resistente a root ou a código arbitrário com o mesmo UID. Antes da IA principal, o controlador de permissões deve manter o modelo e ferramentas isoladas sem uma API que consiga chamar o gravador de aprovação. A futura ativação STABLE deverá consumir apenas recibos válidos e ainda exigir uma etapa separada, reversível e auditável.
