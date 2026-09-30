@@ -101,6 +101,7 @@ public final class LaboratoryToolRegistry {
 
     public static final class Event {
         public final String eventId;
+        public final int sequence;
         public final long createdAtEpochMs;
         public final String action;
         public final String toolId;
@@ -110,10 +111,11 @@ public final class LaboratoryToolRegistry {
         public final List<String> evidenceRunIds;
         public final String approvalSha256;
 
-        private Event(String eventId, long createdAtEpochMs, String action,
+        private Event(String eventId, int sequence, long createdAtEpochMs, String action,
                 String toolId, String version, String fromVersion, String toVersion,
                 List<String> evidenceRunIds, String approvalSha256) {
             this.eventId = eventId;
+            this.sequence = sequence;
             this.createdAtEpochMs = createdAtEpochMs;
             this.action = action;
             this.toolId = toolId;
@@ -247,9 +249,7 @@ public final class LaboratoryToolRegistry {
         if (events.size() > MAX_EVENTS_PER_TOOL) {
             throw new IOException("tool history exceeds limit");
         }
-        events.sort(Comparator
-            .comparingLong((Event event) -> event.createdAtEpochMs)
-            .thenComparing(event -> event.eventId));
+        events.sort(Comparator.comparingInt(event -> event.sequence));
         return Collections.unmodifiableList(events);
     }
 
@@ -339,13 +339,22 @@ public final class LaboratoryToolRegistry {
         if (countJson(history) >= MAX_EVENTS_PER_TOOL) {
             throw new IOException("tool history limit reached; existing history was preserved");
         }
+        int sequence = 1;
+        List<Event> existing = history(toolId);
+        if (!existing.isEmpty()) {
+            sequence = existing.get(existing.size() - 1).sequence + 1;
+        }
+        if (sequence > MAX_EVENTS_PER_TOOL) {
+            throw new IOException("tool history limit reached; existing history was preserved");
+        }
         long created = System.currentTimeMillis();
         String eventId = UUID.randomUUID().toString();
-        String fileName = String.format(Locale.ROOT, "%013d-%s.json", created, eventId);
+        String fileName = String.format(Locale.ROOT, "%06d.json", sequence);
         try {
             JSONObject json = new JSONObject();
             json.put("schemaVersion", 1);
             json.put("eventId", eventId);
+            json.put("sequence", sequence);
             json.put("createdAtEpochMs", created);
             json.put("action", action);
             json.put("toolId", toolId);
@@ -410,6 +419,7 @@ public final class LaboratoryToolRegistry {
         JSONObject json = new JSONObject(raw);
         return new Event(
             json.getString("eventId"),
+            json.getInt("sequence"),
             json.getLong("createdAtEpochMs"),
             json.getString("action"),
             json.getString("toolId"),
@@ -472,8 +482,7 @@ public final class LaboratoryToolRegistry {
     }
 
     private static boolean isEventFile(String name) {
-        return name != null
-            && name.matches("[0-9]{13}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.json");
+        return name != null && name.matches("[0-9]{6}\\.json");
     }
 
     private static void ensureSafeDirectory(Path path) throws IOException {
