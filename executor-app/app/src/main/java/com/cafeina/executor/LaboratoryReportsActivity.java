@@ -103,6 +103,14 @@ public final class LaboratoryReportsActivity extends Activity {
         taskContractParams.setMargins(0, dp(8), 0, 0);
         root.addView(taskContractsButton, taskContractParams);
 
+        Button testAgentReportsButton = button("RELATÓRIOS IA DE TESTE");
+        testAgentReportsButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiTestAgentReportsActivity.class)));
+        LinearLayout.LayoutParams testAgentReportParams = matchWrap();
+        testAgentReportParams.setMargins(0, dp(8), 0, 0);
+        root.addView(testAgentReportsButton, testAgentReportParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
