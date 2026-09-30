@@ -61,3 +61,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM cobrem contato sólido, zona, fronteira sem sobreposição, parser malicioso, limites, fixture imutável e divergência de resultados. Um teste Android verifica que a ferramenta pode rodar sem abrir a Activity do Godot, e que o resultado fica persistido no cofre de relatórios.
 
 **Limite técnico:** a bancada usa interseção geométrica AABB, não simula gravidade, colisão de cápsulas, rigid bodies, materiais, animações ou renderização do Godot. O Test World completo e a suíte de física/3D ainda precisam de um worker Godot próprio, testado e separado, antes de fornecerem garantias sobre o Mundo real.
+
+
+## Quinta entrega — versionamento seguro de ferramentas
+
+- `LaboratoryToolRegistry` registra cada ferramenta por `toolId`, versão semântica, SHA-256 do artefato, origem, capacidades, testes obrigatórios, compatibilidade e limites de execução/entrada. Cada versão é criada uma única vez e nunca é sobrescrita.
+- O ciclo de vida é separado em `EXPERIMENTAL → CANDIDATE → STABLE`. Uma versão só chega a CANDIDATE quando há relatórios PASS que comprovem o mesmo SHA-256 do artefato registrado.
+- A seleção de STABLE não usa um ponteiro mutável que apague rastros. Promoções e rollbacks são eventos create-only; a versão estável ativa é reconstruída pelo histórico completo.
+- Promoção para STABLE e rollback exigem um `ApprovalGate` fornecido pelo host e um identificador de aprovação explícita. Não existe implementação permissiva/default no registro. O identificador bruto não é persistido: apenas seu SHA-256 entra no histórico.
+- Rollback só pode apontar para uma versão que já tenha sido aprovada como STABLE anteriormente. Versões antigas e seus metadados continuam preservados.
+- O registro fica separado por projeto em `files/laboratory/<escopo>/tool-registry/`, com validação de IDs, versões, hashes, limites, caminhos e symlinks. Ao atingir quotas, novas gravações são recusadas sem apagar histórico.
+- Testes JVM cobrem imutabilidade, rejeição de path traversal, evidência vinculada ao hash exato do artefato, bloqueio sem aprovação, promoção de duas versões e rollback para a estável anterior.
+
+**Limite técnico:** o gate de aprovação já é obrigatório no núcleo do registro, mas a tela Android que emitirá/aprovará esse gate ainda não foi ligada. Portanto esta entrega não dá à IA autorização para promover ferramentas sozinha e não muda nenhuma versão STABLE do aplicativo atual.
