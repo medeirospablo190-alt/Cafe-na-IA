@@ -192,3 +192,19 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android cobrem pausa/resume, orçamento de invocações, fim automático, catálogo vazio após término e cancelamento host de uma execução Luau em loop.
 
 **Limite atual:** as sessões ainda são estruturas de controle em memória; os usos individuais continuam auditados pelo gate STABLE, mas eventos de sessão (START/PAUSE/RESUME/CANCEL/FINISH) ainda não possuem um histórico persistente próprio. Esse ledger de sessão deverá ser adicionado antes da IA principal para recuperação após encerramento do processo.
+
+
+## Décima quarta entrega — auditoria persistente e recuperável das sessões da IA
+
+- `LaboratoryAiSessionStore` mantém um histórico append-only separado por projeto e por sessão em `files/laboratory/<escopo>/ai-sessions/<sessionId>/`.
+- Cada sessão possui manifesto create-only com ID, início, allowlist congelada, limite de invocações, orçamento total de entrada e duração máxima. O manifesto possui SHA-256 calculado sobre representação canônica dos campos.
+- Eventos persistidos: `START`, `INVOKE_REQUEST`, `INVOKE_RESULT`, `PAUSE`, `RESUME`, `CANCEL` e `FINISH`. Cada registro possui sequência monotônica, estado, ferramenta, hash da entrada, quantidade de bytes, runId quando existe, resultado e orçamento consumido.
+- O texto de `tool_input`, stdout, retorno e erro da ferramenta não entra no ledger de sessão. A entrada é representada somente por SHA-256 e tamanho.
+- Cada evento possui hash canônico independente da ordem interna do JSON. Leituras verificam tipo, estado, sequência, tamanhos, caminhos e symlinks antes de aceitar o histórico.
+- Limites iniciais: até 64 sessões por projeto e até 256 eventos por sessão. Ao atingir quota, o laboratório recusa novas gravações e preserva o histórico existente.
+- O controlador de sessão passa a ser fail-closed para auditoria: a sessão não nasce sem conseguir persistir `START`; uma invocação não começa sem `INVOKE_REQUEST`; se o resultado não puder ser auditado, ele é descartado e a sessão é cancelada.
+- `pause`, `resume`, término por orçamento/tempo e cancelamento do host também são registrados. O cancelamento de segurança continua sendo executado mesmo se a gravação do evento falhar.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` mostra uma seção somente leitura com sessões, estado final, orçamento usado, ferramentas permitidas, quantidade de eventos e horários.
+- Testes Android validam histórico START/PAUSE/RESUME/INVOKE/FINISH/CANCEL, recuperação do resumo após a execução e privacidade: valores privados usados como `tool_input` não aparecem nos arquivos de auditoria.
+
+**Limite atual:** o ledger permite diagnosticar e reconstruir o que aconteceu em uma sessão encerrada, mas ainda não tenta restaurar automaticamente uma sessão ACTIVE/PAUSED depois que o processo do aplicativo morre. Antes de uma IA principal autônoma, sessões interrompidas no processo anterior deverão ser classificadas como interrompidas e exigir uma decisão explícita de retomar uma nova sessão ou encerrar o trabalho.

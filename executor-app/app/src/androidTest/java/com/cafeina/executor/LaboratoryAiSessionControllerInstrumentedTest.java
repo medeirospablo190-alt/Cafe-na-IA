@@ -14,6 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
@@ -62,14 +64,16 @@ public final class LaboratoryAiSessionControllerInstrumentedTest {
         assertEquals(LaboratoryAiSessionController.State.ACTIVE,
             handles.host.snapshot().state);
 
-        Outcome first = execute(handles.ai, toolId, "one");
+        String privateOne = "PRIVATE_SESSION_INPUT_ALPHA_927";
+        Outcome first = execute(handles.ai, toolId, privateOne);
         if (first.error != null) throw new AssertionError(first.error);
-        assertEquals("one:session-ok", first.execution.firstReturn);
+        assertEquals(privateOne + ":session-ok", first.execution.firstReturn);
         assertEquals(1, handles.host.snapshot().invocationsUsed);
 
-        Outcome second = execute(handles.ai, toolId, "two");
+        String privateTwo = "PRIVATE_SESSION_INPUT_BETA_518";
+        Outcome second = execute(handles.ai, toolId, privateTwo);
         if (second.error != null) throw new AssertionError(second.error);
-        assertEquals("two:session-ok", second.execution.firstReturn);
+        assertEquals(privateTwo + ":session-ok", second.execution.firstReturn);
 
         LaboratoryAiSessionController.Snapshot exhausted =
             handles.host.snapshot();
@@ -83,6 +87,45 @@ public final class LaboratoryAiSessionControllerInstrumentedTest {
         assertNull(third.execution);
         assertNotNull(third.error);
         assertTrue(third.error.getMessage().contains("finished"));
+
+        LaboratoryAiSessionStore sessionStore =
+            new LaboratoryAiSessionStore(app.getFilesDir(), project);
+        assertEquals(1, sessionStore.list().size());
+        LaboratoryAiSessionStore.Summary summary =
+            sessionStore.list().get(0);
+        assertEquals(handles.host.sessionId(), summary.sessionId);
+        assertEquals("FINISHED", summary.state);
+        assertEquals(2, summary.invocationsUsed);
+        assertTrue(summary.eventCount >= 8);
+
+        java.util.List<LaboratoryAiSessionStore.Event> events =
+            sessionStore.readEvents(summary.sessionId);
+        assertTrue(events.stream().anyMatch(event ->
+            LaboratoryAiSessionStore.START.equals(event.type)));
+        assertTrue(events.stream().anyMatch(event ->
+            LaboratoryAiSessionStore.PAUSE.equals(event.type)));
+        assertTrue(events.stream().anyMatch(event ->
+            LaboratoryAiSessionStore.RESUME.equals(event.type)));
+        assertEquals(2, events.stream().filter(event ->
+            LaboratoryAiSessionStore.INVOKE_REQUEST.equals(event.type)).count());
+        assertEquals(2, events.stream().filter(event ->
+            LaboratoryAiSessionStore.INVOKE_RESULT.equals(event.type)).count());
+        assertTrue(events.stream().anyMatch(event ->
+            LaboratoryAiSessionStore.FINISH.equals(event.type)));
+
+        Path eventsRoot = app.getFilesDir().toPath().resolve(
+            "laboratory/project-" + project + "/ai-sessions/"
+                + summary.sessionId + "/events");
+        StringBuilder persisted = new StringBuilder();
+        try (java.util.stream.Stream<Path> files = Files.list(eventsRoot)) {
+            for (Path path : (Iterable<Path>) files::iterator) {
+                persisted.append(new String(
+                    Files.readAllBytes(path), StandardCharsets.UTF_8));
+            }
+        }
+        assertTrue(!persisted.toString().contains(privateOne));
+        assertTrue(!persisted.toString().contains(privateTwo));
+        assertTrue(!persisted.toString().contains(privateOne + ":session-ok"));
     }
 
     @Test
@@ -138,6 +181,14 @@ public final class LaboratoryAiSessionControllerInstrumentedTest {
         assertEquals(LaboratoryAiSessionController.State.CANCELLED,
             handles.host.snapshot().state);
         assertTrue(handles.ai.listAvailable().isEmpty());
+
+        LaboratoryAiSessionStore store =
+            new LaboratoryAiSessionStore(app.getFilesDir(), project);
+        assertEquals(1, store.list().size());
+        LaboratoryAiSessionStore.Summary summary = store.list().get(0);
+        assertEquals("CANCELLED", summary.state);
+        assertTrue(store.readEvents(summary.sessionId).stream().anyMatch(event ->
+            LaboratoryAiSessionStore.CANCEL.equals(event.type)));
     }
 
     private static Outcome execute(LaboratoryAiSessionController.AiHandle ai,

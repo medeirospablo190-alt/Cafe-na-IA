@@ -37,6 +37,7 @@ public final class LaboratoryReportsActivity extends Activity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LaboratoryReportStore reports;
     private LaboratoryStableUseStore stableUses;
+    private LaboratoryAiSessionStore aiSessions;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -94,6 +95,7 @@ public final class LaboratoryReportsActivity extends Activity {
         try {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
             stableUses = new LaboratoryStableUseStore(getFilesDir(), projectId);
+            aiSessions = new LaboratoryAiSessionStore(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -114,11 +116,23 @@ public final class LaboratoryReportsActivity extends Activity {
                 }
                 final List<LaboratoryStableUseStore.Use> stableUseItems = uses;
                 final String stableUseWarning = useProblem;
+
+                List<LaboratoryAiSessionStore.Summary> sessions;
+                String sessionProblem = null;
+                try {
+                    sessions = aiSessions.list();
+                } catch (Exception error) {
+                    sessions = java.util.Collections.emptyList();
+                    sessionProblem = "Auditoria de sessões indisponível: " + error.getMessage();
+                }
+                final List<LaboratoryAiSessionStore.Summary> sessionItems = sessions;
+                final String sessionWarning = sessionProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
                     feedback.setText(items.size() + " relatório(s) • "
-                        + stableUseItems.size() + " uso(s) STABLE • somente leitura");
+                        + stableUseItems.size() + " uso(s) STABLE • "
+                        + sessionItems.size() + " sessão(ões) IA • somente leitura");
                     if (items.isEmpty()) {
                         entries.addView(text(
                             "Ainda não há relatórios. Eles aparecerão quando as ferramentas "
@@ -171,6 +185,37 @@ public final class LaboratoryReportsActivity extends Activity {
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(useButton, params);
+                    }
+
+                    TextView sessionTitle = text("SESSÕES DA IA", 17, FG, true);
+                    sessionTitle.setPadding(0, dp(18), 0, dp(4));
+                    entries.addView(sessionTitle, matchWrap());
+                    entries.addView(text(
+                        "Histórico persistente de orçamento e controle da sessão. "
+                            + "Entradas e saídas brutas não são armazenadas aqui.",
+                        13, MUTED, false), matchWrap());
+                    if (sessionWarning != null) {
+                        entries.addView(text(sessionWarning, 14, FG, false), matchWrap());
+                    } else if (sessionItems.isEmpty()) {
+                        entries.addView(text(
+                            "Nenhuma sessão da IA foi iniciada neste projeto.",
+                            14, MUTED, false), matchWrap());
+                    }
+                    for (LaboratoryAiSessionStore.Summary session : sessionItems) {
+                        Button sessionButton = button(
+                            "SESSÃO • " + session.state
+                                + "\n" + time(session.startedAtEpochMs)
+                                + "  |  " + session.invocationsUsed + "/"
+                                + session.maxInvocations + " chamadas");
+                        sessionButton.setAllCaps(false);
+                        sessionButton.setTextSize(14);
+                        sessionButton.setGravity(android.view.Gravity.START
+                            | android.view.Gravity.CENTER_VERTICAL);
+                        sessionButton.setBackgroundTintList(ColorStateList.valueOf(PANEL));
+                        sessionButton.setOnClickListener(v -> showAiSession(session));
+                        LinearLayout.LayoutParams params = matchWrap();
+                        params.setMargins(0, dp(8), 0, 0);
+                        entries.addView(sessionButton, params);
                     }
                 });
             } catch (Exception error) {
@@ -279,6 +324,32 @@ public final class LaboratoryReportsActivity extends Activity {
             .show();
     }
 
+    private void showAiSession(LaboratoryAiSessionStore.Summary session) {
+        String details = "Sessão: " + session.sessionId
+            + "\nEstado: " + session.state
+            + "\nInício: " + time(session.startedAtEpochMs)
+            + "\nÚltimo evento: " + time(session.lastEventAtEpochMs)
+            + "\nFerramentas permitidas: " + session.allowedToolIds
+            + "\nChamadas: " + session.invocationsUsed + " / "
+            + session.maxInvocations
+            + "\nEntrada acumulada: " + session.inputBytesUsed + " / "
+            + session.maxTotalInputBytes + " bytes"
+            + "\nDuração máxima: " + session.maxSessionMs + " ms"
+            + "\nEventos persistidos: " + session.eventCount
+            + "\n\nEste histórico não contém tool_input, retorno ou saída bruta.";
+        TextView view = text(details, 13, FG, false);
+        view.setTypeface(Typeface.MONOSPACE);
+        view.setTextIsSelectable(true);
+        view.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(view);
+        new AlertDialog.Builder(this)
+            .setTitle("Sessão da IA • somente leitura")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
     private static String time(long epochMs) {
         if (epochMs <= 0) return "Data indisponível";
         return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT,
@@ -317,7 +388,7 @@ public final class LaboratoryReportsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (reports != null && stableUses != null) refresh();
+        if (reports != null && stableUses != null && aiSessions != null) refresh();
     }
 
     @Override

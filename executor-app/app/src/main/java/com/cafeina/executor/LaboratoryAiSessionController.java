@@ -173,16 +173,22 @@ public final class LaboratoryAiSessionController {
         final String id = UUID.randomUUID().toString();
         final long startedAt = System.currentTimeMillis();
         final Runnable expireTask;
+        final LaboratoryAiSessionStore audit;
 
         State state = State.ACTIVE;
         int invocationsUsed;
         int inputBytesUsed;
+        boolean auditBroken;
+        boolean terminalAudited;
         LaboratorySandboxClient.Session activeInvocation;
 
-        Session(Context app, String projectId, Policy policy) {
+        Session(Context app, String projectId, Policy policy) throws IOException {
             this.app = app;
             this.projectId = projectId;
             this.policy = policy;
+            this.audit = new LaboratoryAiSessionStore(app.getFilesDir(), projectId);
+            this.audit.begin(id, startedAt, policy.allowedToolIds,
+                policy.maxInvocations, policy.maxTotalInputBytes, policy.maxSessionMs);
             this.expireTask = this::expire;
             MAIN.postDelayed(expireTask, policy.maxSessionMs);
         }
@@ -215,6 +221,7 @@ public final class LaboratoryAiSessionController {
             }
 
             final int inputBytes;
+            final String inputSha256;
             synchronized (this) {
                 updateExpiredLocked();
                 if (state == State.PAUSED) throw new IOException("AI session is paused");
@@ -231,7 +238,7 @@ public final class LaboratoryAiSessionController {
                 }
                 inputBytes = toolInput.getBytes(StandardCharsets.UTF_8).length;
                 if (invocationsUsed >= policy.maxInvocations) {
-                    finishLocked();
+                    finishLocked("INVOCATION_BUDGET_EXHAUSTED");
                     throw new IOException("AI session invocation budget exhausted");
                 }
                 if (inputBytesUsed + inputBytes > policy.maxTotalInputBytes) {
@@ -242,6 +249,17 @@ public final class LaboratoryAiSessionController {
                 // attempts still consume budget and cannot be retried for free.
                 invocationsUsed++;
                 inputBytesUsed += inputBytes;
+                inputSha256 =
+                    LaboratoryEngine.fingerprint(toolInput).substring(7, 71);
+                try {
+                    audit.append(id, LaboratoryAiSessionStore.INVOKE_REQUEST,
+                        state.name(), toolId, inputSha256, inputBytes, "",
+                        "REQUESTED", invocationsUsed, inputBytesUsed);
+                } catch (IOException auditFailure) {
+                    failAuditLocked();
+                    throw new IOException(
+                        "AI session audit failed before invocation", auditFailure);
+                }
             }
 
             final AtomicBoolean completed = new AtomicBoolean(false);
@@ -263,7 +281,23 @@ public final class LaboratoryAiSessionController {
                             } else if (invocationsUsed >= policy.maxInvocations
                                     || inputBytesUsed >= policy.maxTotalInputBytes
                                     || elapsedLocked() >= policy.maxSessionMs) {
-                                finishLocked();
+                                finishLocked("BUDGET_OR_TIME_EXHAUSTED");
+                            }
+
+                            String runId = success == null ? "" : success.runId;
+                            String outcome = failure == null ? "PASS"
+                                : state == State.CANCELLED ? "CANCELLED"
+                                : state == State.PAUSED ? "PAUSED"
+                                : "FAIL";
+                            try {
+                                audit.append(id, LaboratoryAiSessionStore.INVOKE_RESULT,
+                                    state.name(), toolId, inputSha256, inputBytes,
+                                    runId, outcome, invocationsUsed, inputBytesUsed);
+                            } catch (IOException auditFailure) {
+                                failAuditLocked();
+                                failure = new IOException(
+                                    "AI session result audit failed", auditFailure);
+                                success = null;
                             }
                         }
                         completion.onFinished(success, failure);
@@ -272,9 +306,17 @@ public final class LaboratoryAiSessionController {
                 synchronized (this) {
                     activeInvocation = null;
                     updateExpiredLocked();
+                    try {
+                        audit.append(id, LaboratoryAiSessionStore.INVOKE_RESULT,
+                            state.name(), toolId, inputSha256, inputBytes, "",
+                            "LAUNCH_FAILED", invocationsUsed, inputBytesUsed);
+                    } catch (IOException auditFailure) {
+                        failAuditLocked();
+                        launchFailure.addSuppressed(auditFailure);
+                    }
                     if (invocationsUsed >= policy.maxInvocations
                             || elapsedLocked() >= policy.maxSessionMs) {
-                        finishLocked();
+                        finishLocked("BUDGET_OR_TIME_EXHAUSTED");
                     }
                 }
                 throw launchFailure;
@@ -297,21 +339,35 @@ public final class LaboratoryAiSessionController {
             updateExpiredLocked();
             if (state == State.CANCELLED || state == State.FINISHED) return;
             state = State.PAUSED;
+            try {
+                audit.append(id, LaboratoryAiSessionStore.PAUSE, state.name(),
+                    "", "", 0, "", "HOST_PAUSE", invocationsUsed, inputBytesUsed);
+            } catch (IOException auditFailure) {
+                failAuditLocked();
+            }
             if (activeInvocation != null) activeInvocation.cancel();
         }
 
         synchronized void resumeFromHost() throws IOException {
             updateExpiredLocked();
+            if (auditBroken) throw new IOException("AI session audit is unavailable");
             if (state == State.CANCELLED) throw new IOException("AI session is cancelled");
             if (state == State.FINISHED) throw new IOException("AI session is finished");
             if (state == State.ACTIVE) return;
             if (invocationsUsed >= policy.maxInvocations
                     || inputBytesUsed >= policy.maxTotalInputBytes
                     || elapsedLocked() >= policy.maxSessionMs) {
-                finishLocked();
+                finishLocked("BUDGET_OR_TIME_EXHAUSTED");
                 throw new IOException("AI session budget is exhausted");
             }
             state = State.ACTIVE;
+            try {
+                audit.append(id, LaboratoryAiSessionStore.RESUME, state.name(),
+                    "", "", 0, "", "HOST_RESUME", invocationsUsed, inputBytesUsed);
+            } catch (IOException auditFailure) {
+                failAuditLocked();
+                throw new IOException("AI session audit failed on resume", auditFailure);
+            }
         }
 
         synchronized void cancelFromHost() {
@@ -319,6 +375,13 @@ public final class LaboratoryAiSessionController {
             state = State.CANCELLED;
             MAIN.removeCallbacks(expireTask);
             if (activeInvocation != null) activeInvocation.cancel();
+            try {
+                audit.append(id, LaboratoryAiSessionStore.CANCEL, state.name(),
+                    "", "", 0, "", "HOST_CANCEL", invocationsUsed, inputBytesUsed);
+                terminalAudited = true;
+            } catch (IOException auditFailure) {
+                auditBroken = true;
+            }
         }
 
         synchronized Snapshot snapshot() {
@@ -339,6 +402,7 @@ public final class LaboratoryAiSessionController {
                 state = State.FINISHED;
                 MAIN.removeCallbacks(expireTask);
                 if (activeInvocation != null) activeInvocation.cancel();
+                auditTerminalLocked("TIME_EXPIRED");
             }
         }
 
@@ -346,10 +410,29 @@ public final class LaboratoryAiSessionController {
             return Math.max(0L, System.currentTimeMillis() - startedAt);
         }
 
-        private void finishLocked() {
+        private void finishLocked(String reason) {
             if (state == State.CANCELLED || state == State.FINISHED) return;
             state = State.FINISHED;
             MAIN.removeCallbacks(expireTask);
+            auditTerminalLocked(reason);
+        }
+
+        private void auditTerminalLocked(String reason) {
+            if (terminalAudited || auditBroken) return;
+            try {
+                audit.append(id, LaboratoryAiSessionStore.FINISH, state.name(),
+                    "", "", 0, "", reason, invocationsUsed, inputBytesUsed);
+                terminalAudited = true;
+            } catch (IOException auditFailure) {
+                auditBroken = true;
+            }
+        }
+
+        private void failAuditLocked() {
+            auditBroken = true;
+            if (state != State.FINISHED) state = State.CANCELLED;
+            MAIN.removeCallbacks(expireTask);
+            if (activeInvocation != null) activeInvocation.cancel();
         }
     }
 }
