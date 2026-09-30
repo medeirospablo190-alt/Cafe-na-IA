@@ -74,3 +74,15 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM cobrem imutabilidade, rejeição de path traversal, evidência vinculada ao hash exato do artefato, bloqueio sem aprovação, promoção de duas versões e rollback para a estável anterior.
 
 **Limite técnico:** o gate de aprovação já é obrigatório no núcleo do registro, mas a tela Android que emitirá/aprovará esse gate ainda não foi ligada. Portanto esta entrega não dá à IA autorização para promover ferramentas sozinha e não muda nenhuma versão STABLE do aplicativo atual.
+
+
+## Sexta entrega — métricas e detecção determinística de regressões
+
+- `LaboratoryRegressionEngine` compara uma execução baseline já registrada com uma execução candidata sem executar código novo. A comparação exige identidade do mesmo harness, seed reproduzível, conjunto de casos compatível e, quando configurado, o mesmo hash de ambiente.
+- Cada caso preserva esperado/obtido, PASS/FAIL e hash da entrada. Mudança de casos, mudança do resultado esperado, falha de um caso, baseline inválida, seed diferente ou ambiente diferente tornam a comparação FAIL.
+- A política de performance define percentual máximo de lentidão e uma tolerância absoluta em milissegundos. O cálculo é determinístico, limitado e protegido contra overflow; o relatório registra duração baseline, duração candidata, limite permitido e delta.
+- `LaboratoryRegressionStore` lê apenas relatórios já persistidos pelo laboratório e grava comparações create-only em `files/laboratory/<escopo>/regressions/`. O registro contém IDs dos runs, hashes, métricas, política, testes cobertos e motivos do veredito; não grava fonte de ferramenta.
+- O cofre de regressões é separado por projeto, recusa sobrescrita, valida caminhos/symlinks e possui quota inicial de 256 comparações de até 32 KiB cada.
+- Testes JVM validam equivalência funcional, regressão de duração, diferenças de seed/ambiente/harness, mudança de casos e limites da política. Testes Android validam persistência real de comparações PASS/FAIL e impedem usar o mesmo run como sua própria baseline.
+
+**Limite técnico:** esta entrega cria a evidência objetiva de regressão, mas ainda não a torna requisito automático para promover uma nova versão a STABLE. A ligação entre o registro de versões e essas comparações será feita como gate separado, para não permitir que uma ferramenta se autopromova apenas por produzir seu próprio relatório.
