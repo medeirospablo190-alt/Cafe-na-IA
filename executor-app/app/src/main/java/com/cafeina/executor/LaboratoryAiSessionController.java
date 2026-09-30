@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Bounded AI work session with split host/AI handles.
@@ -243,10 +244,12 @@ public final class LaboratoryAiSessionController {
                 inputBytesUsed += inputBytes;
             }
 
+            final AtomicBoolean completed = new AtomicBoolean(false);
             final LaboratorySandboxClient.Session launched;
             try {
                 launched = LaboratoryAiToolController.executeInternal(
                     app, projectId, toolId, toolInput, (success, failure) -> {
+                        completed.set(true);
                         synchronized (Session.this) {
                             activeInvocation = null;
                             updateExpiredLocked();
@@ -278,7 +281,9 @@ public final class LaboratoryAiSessionController {
             }
 
             synchronized (this) {
-                if (state == State.CANCELLED || state == State.PAUSED
+                if (completed.get()) {
+                    activeInvocation = null;
+                } else if (state == State.CANCELLED || state == State.PAUSED
                         || state == State.FINISHED) {
                     launched.cancel();
                 } else {
