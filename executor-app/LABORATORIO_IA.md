@@ -110,3 +110,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes nativos verificam o global `tool_input`, o limite de tamanho e a ausência de `fs`. Testes Android atravessam IPC/processo isolado, verificam o hash da entrada e confirmam que o texto da entrada não é persistido no relatório.
 
 **Por que isso existe:** ferramentas complexas precisam receber casos de teste sem gerar uma nova versão de código para cada caso. Esta etapa prepara o laboratório para lotes de candidatos Luau. Ainda não autoriza a IA a disparar lotes arbitrários nem muda as regras de CANDIDATE/STABLE; a suíte de candidatos com múltiplas entradas será uma etapa posterior e continuará limitada pelo worker isolado.
+
+
+## Décima entrega — lotes de ferramentas Luau candidatas no worker isolado
+
+- `LaboratoryCandidateSuiteRunner` testa uma versão registrada usando o **mesmo snapshot de fonte** em até 8 casos. Cada caso fornece `tool_input` separado e um retorno esperado; a fonte não é reconstruída nem alterada entre os casos.
+- O runner aceita somente versões do catálogo com capacidade `LUAU_ISOLATED_NO_FILES`, relê e valida o snapshot antes do lote e antes de cada execução, e mantém orçamento nativo combinado de no máximo 12 segundos. Cada caso continua executando no `isolatedProcess`, nunca no processo da UI/IA.
+- `LaboratoryCandidateSuiteStore` registra START antes do primeiro caso e END de criação única na conclusão. START sem END permanece `RUNNING_OR_INTERRUPTED`, nunca PASS. O START é vinculado a ferramenta, versão, manifesto, snapshot, hash da fonte e hash do plano.
+- Cada caso gera um relatório schema 2 já usado pelo worker isolado. O lote PASS só é aceito se todos os relatórios pertencerem ao mesmo snapshot/fonte, tiverem `snapshotVerified=true`, worker isolado executado, um check aprovado e hash de `tool_input` válido. Referências aos relatórios também são protegidas por SHA-256.
+- Entradas e retornos esperados participam do digest do plano, mas seus textos não são gravados no histórico. Os relatórios persistem o hash de `tool_input`; o texto da entrada existe apenas em memória/IPC durante o teste.
+- A tela `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou `LOTES DE CANDIDATAS LUAU`, com ferramenta/versão, estado, hashes, snapshot e IDs dos relatórios por caso, somente para consulta.
+- Testes JVM cobrem identificadores, limites, número máximo de casos e digest do plano. Testes Android executam uma mesma candidata com múltiplas entradas privadas, verificam PASS/FAIL, cancelamento, isolamento entre projetos, não persistência dos textos e detecção de adulteração.
+
+**Separação de estados:** um lote PASS é evidência técnica. Ele não transforma EXPERIMENTAL em CANDIDATE, não registra aprovação humana e não ativa STABLE. Isso permite que, no futuro, a IA de teste peça lotes completos sem ganhar o poder de aprovar ou instalar a própria ferramenta.
