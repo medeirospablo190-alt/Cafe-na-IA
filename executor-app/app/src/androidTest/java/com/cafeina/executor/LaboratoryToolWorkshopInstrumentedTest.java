@@ -6,7 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -62,6 +64,51 @@ public final class LaboratoryToolWorkshopInstrumentedTest {
             registry.read(toolId, "0.1.0").state);
         assertEquals(LaboratoryToolRegistry.State.EXPERIMENTAL,
             registry.read(toolId, "0.1.1").state);
+
+        ActivityInfo approvalActivity = app.getPackageManager().getActivityInfo(
+            new ComponentName(app, LaboratoryApprovalActivity.class), 0);
+        assertFalse("Approval Activity must remain private", approvalActivity.exported);
+
+        LaboratoryHumanApprovalStore approvals =
+            new LaboratoryHumanApprovalStore(app.getFilesDir(), projectId);
+        assertFalse(approvals.isApproved(toolId, "0.1.0"));
+        LaboratoryHumanApprovalStore.Approval approval =
+            approvals.recordDeviceCredentialApproval(
+                toolId, "0.1.0", System.currentTimeMillis());
+        assertEquals(toolId, approval.toolId);
+        assertEquals("0.1.0", approval.version);
+        assertEquals(passing.tool.manifestSha256, approval.manifestSha256);
+        assertEquals(passing.execution.runId, approval.evidenceRunId);
+        assertEquals(passing.tool.sourceSha256, approval.sourceSha256);
+        assertEquals("ANDROID_DEVICE_CREDENTIAL", approval.authenticationMethod);
+        assertEquals(64, approval.receiptSha256.length());
+        assertTrue(approvals.isApproved(toolId, "0.1.0"));
+        assertEquals(1, approvals.list().size());
+
+        try {
+            approvals.recordDeviceCredentialApproval(
+                toolId, "0.1.0", System.currentTimeMillis());
+            org.junit.Assert.fail("Duplicate human approval must not overwrite the receipt");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("already"));
+        }
+        try {
+            approvals.recordDeviceCredentialApproval(
+                toolId, "0.1.1", System.currentTimeMillis());
+            org.junit.Assert.fail("Experimental version must not accept human approval");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("candidates"));
+        }
+        try {
+            approvals.recordDeviceCredentialApproval(
+                toolId, "0.1.0", System.currentTimeMillis() - 120_000L);
+            org.junit.Assert.fail("Stale device-auth timestamp must be refused");
+        } catch (java.io.IOException expected) {
+            assertTrue(expected.getMessage().contains("stale"));
+        }
+        // Human approval does not change registry state or activate the tool.
+        assertEquals(LaboratoryToolRegistry.State.CANDIDATE,
+            registry.read(toolId, "0.1.0").state);
 
         LaboratoryReportStore reports =
             new LaboratoryReportStore(app.getFilesDir(), projectId);

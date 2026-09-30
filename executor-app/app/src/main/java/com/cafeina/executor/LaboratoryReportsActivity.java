@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -36,6 +37,7 @@ public final class LaboratoryReportsActivity extends Activity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LaboratoryReportStore reports;
     private LaboratoryToolRegistry registry;
+    private LaboratoryHumanApprovalStore approvals;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -63,6 +65,13 @@ public final class LaboratoryReportsActivity extends Activity {
                 + "falhas e evidências; esta tela não executa nem modifica ferramentas.",
             14, MUTED, false), matchWrap());
 
+        Button review = button("REVISAR APROVAÇÕES HUMANAS");
+        review.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryApprovalActivity.class)));
+        LinearLayout.LayoutParams reviewParams = matchWrap();
+        reviewParams.setMargins(0, dp(10), 0, 0);
+        root.addView(review, reviewParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
@@ -79,6 +88,7 @@ public final class LaboratoryReportsActivity extends Activity {
         try {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
             registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
+            approvals = new LaboratoryHumanApprovalStore(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -101,6 +111,16 @@ public final class LaboratoryReportsActivity extends Activity {
                 }
                 final List<LaboratoryToolRegistry.Tool> toolItems = catalog;
                 final String registryWarning = registryProblem;
+                final java.util.Set<String> approvedVersions = new java.util.HashSet<>();
+                String approvalProblem = null;
+                try {
+                    for (LaboratoryHumanApprovalStore.Approval approval : approvals.list()) {
+                        approvedVersions.add(approval.toolId + "@" + approval.version);
+                    }
+                } catch (Exception error) {
+                    approvalProblem = "Aprovações indisponíveis: " + error.getMessage();
+                }
+                final String approvalWarning = approvalProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
@@ -116,21 +136,29 @@ public final class LaboratoryReportsActivity extends Activity {
                         13, MUTED, false), matchWrap());
                     if (registryWarning != null) {
                         entries.addView(text(registryWarning, 14, FG, false), matchWrap());
-                    } else if (toolItems.isEmpty()) {
+                    }
+                    if (approvalWarning != null) {
+                        entries.addView(text(approvalWarning, 14, FG, false), matchWrap());
+                    }
+                    if (registryWarning == null && toolItems.isEmpty()) {
                         entries.addView(text(
                             "Nenhuma ferramenta candidata registrada neste projeto.",
                             14, MUTED, false), matchWrap());
                     }
                     for (LaboratoryToolRegistry.Tool tool : toolItems) {
+                        boolean approved = approvedVersions.contains(tool.id + "@" + tool.version);
+                        String stateLabel = approved
+                            ? "APROVADA PELO USUÁRIO • NÃO ATIVA"
+                            : tool.state == LaboratoryToolRegistry.State.CANDIDATE
+                                ? "CANDIDATA • NÃO APROVADA" : "EXPERIMENTAL";
                         Button entryButton = button(tool.id + " @ " + tool.version
-                            + "\n" + (tool.state == LaboratoryToolRegistry.State.CANDIDATE
-                                ? "CANDIDATA • NÃO APROVADA" : "EXPERIMENTAL"));
+                            + "\n" + stateLabel);
                         entryButton.setAllCaps(false);
                         entryButton.setTextSize(14);
                         entryButton.setGravity(android.view.Gravity.START
                             | android.view.Gravity.CENTER_VERTICAL);
                         entryButton.setBackgroundTintList(ColorStateList.valueOf(PANEL));
-                        entryButton.setOnClickListener(v -> showTool(tool));
+                        entryButton.setOnClickListener(v -> showTool(tool, approved));
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(entryButton, params);
@@ -170,10 +198,11 @@ public final class LaboratoryReportsActivity extends Activity {
         });
     }
 
-    private void showTool(LaboratoryToolRegistry.Tool tool) {
-        String stage = tool.state == LaboratoryToolRegistry.State.CANDIDATE
-            ? "CANDIDATA PARA REVISÃO • NÃO APROVADA"
-            : "EXPERIMENTAL • NÃO APROVADA";
+    private void showTool(LaboratoryToolRegistry.Tool tool, boolean approved) {
+        String stage = approved ? "APROVADA PELO USUÁRIO • AINDA NÃO ATIVA"
+            : tool.state == LaboratoryToolRegistry.State.CANDIDATE
+                ? "CANDIDATA PARA REVISÃO • NÃO APROVADA"
+                : "EXPERIMENTAL • NÃO APROVADA";
         String details = "Ferramenta: " + tool.id
             + "\nVersão: " + tool.version
             + "\nEstado: " + stage
@@ -185,7 +214,9 @@ public final class LaboratoryReportsActivity extends Activity {
             + "\nSnapshot: " + tool.snapshotId
             + (tool.evidenceRunId.isEmpty() ? "\nSem teste aprovado para revisão"
                 : "\nRelatório de evidência: " + tool.evidenceRunId)
-            + "\n\nO registro não executa ferramentas nem altera versões estáveis.";
+            + "\n\n" + (approved
+                ? "A aprovação humana está registrada, mas não existe ativação STABLE nesta etapa."
+                : "O registro não executa ferramentas nem altera versões estáveis.");
         TextView text = text(details, 13, FG, false);
         text.setTypeface(Typeface.MONOSPACE);
         text.setTextIsSelectable(true);
@@ -289,6 +320,12 @@ public final class LaboratoryReportsActivity extends Activity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (reports != null && registry != null && approvals != null) refresh();
     }
 
     @Override
