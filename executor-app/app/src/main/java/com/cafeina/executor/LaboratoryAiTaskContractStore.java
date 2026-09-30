@@ -412,11 +412,10 @@ public final class LaboratoryAiTaskContractStore {
 
     private static String validateGoal(String goalText) {
         if (goalText == null) throw new IllegalArgumentException("task goal missing");
-        String goal = goalText.trim();
-        if (goal.isEmpty() || goal.length() > MAX_GOAL_CHARS) {
+        if (goalText.trim().isEmpty() || goalText.length() > MAX_GOAL_CHARS) {
             throw new IllegalArgumentException("task goal is empty or too large");
         }
-        return goal;
+        return goalText;
     }
 
     private static List<String> strings(JSONArray array) throws JSONException {
