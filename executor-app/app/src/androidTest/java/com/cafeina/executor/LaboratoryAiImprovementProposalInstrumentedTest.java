@@ -56,6 +56,32 @@ public final class LaboratoryAiImprovementProposalInstrumentedTest {
             2,
             "DEGRADING"));
 
+        new LaboratoryAiTeamRegistry(app.getFilesDir(), project)
+            .registerMember(
+                "diagnostic-agent",
+                "IA de Diagnóstico",
+                LaboratoryAiTeamRegistry.ROLE_DIAGNOSTIC);
+        diagnostics.save(new LaboratoryAiTeamDiagnosticStore.Report(
+            "diagnostic-agent",
+            "diagnostic-agent",
+            "IA de Diagnóstico",
+            LaboratoryAiTeamRegistry.ROLE_DIAGNOSTIC,
+            System.currentTimeMillis(),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            "INSUFFICIENT_DATA",
+            "",
+            "",
+            Collections.emptyList(),
+            Arrays.asList("WAIT_FOR_SESSION_DATA")));
+
         List<LaboratoryAiImprovementProposalStore.Proposal> first =
             LaboratoryAiImprovementPlanner.refreshNow(app, project);
         assertEquals(3, first.size());
