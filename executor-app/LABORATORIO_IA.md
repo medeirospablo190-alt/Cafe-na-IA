@@ -282,3 +282,18 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android cobrem: PASS determinístico com dois passos, mismatch com `stopOnFailure`, plano inválido sem consumir o Goal Lock, falha de admissão após revogar permissão, privacidade dos dados brutos, Activity privada, encerramento normal `HOST_COMPLETED` e ausência de controles host na superfície entregue à IA.
 
 **Limite atual:** a IA de teste ainda não inventa planos nem decide quais experimentos executar. Isso é intencional nesta etapa: primeiro ela prova que o caminho de execução, isolamento, Goal Lock, orçamento, auditoria e relatório são confiáveis. Planejamento inteligente pode ser conectado depois sobre essa base sem ganhar acesso aos controles protegidos do host.
+
+
+## Décima nona entrega — catálogo imutável de cenários da IA de teste
+
+- `LaboratoryAiTestScenarioStore` mantém cenários determinísticos create-only no armazenamento privado do laboratório. Um cenário contém nome, ID, data, `stopOnFailure` e o plano completo de até 16 passos.
+- Cada passo preserva `toolId`, fixture de entrada e primeiro retorno esperado. Esses valores brutos ficam apenas no arquivo privado do cenário; os relatórios executados continuam persistindo somente hashes.
+- O cenário recebe SHA-256 canônico calculado sobre identidade, metadados e conteúdo exato de todos os passos. Qualquer alteração posterior em entrada, retorno esperado, ferramenta ou nome invalida a leitura.
+- `LaboratoryAiTestScenarioRunner` recebe somente `scenarioId + contractId`: relê e verifica o cenário imutável e então delega para `LaboratoryAiTestAgent`.
+- A validação autoritativa do Goal Lock continua no agente antes do claim. Portanto um cenário que usa ferramenta fora da allowlist, mais chamadas ou mais bytes do que o contrato permite é rejeitado antes de consumir o contrato.
+- Cenários podem ser reutilizados com contratos diferentes, mas cada execução continua exigindo um Goal Lock novo/de uso único. O cenário não concede permissão nem cria sessão por conta própria.
+- `LaboratoryAiTestScenariosActivity` é privada e somente leitura. Mostra nome, ID, hash, quantidade de passos e `stopOnFailure`; a inspeção dos fixtures permanece dentro do app.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `CENÁRIOS IA DE TESTE`.
+- Testes Android verificam execução de cenário pelo agente, privacidade do relatório, fixture presente somente no cofre privado do cenário, adulteração detectada antes do claim, orçamento incompatível sem consumir Goal Lock e Activity não exportada.
+
+**Uso futuro:** o Tool Workshop poderá criar/versionar uma ferramenta e gerar cenários imutáveis para a IA de teste. O cenário não contém código executável da ferramenta; ele referencia apenas uma ferramenta STABLE autorizada e fornece dados/expectativas de teste.
