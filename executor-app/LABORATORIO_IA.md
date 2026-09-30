@@ -126,3 +126,19 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes nativos e Android verificam exposição de `tool_input`, ausência de `fs`, limite de tamanho, hash independente, privacidade do relatório e rejeição de regressões com entradas diferentes.
 
 **Fronteira preparada para a IA:** o próximo executor STABLE poderá receber apenas `toolId + tool_input`. O código executável continuará vindo exclusivamente do vínculo verificado da etapa anterior; a IA não precisará e não poderá reconstruir a fonte para passar parâmetros.
+
+
+## Décima entrega — gate de execução STABLE verificado
+
+- `LaboratoryStableToolExecutor` é o caminho estreito preparado para a futura IA: o chamador informa somente `toolId + tool_input`. Não existe parâmetro para fonte, versão ou snapshot.
+- O executor resolve internamente a versão STABLE ativa, o evento de ativação/rollback aprovado e o artefato ligado ao snapshot verificado. Ferramentas EXPERIMENTAL/CANDIDATE não passam por esse gate.
+- Apenas versões que declaram a capacidade explícita `luau-isolated-no-files` podem executar. O gate respeita o menor limite entre o orçamento registrado da ferramenta e o limite rígido do worker isolado.
+- A entrada é validada por caracteres e bytes UTF-8 contra o contrato da versão. A fonte nunca é reconstruída ou concatenada com a entrada.
+- Depois que o worker termina, o gate relê registro + evento STABLE + vínculo + snapshot. Se a versão ativa, evento, snapshot ou hashes mudaram durante a execução, o resultado é invalidado.
+- Um resultado só é devolvido como utilizável após três condições: worker `EXECUTED`, seleção STABLE revalidada e recibo de auditoria persistido.
+- `LaboratoryStableUseStore` mantém recibos create-only em `files/laboratory/<escopo>/stable-tool-uses/`. O recibo registra versão, evento STABLE, snapshot, UID do worker, duração e hashes esperados/realmente executados da fonte e da entrada.
+- Fonte, `tool_input`, stdout, retorno e erro do runtime não são persistidos no recibo; apenas seus SHA-256. Falhas também são auditadas.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou uma seção somente leitura para a auditoria de uso STABLE.
+- Testes Android cobrem execução STABLE válida, privacidade de entrada/saída/erro, falha Luau auditada, bloqueio de ferramenta não-STABLE e bloqueio sem a capacidade explícita de execução isolada.
+
+**Limites atuais:** este gate ainda não é chamado por uma IA e não substitui a futura interface real de aprovação humana. O registro exige um `ApprovalGate`, mas a emissão dessa aprovação pela UI/credencial do dispositivo ainda precisa ser integrada à sequência atual antes de permitir autonomia da IA.
