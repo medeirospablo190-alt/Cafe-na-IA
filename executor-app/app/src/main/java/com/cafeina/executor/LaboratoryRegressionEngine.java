@@ -223,11 +223,14 @@ public final class LaboratoryRegressionEngine {
         long slowdown;
         if (baselineDurationMs == 0 || policy.maxSlowdownPercent == 0) {
             slowdown = 0;
-        } else if (baselineDurationMs > Long.MAX_VALUE / policy.maxSlowdownPercent) {
-            slowdown = Long.MAX_VALUE;
         } else {
-            long product = baselineDurationMs * policy.maxSlowdownPercent;
-            slowdown = (product + 99L) / 100L;
+            long whole = baselineDurationMs / 100L;
+            long remainder = baselineDurationMs % 100L;
+            long wholePart = whole > Long.MAX_VALUE / policy.maxSlowdownPercent
+                ? Long.MAX_VALUE : whole * policy.maxSlowdownPercent;
+            long remainderPart =
+                (remainder * policy.maxSlowdownPercent + 99L) / 100L;
+            slowdown = saturatedAdd(wholePart, remainderPart);
         }
         long allowed = saturatedAdd(baselineDurationMs, slowdown);
         return saturatedAdd(allowed, policy.graceMs);
