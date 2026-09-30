@@ -142,3 +142,19 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android cobrem execução STABLE válida, privacidade de entrada/saída/erro, falha Luau auditada, bloqueio de ferramenta não-STABLE e bloqueio sem a capacidade explícita de execução isolada.
 
 **Limites atuais:** este gate ainda não é chamado por uma IA e não substitui a futura interface real de aprovação humana. O registro exige um `ApprovalGate`, mas a emissão dessa aprovação pela UI/credencial do dispositivo ainda precisa ser integrada à sequência atual antes de permitir autonomia da IA.
+
+
+## Décima primeira entrega — aprovação humana autenticada e de uso único
+
+- `LaboratoryApprovalActivity` é privada (`exported=false`) e acessível pela área de relatórios. Ela não executa ferramentas e não é uma interface da futura IA.
+- A tela mostra promoções CANDIDATE → STABLE e rollbacks possíveis com versão de origem/destino, SHA-256 do descriptor, SHA-256 do artefato, snapshot, quantidade de evidências e comparações de regressão.
+- A primeira decisão exige confirmação explícita e a credencial segura do próprio Android. Sem PIN/senha/bloqueio seguro configurado, nenhuma autorização é registrada.
+- `LaboratoryHumanApprovalStore` cria um recibo único e create-only preso à ação, ferramenta, versões origem/destino, descriptor completo por hash, artefato, snapshot verificado, IDs exatos dos testes e IDs exatos das regressões revisadas.
+- Uma autorização não muda o estado da ferramenta. Após autenticar, o usuário vê `AUTORIZADA • AINDA NÃO APLICADA` e precisa executar uma segunda ação explícita para promover ou fazer rollback.
+- Ao aplicar, o registro relê descriptor, snapshot e estado atual. Qualquer alteração desde a revisão invalida a decisão. O próprio `LaboratoryToolRegistry` revalida os testes/regressões antes de consultar o gate de aprovação.
+- O recibo é de uso único. O gate cria um marcador create-only antes de permitir o evento STABLE. Se a gravação final falhar depois disso, a autorização permanece consumida por segurança e uma nova decisão humana é necessária.
+- O evento do registro não persiste o ID bruto do recibo; mantém apenas o SHA-256 já previsto pelo histórico de lifecycle.
+- Aprovações pendentes idênticas são recusadas para evitar múltiplos recibos equivalentes.
+- Testes Android verificam Activity não exportada, autenticação fresca, separação entre autorizar/aplicar, promoção real para STABLE, consumo único, bloqueio de recibo duplicado e invalidação se o snapshot executável for adulterado.
+
+**Limite de segurança:** a confirmação de credencial do Android é uma barreira de interface e o recibo é uma política local do aplicativo. Isto não é uma prova criptográfica contra root ou código arbitrário já executando com o mesmo UID. A IA principal continua não integrada; antes dela, o controlador de permissões deverá manter esse caminho humano fora das APIs disponíveis ao modelo.
