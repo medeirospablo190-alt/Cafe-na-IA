@@ -15,6 +15,8 @@ import java.util.List;
  * bounded session from the remaining budget.
  */
 public final class LaboratoryAiSessionRecovery {
+    private static final Object RECOVERY_LOCK = new Object();
+
     public static final class Item {
         public final String sessionId;
         public final String state;
@@ -74,31 +76,39 @@ public final class LaboratoryAiSessionRecovery {
      * Safe to call on application startup. Current-process sessions are
      * excluded through LaboratoryAiSessionController.isLiveSession().
      */
-    public synchronized List<Item> markInterruptedOrphans() throws IOException {
-        List<LaboratoryAiSessionStore.Summary> summaries = store.list();
-        for (LaboratoryAiSessionStore.Summary summary : summaries) {
-            if (!("ACTIVE".equals(summary.state) || "PAUSED".equals(summary.state))) {
-                continue;
+    public List<Item> markInterruptedOrphans() throws IOException {
+        synchronized (RECOVERY_LOCK) {
+            List<LaboratoryAiSessionStore.Summary> summaries = store.list();
+            for (LaboratoryAiSessionStore.Summary summary : summaries) {
+                if (!("ACTIVE".equals(summary.state) || "PAUSED".equals(summary.state))) {
+                    continue;
+                }
+                if (LaboratoryAiSessionController.isLiveSession(summary.sessionId)) {
+                    continue;
+                }
+                store.append(
+                    summary.sessionId,
+                    LaboratoryAiSessionStore.INTERRUPT,
+                    "INTERRUPTED",
+                    "",
+                    "",
+                    0,
+                    "",
+                    "PROCESS_SESSION_NOT_LIVE",
+                    summary.invocationsUsed,
+                    summary.inputBytesUsed);
             }
-            if (LaboratoryAiSessionController.isLiveSession(summary.sessionId)) {
-                continue;
-            }
-            store.append(
-                summary.sessionId,
-                LaboratoryAiSessionStore.INTERRUPT,
-                "INTERRUPTED",
-                "",
-                "",
-                0,
-                "",
-                "PROCESS_SESSION_NOT_LIVE",
-                summary.invocationsUsed,
-                summary.inputBytesUsed);
+            return listActionableLocked();
         }
-        return listActionable();
     }
 
-    public synchronized List<Item> listActionable() throws IOException {
+    public List<Item> listActionable() throws IOException {
+        synchronized (RECOVERY_LOCK) {
+            return listActionableLocked();
+        }
+    }
+
+    private List<Item> listActionableLocked() throws IOException {
         List<Item> result = new ArrayList<>();
         for (LaboratoryAiSessionStore.Summary summary : store.list()) {
             if ("INTERRUPTED".equals(summary.state)
@@ -109,8 +119,14 @@ public final class LaboratoryAiSessionRecovery {
         return Collections.unmodifiableList(result);
     }
 
-    public synchronized Item readActionable(String sessionId) throws IOException {
-        for (Item item : listActionable()) {
+    public Item readActionable(String sessionId) throws IOException {
+        synchronized (RECOVERY_LOCK) {
+            return readActionableLocked(sessionId);
+        }
+    }
+
+    private Item readActionableLocked(String sessionId) throws IOException {
+        for (Item item : listActionableLocked()) {
             if (item.sessionId.equals(sessionId)) return item;
         }
         throw new IOException("AI session is not waiting for recovery");
@@ -120,58 +136,64 @@ public final class LaboratoryAiSessionRecovery {
      * Records explicit user intent to continue later as a NEW session.
      * It does not create or execute a session by itself.
      */
-    public synchronized Item requestRestart(String sessionId) throws IOException {
-        Item item = readActionable(sessionId);
-        if ("RECOVERY_PENDING".equals(item.state)) return item;
-        if (!"INTERRUPTED".equals(item.state)) {
-            throw new IOException("AI session is not interrupted");
-        }
-        if (!item.canRequestRestart()) {
-            throw new IOException("interrupted session has no remaining usable budget");
-        }
+    public Item requestRestart(String sessionId) throws IOException {
+        synchronized (RECOVERY_LOCK) {
+            Item item = readActionableLocked(sessionId);
+            if ("RECOVERY_PENDING".equals(item.state)) return item;
+            if (!"INTERRUPTED".equals(item.state)) {
+                throw new IOException("AI session is not interrupted");
+            }
+            if (!item.canRequestRestart()) {
+                throw new IOException("interrupted session has no remaining usable budget");
+            }
 
-        store.append(
-            item.sessionId,
-            LaboratoryAiSessionStore.RECOVERY_REQUEST,
-            "RECOVERY_PENDING",
-            "",
-            "",
-            0,
-            "",
-            "USER_REQUESTED_NEW_SESSION",
-            item.invocationsUsed,
-            item.inputBytesUsed);
-        return readActionable(sessionId);
+            store.append(
+                item.sessionId,
+                LaboratoryAiSessionStore.RECOVERY_REQUEST,
+                "RECOVERY_PENDING",
+                "",
+                "",
+                0,
+                "",
+                "USER_REQUESTED_NEW_SESSION",
+                item.invocationsUsed,
+                item.inputBytesUsed);
+            return readActionableLocked(sessionId);
+        }
     }
 
     /**
      * Explicitly terminates an interrupted or recovery-pending session.
      */
-    public synchronized void close(String sessionId) throws IOException {
-        Item item = readActionable(sessionId);
-        store.append(
-            item.sessionId,
-            LaboratoryAiSessionStore.RECOVERY_CLOSE,
-            "FINISHED",
-            "",
-            "",
-            0,
-            "",
-            "USER_CLOSED_INTERRUPTED_SESSION",
-            item.invocationsUsed,
-            item.inputBytesUsed);
+    public void close(String sessionId) throws IOException {
+        synchronized (RECOVERY_LOCK) {
+            Item item = readActionableLocked(sessionId);
+            store.append(
+                item.sessionId,
+                LaboratoryAiSessionStore.RECOVERY_CLOSE,
+                "FINISHED",
+                "",
+                "",
+                0,
+                "",
+                "USER_CLOSED_INTERRUPTED_SESSION",
+                item.invocationsUsed,
+                item.inputBytesUsed);
+        }
     }
 
     /**
      * Returns the policy that a future host/orchestrator may use to create a
      * NEW session after the user has explicitly requested recovery.
      */
-    public synchronized LaboratoryAiSessionController.Policy pendingRestartPolicy(
+    public LaboratoryAiSessionController.Policy pendingRestartPolicy(
             String sessionId) throws IOException {
-        Item item = readActionable(sessionId);
-        if (!"RECOVERY_PENDING".equals(item.state)) {
-            throw new IOException("session recovery has not been requested");
+        synchronized (RECOVERY_LOCK) {
+            Item item = readActionableLocked(sessionId);
+            if (!"RECOVERY_PENDING".equals(item.state)) {
+                throw new IOException("session recovery has not been requested");
+            }
+            return item.remainingPolicy();
         }
-        return item.remainingPolicy();
     }
 }
