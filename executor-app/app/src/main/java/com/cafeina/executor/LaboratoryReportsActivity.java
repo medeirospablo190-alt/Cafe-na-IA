@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -62,6 +63,13 @@ public final class LaboratoryReportsActivity extends Activity {
             "Ferramentas e testes são internos à IA. Aqui você consulta resultados, "
                 + "falhas e evidências; esta tela não executa nem modifica ferramentas.",
             14, MUTED, false), matchWrap());
+
+        Button approvalsButton = button("REVISAR APROVAÇÕES HUMANAS");
+        approvalsButton.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryApprovalActivity.class)));
+        LinearLayout.LayoutParams approvalParams = matchWrap();
+        approvalParams.setMargins(0, dp(10), 0, 0);
+        root.addView(approvalsButton, approvalParams);
 
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
