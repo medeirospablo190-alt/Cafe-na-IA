@@ -95,6 +95,14 @@ public final class LaboratoryReportsActivity extends Activity {
         liveSessionParams.setMargins(0, dp(8), 0, 0);
         root.addView(liveSessionsButton, liveSessionParams);
 
+        Button taskContractsButton = button("CONTRATOS GOAL LOCK");
+        taskContractsButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiTaskContractsActivity.class)));
+        LinearLayout.LayoutParams taskContractParams = matchWrap();
+        taskContractParams.setMargins(0, dp(8), 0, 0);
+        root.addView(taskContractsButton, taskContractParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
