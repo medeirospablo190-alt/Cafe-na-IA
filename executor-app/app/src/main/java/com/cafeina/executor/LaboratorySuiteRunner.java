@@ -19,8 +19,8 @@ import java.util.Objects;
 
 /**
  * AI-independent, bounded test orchestration for allowlisted host probes.
- * Batch runs expected-output cases; Replay repeats the same inputs/seed and
- * compares actual outputs; Regression compares against immutable same-project
+ * Batch runs expected-output cases; Replay repeats once; Stress repeats three
+ * times; Regression compares against immutable same-project
  * PASS reports with the same source batch and environment fingerprint.
  *
  * Never executes generated Luau, reads real project scripts, accesses the
@@ -30,8 +30,9 @@ import java.util.Objects;
 public final class LaboratorySuiteRunner {
     public static final int MAX_REQUESTS = 4;
     public static final int MAX_COMBINED_TEST_BUDGET_MS = 24_000;
+    public static final int STRESS_ITERATIONS = 3;
 
-    public enum Mode { BATCH, REPLAY, REGRESSION }
+    public enum Mode { BATCH, REPLAY, REGRESSION, STRESS }
 
     public static final class Plan {
         public final Mode mode;
@@ -53,7 +54,9 @@ public final class LaboratorySuiteRunner {
             int combinedBudget = 0;
             for (LaboratoryEngine.Request request : requests) {
                 Objects.requireNonNull(request, "suite request");
-                combinedBudget += request.timeoutMs * (mode == Mode.REPLAY ? 2 : 1);
+                int repeats = mode == Mode.REPLAY ? 2
+                    : mode == Mode.STRESS ? STRESS_ITERATIONS : 1;
+                combinedBudget += request.timeoutMs * repeats;
                 if (combinedBudget > MAX_COMBINED_TEST_BUDGET_MS) {
                     throw new IllegalArgumentException("suite exceeds execution budget");
                 }
@@ -66,7 +69,8 @@ public final class LaboratorySuiteRunner {
             this.requests = Collections.unmodifiableList(new ArrayList<>(requests));
             this.baselineReportIds =
                 Collections.unmodifiableList(new ArrayList<>(baselineReportIds));
-            this.plannedRuns = requests.size() * (mode == Mode.REPLAY ? 2 : 1);
+            this.plannedRuns = requests.size() * (mode == Mode.REPLAY ? 2
+                : mode == Mode.STRESS ? STRESS_ITERATIONS : 1);
             this.planSha256 = digestPlan(this);
         }
     }
@@ -173,6 +177,53 @@ public final class LaboratorySuiteRunner {
                     }
                     matches = sameOutputs(first, replay);
                     if (!matches) reason = "REPLAY_OUTPUT_MISMATCH";
+                } else if (plan.mode == Mode.STRESS) {
+                    for (int iteration = 1; iteration < STRESS_ITERATIONS; iteration++) {
+                        if (cancellation.isCancelled()) {
+                            result = LaboratorySuiteStore.Status.CANCELLED;
+                            reason = "USER_CANCELLED";
+                            matches = false;
+                            break;
+                        }
+                        if (elapsedMs(startedNanos) >= MAX_COMBINED_TEST_BUDGET_MS) {
+                            result = LaboratorySuiteStore.Status.TIMEOUT;
+                            reason = "SUITE_TIME_BUDGET";
+                            matches = false;
+                            break;
+                        }
+                        LaboratoryEngine.Report repeated =
+                            LaboratoryRunner.runApprovedBuiltIn(
+                                appFilesDir, projectId, request, cancellation);
+                        reportIds.add(repeated.runId);
+                        if (repeated.status == LaboratoryEngine.Status.CANCELLED) {
+                            result = LaboratorySuiteStore.Status.CANCELLED;
+                            reason = "USER_CANCELLED";
+                            matches = false;
+                            break;
+                        }
+                        if (repeated.status == LaboratoryEngine.Status.TIMEOUT) {
+                            result = LaboratorySuiteStore.Status.TIMEOUT;
+                            reason = "PROBE_TIME_BUDGET";
+                            matches = false;
+                            break;
+                        }
+                        if (repeated.status != LaboratoryEngine.Status.PASS) {
+                            result = LaboratorySuiteStore.Status.FAIL;
+                            reason = "STRESS_RUN_FAILED";
+                            matches = false;
+                            break;
+                        }
+                        if (!sameOutputs(first, repeated)) {
+                            result = LaboratorySuiteStore.Status.FAIL;
+                            reason = "STRESS_OUTPUT_MISMATCH";
+                            matches = false;
+                            break;
+                        }
+                    }
+                    if (result == LaboratorySuiteStore.Status.CANCELLED
+                            || result == LaboratorySuiteStore.Status.TIMEOUT) {
+                        break;
+                    }
                 } else if (plan.mode == Mode.REGRESSION) {
                     matches = sameOutputs(first, baselines.get(i));
                     if (!matches) reason = "REGRESSION_DIFFERENCE";
