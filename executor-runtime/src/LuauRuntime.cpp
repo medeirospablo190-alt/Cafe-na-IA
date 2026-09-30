@@ -24,6 +24,7 @@ namespace fs = std::filesystem;
 
 constexpr std::size_t kMaxRuntimeFileBytes = 1024 * 1024;
 constexpr std::size_t kMaxRuntimeFileNameBytes = 120;
+constexpr std::size_t kMaxExecutionInputBytes = 16 * 1024;
 constexpr int kMaxRuntimeFilesListed = 128;
 
 struct VmExecutionContext {
@@ -353,6 +354,11 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     const auto started = Clock::now();
 
     const bool filesEnabled = request.context.capabilities.has(RuntimeCapability::Files);
+    if (request.context.inputText.size() > kMaxExecutionInputBytes)
+    {
+        result.error = "tool input exceeds runtime limit";
+        return result;
+    }
     if (filesEnabled && request.context.hostAccess.filesRoot.empty())
     {
         result.error = "FILES capability requires a filesystem sandbox root";
@@ -382,6 +388,12 @@ RuntimeResult LuauRuntime::execute(const ExecutionRequest& request)
     lua_setglobal(thread, "print");
     lua_pushcfunction(thread, capturePrint, "warn");
     lua_setglobal(thread, "warn");
+
+    // tool_input is data only. Supplying it never enables filesystem or any
+    // other host capability; each execution receives its own sandbox thread.
+    lua_pushlstring(thread, request.context.inputText.data(),
+        request.context.inputText.size());
+    lua_setglobal(thread, "tool_input");
 
     if (!ctx.filesRoot.empty())
         exposeFilesystemApi(thread);
