@@ -41,6 +41,14 @@ public final class LaboratoryToolWorkshop {
             Context context, String projectId, String toolId, String toolVersion,
             String source, String expectedReturn, long seed, int timeoutMs,
             Completion completion) throws IOException {
+        return testNewVersion(context, projectId, toolId, toolVersion,
+            source, "", expectedReturn, seed, timeoutMs, completion);
+    }
+
+    public static LaboratorySandboxClient.Session testNewVersion(
+            Context context, String projectId, String toolId, String toolVersion,
+            String source, String toolInput, String expectedReturn,
+            long seed, int timeoutMs, Completion completion) throws IOException {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(completion, "completion");
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -54,7 +62,7 @@ public final class LaboratoryToolWorkshop {
             new LaboratoryReportStore(app.getFilesDir(), projectId);
 
         return LaboratoryCandidateRunner.runInternal(app, projectId,
-            source, expectedReturn, seed, timeoutMs,
+            source, toolInput, expectedReturn, seed, timeoutMs,
             (execution, passed, recordingError) ->
                 RECORD_IO.execute(() -> {
                     IOException failure = recordingError;
