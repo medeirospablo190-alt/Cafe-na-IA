@@ -77,6 +77,17 @@ public final class LaboratorySuiteInstrumentedTest {
         assertEquals(4, replay.reportIds.size());
         assertFalse(replay.reportIds.get(0).equals(replay.reportIds.get(1)));
 
+        LaboratorySuiteStore.Summary stress = LaboratorySuiteRunner.runInternal(
+            app.getFilesDir(), scope, new LaboratorySuiteRunner.Plan(
+                LaboratorySuiteRunner.Mode.STRESS, Collections.singletonList(clean),
+                Collections.emptyList()), new LaboratoryEngine.Cancellation());
+        assertEquals(LaboratorySuiteStore.Status.PASS, stress.status);
+        assertEquals(1, stress.passed);
+        assertEquals(0, stress.failed);
+        assertEquals(LaboratorySuiteRunner.STRESS_ITERATIONS, stress.reportIds.size());
+        assertEquals(LaboratorySuiteRunner.STRESS_ITERATIONS,
+            new java.util.HashSet<>(stress.reportIds).size());
+
         LaboratoryReportStore reports =
             new LaboratoryReportStore(app.getFilesDir(), scope);
         LaboratoryEngine.Report baseline = LaboratoryRunner.runApprovedBuiltIn(
@@ -113,7 +124,7 @@ public final class LaboratorySuiteInstrumentedTest {
         assertEquals("PASS", reports.list().stream()
             .filter(r -> r.runId.equals(difference.reportIds.get(0)))
             .findFirst().get().status);
-        assertEquals(4, store.list().size());
+        assertEquals(5, store.list().size());
         assertTrue(new LaboratorySuiteStore(app.getFilesDir(),
             project("unrelated")).list().isEmpty());
     }
