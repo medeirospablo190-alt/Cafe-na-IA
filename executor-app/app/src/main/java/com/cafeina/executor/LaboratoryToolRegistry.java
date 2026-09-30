@@ -288,6 +288,7 @@ public final class LaboratoryToolRegistry {
             throw new IOException("stable lifecycle transition requires test evidence");
         }
         List<String> result = new ArrayList<>();
+        List<String> coveredRequiredTests = new ArrayList<>();
         LaboratoryReportStore reports =
             new LaboratoryReportStore(appFilesDirectory, projectId);
         for (String runId : runIds) {
@@ -308,7 +309,11 @@ public final class LaboratoryToolRegistry {
                             && descriptor.artifactSha256.equals(
                                 check.optString("inputSha256"))) {
                         artifactCovered = true;
-                        break;
+                        String checkName = check.optString("name");
+                        if (descriptor.requiredTests.contains(checkName)
+                                && !coveredRequiredTests.contains(checkName)) {
+                            coveredRequiredTests.add(checkName);
+                        }
                     }
                 }
                 if (!artifactCovered) {
@@ -318,6 +323,9 @@ public final class LaboratoryToolRegistry {
                 throw new IOException("invalid evidence report", error);
             }
             result.add(runId);
+        }
+        if (!coveredRequiredTests.containsAll(descriptor.requiredTests)) {
+            throw new IOException("required tool tests are missing from evidence");
         }
         return Collections.unmodifiableList(result);
     }
