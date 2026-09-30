@@ -262,3 +262,23 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam preservação literal do objetivo, hash, Activity privada, contrato de uso único, criação da sessão, execução pelo `AiTaskHandle`, impossibilidade de replay, falha após revogação de permissão, rejeição de objetivo adulterado e ausência do objetivo bruto no manifesto da sessão.
 
 **Fronteira preparada:** quando o orquestrador principal for conectado, ele não deverá criar sessões a partir de `Policy` livre. O caminho previsto passa por contrato Goal Lock → claim único → sessão → `AiTaskHandle`.
+
+
+## Décima oitava entrega — IA de teste determinística do laboratório
+
+- `LaboratoryAiTestAgent` é a primeira IA de teste do laboratório, mas propositalmente **não é um LLM**. Ela funciona como um agente determinístico para validar ferramentas pelo mesmo caminho que a futura IA principal usará.
+- O fluxo obrigatório é `Goal Lock → claim único → AiTaskHandle → ferramenta STABLE autorizada → worker isolado → auditoria da sessão → relatório da IA de teste`.
+- Cada execução recebe um `Plan` imutável com até 16 passos. Cada passo define nome, `toolId`, `tool_input` e retorno esperado. Nomes precisam ser únicos e o plano pode usar `stopOnFailure`.
+- O plano é validado **antes de consumir o Goal Lock**: número de passos não pode ultrapassar o orçamento de chamadas, toda ferramenta precisa estar na allowlist do contrato e o total UTF-8 das entradas precisa caber no orçamento de bytes.
+- A execução usa exclusivamente o `AiTaskHandle`. O agente de teste não recebe acesso a aprovação humana, promoção/rollback, permissões, snapshots, fonte executável, `HostHandle` ou controles do painel.
+- Cada passo compara deterministicamente o primeiro retorno esperado. Evidências persistidas contêm somente hashes SHA-256 da entrada, retorno esperado, retorno obtido e saída, além de versão da ferramenta, runId e duração.
+- `tool_input`, stdout, retorno, erro bruto da ferramenta e texto do Goal Lock não são persistidos no relatório da IA de teste.
+- `LaboratoryAiTestAgentReportStore` é create-only, possui limites próprios e revalida rigorosamente cada evidência ao ler o relatório: contadores, IDs, hashes, nomes, motivos, versões e duração.
+- Falha de admissão gera `ADMISSION_FAILED` antes de qualquer passo. O contrato continua de uso único, conforme o Goal Lock, e o relatório registra apenas um código de motivo limitado, como `SecurityException`.
+- Timeout interno aguardando callback cancela o worker/sessão por segurança. Pausa ou cancelamento do host também interrompem o plano sem transformar a sessão em sucesso.
+- Foi adicionado `HostHandle.complete()`: uma tarefa concluída normalmente pode terminar como `FINISHED` com evento auditado `HOST_COMPLETED`, sem reutilizar `CANCELLED` como falso sucesso.
+- `FINALIZAR` também foi adicionado ao painel host-only de sessões vivas. Esse método continua ausente do `AiHandle` e do `AiTaskHandle`.
+- `LaboratoryAiTestAgentReportsActivity` é privada e somente leitura. Exibe status, Goal SHA-256, contrato, sessão e evidências por hash. `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `RELATÓRIOS IA DE TESTE`.
+- Testes Android cobrem: PASS determinístico com dois passos, mismatch com `stopOnFailure`, plano inválido sem consumir o Goal Lock, falha de admissão após revogar permissão, privacidade dos dados brutos, Activity privada, encerramento normal `HOST_COMPLETED` e ausência de controles host na superfície entregue à IA.
+
+**Limite atual:** a IA de teste ainda não inventa planos nem decide quais experimentos executar. Isso é intencional nesta etapa: primeiro ela prova que o caminho de execução, isolamento, Goal Lock, orçamento, auditoria e relatório são confiáveis. Planejamento inteligente pode ser conectado depois sobre essa base sem ganhar acesso aos controles protegidos do host.
