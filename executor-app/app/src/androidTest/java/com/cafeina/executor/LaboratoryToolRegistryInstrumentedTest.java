@@ -176,9 +176,25 @@ public final class LaboratoryToolRegistryInstrumentedTest {
 
         LaboratoryRegressionStore regressionStore =
             new LaboratoryRegressionStore(app.getFilesDir(), project);
-        LaboratoryRegressionStore.Record comparison = regressionStore.compareAndSave(
+        LaboratoryRegressionStore.Record weakComparison = regressionStore.compareAndSave(
             e1.runId, e2.runId,
             new LaboratoryRegressionEngine.Policy(1000, 60_000, true));
+        assertEquals("PASS", weakComparison.verdict);
+        try {
+            registry.activateStable(v2.toolId, v2.version,
+                Collections.singletonList(e2.runId),
+                Collections.singletonList(weakComparison.comparisonId),
+                "user-v2", approve);
+            throw new AssertionError("permissive regression policy must not promote stable");
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("too permissive"));
+        }
+
+        LaboratoryRegressionStore.Record comparison = regressionStore.compareAndSave(
+            e1.runId, e2.runId,
+            new LaboratoryRegressionEngine.Policy(
+                LaboratoryToolRegistry.STABLE_MAX_SLOWDOWN_PERCENT,
+                LaboratoryToolRegistry.STABLE_MAX_GRACE_MS, true));
         assertEquals("PASS", comparison.verdict);
         assertEquals(v1.artifactSha256, comparison.baselineInputSha256);
         assertEquals(v2.artifactSha256, comparison.candidateInputSha256);
