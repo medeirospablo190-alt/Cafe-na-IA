@@ -3,6 +3,7 @@ package com.cafeina.executor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import android.content.ComponentName;
@@ -52,6 +53,19 @@ public final class LaboratoryAiSessionRecoveryInstrumentedTest {
             "REQUESTED",
             2,
             20);
+
+        assertThrows(java.io.IOException.class, () ->
+            store.append(
+                sessionId,
+                LaboratoryAiSessionStore.INVOKE_RESULT,
+                "ACTIVE",
+                "ghost-tool",
+                LaboratoryEngine.fingerprint("private-orphan-input").substring(7, 71),
+                20,
+                "",
+                "INVALID_REFUND",
+                1,
+                10));
 
         assertFalse(LaboratoryAiSessionController.isLiveSession(sessionId));
 
