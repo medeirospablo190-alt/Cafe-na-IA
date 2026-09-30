@@ -32,11 +32,17 @@ public final class LaboratorySuitePlanTest {
         LaboratorySuiteRunner.Plan replay = new LaboratorySuiteRunner.Plan(
             LaboratorySuiteRunner.Mode.REPLAY, Arrays.asList(first, request("return 7", 1000)),
             Collections.emptyList());
+        LaboratorySuiteRunner.Plan stress = new LaboratorySuiteRunner.Plan(
+            LaboratorySuiteRunner.Mode.STRESS, Arrays.asList(first, request("return 7", 1000)),
+            Collections.emptyList());
         assertEquals(2, batch.plannedRuns);
         assertEquals(4, replay.plannedRuns);
+        assertEquals(6, stress.plannedRuns);
         assertEquals(64, batch.planSha256.length());
         assertEquals(batch.planSha256, same.planSha256);
         assertNotEquals(batch.planSha256, replay.planSha256);
+        assertNotEquals(batch.planSha256, stress.planSha256);
+        assertNotEquals(replay.planSha256, stress.planSha256);
         assertNotEquals(batch.planSha256, new LaboratorySuiteRunner.Plan(
             LaboratorySuiteRunner.Mode.BATCH,
             Arrays.asList(first, request("return 8", 1000)),
@@ -48,6 +54,9 @@ public final class LaboratorySuitePlanTest {
         LaboratoryEngine.Request request = request("abc", 10000);
         assertThrows(IllegalArgumentException.class, () -> new LaboratorySuiteRunner.Plan(
             LaboratorySuiteRunner.Mode.REPLAY, Arrays.asList(request, request),
+            Collections.emptyList()));
+        assertThrows(IllegalArgumentException.class, () -> new LaboratorySuiteRunner.Plan(
+            LaboratorySuiteRunner.Mode.STRESS, Collections.singletonList(request),
             Collections.emptyList()));
         assertThrows(IllegalArgumentException.class, () -> new LaboratorySuiteRunner.Plan(
             LaboratorySuiteRunner.Mode.BATCH, Collections.emptyList(),
