@@ -127,6 +127,68 @@ final class LaboratoryAiLiveSessionRegistry {
         unregister(sessionId);
     }
 
+    static BulkResult pauseAll(String projectId) {
+        return bulk(projectId, true, false);
+    }
+
+    static BulkResult resumeAll(String projectId) {
+        return bulk(projectId, false, false);
+    }
+
+    static BulkResult cancelAll(String projectId) {
+        return bulk(projectId, false, true);
+    }
+
+    static final class BulkResult {
+        final int attempted;
+        final int changed;
+        final List<String> failures;
+
+        BulkResult(int attempted, int changed, List<String> failures) {
+            this.attempted = attempted;
+            this.changed = changed;
+            this.failures = Collections.unmodifiableList(
+                new ArrayList<>(failures));
+        }
+
+        boolean complete() {
+            return failures.isEmpty();
+        }
+    }
+
+    private static BulkResult bulk(String projectId,
+            boolean pause, boolean cancel) {
+        List<Info> current = list(projectId);
+        int attempted = 0;
+        int changed = 0;
+        List<String> failures = new ArrayList<>();
+        for (Info info : current) {
+            LaboratoryAiSessionController.State state = info.snapshot.state;
+            boolean eligible = cancel
+                || (pause && state == LaboratoryAiSessionController.State.ACTIVE)
+                || (!pause && !cancel
+                    && state == LaboratoryAiSessionController.State.PAUSED);
+            if (!eligible) continue;
+            attempted++;
+            try {
+                if (cancel) {
+                    cancel(projectId, info.sessionId);
+                } else if (pause) {
+                    pause(projectId, info.sessionId);
+                } else {
+                    resume(projectId, info.sessionId);
+                }
+                changed++;
+            } catch (Exception error) {
+                failures.add(info.sessionId + ": "
+                    + (error.getMessage() == null
+                        ? error.getClass().getSimpleName()
+                        : error.getMessage()));
+            }
+        }
+        return new BulkResult(attempted, changed, failures);
+    }
+
     private static Entry require(String projectId, String sessionId)
             throws IOException {
         if (projectId == null || sessionId == null) {
