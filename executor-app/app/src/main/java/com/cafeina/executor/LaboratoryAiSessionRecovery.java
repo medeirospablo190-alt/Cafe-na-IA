@@ -40,10 +40,12 @@ public final class LaboratoryAiSessionRecovery {
             this.inputBytesUsed = summary.inputBytesUsed;
             this.inputBytesRemaining =
                 Math.max(0, summary.maxTotalInputBytes - summary.inputBytesUsed);
-            long elapsedAtLastEvent = Math.max(
-                0L, summary.lastEventAtEpochMs - summary.startedAtEpochMs);
+            long referenceTime = Math.max(
+                summary.lastEventAtEpochMs, System.currentTimeMillis());
+            long elapsedWallClock = Math.max(
+                0L, referenceTime - summary.startedAtEpochMs);
             this.remainingSessionMs =
-                Math.max(0L, summary.maxSessionMs - elapsedAtLastEvent);
+                Math.max(0L, summary.maxSessionMs - elapsedWallClock);
             this.startedAtEpochMs = summary.startedAtEpochMs;
             this.lastEventAtEpochMs = summary.lastEventAtEpochMs;
         }
