@@ -37,7 +37,9 @@ public final class LaboratoryStableUseStore {
         public final int activationSequence;
         public final String snapshotId;
         public final String artifactSha256;
+        public final String executedSourceSha256;
         public final String inputSha256;
+        public final String executedInputSha256;
         public final String outputSha256;
         public final String errorSha256;
         public final String firstReturnSha256;
@@ -50,7 +52,8 @@ public final class LaboratoryStableUseStore {
 
         private Use(String runId, String toolId, String toolVersion,
                 String activationEventId, int activationSequence,
-                String snapshotId, String artifactSha256, String inputSha256,
+                String snapshotId, String artifactSha256, String executedSourceSha256,
+                String inputSha256, String executedInputSha256,
                 String outputSha256, String errorSha256, String firstReturnSha256,
                 String workerStatus, int workerUid, long startedAtEpochMs,
                 long durationMs, boolean selectionVerified, boolean usable) {
@@ -61,7 +64,9 @@ public final class LaboratoryStableUseStore {
             this.activationSequence = activationSequence;
             this.snapshotId = snapshotId;
             this.artifactSha256 = artifactSha256;
+            this.executedSourceSha256 = executedSourceSha256;
             this.inputSha256 = inputSha256;
+            this.executedInputSha256 = executedInputSha256;
             this.outputSha256 = outputSha256;
             this.errorSha256 = errorSha256;
             this.firstReturnSha256 = firstReturnSha256;
@@ -107,8 +112,7 @@ public final class LaboratoryStableUseStore {
                 || !LaboratorySnapshotStore.validId(snapshotId)
                 || !validSha(artifactSha256) || !validSha(inputSha256)
                 || result == null || !validUuid(result.runId)
-                || !artifactSha256.equals(result.sourceSha256)
-                || !inputSha256.equals(result.inputSha256)
+                || !validSha(result.sourceSha256) || !validSha(result.inputSha256)
                 || result.durationMs < 0) {
             throw new IOException("invalid stable-use audit evidence");
         }
@@ -123,7 +127,9 @@ public final class LaboratoryStableUseStore {
             json.put("activationSequence", activationSequence);
             json.put("snapshotId", snapshotId);
             json.put("artifactSha256", artifactSha256);
+            json.put("executedSourceSha256", result.sourceSha256);
             json.put("inputSha256", inputSha256);
+            json.put("executedInputSha256", result.inputSha256);
             json.put("outputSha256", sha256(result.output));
             json.put("errorSha256", sha256(result.error));
             json.put("firstReturnSha256", sha256(result.firstReturn));
@@ -250,7 +256,9 @@ public final class LaboratoryStableUseStore {
             json.getInt("activationSequence"),
             json.getString("snapshotId"),
             json.getString("artifactSha256"),
+            json.getString("executedSourceSha256"),
             json.getString("inputSha256"),
+            json.getString("executedInputSha256"),
             json.getString("outputSha256"),
             json.getString("errorSha256"),
             json.getString("firstReturnSha256"),
@@ -265,7 +273,10 @@ public final class LaboratoryStableUseStore {
                 || !validUuid(value.activationEventId)
                 || value.activationSequence < 1
                 || !LaboratorySnapshotStore.validId(value.snapshotId)
-                || !validSha(value.artifactSha256) || !validSha(value.inputSha256)
+                || !validSha(value.artifactSha256)
+                || !validSha(value.executedSourceSha256)
+                || !validSha(value.inputSha256)
+                || !validSha(value.executedInputSha256)
                 || !validSha(value.outputSha256) || !validSha(value.errorSha256)
                 || !validSha(value.firstReturnSha256)
                 || value.startedAtEpochMs <= 0 || value.durationMs < 0) {
