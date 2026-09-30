@@ -111,6 +111,14 @@ public final class LaboratoryReportsActivity extends Activity {
         testAgentReportParams.setMargins(0, dp(8), 0, 0);
         root.addView(testAgentReportsButton, testAgentReportParams);
 
+        Button testScenariosButton = button("CENÁRIOS IA DE TESTE");
+        testScenariosButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiTestScenariosActivity.class)));
+        LinearLayout.LayoutParams testScenarioParams = matchWrap();
+        testScenarioParams.setMargins(0, dp(8), 0, 0);
+        root.addView(testScenariosButton, testScenarioParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
