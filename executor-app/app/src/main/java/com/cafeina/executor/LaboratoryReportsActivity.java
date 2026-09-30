@@ -35,6 +35,7 @@ public final class LaboratoryReportsActivity extends Activity {
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LaboratoryReportStore reports;
+    private LaboratoryStableUseStore stableUses;
     private TextView feedback;
     private LinearLayout entries;
 
@@ -77,6 +78,7 @@ public final class LaboratoryReportsActivity extends Activity {
 
         try {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
+            stableUses = new LaboratoryStableUseStore(getFilesDir(), projectId);
             refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir os relatórios: " + error.getMessage());
@@ -87,10 +89,21 @@ public final class LaboratoryReportsActivity extends Activity {
         io.execute(() -> {
             try {
                 List<LaboratoryReportStore.Entry> items = reports.list();
+                List<LaboratoryStableUseStore.Use> uses;
+                String useProblem = null;
+                try {
+                    uses = stableUses.list();
+                } catch (Exception error) {
+                    uses = java.util.Collections.emptyList();
+                    useProblem = "Auditoria STABLE indisponível: " + error.getMessage();
+                }
+                final List<LaboratoryStableUseStore.Use> stableUseItems = uses;
+                final String stableUseWarning = useProblem;
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     entries.removeAllViews();
-                    feedback.setText(items.size() + " relatório(s) • somente leitura");
+                    feedback.setText(items.size() + " relatório(s) • "
+                        + stableUseItems.size() + " uso(s) STABLE • somente leitura");
                     if (items.isEmpty()) {
                         entries.addView(text(
                             "Ainda não há relatórios. Eles aparecerão quando as ferramentas "
@@ -112,6 +125,37 @@ public final class LaboratoryReportsActivity extends Activity {
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(reportButton, params);
+                    }
+
+                    TextView stableTitle = text("AUDITORIA DE USO STABLE", 17, FG, true);
+                    stableTitle.setPadding(0, dp(18), 0, dp(4));
+                    entries.addView(stableTitle, matchWrap());
+                    entries.addView(text(
+                        "Execuções do gate verificado. Entrada, saída e erros são "
+                            + "preservados somente por hash.",
+                        13, MUTED, false), matchWrap());
+                    if (stableUseWarning != null) {
+                        entries.addView(text(stableUseWarning, 14, FG, false), matchWrap());
+                    } else if (stableUseItems.isEmpty()) {
+                        entries.addView(text(
+                            "Nenhuma ferramenta STABLE foi executada pelo gate.",
+                            14, MUTED, false), matchWrap());
+                    }
+                    for (LaboratoryStableUseStore.Use use : stableUseItems) {
+                        Button useButton = button(
+                            use.toolId + " @ " + use.toolVersion + " • "
+                                + (use.usable ? "UTILIZÁVEL" : "BLOQUEADA/FALHOU")
+                                + "\n" + time(use.startedAtEpochMs)
+                                + "  |  " + use.durationMs + " ms");
+                        useButton.setAllCaps(false);
+                        useButton.setTextSize(14);
+                        useButton.setGravity(android.view.Gravity.START
+                            | android.view.Gravity.CENTER_VERTICAL);
+                        useButton.setBackgroundTintList(ColorStateList.valueOf(PANEL));
+                        useButton.setOnClickListener(v -> showStableUse(use));
+                        LinearLayout.LayoutParams params = matchWrap();
+                        params.setMargins(0, dp(8), 0, 0);
+                        entries.addView(useButton, params);
                     }
                 });
             } catch (Exception error) {
@@ -184,6 +228,42 @@ public final class LaboratoryReportsActivity extends Activity {
             .show();
     }
 
+    private void showStableUse(LaboratoryStableUseStore.Use use) {
+        String details = "Ferramenta: " + use.toolId
+            + "\nVersão: " + use.toolVersion
+            + "\nStatus do worker: " + use.workerStatus
+            + "\nResultado utilizável: " + (use.usable ? "SIM" : "NÃO")
+            + "\nSeleção STABLE permaneceu válida: "
+            + (use.selectionVerified ? "SIM" : "NÃO")
+            + "\nInício: " + time(use.startedAtEpochMs)
+            + "\nDuração: " + use.durationMs + " ms"
+            + "\nWorker UID: " + use.workerUid
+            + "\nEvento STABLE: " + use.activationEventId
+            + " #" + use.activationSequence
+            + "\nSnapshot: " + use.snapshotId
+            + "\nArtefato esperado SHA-256: " + use.artifactSha256
+            + "\nFonte executada SHA-256: " + use.executedSourceSha256
+            + "\nEntrada esperada SHA-256: " + use.inputSha256
+            + "\nEntrada executada SHA-256: " + use.executedInputSha256
+            + "\nRetorno SHA-256: " + use.firstReturnSha256
+            + "\nSaída SHA-256: " + use.outputSha256
+            + "\nErro SHA-256: " + use.errorSha256
+            + "\nExecução: " + use.runId
+            + "\n\nO texto da fonte, entrada, saída, retorno e erro não é "
+            + "persistido neste recibo.";
+        TextView view = text(details, 13, FG, false);
+        view.setTypeface(Typeface.MONOSPACE);
+        view.setTextIsSelectable(true);
+        view.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(view);
+        new AlertDialog.Builder(this)
+            .setTitle("Uso STABLE • somente leitura")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
     private static String time(long epochMs) {
         if (epochMs <= 0) return "Data indisponível";
         return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT,
@@ -217,6 +297,12 @@ public final class LaboratoryReportsActivity extends Activity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (reports != null && stableUses != null) refresh();
     }
 
     @Override
