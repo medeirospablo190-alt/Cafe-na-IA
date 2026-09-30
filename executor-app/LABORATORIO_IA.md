@@ -221,6 +221,7 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - O tempo restante é calculado contra o relógio total da sessão original; fechar o aplicativo não congela o orçamento temporal.
 - `LaboratoryAiSessionRecoveryActivity` é privada e mostra estado, ferramentas, orçamento restante e as ações de recuperação. `SISTEMA > RELATÓRIOS DO LABORATÓRIO` também ganhou acesso direto a essa tela.
 - `MainActivity` faz a varredura em I/O no startup. Se houver sessão interrompida ou retomada pendente, mostra um aviso; o editor continua abrindo normalmente e nenhuma execução é iniciada.
+- Varredura, preparação de retomada e encerramento usam um lock único no processo, evitando decisões duplicadas quando o aviso de startup e a tela de recuperação são usados ao mesmo tempo.
 - Testes Android verificam Activity privada, marcação de sessão órfã, preservação do orçamento restante, `RECOVERY_PENDING`, encerramento explícito, histórico dos eventos e proteção contra falso positivo em uma sessão ACTIVE/PAUSED que ainda está viva no processo.
 
 **Limite atual:** `RECOVERY_PENDING` registra a decisão de continuar, mas a nova sessão ainda não é criada porque o orquestrador principal da IA não está conectado. Quando ele existir, poderá consumir essa policy restante para criar uma sessão nova, com novo ID e nova auditoria, sem reaproveitar a sessão interrompida.
