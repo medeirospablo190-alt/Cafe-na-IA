@@ -169,7 +169,14 @@ public final class LaboratoryAiSessionController {
         }
 
         Session session = new Session(app, projectId, policy);
-        return new Handles(new AiHandle(session), new HostHandle(session));
+        Handles handles = new Handles(new AiHandle(session), new HostHandle(session));
+        try {
+            LaboratoryAiLiveSessionRegistry.register(projectId, policy, handles.host);
+        } catch (RuntimeException registrationFailure) {
+            session.cancelFromHost();
+            throw registrationFailure;
+        }
+        return handles;
     }
 
     private static final class Session {
