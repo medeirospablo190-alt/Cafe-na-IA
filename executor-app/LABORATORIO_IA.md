@@ -86,3 +86,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Teste Android confirma que a Activity de aprovação não é exportada, que somente uma CANDIDATE aceita recibo, que duplicidade/credencial expirada falham e que o estado do registro continua CANDIDATE após a aprovação.
 
 **Limitação real:** a confirmação de credencial é uma barreira de interface do Android e o recibo é uma política local do aplicativo; não é uma prova criptográfica resistente a root ou a código arbitrário com o mesmo UID. Antes da IA principal, o controlador de permissões deve manter o modelo e ferramentas isoladas sem uma API que consiga chamar o gravador de aprovação. A futura ativação STABLE deverá consumir apenas recibos válidos e ainda exigir uma etapa separada, reversível e auditável.
+
+
+## Sétima entrega — lotes, reprodução e regressão determinística
+
+- `LaboratorySuiteRunner` executa **somente** as ferramentas embutidas allowlisted `source-fingerprint` e `world-contact`; nenhum código Luau gerado é executado no processo principal. Uma suíte tem até quatro solicitações, cada qual com casos, seed e tempo limitado. O orçamento combinado é no máximo 24 segundos; Replay reserva duas execuções por solicitação.
+- `BATCH` verifica os resultados esperados de várias solicitações e preserva cada relatório. `REPLAY` repete as mesmas entradas/seed e compara as saídas efetivas, hashes e ambiente; o segundo resultado não é considerado aprovado apenas por executar sem erro. `REGRESSION` exige relatórios PASS anteriores do **mesmo projeto**, com ferramenta/versão/seed correspondentes, e compara os hashes dos insumos, ambiente, nomes e saídas. Uma execução nova pode passar seu próprio teste e ainda falhar na comparação de regressão.
+- `LaboratorySuiteStore` registra primeiro um arquivo `START` e depois um arquivo terminal `END`, ambos de criação única, com digest do registro. O histórico de lotes inclui hashes das referências aos relatórios individuais; não duplica o conteúdo de scripts. Se o aplicativo encerrar entre o início e a conclusão, o registro permanece `RUNNING_OR_INTERRUPTED`, **nunca PASS**.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` mostra lotes, reprodução, regressão, motivos de falha, relatórios individuais e execuções interrompidas, apenas para consulta. O laboratório não apaga histórico ao atingir a quota de 64 suítes por projeto.
+- Testes JVM validam tipos de suíte, digest do plano e limites. Testes Android cobrem BATCH, REPLAY, comparação com baseline, diferença de regressão, cancelamento, início sem conclusão e adulteração do registro final.
+
+**Integração desta pilha:** esta etapa foi portada sobre a revisão com aprovação humana via credencial do Android. As suítes continuam independentes dessa aprovação e não ativam ferramentas. `CANDIDATE`, recibo de aprovação e execução de BATCH/REPLAY/REGRESSION permanecem conceitos separados.
+
+**Limites:** a comparação de regressão não é um teste completo de física/renderização do Godot e não prova equivalência semântica geral de ferramentas Luau. O executor de suítes não testa candidatos arbitrários: eles continuam no trabalhador Luau isolado. A suíte registra um histórico recuperável, mas não aplica restauração automática ao projeto do usuário. Os hashes são verificação de integridade casual, não autenticação contra código com o mesmo UID/root.
