@@ -121,6 +121,19 @@ final class LaboratoryAiLiveSessionRegistry {
         return snapshot;
     }
 
+    static LaboratoryAiSessionController.Snapshot complete(
+            String projectId, String sessionId) throws IOException {
+        Entry entry = require(projectId, sessionId);
+        entry.host.complete();
+        LaboratoryAiSessionController.Snapshot snapshot = entry.host.snapshot();
+        if (snapshot.state != LaboratoryAiSessionController.State.FINISHED) {
+            throw new IOException(
+                "AI session could not enter FINISHED state");
+        }
+        unregister(sessionId);
+        return snapshot;
+    }
+
     static void cancel(String projectId, String sessionId) throws IOException {
         Entry entry = require(projectId, sessionId);
         entry.host.cancel();
