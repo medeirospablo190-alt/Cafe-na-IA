@@ -42,7 +42,7 @@ public final class LaboratoryToolRegistryInstrumentedTest {
             new LaboratoryToolRegistry.Descriptor(
                 "mesh-checker", "0.1.0", artifactSha, "AI_TOOL_WORKSHOP",
                 Arrays.asList("geometry", "diagnostics"),
-                Arrays.asList("deterministic", "regression"),
+                Collections.singletonList("artifact"),
                 "cafeina-lab-api-1", 2500, 64 * 1024);
 
         registry.registerExperimental(descriptor);
