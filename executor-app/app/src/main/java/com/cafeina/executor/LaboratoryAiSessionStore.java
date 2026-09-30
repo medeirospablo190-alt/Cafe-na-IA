@@ -190,6 +190,15 @@ public final class LaboratoryAiSessionStore {
         if (existing.size() >= MAX_EVENTS_PER_SESSION) {
             throw new IOException("AI session event limit reached");
         }
+        Summary current = readSummary(directory, sessionId);
+        if (invocationsUsed < current.invocationsUsed
+                || inputBytesUsed < current.inputBytesUsed) {
+            throw new IOException("AI session audit cannot refund consumed budget");
+        }
+        if (invocationsUsed > current.maxInvocations
+                || inputBytesUsed > current.maxTotalInputBytes) {
+            throw new IOException("AI session audit exceeds manifest budget");
+        }
         int sequence = existing.size() + 1;
         long created = System.currentTimeMillis();
         try {
