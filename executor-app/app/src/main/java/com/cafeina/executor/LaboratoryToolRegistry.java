@@ -111,11 +111,13 @@ public final class LaboratoryToolRegistry {
         public final String fromVersion;
         public final String toVersion;
         public final List<String> evidenceRunIds;
+        public final List<String> regressionComparisonIds;
         public final String approvalSha256;
 
         private Event(String eventId, int sequence, long createdAtEpochMs, String action,
                 String toolId, String version, String fromVersion, String toVersion,
-                List<String> evidenceRunIds, List<String> regressionComparisonIds,\n                String approvalSha256) {
+                List<String> evidenceRunIds, List<String> regressionComparisonIds,
+                String approvalSha256) {
             this.eventId = eventId;
             this.sequence = sequence;
             this.createdAtEpochMs = createdAtEpochMs;
@@ -126,6 +128,8 @@ public final class LaboratoryToolRegistry {
             this.toVersion = toVersion;
             this.evidenceRunIds = Collections.unmodifiableList(
                 new ArrayList<>(evidenceRunIds));
+            this.regressionComparisonIds = Collections.unmodifiableList(
+                new ArrayList<>(regressionComparisonIds));
             this.approvalSha256 = approvalSha256;
         }
     }
