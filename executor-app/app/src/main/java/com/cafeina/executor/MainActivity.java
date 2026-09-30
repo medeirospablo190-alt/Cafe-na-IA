@@ -112,6 +112,37 @@ public final class MainActivity extends Activity {
                 .show();
         }
         restoreSavedTabs();
+        scanInterruptedAiSessions();
+    }
+
+
+    private void scanInterruptedAiSessions() {
+        final String projectId = workspace.id();
+        ioExecutor.submit(() -> {
+            try {
+                LaboratoryAiSessionRecovery recovery =
+                    new LaboratoryAiSessionRecovery(getFilesDir(), projectId);
+                List<LaboratoryAiSessionRecovery.Item> pending =
+                    recovery.markInterruptedOrphans();
+                if (pending.isEmpty()) return;
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    new AlertDialog.Builder(this)
+                        .setTitle("Sessão da IA interrompida")
+                        .setMessage(pending.size()
+                            + " sessão(ões) aguardam uma decisão. "
+                            + "Nada será retomado automaticamente.")
+                        .setNegativeButton("DEPOIS", null)
+                        .setPositiveButton("REVISAR", (dialog, which) ->
+                            startActivity(new Intent(
+                                this, LaboratoryAiSessionRecoveryActivity.class)))
+                        .show();
+                });
+            } catch (Exception ignored) {
+                // Recovery problems remain visible in SISTEMA > relatórios.
+                // Startup of the editor must not be blocked by a damaged audit.
+            }
+        });
     }
 
 

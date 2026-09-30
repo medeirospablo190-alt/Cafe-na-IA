@@ -39,6 +39,9 @@ public final class LaboratoryAiSessionStore {
     public static final String RESUME = "RESUME";
     public static final String CANCEL = "CANCEL";
     public static final String FINISH = "FINISH";
+    public static final String INTERRUPT = "INTERRUPT";
+    public static final String RECOVERY_REQUEST = "RECOVERY_REQUEST";
+    public static final String RECOVERY_CLOSE = "RECOVERY_CLOSE";
 
     public static final class Event {
         public final int sequence;
@@ -186,6 +189,15 @@ public final class LaboratoryAiSessionStore {
         List<Event> existing = readEventsInternal(events);
         if (existing.size() >= MAX_EVENTS_PER_SESSION) {
             throw new IOException("AI session event limit reached");
+        }
+        Summary current = readSummary(directory, sessionId);
+        if (invocationsUsed < current.invocationsUsed
+                || inputBytesUsed < current.inputBytesUsed) {
+            throw new IOException("AI session audit cannot refund consumed budget");
+        }
+        if (invocationsUsed > current.maxInvocations
+                || inputBytesUsed > current.maxTotalInputBytes) {
+            throw new IOException("AI session audit exceeds manifest budget");
         }
         int sequence = existing.size() + 1;
         long created = System.currentTimeMillis();
@@ -505,11 +517,14 @@ public final class LaboratoryAiSessionStore {
         return START.equals(value) || INVOKE_REQUEST.equals(value)
             || INVOKE_RESULT.equals(value) || PAUSE.equals(value)
             || RESUME.equals(value) || CANCEL.equals(value)
-            || FINISH.equals(value);
+            || FINISH.equals(value) || INTERRUPT.equals(value)
+            || RECOVERY_REQUEST.equals(value) || RECOVERY_CLOSE.equals(value);
     }
 
     private static boolean validState(String value) {
         return "ACTIVE".equals(value) || "PAUSED".equals(value)
+            || "INTERRUPTED".equals(value)
+            || "RECOVERY_PENDING".equals(value)
             || "CANCELLED".equals(value) || "FINISHED".equals(value);
     }
 

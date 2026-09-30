@@ -208,3 +208,20 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android validam histórico START/PAUSE/RESUME/INVOKE/FINISH/CANCEL, recuperação do resumo após a execução e privacidade: valores privados usados como `tool_input` não aparecem nos arquivos de auditoria.
 
 **Limite atual:** o ledger permite diagnosticar e reconstruir o que aconteceu em uma sessão encerrada, mas ainda não tenta restaurar automaticamente uma sessão ACTIVE/PAUSED depois que o processo do aplicativo morre. Antes de uma IA principal autônoma, sessões interrompidas no processo anterior deverão ser classificadas como interrompidas e exigir uma decisão explícita de retomar uma nova sessão ou encerrar o trabalho.
+
+
+## Décima quinta entrega — recuperação explícita de sessões interrompidas
+
+- `LaboratoryAiSessionController` mantém um registro em memória das sessões realmente vivas no processo atual. Uma sessão `ACTIVE` ou `PAUSED` persistida só é considerada órfã quando não existe mais nesse registro.
+- O registro de sessão ganhou os eventos `INTERRUPT`, `RECOVERY_REQUEST` e `RECOVERY_CLOSE`, além dos estados `INTERRUPTED` e `RECOVERY_PENDING`. O histórico continua append-only; nenhum evento antigo é reescrito.
+- `LaboratoryAiSessionRecovery.markInterruptedOrphans()` pode rodar no startup. Sessões antigas `ACTIVE/PAUSED` sem controlador vivo recebem `INTERRUPTED` e ficam proibidas de continuar automaticamente.
+- Uma corrida no nascimento da sessão foi fechada: o ID entra no conjunto de sessões vivas antes de persistir `START`; se a criação do ledger falhar, o ID é removido novamente. Assim uma varredura concorrente não marca uma sessão recém-criada como órfã.
+- A recuperação oferece duas decisões humanas: **encerrar** a sessão antiga ou **preparar retomada em nova sessão**. Preparar retomada grava `RECOVERY_PENDING`, mas não cria worker, não chama ferramenta e não inicia IA.
+- A policy de retomada preserva somente a allowlist original e o orçamento restante: chamadas restantes, bytes de entrada restantes e tempo restante. Se qualquer um desses recursos acabar, a retomada não pode ser preparada.
+- O tempo restante é calculado contra o relógio total da sessão original; fechar o aplicativo não congela o orçamento temporal.
+- `LaboratoryAiSessionRecoveryActivity` é privada e mostra estado, ferramentas, orçamento restante e as ações de recuperação. `SISTEMA > RELATÓRIOS DO LABORATÓRIO` também ganhou acesso direto a essa tela.
+- `MainActivity` faz a varredura em I/O no startup. Se houver sessão interrompida ou retomada pendente, mostra um aviso; o editor continua abrindo normalmente e nenhuma execução é iniciada.
+- Varredura, preparação de retomada e encerramento usam um lock único no processo, evitando decisões duplicadas quando o aviso de startup e a tela de recuperação são usados ao mesmo tempo.
+- Testes Android verificam Activity privada, marcação de sessão órfã, preservação do orçamento restante, `RECOVERY_PENDING`, encerramento explícito, histórico dos eventos e proteção contra falso positivo em uma sessão ACTIVE/PAUSED que ainda está viva no processo.
+
+**Limite atual:** `RECOVERY_PENDING` registra a decisão de continuar, mas a nova sessão ainda não é criada porque o orquestrador principal da IA não está conectado. Quando ele existir, poderá consumir essa policy restante para criar uma sessão nova, com novo ID e nova auditoria, sem reaproveitar a sessão interrompida.

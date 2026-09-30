@@ -137,8 +137,14 @@ public final class LaboratoryAiSessionController {
     }
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final Set<String> LIVE_SESSION_IDS =
+        Collections.synchronizedSet(new HashSet<>());
 
     private LaboratoryAiSessionController() {}
+
+    static boolean isLiveSession(String sessionId) {
+        return sessionId != null && LIVE_SESSION_IDS.contains(sessionId);
+    }
 
     /**
      * Creates a session only if every tool in the task allowlist is currently
@@ -187,8 +193,15 @@ public final class LaboratoryAiSessionController {
             this.projectId = projectId;
             this.policy = policy;
             this.audit = new LaboratoryAiSessionStore(app.getFilesDir(), projectId);
-            this.audit.begin(id, startedAt, policy.allowedToolIds,
-                policy.maxInvocations, policy.maxTotalInputBytes, policy.maxSessionMs);
+            LIVE_SESSION_IDS.add(id);
+            try {
+                this.audit.begin(id, startedAt, policy.allowedToolIds,
+                    policy.maxInvocations, policy.maxTotalInputBytes,
+                    policy.maxSessionMs);
+            } catch (IOException creationFailure) {
+                LIVE_SESSION_IDS.remove(id);
+                throw creationFailure;
+            }
             this.expireTask = this::expire;
             MAIN.postDelayed(expireTask, policy.maxSessionMs);
         }
@@ -373,6 +386,7 @@ public final class LaboratoryAiSessionController {
         synchronized void cancelFromHost() {
             if (state == State.CANCELLED || state == State.FINISHED) return;
             state = State.CANCELLED;
+            LIVE_SESSION_IDS.remove(id);
             MAIN.removeCallbacks(expireTask);
             if (activeInvocation != null) activeInvocation.cancel();
             try {
@@ -400,6 +414,7 @@ public final class LaboratoryAiSessionController {
             if ((state == State.ACTIVE || state == State.PAUSED)
                     && elapsedLocked() >= policy.maxSessionMs) {
                 state = State.FINISHED;
+                LIVE_SESSION_IDS.remove(id);
                 MAIN.removeCallbacks(expireTask);
                 if (activeInvocation != null) activeInvocation.cancel();
                 auditTerminalLocked("TIME_EXPIRED");
@@ -413,6 +428,7 @@ public final class LaboratoryAiSessionController {
         private void finishLocked(String reason) {
             if (state == State.CANCELLED || state == State.FINISHED) return;
             state = State.FINISHED;
+            LIVE_SESSION_IDS.remove(id);
             MAIN.removeCallbacks(expireTask);
             auditTerminalLocked(reason);
         }
@@ -431,6 +447,7 @@ public final class LaboratoryAiSessionController {
         private void failAuditLocked() {
             auditBroken = true;
             if (state != State.FINISHED) state = State.CANCELLED;
+            LIVE_SESSION_IDS.remove(id);
             MAIN.removeCallbacks(expireTask);
             if (activeInvocation != null) activeInvocation.cancel();
         }

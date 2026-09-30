@@ -79,6 +79,14 @@ public final class LaboratoryReportsActivity extends Activity {
         aiPermissionParams.setMargins(0, dp(8), 0, 0);
         root.addView(aiPermissionsButton, aiPermissionParams);
 
+        Button recoveryButton = button("RECUPERAR SESSÕES DA IA");
+        recoveryButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiSessionRecoveryActivity.class)));
+        LinearLayout.LayoutParams recoveryParams = matchWrap();
+        recoveryParams.setMargins(0, dp(8), 0, 0);
+        root.addView(recoveryButton, recoveryParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
