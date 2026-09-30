@@ -234,6 +234,7 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - O registro é escopado por projeto. Uma tela ou componente de outro projeto não consegue pausar, continuar ou cancelar uma sessão que não lhe pertence.
 - `LaboratoryAiLiveSessionActivity` é privada (`exported=false`) e mostra, em atualização periódica feita fora da UI thread: estado, ferramentas permitidas, chamadas usadas/restantes, bytes usados/restantes, tempo decorrido/restante e existência de worker ativo.
 - A tela oferece `PAUSAR`, `CONTINUAR` e `CANCELAR`. As ações passam exclusivamente pelo `HostHandle`; a Activity não recebe `AiHandle` e nunca executa uma ferramenta diretamente.
+- O painel também oferece `PAUSAR TODAS`, `CONTINUAR TODAS` e `CANCELAR TODAS` para o projeto atual. Operações globais são best-effort por sessão: uma falha isolada é relatada, mas não impede o host de controlar as demais.
 - Pausar uma sessão ACTIVE cancela o worker isolado atualmente ativo e mantém a sessão em `PAUSED`. Continuar só é aceito se o controlador realmente voltar para `ACTIVE`.
 - Se uma falha de auditoria impedir a transição de estado, o painel não informa sucesso incorretamente: o registro valida o estado resultante e falha fechado.
 - Cancelar remove a sessão do painel imediatamente; sessões que terminam por orçamento/tempo são podadas automaticamente na próxima leitura do registro.
