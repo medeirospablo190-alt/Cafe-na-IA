@@ -158,3 +158,19 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam Activity não exportada, autenticação fresca, separação entre autorizar/aplicar, promoção real para STABLE, consumo único, bloqueio de recibo duplicado e invalidação se o snapshot executável for adulterado.
 
 **Limite de segurança:** a confirmação de credencial do Android é uma barreira de interface e o recibo é uma política local do aplicativo. Isto não é uma prova criptográfica contra root ou código arbitrário já executando com o mesmo UID. A IA principal continua não integrada; antes dela, o controlador de permissões deverá manter esse caminho humano fora das APIs disponíveis ao modelo.
+
+
+## Décima segunda entrega — controlador de permissões da IA (deny-by-default)
+
+- Tornar uma ferramenta `STABLE` não a libera automaticamente para a IA. O estado padrão é **BLOQUEADO**.
+- `LaboratoryAiPermissionStore` mantém um histórico append-only de `GRANT_AI_USE` e `REVOKE_AI_USE`, separado do registro de versões e das aprovações STABLE.
+- Uma liberação é presa à versão STABLE ativa, fingerprint completo do descriptor, SHA-256 do artefato e snapshot executável exato. Se houver promoção ou rollback, a permissão antiga deixa de ser válida automaticamente.
+- Conceder acesso exige novamente a credencial segura do Android. Revogar é uma ação explícita e imediata, sem exigir nova autenticação.
+- `LaboratoryAiPermissionsActivity` é privada (`exported=false`) e não executa ferramentas. Ela mostra somente STABLEs ativas elegíveis, com estado `BLOQUEADA PARA IA` ou `LIBERADA PARA IA`.
+- `LaboratoryAiToolController` é a superfície estreita planejada para o futuro orquestrador da IA. Ele expõe apenas duas operações: listar ferramentas liberadas e executar uma delas com `tool_input`.
+- O controlador não expõe APIs de registro, criação de versões, promoção, rollback, aprovação humana, alteração de permissões, snapshots ou seleção de fonte.
+- A execução passa obrigatoriamente pelo `LaboratoryStableToolExecutor`, portanto continua vinculada à STABLE ativa, snapshot verificado, worker isolado e auditoria de uso.
+- A permissão é revalidada depois da execução. Se o usuário revogar o acesso ou a seleção autorizada mudar enquanto a ferramenta roda, o resultado é descartado e não é entregue à IA.
+- Testes Android verificam padrão negado, Activity privada, autenticação fresca, liberação da STABLE exata, visibilidade controlada no catálogo da IA, execução permitida somente após grant e bloqueio novamente após revoke.
+
+**Limite atual:** isto ainda não é a IA principal nem um scheduler de autonomia. É somente a fronteira de capacidades que o futuro orquestrador poderá receber. Controles de sessão, orçamento de chamadas, pausa/cancelamento global e políticas por tarefa ainda serão adicionados antes de conectar um modelo.
