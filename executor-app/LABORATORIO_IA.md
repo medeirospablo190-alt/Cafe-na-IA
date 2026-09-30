@@ -297,3 +297,26 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam execução de cenário pelo agente, privacidade do relatório, fixture presente somente no cofre privado do cenário, adulteração detectada antes do claim, orçamento incompatível sem consumir Goal Lock e Activity não exportada.
 
 **Uso futuro:** o Tool Workshop poderá criar/versionar uma ferramenta e gerar cenários imutáveis para a IA de teste. O cenário não contém código executável da ferramenta; ele referencia apenas uma ferramenta STABLE autorizada e fornece dados/expectativas de teste.
+
+
+## Diagnóstico automático das IAs
+
+O controlador comum de sessões agora dispara um diagnóstico determinístico para
+toda IA que use o caminho oficial do laboratório. A análise ocorre após
+resultados de ferramentas e nos estados terminais da sessão, portanto a mesma
+camada serve para a IA de teste atual e para futuras IAs da equipe.
+
+O diagnóstico é deliberadamente somente leitura:
+
+- não recebe `HostHandle` nem `AiHandle`;
+- não pausa, retoma, cancela ou executa ferramentas;
+- lê apenas a auditoria limitada da sessão;
+- persiste contadores, estados, códigos de motivo e sinais de melhoria;
+- não persiste prompt, objetivo, `tool_input`, retorno, stdout ou erro bruto;
+- nunca aplica correção automaticamente.
+
+Sinais iniciais incluem falhas de ferramenta, cancelamentos, pausas frequentes,
+aproximação dos orçamentos de chamadas/bytes, estouro de tempo e necessidade de
+reduzir ou dividir um plano. O painel privado **DIAGNÓSTICO DAS IAS** mostra o
+último diagnóstico de cada sessão e mantém a decisão de correção no lado do
+host/usuário.
