@@ -6,7 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -42,6 +44,10 @@ public final class LaboratoryAiTaskContractInstrumentedTest {
             + UUID.randomUUID().toString().substring(0, 8);
         String toolId = "goal-tool";
         prepareGrantedStable(app, project, toolId);
+
+        ActivityInfo info = app.getPackageManager().getActivityInfo(
+            new ComponentName(app, LaboratoryAiTaskContractsActivity.class), 0);
+        assertFalse("Goal Lock Activity must remain private", info.exported);
 
         String exactGoal =
             "  Criar exatamente o resultado pedido.\n"
