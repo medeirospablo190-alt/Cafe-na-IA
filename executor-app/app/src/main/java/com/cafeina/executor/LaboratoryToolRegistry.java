@@ -439,7 +439,7 @@ public final class LaboratoryToolRegistry {
     }
 
     private static void writeCreateOnly(Path destination, JSONObject json, int maxBytes)
-            throws IOException {
+            throws IOException, JSONException {
         if (!destination.getParent().equals(destination.toAbsolutePath().normalize().getParent())) {
             throw new IOException("unsafe tool registry path");
         }
