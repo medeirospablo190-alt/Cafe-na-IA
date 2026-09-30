@@ -112,3 +112,17 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam vínculo válido, rejeição de hash incorreto, impossibilidade de vincular depois de CANDIDATE, resolução da STABLE ativa e detecção de adulteração física do snapshot.
 
 **Limite técnico:** esta etapa ainda não executa ferramentas STABLE. Ela elimina a ambiguidade entre “versão aprovada” e “bytes que serão executados”. O próximo gate poderá executar somente o artefato retornado por `readActiveStableVerified`, sem aceitar fonte ou versão fornecidas pela futura IA.
+
+
+## Nona entrega — entrada de dados separada do código da ferramenta
+
+- O runtime ganhou `ExecutionContext.inputText`. No Luau, a entrada aparece somente como a string global `tool_input`; fornecer dados não concede filesystem, rede ou qualquer outra capacidade do host.
+- O runtime nativo recusa entradas acima de 16 KiB em bytes. O worker Android aplica um limite ainda mais restrito de 4096 caracteres antes do IPC.
+- A JNI ganhou `nativeExecuteWithInput(source, inputText, timeoutMs)`, sem `filesRoot`. O caminho antigo `nativeExecute` continua compatível e equivale a entrada vazia.
+- `LaboratorySandboxClient` envia fonte e entrada separadamente e calcula SHA-256 independente para cada uma. O worker continua em `isolatedProcess=true`.
+- `LaboratoryCandidateRunner` pode testar exatamente a mesma fonte/snapshot com entradas diferentes, sem concatenar dados ao código e sem mudar o hash da versão.
+- Relatórios persistem apenas `toolInputSha256`; o texto bruto da entrada não é salvo. A tela de relatórios mostra somente esse hash.
+- A comparação de regressão também exige o mesmo `toolInputSha256` por caso. Se baseline e candidato receberam entradas diferentes, o caso não pode ser usado como evidência de equivalência.
+- Testes nativos e Android verificam exposição de `tool_input`, ausência de `fs`, limite de tamanho, hash independente, privacidade do relatório e rejeição de regressões com entradas diferentes.
+
+**Fronteira preparada para a IA:** o próximo executor STABLE poderá receber apenas `toolId + tool_input`. O código executável continuará vindo exclusivamente do vínculo verificado da etapa anterior; a IA não precisará e não poderá reconstruir a fonte para passar parâmetros.
