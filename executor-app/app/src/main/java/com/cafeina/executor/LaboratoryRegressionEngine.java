@@ -116,6 +116,8 @@ public final class LaboratoryRegressionEngine {
         public final String environmentSha256;
         public final String baselineBatchSha256;
         public final String candidateBatchSha256;
+        public final String baselineInputSha256;
+        public final String candidateInputSha256;
         public final long baselineDurationMs;
         public final long candidateDurationMs;
         public final long allowedDurationMs;
@@ -134,6 +136,8 @@ public final class LaboratoryRegressionEngine {
             this.environmentSha256 = baseline.environmentSha256;
             this.baselineBatchSha256 = baseline.candidateBatchSha256;
             this.candidateBatchSha256 = candidate.candidateBatchSha256;
+            this.baselineInputSha256 = uniqueInputSha(baseline.checks);
+            this.candidateInputSha256 = uniqueInputSha(candidate.checks);
             this.baselineDurationMs = baseline.durationMs;
             this.candidateDurationMs = candidate.durationMs;
             this.allowedDurationMs = allowedDurationMs;
@@ -217,6 +221,18 @@ public final class LaboratoryRegressionEngine {
             }
         }
         return result;
+    }
+
+    private static String uniqueInputSha(List<CheckEvidence> checks) {
+        String value = "";
+        for (CheckEvidence check : checks) {
+            if (value.isEmpty()) {
+                value = check.inputSha256;
+            } else if (!value.equals(check.inputSha256)) {
+                return "";
+            }
+        }
+        return value;
     }
 
     private static long allowedDuration(long baselineDurationMs, Policy policy) {
