@@ -149,8 +149,9 @@ public final class LaboratoryAiSessionStore {
             manifest.put("maxInvocations", maxInvocations);
             manifest.put("maxTotalInputBytes", maxTotalInputBytes);
             manifest.put("maxSessionMs", maxSessionMs);
-            String hash = sha256(manifest.toString());
-            manifest.put("manifestSha256", hash);
+            manifest.put("manifestSha256", manifestSha(
+                sessionId, startedAtEpochMs, allowedToolIds, maxInvocations,
+                maxTotalInputBytes, maxSessionMs));
             writeNew(directory.resolve("manifest.json"), manifest, MAX_MANIFEST_BYTES);
         } catch (JSONException error) {
             throw new IOException("could not encode AI session manifest", error);
@@ -202,7 +203,9 @@ public final class LaboratoryAiSessionStore {
             json.put("outcome", outcome);
             json.put("invocationsUsed", invocationsUsed);
             json.put("inputBytesUsed", inputBytesUsed);
-            json.put("recordSha256", sha256(json.toString()));
+            json.put("recordSha256", eventSha(
+                sequence, created, type, state, toolId, inputSha256,
+                inputBytes, runId, outcome, invocationsUsed, inputBytesUsed));
             String fileName = String.format(Locale.ROOT, "%06d.json", sequence);
             writeNew(events.resolve(fileName), json, MAX_EVENT_BYTES);
         } catch (JSONException error) {
@@ -250,24 +253,23 @@ public final class LaboratoryAiSessionStore {
             JSONObject manifest = new JSONObject(
                 readSafe(directory.resolve("manifest.json"), MAX_MANIFEST_BYTES));
             String storedHash = manifest.getString("manifestSha256");
-            JSONObject withoutHash = new JSONObject(manifest.toString());
-            withoutHash.remove("manifestSha256");
+            List<String> tools = strings(manifest.getJSONArray("allowedToolIds"));
+            int maxInvocations = manifest.getInt("maxInvocations");
+            int maxInput = manifest.getInt("maxTotalInputBytes");
+            long maxMs = manifest.getLong("maxSessionMs");
+            long started = manifest.getLong("startedAtEpochMs");
+            validatePolicy(tools, maxInvocations, maxInput, maxMs);
             if (!validSha(storedHash)
-                    || !storedHash.equals(sha256(withoutHash.toString()))
+                    || !storedHash.equals(manifestSha(
+                        sessionId, started, tools, maxInvocations, maxInput, maxMs))
                     || manifest.getInt("schemaVersion") != 1
                     || !sessionId.equals(manifest.getString("sessionId"))) {
                 throw new IOException("AI session manifest integrity failed");
             }
 
-            List<String> tools = strings(manifest.getJSONArray("allowedToolIds"));
-            int maxInvocations = manifest.getInt("maxInvocations");
-            int maxInput = manifest.getInt("maxTotalInputBytes");
-            long maxMs = manifest.getLong("maxSessionMs");
-            validatePolicy(tools, maxInvocations, maxInput, maxMs);
-
             List<Event> events = readEventsInternal(directory.resolve("events"));
             Event last = events.isEmpty() ? null : events.get(events.size() - 1);
-            return new Summary(sessionId, manifest.getLong("startedAtEpochMs"),
+            return new Summary(sessionId, started,
                 tools, maxInvocations, maxInput, maxMs,
                 last == null ? "UNKNOWN" : last.state,
                 last == null ? 0 : last.invocationsUsed,
@@ -300,13 +302,6 @@ public final class LaboratoryAiSessionStore {
                 try {
                     JSONObject json = new JSONObject(readSafe(path, MAX_EVENT_BYTES));
                     String storedHash = json.getString("recordSha256");
-                    JSONObject withoutHash = new JSONObject(json.toString());
-                    withoutHash.remove("recordSha256");
-                    if (!validSha(storedHash)
-                            || !storedHash.equals(sha256(withoutHash.toString()))
-                            || json.getInt("schemaVersion") != 1) {
-                        throw new IOException("AI session event integrity failed");
-                    }
                     Event event = new Event(
                         json.getInt("sequence"),
                         json.getLong("createdAtEpochMs"),
@@ -319,6 +314,16 @@ public final class LaboratoryAiSessionStore {
                         json.getString("outcome"),
                         json.getInt("invocationsUsed"),
                         json.getInt("inputBytesUsed"));
+                    if (!validSha(storedHash)
+                            || !storedHash.equals(eventSha(
+                                event.sequence, event.createdAtEpochMs,
+                                event.type, event.state, event.toolId,
+                                event.inputSha256, event.inputBytes, event.runId,
+                                event.outcome, event.invocationsUsed,
+                                event.inputBytesUsed))
+                            || json.getInt("schemaVersion") != 1) {
+                        throw new IOException("AI session event integrity failed");
+                    }
                     if (event.sequence != result.size() + 1
                             || !validType(event.type)
                             || !validState(event.state)
@@ -439,6 +444,47 @@ public final class LaboratoryAiSessionStore {
                 || Files.isSymbolicLink(path)) {
             throw new IOException("unsafe AI session audit directory");
         }
+    }
+
+    private static String manifestSha(String sessionId, long started,
+            List<String> tools, int maxInvocations, int maxInput, long maxMs) {
+        StringBuilder canonical = new StringBuilder();
+        field(canonical, sessionId);
+        field(canonical, Long.toString(started));
+        list(canonical, tools);
+        field(canonical, Integer.toString(maxInvocations));
+        field(canonical, Integer.toString(maxInput));
+        field(canonical, Long.toString(maxMs));
+        return sha256(canonical.toString());
+    }
+
+    private static String eventSha(int sequence, long created, String type,
+            String state, String toolId, String inputSha, int inputBytes,
+            String runId, String outcome, int invocationsUsed, int inputBytesUsed) {
+        StringBuilder canonical = new StringBuilder();
+        field(canonical, Integer.toString(sequence));
+        field(canonical, Long.toString(created));
+        field(canonical, type);
+        field(canonical, state);
+        field(canonical, toolId);
+        field(canonical, inputSha);
+        field(canonical, Integer.toString(inputBytes));
+        field(canonical, runId);
+        field(canonical, outcome);
+        field(canonical, Integer.toString(invocationsUsed));
+        field(canonical, Integer.toString(inputBytesUsed));
+        return sha256(canonical.toString());
+    }
+
+    private static void field(StringBuilder out, String value) {
+        String safe = value == null ? "" : value;
+        out.append(safe.length()).append(':').append(safe);
+    }
+
+    private static void list(StringBuilder out, List<String> values) {
+        out.append(values.size()).append('[');
+        for (String value : values) field(out, value);
+        out.append(']');
     }
 
     private static boolean validType(String value) {
