@@ -486,8 +486,9 @@ public final class LaboratoryHumanApprovalStore {
         String descriptorSha = json.getString("descriptorSha256");
         String artifactSha = json.getString("artifactSha256");
         String snapshotId = json.getString("snapshotId");
-        List<String> evidence = strings(json.getJSONArray("evidenceRunIds"));
-        List<String> regressions = strings(json.getJSONArray("regressionComparisonIds"));
+        List<String> evidence = uuidStrings(json.getJSONArray("evidenceRunIds"));
+        List<String> regressions = uuidStrings(
+            json.getJSONArray("regressionComparisonIds"));
         long approvedAt = json.getLong("approvedAtEpochMs");
         String auth = json.getString("authenticationMethod");
         String receiptSha = json.getString("receiptSha256");
@@ -556,11 +557,11 @@ public final class LaboratoryHumanApprovalStore {
         out.append(']');
     }
 
-    private static List<String> strings(JSONArray array) throws JSONException {
+    private static List<String> uuidStrings(JSONArray array) throws JSONException {
         List<String> values = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             String value = array.getString(i);
-            if (value == null || value.length() > 128 || values.contains(value)) {
+            if (!validUuid(value) || values.contains(value)) {
                 throw new JSONException("invalid approval evidence list");
             }
             values.add(value);
