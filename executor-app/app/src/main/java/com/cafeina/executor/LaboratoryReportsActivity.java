@@ -135,6 +135,14 @@ public final class LaboratoryReportsActivity extends Activity {
         aiTeamDiagnosticsParams.setMargins(0, dp(8), 0, 0);
         root.addView(aiTeamDiagnosticsButton, aiTeamDiagnosticsParams);
 
+        Button aiImprovementButton = button("PROPOSTAS DE MELHORIA DAS IAS");
+        aiImprovementButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiImprovementProposalsActivity.class)));
+        LinearLayout.LayoutParams aiImprovementParams = matchWrap();
+        aiImprovementParams.setMargins(0, dp(8), 0, 0);
+        root.addView(aiImprovementButton, aiImprovementParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
