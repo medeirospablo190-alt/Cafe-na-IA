@@ -197,6 +197,21 @@ public final class LaboratoryHumanApprovalStore {
         if (preview == null) throw new IOException("unsupported approval action");
 
         ensureWritable();
+        for (Approval existing : list()) {
+            if (!existing.consumed
+                    && existing.action.equals(preview.action)
+                    && existing.toolId.equals(preview.toolId)
+                    && existing.fromVersion.equals(preview.fromVersion)
+                    && existing.toVersion.equals(preview.toVersion)
+                    && existing.descriptorSha256.equals(preview.descriptorSha256)
+                    && existing.artifactSha256.equals(preview.artifactSha256)
+                    && existing.snapshotId.equals(preview.snapshotId)
+                    && existing.evidenceRunIds.equals(preview.evidenceRunIds)
+                    && existing.regressionComparisonIds.equals(
+                        preview.regressionComparisonIds)) {
+                throw new IOException("this exact transition already has a pending approval");
+            }
+        }
         if (countReceipts() >= MAX_RECEIPTS) {
             throw new IOException("approval limit reached; existing decisions were preserved");
         }
