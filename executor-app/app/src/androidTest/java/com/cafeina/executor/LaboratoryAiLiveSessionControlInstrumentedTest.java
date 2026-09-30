@@ -99,6 +99,84 @@ public final class LaboratoryAiLiveSessionControlInstrumentedTest {
     }
 
     @Test
+    public void livePauseCancelsCurrentWorkerAndKeepsSessionPaused()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "livepause"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "live-pause-tool";
+        prepareGrantedStable(
+            app, project, toolId,
+            "if tool_input == 'loop' then while true do end end return tool_input");
+
+        LaboratoryAiSessionController.Handles handles =
+            LaboratoryAiSessionController.create(
+                app,
+                project,
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    3,
+                    256,
+                    30_000L));
+
+        java.util.concurrent.CountDownLatch done =
+            new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicReference<Outcome> ref =
+            new java.util.concurrent.atomic.AtomicReference<>();
+
+        new Thread(() -> {
+            Outcome outcome = new Outcome();
+            try {
+                handles.ai.execute(toolId, "loop", (success, failure) -> {
+                    outcome.returned = success;
+                    outcome.error = failure;
+                    ref.set(outcome);
+                    done.countDown();
+                });
+            } catch (Throwable error) {
+                outcome.error = error;
+                ref.set(outcome);
+                done.countDown();
+            }
+        }, "live-session-pause-worker").start();
+
+        long deadline = System.currentTimeMillis() + 10_000L;
+        boolean active = false;
+        while (System.currentTimeMillis() < deadline) {
+            java.util.List<LaboratoryAiLiveSessionRegistry.Info> list =
+                LaboratoryAiLiveSessionRegistry.list(project);
+            if (!list.isEmpty() && list.get(0).snapshot.hasActiveInvocation) {
+                active = true;
+                break;
+            }
+            Thread.sleep(25L);
+        }
+        assertTrue("Worker never became active", active);
+
+        LaboratoryAiSessionController.Snapshot paused =
+            LaboratoryAiLiveSessionRegistry.pause(
+                project, handles.host.sessionId());
+        assertEquals(LaboratoryAiSessionController.State.PAUSED, paused.state);
+
+        assertTrue("Paused worker did not finish",
+            done.await(20, java.util.concurrent.TimeUnit.SECONDS));
+        assertNotNull(ref.get());
+        assertNull(ref.get().returned);
+        assertNotNull(ref.get().error);
+        assertEquals(
+            LaboratoryAiSessionController.State.PAUSED,
+            handles.host.snapshot().state);
+
+        LaboratoryAiLiveSessionRegistry.resume(
+            project, handles.host.sessionId());
+        assertEquals(
+            LaboratoryAiSessionController.State.ACTIVE,
+            handles.host.snapshot().state);
+        LaboratoryAiLiveSessionRegistry.cancel(
+            project, handles.host.sessionId());
+    }
+
+    @Test
     public void finishedSessionIsPrunedFromLiveDashboard() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String project = "livefinish"
@@ -163,8 +241,13 @@ public final class LaboratoryAiLiveSessionControlInstrumentedTest {
 
     private static void prepareGrantedStable(
             Context app, String project, String toolId) throws Exception {
+        prepareGrantedStable(app, project, toolId, "return tool_input");
+    }
+
+    private static void prepareGrantedStable(
+            Context app, String project, String toolId, String source)
+            throws Exception {
         String version = "1.0.0";
-        String source = "return tool_input";
 
         LaboratoryToolRegistry registry =
             new LaboratoryToolRegistry(app.getFilesDir(), project);
