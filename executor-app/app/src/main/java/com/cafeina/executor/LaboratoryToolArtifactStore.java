@@ -161,6 +161,17 @@ public final class LaboratoryToolArtifactStore {
         }
     }
 
+    /**
+     * Narrow resolution path for the future execution gate: the caller supplies
+     * only a tool ID; the active STABLE version and its exact snapshot are
+     * resolved internally.
+     */
+    public synchronized Binding readActiveStableVerified(String toolId) throws IOException {
+        LaboratoryToolRegistry.Descriptor active = registry.activeStable(toolId);
+        if (active == null) throw new IOException("no active STABLE tool version");
+        return readVerified(active.toolId, active.version);
+    }
+
     public synchronized boolean isBound(String toolId, String version) throws IOException {
         registry.readDescriptor(toolId, version);
         Path toolDirectory = artifactRoot.resolve(toolId);
