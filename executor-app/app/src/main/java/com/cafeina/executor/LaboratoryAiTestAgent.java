@@ -209,7 +209,7 @@ public final class LaboratoryAiTestAgent {
                 plan.steps.size(),
                 0,
                 0,
-                1,
+                0,
                 plan.stopOnFailure,
                 Collections.emptyList());
             reportStore.save(report);
