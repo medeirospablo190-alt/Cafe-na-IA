@@ -139,6 +139,7 @@ public final class LaboratoryAiTestAgentReportStore {
         json.put("mode", report.mode);
         json.put("sessionId", report.sessionId);
         json.put("status", report.status);
+        json.put("terminalReason", report.terminalReason);
         json.put("startedAtEpochMs", report.startedAtEpochMs);
         json.put("durationMs", report.durationMs);
         json.put("plannedSteps", report.plannedSteps);
@@ -179,6 +180,7 @@ public final class LaboratoryAiTestAgentReportStore {
                     || (!json.optString("sessionId").isEmpty()
                         && !validUuid(json.optString("sessionId")))
                     || !validStatus(json.getString("status"))
+                    || json.optString("terminalReason").length() > 64
                     || json.getLong("startedAtEpochMs") <= 0
                     || json.getLong("durationMs") < 0
                     || json.getInt("plannedSteps") < 1
