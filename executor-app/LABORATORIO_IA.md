@@ -242,3 +242,23 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam Activity privada, isolamento por projeto, pausa/resume/cancel pelo host registry, remoção de sessões terminadas, cancelamento do worker ativo ao pausar e a superfície do `AiHandle`: ele continua sem `pause`, `resume`, `cancel` ou `snapshot`.
 
 **Fronteira para a IA:** o modelo futuro poderá receber apenas o `AiHandle`. O `HostHandle`, o registro ao vivo e as telas de controle ficam fora da superfície entregue ao modelo.
+
+
+## Décima sétima entrega — Goal Lock e contrato imutável de tarefa
+
+- `LaboratoryAiTaskContractStore` cria contratos de tarefa create-only, separados do ledger de sessão. Cada contrato possui ID UUID, modo (`CREATION` ou `LEARNING`), objetivo exato, SHA-256 do objetivo, allowlist de ferramentas e orçamento imutável.
+- O texto do objetivo é preservado literalmente no armazenamento privado local do app, inclusive espaços e quebras de linha. A validação só impede objetivo vazio ou maior que 4096 caracteres.
+- O contrato recebe SHA-256 canônico sobre identidade, modo, hash do objetivo, ferramentas e orçamento. Leitura revalida o objetivo e a integridade do contrato.
+- Um contrato só pode incluir ferramentas que já estejam explicitamente liberadas ao controlador da IA no momento da criação. A admissão revalida as permissões novamente.
+- `LaboratoryAiTaskAdmission` é a fronteira host-side: primeiro grava um `claim.json` de uso único; somente depois tenta criar a sessão.
+- Se a sessão não puder nascer, o contrato permanece reivindicado e recebe `SESSION_FAILED`. Ele não pode ser reaproveitado silenciosamente; o host precisa criar um novo contrato.
+- Se a sessão nascer mas o resultado de admissão não puder ser persistido, a sessão é cancelada por segurança.
+- Em sucesso, `result.json` liga o contrato ao novo `sessionId` com `SESSION_CREATED`.
+- A futura IA recebe `AiTaskHandle`: objetivo travado, modo, contractId, hash do objetivo e a superfície estreita de ferramentas da sessão. `HostHandle` continua separado.
+- `AiTaskHandle` não expõe `pause`, `resume`, `cancel`, `snapshot`, alteração do objetivo ou alteração do orçamento.
+- O ledger de sessão não recebe o texto do objetivo. O objetivo bruto vive somente no cofre privado do contrato; a sessão continua registrando orçamento/estado e hashes.
+- `LaboratoryAiTaskContractsActivity` é privada e somente leitura. Mostra modo, estado de consumo, hash do objetivo, ferramentas e orçamento; o usuário pode abrir o objetivo exato e o resultado da admissão.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `CONTRATOS GOAL LOCK`.
+- Testes Android verificam preservação literal do objetivo, hash, Activity privada, contrato de uso único, criação da sessão, execução pelo `AiTaskHandle`, impossibilidade de replay, falha após revogação de permissão e ausência do objetivo bruto no manifesto da sessão.
+
+**Fronteira preparada:** quando o orquestrador principal for conectado, ele não deverá criar sessões a partir de `Policy` livre. O caminho previsto passa por contrato Goal Lock → claim único → sessão → `AiTaskHandle`.
