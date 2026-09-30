@@ -174,3 +174,21 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes Android verificam padrão negado, Activity privada, autenticação fresca, liberação da STABLE exata, visibilidade controlada no catálogo da IA, execução permitida somente após grant e bloqueio novamente após revoke.
 
 **Limite atual:** isto ainda não é a IA principal nem um scheduler de autonomia. É somente a fronteira de capacidades que o futuro orquestrador poderá receber. Controles de sessão, orçamento de chamadas, pausa/cancelamento global e políticas por tarefa ainda serão adicionados antes de conectar um modelo.
+
+
+## Décima terceira entrega — sessões limitadas da IA com controle do host
+
+- `LaboratoryAiSessionController` separa a mesma sessão em dois handles distintos: `AiHandle` e `HostHandle`.
+- O `AiHandle` só consegue listar ferramentas liberadas para aquela tarefa e executar uma delas com `tool_input`. Ele não recebe métodos para pausar, continuar, cancelar, alterar orçamento, conceder permissões, aprovar versões ou tocar no registro STABLE.
+- O `HostHandle` controla `pause()`, `resume()`, `cancel()` e consulta um snapshot do estado, mas não executa ferramentas em nome da IA.
+- Cada sessão nasce com uma policy imutável: allowlist de até 32 ferramentas, máximo de 64 invocações, orçamento total de até 256 KiB de entrada e duração total de até 1 hora.
+- A sessão só pode ser criada se todas as ferramentas da allowlist já estiverem liberadas pelo controlador deny-by-default. Uma revogação posterior continua valendo imediatamente.
+- Apenas uma invocação pode ficar ativa por sessão. Tentativas concorrentes são recusadas.
+- O orçamento é reservado antes de chamar a ferramenta. Tentativas que falham também consomem a chamada/bytes correspondentes para evitar retry ilimitado sem custo.
+- `pause` bloqueia novos trabalhos e cancela a invocação isolada atualmente ativa; `resume` permite novos trabalhos apenas se ainda houver orçamento. Não existe tentativa de congelar uma VM nativa arbitrária no meio da instrução.
+- `cancel` é terminal e também cancela o worker ativo. Uma sessão expirada ou com orçamento de invocações consumido entra em `FINISHED`.
+- O relógio total da sessão continua contando durante pausa. Ao expirar, o host cancela a invocação ativa e nenhuma nova chamada é aceita.
+- Foi fechado também o race de conclusão ultrarrápida: um callback que termine antes de o host salvar o handle do worker não pode deixar um falso estado de “invocação ativa”.
+- Testes Android cobrem pausa/resume, orçamento de invocações, fim automático, catálogo vazio após término e cancelamento host de uma execução Luau em loop.
+
+**Limite atual:** as sessões ainda são estruturas de controle em memória; os usos individuais continuam auditados pelo gate STABLE, mas eventos de sessão (START/PAUSE/RESUME/CANCEL/FINISH) ainda não possuem um histórico persistente próprio. Esse ledger de sessão deverá ser adicionado antes da IA principal para recuperação após encerramento do processo.
