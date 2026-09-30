@@ -38,6 +38,7 @@ public final class LaboratoryReportsActivity extends Activity {
     private LaboratoryReportStore reports;
     private LaboratoryToolRegistry registry;
     private LaboratoryHumanApprovalStore approvals;
+    private LaboratoryStableActivationStore stable;
     private LaboratorySuiteStore suites;
     private LaboratoryCandidateSuiteStore candidateSuites;
     private TextView feedback;
@@ -74,6 +75,13 @@ public final class LaboratoryReportsActivity extends Activity {
         reviewParams.setMargins(0, dp(10), 0, 0);
         root.addView(review, reviewParams);
 
+        Button stableControl = button("CONTROLAR VERSÕES STABLE");
+        stableControl.setOnClickListener(v ->
+            startActivity(new Intent(this, LaboratoryStableToolsActivity.class)));
+        LinearLayout.LayoutParams stableParams = matchWrap();
+        stableParams.setMargins(0, dp(8), 0, 0);
+        root.addView(stableControl, stableParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
@@ -91,6 +99,7 @@ public final class LaboratoryReportsActivity extends Activity {
             reports = new LaboratoryReportStore(getFilesDir(), projectId);
             registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
             approvals = new LaboratoryHumanApprovalStore(getFilesDir(), projectId);
+            stable = new LaboratoryStableActivationStore(getFilesDir(), projectId);
             suites = new LaboratorySuiteStore(getFilesDir(), projectId);
             candidateSuites = new LaboratoryCandidateSuiteStore(getFilesDir(), projectId);
             refresh();
@@ -125,6 +134,17 @@ public final class LaboratoryReportsActivity extends Activity {
                     approvalProblem = "Aprovações indisponíveis: " + error.getMessage();
                 }
                 final String approvalWarning = approvalProblem;
+                final java.util.Map<String, String> activeVersions =
+                    new java.util.HashMap<>();
+                String stableProblem = null;
+                try {
+                    for (LaboratoryStableActivationStore.Active item : stable.listActive()) {
+                        activeVersions.put(item.toolId, item.version);
+                    }
+                } catch (Exception error) {
+                    stableProblem = "Seleções STABLE indisponíveis: " + error.getMessage();
+                }
+                final String stableWarning = stableProblem;
                 List<LaboratorySuiteStore.Summary> suiteHistory;
                 String suiteProblem = null;
                 try {
@@ -166,6 +186,9 @@ public final class LaboratoryReportsActivity extends Activity {
                     if (approvalWarning != null) {
                         entries.addView(text(approvalWarning, 14, FG, false), matchWrap());
                     }
+                    if (stableWarning != null) {
+                        entries.addView(text(stableWarning, 14, FG, false), matchWrap());
+                    }
                     if (registryWarning == null && toolItems.isEmpty()) {
                         entries.addView(text(
                             "Nenhuma ferramenta candidata registrada neste projeto.",
@@ -173,8 +196,10 @@ public final class LaboratoryReportsActivity extends Activity {
                     }
                     for (LaboratoryToolRegistry.Tool tool : toolItems) {
                         boolean approved = approvedVersions.contains(tool.id + "@" + tool.version);
-                        String stateLabel = approved
-                            ? "APROVADA PELO USUÁRIO • NÃO ATIVA"
+                        boolean stableActive = tool.version.equals(activeVersions.get(tool.id));
+                        String stateLabel = stableActive
+                            ? "STABLE • ATIVA PARA FUTURA IA"
+                            : approved ? "APROVADA PELO USUÁRIO • NÃO ATIVA"
                             : tool.state == LaboratoryToolRegistry.State.CANDIDATE
                                 ? "CANDIDATA • NÃO APROVADA" : "EXPERIMENTAL";
                         Button entryButton = button(tool.id + " @ " + tool.version
@@ -184,7 +209,8 @@ public final class LaboratoryReportsActivity extends Activity {
                         entryButton.setGravity(android.view.Gravity.START
                             | android.view.Gravity.CENTER_VERTICAL);
                         entryButton.setBackgroundTintList(ColorStateList.valueOf(PANEL));
-                        entryButton.setOnClickListener(v -> showTool(tool, approved));
+                        entryButton.setOnClickListener(v ->
+                            showTool(tool, approved, stableActive));
                         LinearLayout.LayoutParams params = matchWrap();
                         params.setMargins(0, dp(8), 0, 0);
                         entries.addView(entryButton, params);
@@ -292,8 +318,10 @@ public final class LaboratoryReportsActivity extends Activity {
         });
     }
 
-    private void showTool(LaboratoryToolRegistry.Tool tool, boolean approved) {
-        String stage = approved ? "APROVADA PELO USUÁRIO • AINDA NÃO ATIVA"
+    private void showTool(LaboratoryToolRegistry.Tool tool,
+            boolean approved, boolean stableActive) {
+        String stage = stableActive ? "STABLE • ATIVA PARA FUTURA IA"
+            : approved ? "APROVADA PELO USUÁRIO • AINDA NÃO ATIVA"
             : tool.state == LaboratoryToolRegistry.State.CANDIDATE
                 ? "CANDIDATA PARA REVISÃO • NÃO APROVADA"
                 : "EXPERIMENTAL • NÃO APROVADA";
@@ -308,9 +336,11 @@ public final class LaboratoryReportsActivity extends Activity {
             + "\nSnapshot: " + tool.snapshotId
             + (tool.evidenceRunId.isEmpty() ? "\nSem teste aprovado para revisão"
                 : "\nRelatório de evidência: " + tool.evidenceRunId)
-            + "\n\n" + (approved
-                ? "A aprovação humana está registrada, mas não existe ativação STABLE nesta etapa."
-                : "O registro não executa ferramentas nem altera versões estáveis.");
+            + "\n\n" + (stableActive
+                ? "Esta é a seleção STABLE atual. A ferramenta ainda não é executada nesta tela."
+                : approved
+                    ? "A aprovação humana está registrada, mas esta versão não está ativa."
+                    : "O registro não executa ferramentas nem altera versões estáveis.");
         TextView text = text(details, 13, FG, false);
         text.setTypeface(Typeface.MONOSPACE);
         text.setTextIsSelectable(true);
@@ -499,7 +529,7 @@ public final class LaboratoryReportsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (reports != null && registry != null && approvals != null
-                && suites != null && candidateSuites != null) refresh();
+                && stable != null && suites != null && candidateSuites != null) refresh();
     }
 
     @Override

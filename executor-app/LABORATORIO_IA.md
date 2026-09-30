@@ -123,3 +123,16 @@ A execução isolada é apenas a base para ferramentas candidatas. Ainda faltam 
 - Testes JVM cobrem identificadores, limites, número máximo de casos e digest do plano. Testes Android executam uma mesma candidata com múltiplas entradas privadas, verificam PASS/FAIL, cancelamento, isolamento entre projetos, não persistência dos textos e detecção de adulteração.
 
 **Separação de estados:** um lote PASS é evidência técnica. Ele não transforma EXPERIMENTAL em CANDIDATE, não registra aprovação humana e não ativa STABLE. Isso permite que, no futuro, a IA de teste peça lotes completos sem ganhar o poder de aprovar ou instalar a própria ferramenta.
+
+
+## Décima primeira entrega — ativação STABLE reversível e separada da aprovação
+
+- `LaboratoryStableActivationStore` mantém um histórico append-only por ferramenta. Um evento `ACTIVATE` seleciona uma versão já CANDIDATE e já aprovada pelo usuário; `DEACTIVATE` remove a seleção ativa. Reativar uma versão aprovada anterior funciona como rollback sem apagar ou sobrescrever versões, snapshots, aprovações ou relatórios.
+- Cada evento vincula ferramenta/versão, hash do manifesto, hash da fonte, snapshot, relatório PASS usado na revisão, hash do recibo de aprovação humana, horário autenticado e hash do evento anterior. A leitura reconstrói a cadeia e falha se encontrar fork, ciclo, órfão, alteração de hash ou evidência que não corresponda mais ao catálogo/aprovação.
+- Toda ativação, troca/rollback ou desativação exige uma nova confirmação de credencial do Android na tela privada `LaboratoryStableToolsActivity`. A tela não executa ferramentas; apenas registra qual versão poderá ser considerada STABLE por um futuro controlador da IA.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` mostra `STABLE • ATIVA PARA FUTURA IA` separadamente de `APROVADA PELO USUÁRIO • NÃO ATIVA` e fornece acesso ao controle STABLE. O registro de ferramenta continua CANDIDATE: a seleção STABLE fica em um plano de controle separado.
+- Testes Android criam uma candidata real no worker isolado, registram aprovação, ativam, desativam e reativam, verificam que nenhuma dessas ações muda o catálogo para outro estado e confirmam falha fechada quando um evento é adulterado.
+
+**Regra de uso futuro:** a IA só poderá chamar uma ferramenta quando o controlador de permissões confirmar uma seleção STABLE válida. O catálogo ou um relatório PASS isoladamente não deverão conceder uso.
+
+**Limite de segurança:** o timestamp de autenticação continua sendo uma regra da aplicação acionada após `RESULT_OK` da tela de credencial; não é uma assinatura criptográfica do Android contra código arbitrário com o mesmo UID ou root. Antes de conectar a IA principal, a trilha de aprovação/ativação deverá ser reforçada por um controlador sem API disponível ao modelo e, idealmente, por uma chave Android Keystore com autenticação do usuário para operações de promoção.
