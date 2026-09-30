@@ -276,7 +276,7 @@ public final class LaboratoryAiSessionStore {
                 last == null ? 0 : last.inputBytesUsed,
                 events.size(),
                 last == null ? 0 : last.createdAtEpochMs);
-        } catch (JSONException error) {
+        } catch (JSONException | IllegalArgumentException error) {
             throw new IOException("invalid AI session manifest", error);
         }
     }
@@ -325,10 +325,24 @@ public final class LaboratoryAiSessionStore {
                         throw new IOException("AI session event integrity failed");
                     }
                     if (event.sequence != result.size() + 1
+                            || event.createdAtEpochMs <= 0
                             || !validType(event.type)
                             || !validState(event.state)
+                            || event.toolId == null || event.toolId.length() > 64
+                            || (!event.toolId.isEmpty()
+                                && !event.toolId.matches("[a-z0-9][a-z0-9._-]{0,63}"))
+                            || event.inputSha256 == null
                             || (!event.inputSha256.isEmpty()
-                                && !validSha(event.inputSha256))) {
+                                && !validSha(event.inputSha256))
+                            || event.inputBytes < 0
+                            || event.inputBytes > 256 * 1024
+                            || event.runId == null
+                            || (!event.runId.isEmpty() && !validUuid(event.runId))
+                            || event.outcome == null || event.outcome.length() > 64
+                            || event.invocationsUsed < 0
+                            || event.invocationsUsed > 64
+                            || event.inputBytesUsed < 0
+                            || event.inputBytesUsed > 256 * 1024) {
                         throw new IOException("AI session event failed validation");
                     }
                     result.add(event);
