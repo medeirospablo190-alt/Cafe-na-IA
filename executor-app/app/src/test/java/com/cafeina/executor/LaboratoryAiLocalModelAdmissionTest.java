@@ -32,6 +32,38 @@ public final class LaboratoryAiLocalModelAdmissionTest {
     }
 
     @Test
+    public void acceptsCanonicalCandidateWhenAncestorAliasDiffers()
+            throws Exception {
+        Path base = Files.createTempDirectory("cafeina-model-alias");
+        Path realParent = Files.createDirectory(base.resolve("real"));
+        Path app = Files.createDirectory(realParent.resolve("app"));
+        Path models = Files.createDirectory(app.resolve("models"));
+        Path model = models.resolve("planner.gguf");
+        Files.write(model, new byte[] {
+            0x47, 0x47, 0x55, 0x46, 0x03, 0x00, 0x00, 0x00
+        });
+
+        Path aliasParent = base.resolve("alias");
+        Files.createSymbolicLink(aliasParent, realParent);
+        File aliasedApp = aliasParent.resolve("app").toFile();
+        File canonicalModel = aliasParent.resolve("app")
+            .resolve("models")
+            .resolve("planner.gguf")
+            .toFile()
+            .getCanonicalFile();
+
+        LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
+            LaboratoryAiLocalModelAdmission.admit(
+                aliasedApp, canonicalModel);
+
+        assertEquals("planner.gguf", admitted.fileName);
+        assertEquals(8L, admitted.sizeBytes);
+        assertEquals(
+            model.toRealPath().toFile(),
+            admitted.fileForRuntime());
+    }
+
+    @Test
     public void rejectsReadableGgufOutsidePrivateModelDirectory()
             throws Exception {
         Path app = Files.createTempDirectory("cafeina-model-root");

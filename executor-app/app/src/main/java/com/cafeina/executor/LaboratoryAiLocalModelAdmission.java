@@ -75,20 +75,18 @@ public final class LaboratoryAiLocalModelAdmission {
 
         Path candidate = modelFile.toPath()
             .toAbsolutePath().normalize();
-        if (candidate.getParent() == null
-                || !candidate.getParent().equals(modelsRoot)) {
-            throw new IOException(
-                "local model is outside the app-private model directory");
-        }
         if (!Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS)
                 || Files.isSymbolicLink(candidate)) {
             throw new IOException(
                 "local model is missing, not regular, or is a symbolic link");
         }
 
-        Path realRoot = modelsRoot.toRealPath(LinkOption.NOFOLLOW_LINKS);
-        Path realCandidate =
-            candidate.toRealPath(LinkOption.NOFOLLOW_LINKS);
+        // The leaf directory/file were already checked not to be symlinks.
+        // Resolve ancestor aliases here because Android may expose the same
+        // app-private storage through paths such as /data/data and
+        // /data/user/0.
+        Path realRoot = modelsRoot.toRealPath();
+        Path realCandidate = candidate.toRealPath();
         if (realCandidate.getParent() == null
                 || !realCandidate.getParent().equals(realRoot)) {
             throw new IOException(
