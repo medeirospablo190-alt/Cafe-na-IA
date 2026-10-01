@@ -71,12 +71,12 @@ public final class LaboratoryAiLlamaCppBackend
                 1,
                 Math.min(4, Runtime.getRuntime().availableProcessors()));
             return new RuntimeConfig(
-                128,
-                2048,
+                32,
+                1024,
                 threads,
                 20,
                 0.8f,
-                30_000L);
+                90_000L);
         }
 
         public static RuntimeConfig plannerDefaults() {
@@ -89,7 +89,7 @@ public final class LaboratoryAiLlamaCppBackend
                 threads,
                 20,
                 0.8f,
-                60_000L);
+                120_000L);
         }
     }
 
