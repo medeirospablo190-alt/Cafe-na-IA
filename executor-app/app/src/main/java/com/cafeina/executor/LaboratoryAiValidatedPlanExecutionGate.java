@@ -43,16 +43,21 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
         public final String reportId;
         public final String status;
         public final String sessionId;
+        public final boolean goalLockClaimed;
+        public final boolean resultRecorded;
 
         private Execution(
                 Prepared prepared,
-                LaboratoryAiTestScenarioRunner.Result result) {
+                LaboratoryAiTestScenarioRunner.Result result,
+                LaboratoryAiTaskContractStore.Contract persistedContract) {
             this.contractId = prepared.contractId;
             this.scenarioId = result.scenarioId;
             this.scenarioSha256 = result.scenarioSha256;
             this.reportId = result.reportId;
             this.status = result.status;
             this.sessionId = result.sessionId;
+            this.goalLockClaimed = persistedContract.claimed;
+            this.resultRecorded = persistedContract.resultRecorded;
         }
     }
 
@@ -172,7 +177,9 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
                 "test execution report does not match prepared scenario");
         }
 
-        return new Execution(prepared, result);
+        LaboratoryAiTaskContractStore.Contract persisted =
+            contracts.read(contract.contractId);
+        return new Execution(prepared, result, persisted);
     }
 
     private static void requireUnused(
