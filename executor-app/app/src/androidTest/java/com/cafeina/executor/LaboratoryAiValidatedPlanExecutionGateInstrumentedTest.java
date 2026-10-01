@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 import android.content.Context;
 
@@ -61,6 +62,39 @@ public final class LaboratoryAiValidatedPlanExecutionGateInstrumentedTest {
         assertFalse(after.claimed);
         assertFalse(after.resultRecorded);
         assertTrue(new LaboratoryAiTestAgentReportStore(
+            app.getFilesDir(), project).list().isEmpty());
+    }
+
+    @Test
+    public void invalidPlanCannotBePreparedOrConsumeGoalLock()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation()
+            .getTargetContext();
+        String project =
+            "planreject" + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "plan-allowed-echo";
+        prepareGrantedStable(app, project, toolId);
+
+        LaboratoryAiTaskContractStore.Contract contract =
+            createContract(app, project, toolId, "Rejeitar plano fora do lock.");
+        LaboratoryAiTestAgent.Plan invalid =
+            oneStepPlan("not-allowed-tool", "blocked");
+
+        assertThrows(
+            LaboratoryAiTestPlanContract.RejectedPlanException.class,
+            () -> LaboratoryAiValidatedPlanExecutionGate.prepare(
+                app,
+                project,
+                contract.contractId,
+                invalid));
+
+        LaboratoryAiTaskContractStore.Contract after =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), project)
+                .read(contract.contractId);
+        assertFalse(after.claimed);
+        assertFalse(after.resultRecorded);
+        assertTrue(new LaboratoryAiTestScenarioStore(
             app.getFilesDir(), project).list().isEmpty());
     }
 
