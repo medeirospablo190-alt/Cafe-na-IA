@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -115,20 +116,9 @@ public final class LaboratoryAiLlmTestPlannerInstrumentedTest {
                 request -> {
                     int call = calls.incrementAndGet();
                     if (call == 1) {
-                        JSONObject badStep = new JSONObject();
-                        badStep.put("name", "bad");
-                        badStep.put("toolId", "forbidden-planner-tool");
-                        badStep.put("input", "PRIVATE_REJECTED_DRAFT_2002");
-                        badStep.put(
-                            "expectedFirstReturn",
+                        return forbiddenDraft(
+                            "forbidden-planner-tool",
                             "PRIVATE_REJECTED_DRAFT_2002");
-                        JSONObject bad = new JSONObject();
-                        bad.put(
-                            "schemaVersion",
-                            LaboratoryAiTestPlanContract.SCHEMA_VERSION);
-                        bad.put("stopOnFailure", true);
-                        bad.put("steps", new JSONArray().put(badStep));
-                        return bad.toString();
                     }
 
                     assertEquals(2, request.attempt);
@@ -181,18 +171,7 @@ public final class LaboratoryAiLlmTestPlannerInstrumentedTest {
                 contract.contractId,
                 request -> {
                     calls.incrementAndGet();
-                    JSONObject badStep = new JSONObject();
-                    badStep.put("name", "bad");
-                    badStep.put("toolId", "never-allowed");
-                    badStep.put("input", "x");
-                    badStep.put("expectedFirstReturn", "x");
-                    JSONObject bad = new JSONObject();
-                    bad.put(
-                        "schemaVersion",
-                        LaboratoryAiTestPlanContract.SCHEMA_VERSION);
-                    bad.put("stopOnFailure", true);
-                    bad.put("steps", new JSONArray().put(badStep));
-                    return bad.toString();
+                    return forbiddenDraft("never-allowed", "x");
                 });
 
         assertFalse(result.accepted);
@@ -217,20 +196,45 @@ public final class LaboratoryAiLlmTestPlannerInstrumentedTest {
     }
 
     private static String validDraft(String toolId, String value)
-            throws Exception {
-        JSONObject step = new JSONObject();
-        step.put("name", "echo");
-        step.put("toolId", toolId);
-        step.put("input", value);
-        step.put("expectedFirstReturn", value);
+            throws IOException {
+        try {
+            JSONObject step = new JSONObject();
+            step.put("name", "echo");
+            step.put("toolId", toolId);
+            step.put("input", value);
+            step.put("expectedFirstReturn", value);
 
-        JSONObject root = new JSONObject();
-        root.put(
-            "schemaVersion",
-            LaboratoryAiTestPlanContract.SCHEMA_VERSION);
-        root.put("stopOnFailure", true);
-        root.put("steps", new JSONArray().put(step));
-        return root.toString();
+            JSONObject root = new JSONObject();
+            root.put(
+                "schemaVersion",
+                LaboratoryAiTestPlanContract.SCHEMA_VERSION);
+            root.put("stopOnFailure", true);
+            root.put("steps", new JSONArray().put(step));
+            return root.toString();
+        } catch (Exception error) {
+            throw new IOException("could not encode valid planner draft", error);
+        }
+    }
+
+    private static String forbiddenDraft(String toolId, String value)
+            throws IOException {
+        try {
+            JSONObject step = new JSONObject();
+            step.put("name", "bad");
+            step.put("toolId", toolId);
+            step.put("input", value);
+            step.put("expectedFirstReturn", value);
+
+            JSONObject root = new JSONObject();
+            root.put(
+                "schemaVersion",
+                LaboratoryAiTestPlanContract.SCHEMA_VERSION);
+            root.put("stopOnFailure", true);
+            root.put("steps", new JSONArray().put(step));
+            return root.toString();
+        } catch (Exception error) {
+            throw new IOException("could not encode rejected planner draft", error);
+        }
     }
 
     private static boolean hasIssue(
