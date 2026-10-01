@@ -4,12 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
@@ -178,11 +176,9 @@ public final class LaboratoryAiLocalModelStore {
 
     private static void publish(Path temp, Path target)
             throws IOException {
-        try {
-            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException ignored) {
-            Files.move(temp, target);
-        }
+        // Do not use REPLACE_EXISTING. A concurrent import that wins the
+        // content address must be verified rather than overwritten.
+        Files.move(temp, target);
     }
 
     private static void verifyExisting(
