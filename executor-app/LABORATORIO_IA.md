@@ -395,3 +395,17 @@ host/usuário.
 - Testes Android verificam Activity privada, proposta PENDING ausente, ROUTED presente no papel correto, REOPEN removendo, novo ROUTE recolocando, DISMISS removendo e ausência de qualquer sessão/execução criada pelo roteamento.
 
 **Próxima fronteira:** uma futura IA Revisora poderá receber somente itens desta caixa. Antes disso, ainda será necessário definir um contrato de revisão separado e de uso único, para que analisar uma proposta não dê poder para aplicá-la.
+
+
+## Criação controlada de Goal Lock na interface
+
+- `LaboratoryAiGoalLockCreateActivity` cria novos Goal Locks pelo caminho host-side já existente; a tela não grava contratos diretamente e chama `LaboratoryAiTaskAdmission.createContract` fora da UI thread.
+- O usuário informa o objetivo exato, escolhe `CREATION` ou `LEARNING` e seleciona somente ferramentas STABLE já concedidas à IA. Ferramentas não concedidas não aparecem como opção.
+- Para o primeiro fluxo móvel, o orçamento é explícito e fixo na tela: até 8 chamadas, 32 KiB de entrada acumulada e 5 minutos. Esses limites são congelados dentro do contrato junto com o objetivo e a allowlist.
+- Todas as ferramentas elegíveis vêm marcadas para reduzir atrito no teste, mas podem ser desmarcadas antes da criação. Sem objetivo ou sem ao menos uma ferramenta o contrato não é criado.
+- Se não houver ferramenta concedida, a tela oferece acesso direto a `PERMISSÕES DA IA`; ao voltar, a lista é relida.
+- `CONTRATOS GOAL LOCK` ganhou `CRIAR NOVO GOAL LOCK`, e `IA LOCAL • PLANEJADOR` ganhou `CRIAR GOAL LOCK` para que o estado vazio não seja um beco sem saída.
+- O botão `TESTAR PLANEJADOR LOCAL` da aba IA agora é mantido como campo da Activity e também é atualizado por `refreshLocalModelButtons()`. Assim, ao selecionar um GGUF, o botão muda imediatamente para habilitado sem depender de reconstruir a tela.
+- A nova Activity é privada (`exported=false`) e o teste Android de Goal Lock verifica essa fronteira.
+
+**Fluxo móvel esperado:** selecionar/importar GGUF → abrir planejador → criar Goal Lock → voltar ao planejador → gerar plano sem executar → revisar plano → preparar Testadora → confirmar execução separadamente.
