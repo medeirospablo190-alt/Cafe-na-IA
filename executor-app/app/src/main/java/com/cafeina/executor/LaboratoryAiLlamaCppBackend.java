@@ -19,11 +19,15 @@ public final class LaboratoryAiLlamaCppBackend
         public final int maxTokens;
         public final int contextTokens;
         public final int threads;
+        public final int topK;
+        public final float topP;
 
         public RuntimeConfig(
                 int maxTokens,
                 int contextTokens,
-                int threads) {
+                int threads,
+                int topK,
+                float topP) {
             if (maxTokens < 1
                     || maxTokens > LlamaBridge.MAX_GENERATED_TOKENS) {
                 throw new IllegalArgumentException(
@@ -38,16 +42,28 @@ public final class LaboratoryAiLlamaCppBackend
                 throw new IllegalArgumentException(
                     "invalid llama backend thread count");
             }
+            if (topK < 0 || topK > 200) {
+                throw new IllegalArgumentException(
+                    "invalid llama backend top-k");
+            }
+            if (Float.isNaN(topP)
+                    || topP <= 0.0f
+                    || topP > 1.0f) {
+                throw new IllegalArgumentException(
+                    "invalid llama backend top-p");
+            }
             this.maxTokens = maxTokens;
             this.contextTokens = contextTokens;
             this.threads = threads;
+            this.topK = topK;
+            this.topP = topP;
         }
 
         public static RuntimeConfig plannerDefaults() {
             int threads = Math.max(
                 1,
                 Math.min(4, Runtime.getRuntime().availableProcessors()));
-            return new RuntimeConfig(1024, 4096, threads);
+            return new RuntimeConfig(1024, 4096, threads, 20, 0.8f);
         }
     }
 
@@ -108,6 +124,8 @@ public final class LaboratoryAiLlamaCppBackend
                 request.maxOutputChars,
                 config.contextTokens,
                 config.threads,
+                config.topK,
+                config.topP,
                 request.temperature,
                 request.seed);
 
