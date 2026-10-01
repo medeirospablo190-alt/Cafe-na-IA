@@ -395,3 +395,20 @@ host/usuário.
 - Testes Android verificam Activity privada, proposta PENDING ausente, ROUTED presente no papel correto, REOPEN removendo, novo ROUTE recolocando, DISMISS removendo e ausência de qualquer sessão/execução criada pelo roteamento.
 
 **Próxima fronteira:** uma futura IA Revisora poderá receber somente itens desta caixa. Antes disso, ainda será necessário definir um contrato de revisão separado e de uso único, para que analisar uma proposta não dê poder para aplicá-la.
+
+
+## Contrato de revisão de uso único
+
+- `LaboratoryAiReviewContractStore` cria contratos de análise somente para propostas que estejam atualmente em `ROUTED_FOR_REVIEW`.
+- Cada contrato fica preso à proposta, ao SHA-256 dela, ao papel de destino e ao **evento exato de roteamento**: `eventId`, sequência e hash do evento.
+- Um contrato antigo nunca volta a ser válido após `REOPEN → novo ROUTE`. O novo roteamento possui outro evento e exige outro contrato.
+- Para o mesmo evento de roteamento existe no máximo um contrato; chamadas repetidas retornam o mesmo contrato em vez de criar duplicatas.
+- O claim é create-only e de uso único. O membro que reivindica precisa existir no registro da equipe e possuir exatamente o papel definido no roteamento.
+- `requireActiveClaim()` revalida imediatamente antes de qualquer futura análise que a proposta continua roteada pelo mesmo evento e que a identidade/papel do revisor continuam íntegros.
+- Se o usuário reabrir ou dispensar a proposta, o claim deixa de ser utilizável. Um roteamento posterior não reativa o contrato antigo.
+- O contrato não cria sessão, não entrega `AiHandle`/`HostHandle`, não executa ferramenta e não concede poder de aplicar melhoria.
+- `LaboratoryAiReviewContractsActivity` é privada e somente leitura. Mostra proposta, papel autorizado, evento de roteamento, hashes, claim e contrato.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `CONTRATOS DE REVISÃO DAS IAS`.
+- Testes Android verificam Activity privada, proposta não roteada bloqueada, papel incorreto bloqueado, claim único, retirada de autorização invalidando o claim, novo roteamento não revivendo contrato antigo, deduplicação por evento de roteamento e ausência de qualquer sessão/execução.
+
+**Fronteira preparada:** a futura IA Revisora poderá receber somente um claim ativo de revisão. Mesmo assim, esse claim continuará autorizando análise da proposta — nunca aplicação da mudança.
