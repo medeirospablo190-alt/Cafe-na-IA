@@ -133,6 +133,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     }
 
     private void refresh() {
+        if (createGoalLockButton != null) {
+            createGoalLockButton.setEnabled(!busy);
+        }
         final String selected = selectedModelFileName();
         modelStatus.setText(selected.isEmpty()
             ? "Modelo ativo: nenhum. Selecione um GGUF na aba IA."
