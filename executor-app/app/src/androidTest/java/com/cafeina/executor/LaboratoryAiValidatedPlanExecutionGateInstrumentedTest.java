@@ -131,6 +131,8 @@ public final class LaboratoryAiValidatedPlanExecutionGateInstrumentedTest {
         assertFalse(execution.reportId.isEmpty());
         assertNotNull(execution.sessionId);
         assertFalse(execution.sessionId.isEmpty());
+        assertTrue(execution.goalLockClaimed);
+        assertTrue(execution.resultRecorded);
 
         LaboratoryAiTaskContractStore.Contract after =
             new LaboratoryAiTaskContractStore(
