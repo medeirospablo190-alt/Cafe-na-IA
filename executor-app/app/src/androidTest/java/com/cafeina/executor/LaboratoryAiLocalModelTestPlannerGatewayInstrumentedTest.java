@@ -49,52 +49,60 @@ public final class LaboratoryAiLocalModelTestPlannerGatewayInstrumentedTest {
 
         AtomicInteger calls = new AtomicInteger();
         LaboratoryAiLocalModelBackend backend = generation -> {
-            calls.incrementAndGet();
-            assertEquals(
-                LaboratoryAiTestPlanContract.MAX_DRAFT_CHARS,
-                generation.maxOutputChars);
-            assertEquals(
-                LaboratoryAiLocalModelTestPlannerGateway.DEFAULT_TEMPERATURE,
-                generation.temperature,
-                0.0f);
-            assertEquals(
-                LaboratoryAiLocalModelTestPlannerGateway.DEFAULT_SEED,
-                generation.seed);
+            try {
+                calls.incrementAndGet();
+                assertEquals(
+                    LaboratoryAiTestPlanContract.MAX_DRAFT_CHARS,
+                    generation.maxOutputChars);
+                assertEquals(
+                    LaboratoryAiLocalModelTestPlannerGateway.DEFAULT_TEMPERATURE,
+                    generation.temperature,
+                    0.0f);
+                assertEquals(
+                    LaboratoryAiLocalModelTestPlannerGateway.DEFAULT_SEED,
+                    generation.seed);
 
-            JSONObject prompt = parsePrompt(generation.prompt);
-            assertEquals(
-                LaboratoryAiLlmTestPromptCodec.PROTOCOL,
-                prompt.getString("protocol"));
-            assertEquals(
-                LaboratoryAiLlmTestPromptCodec.PROTOCOL_VERSION,
-                prompt.getInt("protocolVersion"));
+                JSONObject prompt = parsePrompt(generation.prompt);
+                assertEquals(
+                    LaboratoryAiLlmTestPromptCodec.PROTOCOL,
+                    prompt.getString("protocol"));
+                assertEquals(
+                    LaboratoryAiLlmTestPromptCodec.PROTOCOL_VERSION,
+                    prompt.getInt("protocolVersion"));
 
-            JSONObject rules = prompt.getJSONObject("rules");
-            assertEquals("planning_only", rules.getString("role"));
-            assertFalse(rules.getBoolean("mayExecuteTools"));
-            assertFalse(rules.getBoolean("mayChangePermissions"));
-            assertFalse(rules.getBoolean("mayChangeGoalLock"));
-            assertTrue(rules.getBoolean("useOnlyListedToolIds"));
+                JSONObject rules = prompt.getJSONObject("rules");
+                assertEquals("planning_only", rules.getString("role"));
+                assertFalse(rules.getBoolean("mayExecuteTools"));
+                assertFalse(rules.getBoolean("mayChangePermissions"));
+                assertFalse(rules.getBoolean("mayChangeGoalLock"));
+                assertTrue(rules.getBoolean("useOnlyListedToolIds"));
 
-            JSONObject task = prompt.getJSONObject("task");
-            assertEquals(goal, task.getString("goal"));
-            assertEquals("LEARNING", task.getString("mode"));
-            assertEquals(2, task.getInt("maxInvocations"));
+                JSONObject task = prompt.getJSONObject("task");
+                assertEquals(goal, task.getString("goal"));
+                assertEquals("LEARNING", task.getString("mode"));
+                assertEquals(2, task.getInt("maxInvocations"));
 
-            JSONArray tools = prompt.getJSONArray("tools");
-            assertEquals(1, tools.length());
-            assertEquals(
-                toolId,
-                tools.getJSONObject(0).getString("toolId"));
+                JSONArray tools = prompt.getJSONArray("tools");
+                assertEquals(1, tools.length());
+                assertEquals(
+                    toolId,
+                    tools.getJSONObject(0).getString("toolId"));
 
-            assertEquals(
-                0,
-                prompt.getJSONArray("previousValidationIssues").length());
-            assertEquals(
-                0,
-                prompt.getJSONArray("sanitizedMemory").length());
+                assertEquals(
+                    0,
+                    prompt.getJSONArray(
+                        "previousValidationIssues").length());
+                assertEquals(
+                    0,
+                    prompt.getJSONArray("sanitizedMemory").length());
 
-            return validDraft(toolId, "hello");
+                return validDraft(toolId, "hello");
+            } catch (IOException error) {
+                throw error;
+            } catch (Exception error) {
+                throw new IOException(
+                    "could not verify local planner protocol", error);
+            }
         };
 
         LaboratoryAiLlmTestPlanner.Result result =
@@ -142,22 +150,29 @@ public final class LaboratoryAiLocalModelTestPlannerGatewayInstrumentedTest {
 
         AtomicInteger calls = new AtomicInteger();
         LaboratoryAiLocalModelBackend backend = generation -> {
-            int call = calls.incrementAndGet();
-            JSONObject prompt = parsePrompt(generation.prompt);
-            if (call == 1) {
-                assertEquals(
-                    0,
-                    prompt.getJSONArray(
-                        "previousValidationIssues").length());
-                return "not-json-planner-output";
-            }
+            try {
+                int call = calls.incrementAndGet();
+                JSONObject prompt = parsePrompt(generation.prompt);
+                if (call == 1) {
+                    assertEquals(
+                        0,
+                        prompt.getJSONArray(
+                            "previousValidationIssues").length());
+                    return "not-json-planner-output";
+                }
 
-            JSONArray issues = prompt.getJSONArray(
-                "previousValidationIssues");
-            assertTrue(containsIssue(
-                issues,
-                LaboratoryAiTestPlanContract.PLAN_JSON_INVALID));
-            return validDraft(toolId, "fixed");
+                JSONArray issues = prompt.getJSONArray(
+                    "previousValidationIssues");
+                assertTrue(containsIssue(
+                    issues,
+                    LaboratoryAiTestPlanContract.PLAN_JSON_INVALID));
+                return validDraft(toolId, "fixed");
+            } catch (IOException error) {
+                throw error;
+            } catch (Exception error) {
+                throw new IOException(
+                    "could not verify planner repair protocol", error);
+            }
         };
 
         LaboratoryAiLlmTestPlanner.Result result =
