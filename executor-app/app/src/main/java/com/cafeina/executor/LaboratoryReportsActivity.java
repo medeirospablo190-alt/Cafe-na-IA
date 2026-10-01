@@ -161,6 +161,14 @@ public final class LaboratoryReportsActivity extends Activity {
         aiReviewInboxParams.setMargins(0, dp(8), 0, 0);
         root.addView(aiReviewInboxButton, aiReviewInboxParams);
 
+        Button aiReviewContractsButton = button("CONTRATOS DE REVISÃO DAS IAS");
+        aiReviewContractsButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiReviewContractsActivity.class)));
+        LinearLayout.LayoutParams aiReviewContractParams = matchWrap();
+        aiReviewContractParams.setMargins(0, dp(8), 0, 0);
+        root.addView(aiReviewContractsButton, aiReviewContractParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
