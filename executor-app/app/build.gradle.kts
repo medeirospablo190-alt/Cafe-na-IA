@@ -3,6 +3,7 @@ plugins {
 }
 
 val cafeinaArm64Only = providers.gradleProperty("cafeinaArm64Only").orNull == "true"
+val cafeinaLocalLlm = providers.gradleProperty("cafeinaLocalLlm").orNull == "true"
 val cafeinaAbis = if (cafeinaArm64Only) listOf("arm64-v8a")
     else listOf("arm64-v8a", "x86_64")
 
@@ -27,7 +28,11 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++17"
-                arguments += listOf("-DANDROID_STL=c++_shared")
+                arguments += listOf(
+                    "-DANDROID_STL=c++_shared",
+                    "-DCAFEINA_ENABLE_LOCAL_LLM=" +
+                        if (cafeinaLocalLlm) "ON" else "OFF"
+                )
                 abiFilters += cafeinaAbis
             }
         }
