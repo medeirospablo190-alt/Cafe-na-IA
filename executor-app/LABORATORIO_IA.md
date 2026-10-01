@@ -362,3 +362,22 @@ host/usuário.
 - Testes Android verificam Activity privada, roteamento para papéis corretos, deduplicação da mesma evidência, criação de nova proposta quando a evidência muda e rejeição de adulteração do arquivo.
 
 **Fronteira de segurança:** proposta é recomendação, não comando. Esta etapa não altera código, não muda orçamento, não executa cenário, não promove ferramenta e não modifica outra IA.
+
+
+## Decisões humanas sobre propostas de melhoria
+
+- `LaboratoryAiImprovementDecisionStore` mantém um ledger append-only por proposta. O estado é derivado do histórico; nenhum evento antigo é reescrito.
+- Estados iniciais: `PENDING`, `ROUTED_FOR_REVIEW` e `DISMISSED`.
+- Ações permitidas:
+  - `ROUTE_FOR_REVIEW`: PENDING → ROUTED_FOR_REVIEW;
+  - `DISMISS`: PENDING/ROUTED_FOR_REVIEW → DISMISSED;
+  - `REOPEN`: ROUTED_FOR_REVIEW/DISMISSED → PENDING.
+- Cada evento fica preso ao `proposalId` e ao SHA-256 de deduplicação da proposta. Se a proposta for adulterada ou trocada, o histórico deixa de ser aceito.
+- Ao enviar para revisão, o evento grava também o papel de destino já definido pela proposta. O ledger rejeita roteamento para papel diferente.
+- O ator inicial é sempre `USER`. Nesta etapa nenhuma IA pode decidir por conta própria se uma proposta deve ser roteada, dispensada ou reaberta.
+- `ENVIAR PARA REVISÃO` significa somente autorizar análise posterior pelo papel indicado. Não executa cenário, não altera código, não muda orçamento, não cria versão e não promove ferramenta.
+- `LaboratoryAiImprovementDecisionsActivity` é privada. Mostra estado atual, contagem de eventos e oferece somente as transições válidas para aquele estado.
+- A área `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso separado a `DECISÕES SOBRE MELHORIAS DAS IAS`.
+- Testes Android verificam Activity privada, lifecycle PENDING → ROUTED → PENDING → DISMISSED → PENDING, sequência append-only, transições inválidas bloqueadas, destino de revisão preso à proposta, adulteração rejeitada e ausência de qualquer sessão criada pela decisão.
+
+**Fronteira de segurança:** decidir o destino de uma proposta continua sendo workflow, não execução. Uma etapa futura poderá criar a caixa de entrada da IA Revisora, mas deverá consumir somente propostas explicitamente marcadas como `ROUTED_FOR_REVIEW`.
