@@ -48,6 +48,7 @@ public final class MainActivity extends Activity {
     private static final int MUTED = Color.rgb(165, 170, 182);
     private static final int REQUEST_EXPORT_ARCHIVE = 9101;
     private static final int REQUEST_IMPORT_ARCHIVE = 9102;
+    private static final int REQUEST_IMPORT_LOCAL_MODEL = 9103;
     private static final String ZIP_MIME = "application/zip";
     private static final String DEFAULT_SOURCE = "print(\"Olá do CAFEÍNA\")\nreturn 6 * 7";
 
@@ -78,6 +79,11 @@ public final class MainActivity extends Activity {
     private boolean autoExecStartupTriggered;
     private LinearLayout screenHost;
     private LinearLayout codeScreen;
+    private Button localModelImportButton;
+    private TextView localModelStatus;
+    private volatile boolean localModelImportInProgress;
+    private String localModelMessage =
+        "Nenhum modelo é carregado automaticamente.";
     private final Map<String, Button> navigation = new LinkedHashMap<>();
 
     @Override
@@ -232,10 +238,39 @@ public final class MainActivity extends Activity {
         detail.setPadding(0, dp(15), 0, dp(22));
         if ("3D".equals(name)) {
             detail.setText("O módulo de criação e edição 3D ainda está em desenvolvimento. Nenhuma alteração será feita nos seus scripts ao entrar nesta área.");
+        } else if ("IA".equals(name)) {
+            detail.setText(
+                "O runtime local e o planejador estão em integração controlada. "
+                    + "Você já pode importar um arquivo GGUF para o armazenamento "
+                    + "privado do app. Importar não carrega nem executa o modelo.");
         } else {
-            detail.setText("A IA local ainda não foi integrada. A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
+            detail.setText("A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
         }
         section.addView(detail, matchWrap());
+
+        if ("IA".equals(name)) {
+            localModelStatus = new TextView(this);
+            localModelStatus.setText(localModelImportInProgress
+                ? "Importando modelo para o armazenamento privado…"
+                : localModelMessage);
+            localModelStatus.setTextColor(MUTED);
+            localModelStatus.setTextSize(13);
+            LinearLayout.LayoutParams modelStatusParams = matchWrap();
+            modelStatusParams.setMargins(0, 0, 0, dp(10));
+            section.addView(localModelStatus, modelStatusParams);
+
+            localModelImportButton = makeButton(
+                localModelImportInProgress
+                    ? "IMPORTANDO MODELO…"
+                    : "IMPORTAR MODELO GGUF",
+                PANEL_2);
+            localModelImportButton.setEnabled(!localModelImportInProgress);
+            localModelImportButton.setOnClickListener(
+                v -> requestImportLocalModel());
+            LinearLayout.LayoutParams modelButtonParams = matchWrap();
+            modelButtonParams.setMargins(0, 0, 0, dp(10));
+            section.addView(localModelImportButton, modelButtonParams);
+        }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
         back.setOnClickListener(v -> showSection("CÓDIGO"));
@@ -576,9 +611,138 @@ public final class MainActivity extends Activity {
         startActivityForResult(intent, REQUEST_IMPORT_ARCHIVE);
     }
 
+    private void requestImportLocalModel() {
+        if (localModelImportInProgress) return;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivityForResult(intent, REQUEST_IMPORT_LOCAL_MODEL);
+    }
+
+    private void importLocalModel(Uri document) {
+        if (document == null || localModelImportInProgress) return;
+
+        localModelImportInProgress = true;
+        localModelMessage =
+            "Importando modelo para o armazenamento privado…";
+        if (localModelStatus != null) {
+            localModelStatus.setText(localModelMessage);
+        }
+        if (localModelImportButton != null) {
+            localModelImportButton.setText("IMPORTANDO MODELO…");
+            localModelImportButton.setEnabled(false);
+        }
+        setControlsEnabled(false);
+
+        ioExecutor.submit(() -> {
+            try {
+                final LaboratoryAiLocalModelStore.ImportResult imported;
+                try (InputStream input =
+                        getContentResolver().openInputStream(document)) {
+                    if (input == null) {
+                        throw new java.io.IOException(
+                            "Não foi possível abrir o arquivo escolhido.");
+                    }
+                    imported = LaboratoryAiLocalModelStore.importGguf(
+                        getFilesDir(), input);
+                }
+
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    localModelImportInProgress = false;
+                    localModelMessage =
+                        (imported.duplicate
+                            ? "Modelo já estava importado"
+                            : "Modelo importado")
+                        + " • " + modelSizeLabel(imported.sizeBytes)
+                        + " • " + imported.sha256.substring(0, 12);
+                    if (localModelStatus != null) {
+                        localModelStatus.setText(localModelMessage);
+                    }
+                    if (localModelImportButton != null) {
+                        localModelImportButton.setText("IMPORTAR MODELO GGUF");
+                        localModelImportButton.setEnabled(true);
+                    }
+                    setControlsEnabled(true);
+                    refreshAutoExecButton();
+
+                    new AlertDialog.Builder(this)
+                        .setTitle(imported.duplicate
+                            ? "Modelo já importado"
+                            : "Modelo importado")
+                        .setMessage(
+                            "O GGUF foi copiado para o armazenamento privado do "
+                                + "CAFEÍNA e ainda não foi carregado ou executado."
+                                + "\n\nSHA-256: " + imported.sha256
+                                + "\nTamanho: "
+                                + modelSizeLabel(imported.sizeBytes))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    localModelImportInProgress = false;
+                    localModelMessage =
+                        "Falha ao importar o modelo: "
+                            + String.valueOf(error.getMessage());
+                    if (localModelStatus != null) {
+                        localModelStatus.setText(localModelMessage);
+                    }
+                    if (localModelImportButton != null) {
+                        localModelImportButton.setText("IMPORTAR MODELO GGUF");
+                        localModelImportButton.setEnabled(true);
+                    }
+                    setControlsEnabled(true);
+                    refreshAutoExecButton();
+                    new AlertDialog.Builder(this)
+                        .setTitle("Modelo não importado")
+                        .setMessage(
+                            "O arquivo não foi publicado como modelo local. "
+                                + String.valueOf(error.getMessage()))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private static String modelSizeLabel(long bytes) {
+        if (bytes >= 1024L * 1024L * 1024L) {
+            return String.format(
+                java.util.Locale.ROOT,
+                "%.2f GiB",
+                bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+        if (bytes >= 1024L * 1024L) {
+            return String.format(
+                java.util.Locale.ROOT,
+                "%.1f MiB",
+                bytes / (1024.0 * 1024.0));
+        }
+        if (bytes >= 1024L) {
+            return String.format(
+                java.util.Locale.ROOT,
+                "%.1f KiB",
+                bytes / 1024.0);
+        }
+        return bytes + " B";
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMPORT_LOCAL_MODEL) {
+            if (resultCode == RESULT_OK
+                    && data != null
+                    && data.getData() != null) {
+                importLocalModel(data.getData());
+            }
+            return;
+        }
+
         if ((requestCode != REQUEST_EXPORT_ARCHIVE && requestCode != REQUEST_IMPORT_ARCHIVE)
                 || resultCode != RESULT_OK || data == null || data.getData() == null) {
             return;
