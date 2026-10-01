@@ -3,6 +3,7 @@
 #include <jni.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -14,6 +15,7 @@ namespace {
 struct ModelSession
 {
     llama_model* model = nullptr;
+    std::atomic<bool> cancelRequested{false};
 };
 
 std::once_flag backendInit;
@@ -232,6 +234,20 @@ Java_com_cafeina_runtime_LlamaBridge_nativeModelSizeBytes(
     return static_cast<jlong>(llama_model_size(session->model));
 }
 
+
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration(
+    JNIEnv*,
+    jclass,
+    jlong handle
+)
+{
+    ModelSession* session = requireSession(handle);
+    if (session)
+        session->cancelRequested.store(true);
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_cafeina_runtime_LlamaBridge_nativeClose(
     JNIEnv*,
@@ -360,6 +376,12 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.n_threads = threads;
     params.n_threads_batch = threads;
     params.no_perf = true;
+    session->cancelRequested.store(false);
+    params.abort_callback = [](void* data) -> bool {
+        auto* active = static_cast<ModelSession*>(data);
+        return active && active->cancelRequested.load();
+    };
+    params.abort_callback_data = session;
 
     llama_context* context =
         llama_init_from_model(session->model, params);
@@ -437,6 +459,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 context,
                 LLAMA_PROCESS_TYPE_DECODE,
                 batch) == 0;
+        if (session->cancelRequested.load())
+            ok = false;
     }
 
     std::string output;
@@ -449,6 +473,12 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             ok && generated < maxTokens;
             ++generated)
     {
+        if (session->cancelRequested.load())
+        {
+            ok = false;
+            break;
+        }
+
         const llama_token token =
             llama_sampler_sample(sampler, context, -1);
         if (llama_vocab_is_eog(vocab, token))
@@ -492,7 +522,10 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
 
     if (!ok)
     {
-        throwIOException(env, "local model generation failed");
+        if (session->cancelRequested.load())
+            throwIOException(env, "local model generation cancelled");
+        else
+            throwIOException(env, "local model generation failed");
         return nullptr;
     }
     jbyteArray bytes = env->NewByteArray(
