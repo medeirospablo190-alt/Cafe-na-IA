@@ -83,7 +83,8 @@ public final class LaboratoryAiReviewInbox {
         }
 
         result.sort(Comparator
-            .comparingLong((Item item) -> item.routedAtEpochMs)
+            .comparing((Item item) -> item.targetRole)
+            .thenComparingLong(item -> item.routedAtEpochMs)
             .thenComparing(item -> item.proposalId));
         return Collections.unmodifiableList(result);
     }
