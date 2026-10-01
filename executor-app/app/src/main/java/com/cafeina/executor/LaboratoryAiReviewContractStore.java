@@ -135,6 +135,14 @@ public final class LaboratoryAiReviewContractStore {
             }
 
             ensureRoot();
+            for (Contract existing : list()) {
+                if (existing.proposalId.equals(proposal.proposalId)
+                        && existing.routingEventId.equals(routing.eventId)
+                        && existing.routingRecordSha256.equals(
+                            routing.recordSha256)) {
+                    return existing;
+                }
+            }
             if (countContracts() >= MAX_CONTRACTS) {
                 throw new IOException("AI review contract limit reached");
             }
