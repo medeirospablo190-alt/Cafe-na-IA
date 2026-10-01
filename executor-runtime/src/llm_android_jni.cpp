@@ -72,6 +72,48 @@ bool setBatchTokens(
     return true;
 }
 
+std::string formatUserPrompt(
+    llama_model* model,
+    const std::string& prompt
+)
+{
+    const char* chatTemplate =
+        llama_model_chat_template(model, nullptr);
+    if (!chatTemplate || chatTemplate[0] == '\0')
+        return prompt;
+
+    llama_chat_message message;
+    message.role = "user";
+    message.content = prompt.c_str();
+
+    const int32_t required = llama_chat_apply_template(
+        chatTemplate,
+        &message,
+        1,
+        true,
+        nullptr,
+        0);
+    if (required <= 0)
+        return prompt;
+
+    std::vector<char> buffer(static_cast<size_t>(required) + 1U);
+    const int32_t written = llama_chat_apply_template(
+        chatTemplate,
+        &message,
+        1,
+        true,
+        buffer.data(),
+        static_cast<int32_t>(buffer.size()));
+    if (written <= 0
+            || written > static_cast<int32_t>(buffer.size())) {
+        return prompt;
+    }
+
+    return std::string(
+        buffer.data(),
+        static_cast<size_t>(written));
+}
+
 bool tokenPiece(
     const llama_vocab* vocab,
     llama_token token,
@@ -266,10 +308,13 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         return nullptr;
     }
 
+    const std::string formattedPrompt =
+        formatUserPrompt(session->model, prompt);
+
     const int32_t required = -llama_tokenize(
         vocab,
-        prompt.data(),
-        static_cast<int32_t>(prompt.size()),
+        formattedPrompt.data(),
+        static_cast<int32_t>(formattedPrompt.size()),
         nullptr,
         0,
         true,
@@ -284,8 +329,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         static_cast<size_t>(required));
     const int32_t tokenized = llama_tokenize(
         vocab,
-        prompt.data(),
-        static_cast<int32_t>(prompt.size()),
+        formattedPrompt.data(),
+        static_cast<int32_t>(formattedPrompt.size()),
         promptTokens.data(),
         static_cast<int32_t>(promptTokens.size()),
         true,
