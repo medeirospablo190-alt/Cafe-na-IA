@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -162,11 +163,21 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         if (unused.isEmpty()) {
             entries.addView(text(
                 "Ainda não existe um Goal Lock não consumido neste projeto. "
-                    + "O planejador só trabalha em cima de contratos já "
-                    + "criados pelo fluxo do laboratório.",
+                    + "Crie um contrato com o objetivo exato antes de pedir "
+                    + "um plano ao modelo local.",
                 14,
                 MUTED,
                 false), matchWrap());
+
+            Button create = button(
+                "CRIAR GOAL LOCK",
+                ACCENT);
+            create.setOnClickListener(v ->
+                startActivity(new Intent(
+                    this, LaboratoryAiTaskContractsActivity.class)));
+            LinearLayout.LayoutParams createParams = matchWrap();
+            createParams.setMargins(0, dp(10), 0, 0);
+            entries.addView(create, createParams);
             return;
         }
 
