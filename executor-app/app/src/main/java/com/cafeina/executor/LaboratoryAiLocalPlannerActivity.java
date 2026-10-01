@@ -456,9 +456,13 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                                 + (execution.sessionId.isEmpty()
                                     ? "nenhuma"
                                     : execution.sessionId)
+                                + "\nGoal Lock reivindicado: "
+                                + (execution.goalLockClaimed ? "SIM" : "NÃO")
+                                + "\nResultado de admissão persistido: "
+                                + (execution.resultRecorded ? "SIM" : "NÃO")
                                 + "\n\nA Testadora usou o caminho de "
-                                + "admissão one-use. Confira Contratos Goal Lock "
-                                + "e o relatório para o estado persistido da admissão.")
+                                + "admissão one-use. O estado acima foi relido "
+                                + "do armazenamento persistente após a execução.")
                         .setPositiveButton(
                             "OK",
                             (dialog, which) -> refresh())
