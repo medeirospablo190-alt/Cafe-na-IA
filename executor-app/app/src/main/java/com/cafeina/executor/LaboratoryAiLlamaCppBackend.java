@@ -8,9 +8,9 @@ import java.io.IOException;
 /**
  * llama.cpp implementation of the planner's runtime-neutral local model backend.
  *
- * This object owns only a local GGUF model session and text generation. It has
- * no Android Context, LaboratoryAiTaskHandle, tool executor, permission store,
- * approval store, or Goal Lock mutation surface.
+ * This object owns only an admitted app-private GGUF model session and text
+ * generation. It has no Android Context, LaboratoryAiTaskHandle, tool executor,
+ * permission store, approval store, or Goal Lock mutation surface.
  */
 public final class LaboratoryAiLlamaCppBackend
         implements LaboratoryAiLocalModelBackend, AutoCloseable {
@@ -92,15 +92,29 @@ public final class LaboratoryAiLlamaCppBackend
         this.config = config;
     }
 
-    public static LaboratoryAiLlamaCppBackend open(
+    public static LaboratoryAiLlamaCppBackend admitAndOpen(
+            File appFilesDirectory,
             File modelFile,
             RuntimeConfig config) throws IOException {
+        LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
+            LaboratoryAiLocalModelAdmission.admit(
+                appFilesDirectory, modelFile);
+        return open(admitted, config);
+    }
+
+    static LaboratoryAiLlamaCppBackend open(
+            LaboratoryAiLocalModelAdmission.AdmittedModel admittedModel,
+            RuntimeConfig config) throws IOException {
+        if (admittedModel == null) {
+            throw new IllegalArgumentException(
+                "admitted local model missing");
+        }
         if (config == null) {
             throw new IllegalArgumentException(
                 "llama backend runtime config missing");
         }
         return new LaboratoryAiLlamaCppBackend(
-            LlamaBridge.open(modelFile),
+            LlamaBridge.open(admittedModel.fileForRuntime()),
             config);
     }
 
