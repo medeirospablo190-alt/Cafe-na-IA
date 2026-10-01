@@ -87,3 +87,12 @@ jobs:
             echo "Unexpected non-ARM64 library in local LLM probe APK"
             exit 1
           fi
+
+      - name: Upload installable ARM64 local-LLM test APK
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cafeina-local-llm-arm64-${{ github.run_number }}
+          path: executor-app/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
