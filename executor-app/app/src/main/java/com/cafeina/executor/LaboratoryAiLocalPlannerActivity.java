@@ -21,8 +21,9 @@ import java.util.concurrent.Executors;
 /**
  * Controlled UI for proving the first real local-model planner path.
  *
- * It may load the selected GGUF and ask for a plan, but it never runs the
- * returned plan. The Goal Lock must remain unused after every probe.
+ * It may load the selected GGUF and ask for a plan. A validated plan remains
+ * non-executable until the user explicitly prepares an immutable scenario and
+ * confirms a second, separate TestAgent execution gate.
  */
 public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private static final int BG = Color.rgb(12, 13, 16);
@@ -327,18 +328,163 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         details.setGravity(Gravity.START);
         scroll.addView(details);
 
-        new AlertDialog.Builder(this)
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this)
             .setTitle(title)
             .setView(scroll)
-            .setPositiveButton("FECHAR", (dialog, which) -> refresh())
+            .setPositiveButton("FECHAR", (ignored, which) -> refresh())
+            .setOnCancelListener(ignored -> refresh());
+
+        if (planner.accepted && planner.plan != null) {
+            dialog.setNeutralButton(
+                "PREPARAR TESTADORA",
+                (ignored, which) ->
+                    prepareForTestAgent(contractId, planner.plan));
+        }
+        dialog.show();
+
+        feedback.setText(
+            planner.accepted
+                ? "Plano aceito • ainda não executado • aguarda gate humano"
+                : "Plano rejeitado após "
+                    + planner.attempts + " tentativa(s) • não executado");
+    }
+
+    private void prepareForTestAgent(
+            String contractId,
+            LaboratoryAiTestAgent.Plan plan) {
+        if (busy) return;
+        busy = true;
+        feedback.setText(
+            "Gravando cenário imutável para revisão…");
+        refreshBusyState();
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiValidatedPlanExecutionGate.Prepared prepared =
+                    LaboratoryAiValidatedPlanExecutionGate.prepare(
+                        this,
+                        projectId,
+                        contractId,
+                        plan);
+                runOnUiThread(() ->
+                    confirmPreparedExecution(prepared));
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    feedback.setText(
+                        "Plano não foi preparado: "
+                            + String.valueOf(error.getMessage()));
+                    refresh();
+                    new AlertDialog.Builder(this)
+                        .setTitle("Testadora não preparada")
+                        .setMessage(
+                            "Nenhuma ferramenta foi executada e o Goal Lock "
+                                + "não foi consumido.\n\n"
+                                + String.valueOf(error.getMessage()))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private void confirmPreparedExecution(
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        if (!alive()) return;
+        busy = false;
+
+        String details =
+            "Contrato: " + prepared.contractId
+                + "\nGoal SHA-256: " + prepared.goalSha256
+                + "\nCenário: " + prepared.scenarioId
+                + "\nCenário SHA-256: " + prepared.scenarioSha256
+                + "\nPassos: " + prepared.stepCount
+                + "\nStop on failure: "
+                + (prepared.stopOnFailure ? "SIM" : "NÃO")
+                + "\n\nAté aqui nenhuma ferramenta foi executada e o "
+                + "Goal Lock continua não consumido."
+                + "\n\nEXECUTAR TESTADORA irá consumir esse Goal Lock "
+                + "uma única vez e permitirá somente as ferramentas já "
+                + "travadas no contrato.";
+
+        new AlertDialog.Builder(this)
+            .setTitle("Gate de execução • Testadora")
+            .setMessage(details)
+            .setNegativeButton("NÃO EXECUTAR", (dialog, which) -> refresh())
+            .setPositiveButton(
+                "EXECUTAR TESTADORA",
+                (dialog, which) -> executePrepared(prepared))
             .setOnCancelListener(dialog -> refresh())
             .show();
 
         feedback.setText(
-            planner.accepted
-                ? "Plano aceito pelo contrato determinístico • não executado"
-                : "Plano rejeitado após "
-                    + planner.attempts + " tentativa(s) • não executado");
+            "Cenário preparado • aguardando confirmação de execução");
+    }
+
+    private void executePrepared(
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        if (busy) return;
+        busy = true;
+        feedback.setText(
+            "Executando Testadora pelo Goal Lock…");
+        refreshBusyState();
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiValidatedPlanExecutionGate.Execution execution =
+                    LaboratoryAiValidatedPlanExecutionGate.executePrepared(
+                        this,
+                        projectId,
+                        prepared);
+
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    feedback.setText(
+                        "Testadora concluída • " + execution.status);
+                    new AlertDialog.Builder(this)
+                        .setTitle("Execução da Testadora")
+                        .setMessage(
+                            "Status: " + execution.status
+                                + "\nContrato: " + execution.contractId
+                                + "\nCenário: " + execution.scenarioId
+                                + "\nCenário SHA-256: "
+                                + execution.scenarioSha256
+                                + "\nRelatório: " + execution.reportId
+                                + "\nSessão: "
+                                + (execution.sessionId.isEmpty()
+                                    ? "nenhuma"
+                                    : execution.sessionId)
+                                + "\n\nO Goal Lock foi consumido pelo "
+                                + "caminho determinístico da Testadora.")
+                        .setPositiveButton(
+                            "OK",
+                            (dialog, which) -> refresh())
+                        .show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    feedback.setText(
+                        "Execução bloqueada/falhou: "
+                            + String.valueOf(error.getMessage()));
+                    new AlertDialog.Builder(this)
+                        .setTitle("Testadora não executada")
+                        .setMessage(
+                            "O gate interrompeu a transição ou a execução "
+                                + "falhou. Consulte contratos e relatórios para "
+                                + "confirmar se o Goal Lock chegou a ser "
+                                + "consumido.\n\n"
+                                + String.valueOf(error.getMessage()))
+                        .setPositiveButton(
+                            "OK",
+                            (dialog, which) -> refresh())
+                        .show();
+                });
+            }
+        });
     }
 
     private void refreshBusyState() {
