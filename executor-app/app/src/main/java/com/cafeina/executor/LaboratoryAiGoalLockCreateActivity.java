@@ -170,8 +170,6 @@ public final class LaboratoryAiGoalLockCreateActivity extends Activity {
         createButton.setEnabled(false);
         createButton.setOnClickListener(v -> createGoalLock());
         root.addView(createButton, matchWrap());
-
-        loadTools();
     }
 
     @Override
