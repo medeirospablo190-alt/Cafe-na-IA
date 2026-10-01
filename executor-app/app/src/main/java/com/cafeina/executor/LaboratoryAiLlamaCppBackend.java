@@ -2,7 +2,6 @@ package com.cafeina.executor;
 
 import com.cafeina.runtime.LlamaBridge;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -90,16 +89,6 @@ public final class LaboratoryAiLlamaCppBackend
             RuntimeConfig config) {
         this.session = session;
         this.config = config;
-    }
-
-    public static LaboratoryAiLlamaCppBackend admitAndOpen(
-            File appFilesDirectory,
-            File modelFile,
-            RuntimeConfig config) throws IOException {
-        LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
-            LaboratoryAiLocalModelAdmission.admit(
-                appFilesDirectory, modelFile);
-        return open(admitted, config);
     }
 
     static LaboratoryAiLlamaCppBackend open(
