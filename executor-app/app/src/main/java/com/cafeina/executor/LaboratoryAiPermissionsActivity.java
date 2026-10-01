@@ -57,7 +57,7 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
         root.setBackgroundColor(BG);
         setContentView(root);
 
-        Button back = button("← VOLTAR AOS RELATÓRIOS");
+        Button back = button("← VOLTAR");
         back.setOnClickListener(v -> finish());
         root.addView(back, matchWrap());
 
