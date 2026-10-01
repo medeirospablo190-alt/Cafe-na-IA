@@ -84,6 +84,7 @@ public final class MainActivity extends Activity {
     private Button localModelImportButton;
     private Button localModelSelectButton;
     private Button localModelTestButton;
+    private Button localPlannerButton;
     private TextView localModelStatus;
     private volatile boolean localModelImportInProgress;
     private volatile boolean localModelRuntimeInProgress;
@@ -302,7 +303,7 @@ public final class MainActivity extends Activity {
             testModelParams.setMargins(0, 0, 0, dp(10));
             section.addView(localModelTestButton, testModelParams);
 
-            Button localPlannerButton = makeButton(
+            localPlannerButton = makeButton(
                 "TESTAR PLANEJADOR LOCAL",
                 PANEL_2);
             localPlannerButton.setEnabled(
@@ -315,6 +316,16 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams plannerParams = matchWrap();
             plannerParams.setMargins(0, 0, 0, dp(10));
             section.addView(localPlannerButton, plannerParams);
+
+            Button goalLocksButton = makeButton(
+                "CRIAR / VER GOAL LOCKS",
+                PANEL_2);
+            goalLocksButton.setOnClickListener(v ->
+                startActivity(new Intent(
+                    this, LaboratoryAiTaskContractsActivity.class)));
+            LinearLayout.LayoutParams goalLocksParams = matchWrap();
+            goalLocksParams.setMargins(0, 0, 0, dp(10));
+            section.addView(goalLocksButton, goalLocksParams);
         }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
@@ -1047,6 +1058,10 @@ public final class MainActivity extends Activity {
                     ? "TESTANDO MODELO…"
                     : "TESTAR MODELO LOCAL");
             localModelTestButton.setEnabled(
+                idle && !selectedLocalModelFileName().isEmpty());
+        }
+        if (localPlannerButton != null) {
+            localPlannerButton.setEnabled(
                 idle && !selectedLocalModelFileName().isEmpty());
         }
     }
