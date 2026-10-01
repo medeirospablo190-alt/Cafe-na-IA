@@ -67,6 +67,26 @@ std::string fromJString(JNIEnv* env, jstring value)
     return out;
 }
 
+std::string fromJByteArray(JNIEnv* env, jbyteArray value)
+{
+    if (!value)
+        return {};
+
+    const jsize size = env->GetArrayLength(value);
+    if (size <= 0)
+        return {};
+
+    std::string out(static_cast<size_t>(size), '\0');
+    env->GetByteArrayRegion(
+        value,
+        0,
+        size,
+        reinterpret_cast<jbyte*>(&out[0]));
+    if (env->ExceptionCheck())
+        return {};
+    return out;
+}
+
 void throwIOException(JNIEnv* env, const char* message)
 {
     jclass type = env->FindClass("java/io/IOException");
@@ -308,7 +328,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     JNIEnv* env,
     jclass,
     jlong handle,
-    jstring promptValue,
+    jbyteArray promptUtf8,
     jint maxTokens,
     jint maxOutputChars,
     jint contextTokens,
@@ -341,7 +361,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         return nullptr;
     }
 
-    const std::string prompt = fromJString(env, promptValue);
+    const std::string prompt = fromJByteArray(env, promptUtf8);
     if (prompt.empty())
     {
         throwIOException(env, "local model prompt is empty");
