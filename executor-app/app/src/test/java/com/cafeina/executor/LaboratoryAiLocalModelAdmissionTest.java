@@ -73,6 +73,25 @@ public final class LaboratoryAiLocalModelAdmissionTest {
     }
 
     @Test
+    public void rejectsSymbolicLinkEvenWhenItPointsToGguf()
+            throws Exception {
+        Path app = Files.createTempDirectory("cafeina-model-link");
+        Path models = Files.createDirectory(app.resolve("models"));
+        Path target = Files.createTempFile(
+            "cafeina-model-link-target", ".gguf");
+        Files.write(target, new byte[] {
+            0x47, 0x47, 0x55, 0x46
+        });
+        Path link = models.resolve("linked.gguf");
+        Files.createSymbolicLink(link, target);
+
+        assertThrows(
+            IOException.class,
+            () -> LaboratoryAiLocalModelAdmission.admit(
+                app.toFile(), link.toFile()));
+    }
+
+    @Test
     public void missingPrivateModelDirectoryIsNotCreatedImplicitly()
             throws Exception {
         Path app = Files.createTempDirectory("cafeina-model-no-root");
