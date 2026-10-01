@@ -49,6 +49,8 @@ public final class MainActivity extends Activity {
     private static final int REQUEST_EXPORT_ARCHIVE = 9101;
     private static final int REQUEST_IMPORT_ARCHIVE = 9102;
     private static final int REQUEST_IMPORT_LOCAL_MODEL = 9103;
+    private static final String LOCAL_MODEL_PREFS = "cafeina_ai_local_model";
+    private static final String ACTIVE_LOCAL_MODEL = "active_model_filename";
     private static final String ZIP_MIME = "application/zip";
     private static final String DEFAULT_SOURCE = "print(\"Olá do CAFEÍNA\")\nreturn 6 * 7";
 
@@ -80,8 +82,11 @@ public final class MainActivity extends Activity {
     private LinearLayout screenHost;
     private LinearLayout codeScreen;
     private Button localModelImportButton;
+    private Button localModelSelectButton;
+    private Button localModelTestButton;
     private TextView localModelStatus;
     private volatile boolean localModelImportInProgress;
+    private volatile boolean localModelRuntimeInProgress;
     private String localModelMessage =
         "Nenhum modelo é carregado automaticamente.";
     private final Map<String, Button> navigation = new LinkedHashMap<>();
@@ -270,6 +275,32 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams modelButtonParams = matchWrap();
             modelButtonParams.setMargins(0, 0, 0, dp(10));
             section.addView(localModelImportButton, modelButtonParams);
+
+            localModelSelectButton = makeButton(
+                "SELECIONAR MODELO ATIVO",
+                PANEL_2);
+            localModelSelectButton.setEnabled(
+                !localModelImportInProgress && !localModelRuntimeInProgress);
+            localModelSelectButton.setOnClickListener(
+                v -> requestSelectLocalModel());
+            LinearLayout.LayoutParams selectModelParams = matchWrap();
+            selectModelParams.setMargins(0, 0, 0, dp(10));
+            section.addView(localModelSelectButton, selectModelParams);
+
+            localModelTestButton = makeButton(
+                localModelRuntimeInProgress
+                    ? "TESTANDO MODELO…"
+                    : "TESTAR MODELO LOCAL",
+                ACCENT);
+            localModelTestButton.setEnabled(
+                !localModelImportInProgress
+                    && !localModelRuntimeInProgress
+                    && !selectedLocalModelFileName().isEmpty());
+            localModelTestButton.setOnClickListener(
+                v -> testSelectedLocalModel());
+            LinearLayout.LayoutParams testModelParams = matchWrap();
+            testModelParams.setMargins(0, 0, 0, dp(10));
+            section.addView(localModelTestButton, testModelParams);
         }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
@@ -612,7 +643,7 @@ public final class MainActivity extends Activity {
     }
 
     private void requestImportLocalModel() {
-        if (localModelImportInProgress) return;
+        if (localModelImportInProgress || localModelRuntimeInProgress) return;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
@@ -663,8 +694,8 @@ public final class MainActivity extends Activity {
                     }
                     if (localModelImportButton != null) {
                         localModelImportButton.setText("IMPORTAR MODELO GGUF");
-                        localModelImportButton.setEnabled(true);
                     }
+                    refreshLocalModelButtons();
                     setControlsEnabled(true);
                     status.setText(localModelMessage);
                     refreshAutoExecButton();
@@ -694,8 +725,8 @@ public final class MainActivity extends Activity {
                     }
                     if (localModelImportButton != null) {
                         localModelImportButton.setText("IMPORTAR MODELO GGUF");
-                        localModelImportButton.setEnabled(true);
                     }
+                    refreshLocalModelButtons();
                     setControlsEnabled(true);
                     status.setText("Falha ao importar modelo local");
                     refreshAutoExecButton();
@@ -709,6 +740,260 @@ public final class MainActivity extends Activity {
                 });
             }
         });
+    }
+
+    private String selectedLocalModelFileName() {
+        return getSharedPreferences(LOCAL_MODEL_PREFS, MODE_PRIVATE)
+            .getString(ACTIVE_LOCAL_MODEL, "");
+    }
+
+    private void requestSelectLocalModel() {
+        if (localModelImportInProgress || localModelRuntimeInProgress) return;
+
+        localModelMessage = "Lendo modelos importados…";
+        if (localModelStatus != null) {
+            localModelStatus.setText(localModelMessage);
+        }
+        refreshLocalModelButtons();
+
+        ioExecutor.submit(() -> {
+            try {
+                final List<LaboratoryAiLocalModelCatalog.Model> models =
+                    LaboratoryAiLocalModelCatalog.list(getFilesDir());
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    if (models.isEmpty()) {
+                        localModelMessage =
+                            "Nenhum GGUF importado. Importe um modelo primeiro.";
+                        if (localModelStatus != null) {
+                            localModelStatus.setText(localModelMessage);
+                        }
+                        refreshLocalModelButtons();
+                        return;
+                    }
+
+                    String[] labels = new String[models.size()];
+                    String current = selectedLocalModelFileName();
+                    int checked = -1;
+                    for (int i = 0; i < models.size(); i++) {
+                        LaboratoryAiLocalModelCatalog.Model model =
+                            models.get(i);
+                        labels[i] =
+                            model.fileName.substring(
+                                0, Math.min(12, model.fileName.length()))
+                            + " • " + modelSizeLabel(model.sizeBytes);
+                        if (model.fileName.equals(current)) {
+                            checked = i;
+                        }
+                    }
+
+                    AlertDialog.Builder picker =
+                        new AlertDialog.Builder(this)
+                            .setTitle("Selecionar modelo local")
+                            .setSingleChoiceItems(
+                                labels,
+                                checked,
+                                (dialog, which) -> {
+                                    LaboratoryAiLocalModelCatalog.Model chosen =
+                                        models.get(which);
+                                    getSharedPreferences(
+                                            LOCAL_MODEL_PREFS,
+                                            MODE_PRIVATE)
+                                        .edit()
+                                        .putString(
+                                            ACTIVE_LOCAL_MODEL,
+                                            chosen.fileName)
+                                        .apply();
+                                    localModelMessage =
+                                        "Modelo ativo • "
+                                            + chosen.fileName.substring(
+                                                0,
+                                                Math.min(
+                                                    12,
+                                                    chosen.fileName.length()))
+                                            + " • "
+                                            + modelSizeLabel(
+                                                chosen.sizeBytes);
+                                    if (localModelStatus != null) {
+                                        localModelStatus.setText(
+                                            localModelMessage);
+                                    }
+                                    refreshLocalModelButtons();
+                                    dialog.dismiss();
+                                })
+                            .setNegativeButton("Cancelar", null);
+                    picker.show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    localModelMessage =
+                        "Falha ao listar modelos: "
+                            + String.valueOf(error.getMessage());
+                    if (localModelStatus != null) {
+                        localModelStatus.setText(localModelMessage);
+                    }
+                    refreshLocalModelButtons();
+                });
+            }
+        });
+    }
+
+    private void testSelectedLocalModel() {
+        if (localModelImportInProgress || localModelRuntimeInProgress) return;
+
+        final String selected = selectedLocalModelFileName();
+        if (selected.isEmpty()) {
+            localModelMessage = "Selecione um modelo ativo primeiro.";
+            if (localModelStatus != null) {
+                localModelStatus.setText(localModelMessage);
+            }
+            refreshLocalModelButtons();
+            return;
+        }
+
+        localModelRuntimeInProgress = true;
+        localModelMessage =
+            "Executando preflight e teste local sem ferramentas…";
+        if (localModelStatus != null) {
+            localModelStatus.setText(localModelMessage);
+        }
+        refreshLocalModelButtons();
+        setControlsEnabled(false);
+        status.setText("Testando modelo local…");
+
+        runtimeExecutor.submit(() -> {
+            try {
+                LaboratoryAiLocalModelCatalog.Model model =
+                    LaboratoryAiLocalModelCatalog.resolve(
+                        getFilesDir(), selected);
+                LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
+                    LaboratoryAiLocalModelAdmission.admit(
+                        getFilesDir(), model.modelFile);
+                LaboratoryAiLocalModelPreflight.Report preflight =
+                    LaboratoryAiLocalModelPreflight.inspect(
+                        this, admitted);
+
+                if (!preflight.canAttemptLoad) {
+                    throw new java.io.IOException(
+                        "preflight bloqueou a carga: "
+                            + preflight.signalCodes);
+                }
+
+                final String runtimeVersion;
+                final String modelDescription;
+                final String rawOutput;
+                try (LaboratoryAiLlamaCppBackend backend =
+                        LaboratoryAiLocalModelPreflight.open(
+                            this,
+                            model.modelFile,
+                            LaboratoryAiLlamaCppBackend.RuntimeConfig
+                                .plannerDefaults())) {
+                    runtimeVersion = backend.runtimeVersion();
+                    modelDescription = backend.modelDescription();
+                    rawOutput = backend.generate(
+                        new LaboratoryAiLocalModelBackend.GenerationRequest(
+                            "Return exactly one JSON object and no markdown: "
+                                + "{\"cafeina\":\"ok\","
+                                + "\"purpose\":"
+                                + "\"local_model_smoke_test\"}",
+                            2048,
+                            0.0f,
+                            20261001L));
+                }
+
+                boolean exactDiagnostic = false;
+                try {
+                    JSONObject parsed = new JSONObject(rawOutput.trim());
+                    exactDiagnostic =
+                        "ok".equals(parsed.optString("cafeina"))
+                            && "local_model_smoke_test".equals(
+                                parsed.optString("purpose"));
+                } catch (Exception ignored) {
+                    exactDiagnostic = false;
+                }
+
+                final boolean diagnosticOk = exactDiagnostic;
+                final String output = rawOutput;
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    localModelRuntimeInProgress = false;
+                    localModelMessage =
+                        diagnosticOk
+                            ? "Modelo carregado e inferência diagnóstica OK."
+                            : "Modelo gerou texto, mas não respeitou o JSON diagnóstico.";
+                    if (localModelStatus != null) {
+                        localModelStatus.setText(localModelMessage);
+                    }
+                    refreshLocalModelButtons();
+                    setControlsEnabled(true);
+                    refreshAutoExecButton();
+                    status.setText(
+                        diagnosticOk
+                            ? "Teste do modelo local concluído"
+                            : "Inferência concluída com formato inesperado");
+
+                    new AlertDialog.Builder(this)
+                        .setTitle(
+                            diagnosticOk
+                                ? "Modelo local funcionando"
+                                : "Modelo respondeu")
+                        .setMessage(
+                            "Preflight: " + preflight.status
+                                + "\nRuntime: " + runtimeVersion
+                                + "\nModelo: " + modelDescription
+                                + "\nRAM disponível: "
+                                + modelSizeLabel(preflight.availableRamBytes)
+                                + " / "
+                                + modelSizeLabel(preflight.totalRamBytes)
+                                + "\n\nSaída diagnóstica:\n"
+                                + output)
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!activityAlive()) return;
+                    localModelRuntimeInProgress = false;
+                    localModelMessage =
+                        "Teste local falhou: "
+                            + String.valueOf(error.getMessage());
+                    if (localModelStatus != null) {
+                        localModelStatus.setText(localModelMessage);
+                    }
+                    refreshLocalModelButtons();
+                    setControlsEnabled(true);
+                    refreshAutoExecButton();
+                    status.setText("Falha no teste do modelo local");
+                    new AlertDialog.Builder(this)
+                        .setTitle("Modelo local não testado")
+                        .setMessage(
+                            "Nenhuma ferramenta ou plano foi executado. "
+                                + String.valueOf(error.getMessage()))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private void refreshLocalModelButtons() {
+        boolean idle =
+            !localModelImportInProgress && !localModelRuntimeInProgress;
+        if (localModelImportButton != null) {
+            localModelImportButton.setEnabled(idle);
+        }
+        if (localModelSelectButton != null) {
+            localModelSelectButton.setEnabled(idle);
+        }
+        if (localModelTestButton != null) {
+            localModelTestButton.setText(
+                localModelRuntimeInProgress
+                    ? "TESTANDO MODELO…"
+                    : "TESTAR MODELO LOCAL");
+            localModelTestButton.setEnabled(
+                idle && !selectedLocalModelFileName().isEmpty());
+        }
     }
 
     private static String modelSizeLabel(long bytes) {
