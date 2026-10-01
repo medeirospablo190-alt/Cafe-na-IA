@@ -877,6 +877,8 @@ public final class MainActivity extends Activity {
         status.setText("Testando modelo local…");
 
         runtimeExecutor.submit(() -> {
+            final long totalStartedMs =
+                android.os.SystemClock.elapsedRealtime();
             try {
                 LaboratoryAiLocalModelCatalog.Model model =
                     LaboratoryAiLocalModelCatalog.resolve(
@@ -897,14 +899,27 @@ public final class MainActivity extends Activity {
                 final String runtimeVersion;
                 final String modelDescription;
                 final String rawOutput;
+                final long runtimeModelBytes;
+                final long loadMs;
+                final long generationMs;
+                long loadStartedMs =
+                    android.os.SystemClock.elapsedRealtime();
                 try (LaboratoryAiLlamaCppBackend backend =
                         LaboratoryAiLocalModelPreflight.open(
                             this,
                             model.modelFile,
                             LaboratoryAiLlamaCppBackend.RuntimeConfig
-                                .plannerDefaults())) {
+                                .smokeTestDefaults())) {
+                    loadMs = Math.max(
+                        0L,
+                        android.os.SystemClock.elapsedRealtime()
+                            - loadStartedMs);
                     runtimeVersion = backend.runtimeVersion();
                     modelDescription = backend.modelDescription();
+                    runtimeModelBytes = backend.modelSizeBytes();
+
+                    long generationStartedMs =
+                        android.os.SystemClock.elapsedRealtime();
                     rawOutput = backend.generate(
                         new LaboratoryAiLocalModelBackend.GenerationRequest(
                             "Return exactly one JSON object and no markdown: "
@@ -914,7 +929,15 @@ public final class MainActivity extends Activity {
                             2048,
                             0.0f,
                             20261001L));
+                    generationMs = Math.max(
+                        0L,
+                        android.os.SystemClock.elapsedRealtime()
+                            - generationStartedMs);
                 }
+                final long totalMs = Math.max(
+                    0L,
+                    android.os.SystemClock.elapsedRealtime()
+                        - totalStartedMs);
 
                 boolean exactDiagnostic = false;
                 try {
@@ -956,10 +979,18 @@ public final class MainActivity extends Activity {
                             "Preflight: " + preflight.status
                                 + "\nRuntime: " + runtimeVersion
                                 + "\nModelo: " + modelDescription
+                                + "\nArquivo GGUF: "
+                                + modelSizeLabel(preflight.modelSizeBytes)
+                                + "\nModelo reportado pelo runtime: "
+                                + modelSizeLabel(runtimeModelBytes)
                                 + "\nRAM disponível: "
                                 + modelSizeLabel(preflight.availableRamBytes)
                                 + " / "
                                 + modelSizeLabel(preflight.totalRamBytes)
+                                + "\nCarga: " + loadMs + " ms"
+                                + "\nGeração: " + generationMs + " ms"
+                                + "\nTotal do teste: " + totalMs + " ms"
+                                + "\nPerfil smoke: 128 tokens • contexto 2048 • timeout 30 s"
                                 + "\n\nSaída diagnóstica:\n"
                                 + output)
                         .setPositiveButton("OK", null)
