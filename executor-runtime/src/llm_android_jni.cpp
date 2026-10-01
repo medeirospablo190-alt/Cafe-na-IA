@@ -508,6 +508,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     if (!batch)
     {
         llama_free(context);
+        session->deadlineNanos.store(0);
+        session->phase.store(PHASE_NONE);
         throwIOException(env, "local model batch could not be created");
         return nullptr;
     }
@@ -518,6 +520,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     {
         llama_batch_ext_free(batch);
         llama_free(context);
+        session->deadlineNanos.store(0);
+        session->phase.store(PHASE_NONE);
         throwIOException(env, "local model sampler could not be created");
         return nullptr;
     }
@@ -577,7 +581,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             ok = false;
     }
 
-    session->phase.store(PHASE_TOKENS);
+    if (ok)
+        session->phase.store(PHASE_TOKENS);
 
     std::string output;
     output.reserve(
