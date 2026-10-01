@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -42,6 +43,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private TextView feedback;
     private TextView modelStatus;
     private LinearLayout entries;
+    private Button cancelPlannerButton;
+    private volatile LaboratoryAiLocalPlannerProbe.Cancellation
+        activePlanningCancellation;
     private volatile boolean busy;
 
     @Override
@@ -89,6 +93,16 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         feedback = text("Carregando contratos…", 13, MUTED, false);
         feedback.setPadding(0, dp(4), 0, dp(8));
         root.addView(feedback, matchWrap());
+
+        cancelPlannerButton = button(
+            "CANCELAR PLANEJAMENTO",
+            PANEL);
+        cancelPlannerButton.setVisibility(View.GONE);
+        cancelPlannerButton.setOnClickListener(v ->
+            cancelActivePlanning());
+        LinearLayout.LayoutParams cancelParams = matchWrap();
+        cancelParams.setMargins(0, 0, 0, dp(8));
+        root.addView(cancelPlannerButton, cancelParams);
 
         ScrollView scroll = new ScrollView(this);
         entries = new LinearLayout(this);
@@ -219,9 +233,15 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             return;
         }
 
+        final LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
+            new LaboratoryAiLocalPlannerProbe.Cancellation();
+        activePlanningCancellation = cancellation;
+
         busy = true;
         feedback.setText(
             "Carregando modelo e pedindo um plano JSON…");
+        cancelPlannerButton.setEnabled(true);
+        cancelPlannerButton.setVisibility(View.VISIBLE);
         refreshBusyState();
 
         worker.execute(() -> {
@@ -235,7 +255,8 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                         this,
                         projectId,
                         contractId,
-                        model.modelFile);
+                        model.modelFile,
+                        cancellation);
 
                 LaboratoryAiTaskContractStore.Contract after =
                     contracts.read(contractId);
@@ -244,22 +265,34 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                         "Goal Lock foi alterado durante o planejamento");
                 }
 
-                runOnUiThread(() ->
-                    showPlannerResult(contractId, result));
+                runOnUiThread(() -> {
+                    clearPlanningCancellation(cancellation);
+                    showPlannerResult(contractId, result);
+                });
             } catch (Exception error) {
                 runOnUiThread(() -> {
                     if (!alive()) return;
+                    boolean cancelled = cancellation.isCancelled();
+                    clearPlanningCancellation(cancellation);
                     busy = false;
                     feedback.setText(
-                        "Planejamento local falhou: "
-                            + String.valueOf(error.getMessage()));
+                        cancelled
+                            ? "Planejamento local cancelado pelo usuário"
+                            : "Planejamento local falhou: "
+                                + String.valueOf(error.getMessage()));
                     refresh();
                     new AlertDialog.Builder(this)
-                        .setTitle("Plano não produzido")
+                        .setTitle(
+                            cancelled
+                                ? "Planejamento cancelado"
+                                : "Plano não produzido")
                         .setMessage(
                             "Nenhuma ferramenta foi executada e o Goal Lock "
-                                + "não deve ser consumido.\n\n"
-                                + String.valueOf(error.getMessage()))
+                                + "não foi consumido."
+                                + (cancelled
+                                    ? ""
+                                    : "\n\n"
+                                        + String.valueOf(error.getMessage())))
                         .setPositiveButton("OK", null)
                         .show();
                 });
@@ -492,6 +525,33 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         });
     }
 
+    private void cancelActivePlanning() {
+        LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
+            activePlanningCancellation;
+        if (cancellation == null || cancellation.isCancelled()) {
+            return;
+        }
+        cancellation.cancel();
+        if (cancelPlannerButton != null) {
+            cancelPlannerButton.setEnabled(false);
+            cancelPlannerButton.setText("CANCELANDO…");
+        }
+        feedback.setText(
+            "Cancelamento solicitado ao runtime local…");
+    }
+
+    private void clearPlanningCancellation(
+            LaboratoryAiLocalPlannerProbe.Cancellation cancellation) {
+        if (activePlanningCancellation == cancellation) {
+            activePlanningCancellation = null;
+        }
+        if (cancelPlannerButton != null) {
+            cancelPlannerButton.setEnabled(true);
+            cancelPlannerButton.setText("CANCELAR PLANEJAMENTO");
+            cancelPlannerButton.setVisibility(View.GONE);
+        }
+    }
+
     private void refreshBusyState() {
         for (int i = 0; i < entries.getChildCount(); i++) {
             entries.getChildAt(i).setEnabled(!busy);
@@ -555,6 +615,11 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
+            activePlanningCancellation;
+        if (cancellation != null) {
+            cancellation.cancel();
+        }
         worker.shutdownNow();
         super.onDestroy();
     }
