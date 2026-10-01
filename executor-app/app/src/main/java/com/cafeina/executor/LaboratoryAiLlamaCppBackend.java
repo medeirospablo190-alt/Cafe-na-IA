@@ -69,7 +69,7 @@ public final class LaboratoryAiLlamaCppBackend
 
     private final LlamaBridge.Session session;
     private final RuntimeConfig config;
-    private boolean closed;
+    private volatile boolean closed;
 
     private LaboratoryAiLlamaCppBackend(
             LlamaBridge.Session session,
@@ -135,6 +135,12 @@ public final class LaboratoryAiLlamaCppBackend
                 "llama backend output exceeds planner limit");
         }
         return output;
+    }
+
+    public void cancelGeneration() {
+        if (!closed) {
+            session.cancelGeneration();
+        }
     }
 
     @Override
