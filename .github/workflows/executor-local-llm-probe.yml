@@ -66,6 +66,19 @@ jobs:
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llm_probe.so"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llama_jni.so"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
+
+          TMP="$(mktemp -d)"
+          unzip -q "$APK" "lib/arm64-v8a/libcafeina_llama_jni.so" -d "$TMP"
+          READELF="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          if [ ! -x "$READELF" ]; then
+            READELF="$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          fi
+          test -x "$READELF"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeOpen"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes"
+
           if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
             echo "Unexpected non-ARM64 library in local LLM probe APK"
             exit 1
