@@ -72,6 +72,7 @@ public final class LlamaBridge {
         public final float topP;
         public final float temperature;
         public final long seed;
+        public final long maxGenerationMs;
 
         public GenerationConfig(
                 int maxTokens,
@@ -81,7 +82,8 @@ public final class LlamaBridge {
                 int topK,
                 float topP,
                 float temperature,
-                long seed) {
+                long seed,
+                long maxGenerationMs) {
             if (maxTokens < 1 || maxTokens > MAX_GENERATED_TOKENS) {
                 throw new IllegalArgumentException(
                     "invalid local generation token limit");
@@ -116,6 +118,11 @@ public final class LlamaBridge {
                 throw new IllegalArgumentException(
                     "invalid local generation temperature");
             }
+            if (maxGenerationMs < 1_000L
+                    || maxGenerationMs > 5L * 60L * 1_000L) {
+                throw new IllegalArgumentException(
+                    "invalid local generation time limit");
+            }
             this.maxTokens = maxTokens;
             this.maxOutputChars = maxOutputChars;
             this.contextTokens = contextTokens;
@@ -124,6 +131,7 @@ public final class LlamaBridge {
             this.topP = topP;
             this.temperature = temperature;
             this.seed = seed;
+            this.maxGenerationMs = maxGenerationMs;
         }
 
         public static GenerationConfig plannerDefaults() {
@@ -138,7 +146,8 @@ public final class LlamaBridge {
                 20,
                 0.8f,
                 0.0f,
-                20261001L);
+                20261001L,
+                60_000L);
         }
     }
 
@@ -192,7 +201,8 @@ public final class LlamaBridge {
                 config.topK,
                 config.topP,
                 config.temperature,
-                config.seed);
+                config.seed,
+                config.maxGenerationMs);
             if (raw == null) {
                 throw new IOException("local model returned no generation");
             }
@@ -254,7 +264,8 @@ public final class LlamaBridge {
         int topK,
         float topP,
         float temperature,
-        long seed) throws IOException;
+        long seed,
+        long maxGenerationMs) throws IOException;
     private static native void nativeCancelGeneration(long handle);
     private static native void nativeClose(long handle);
 }
