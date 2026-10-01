@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Looper;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -186,7 +185,7 @@ public final class LaboratoryAiTestAgent {
             new LaboratoryAiTaskContractStore(app.getFilesDir(), projectId);
         LaboratoryAiTaskContractStore.Contract contract =
             contractStore.read(contractId);
-        validatePlanAgainstContract(contract, plan);
+        LaboratoryAiTestPlanContract.requireValid(contract, plan);
 
         String reportId = UUID.randomUUID().toString();
         long started = System.currentTimeMillis();
@@ -426,26 +425,6 @@ public final class LaboratoryAiTestAgent {
             hash(""),
             hash(""),
             0L);
-    }
-
-    private static void validatePlanAgainstContract(
-            LaboratoryAiTaskContractStore.Contract contract, Plan plan) {
-        if (plan.steps.size() > contract.maxInvocations) {
-            throw new IllegalArgumentException(
-                "test-agent plan exceeds contract invocation budget");
-        }
-        long inputBytes = 0L;
-        for (Step step : plan.steps) {
-            if (!contract.allowedToolIds.contains(step.toolId)) {
-                throw new SecurityException(
-                    "test-agent step uses tool outside Goal Lock");
-            }
-            inputBytes += step.input.getBytes(StandardCharsets.UTF_8).length;
-            if (inputBytes > contract.maxTotalInputBytes) {
-                throw new IllegalArgumentException(
-                    "test-agent plan exceeds contract input budget");
-            }
-        }
     }
 
     private static String reasonCode(Throwable error) {
