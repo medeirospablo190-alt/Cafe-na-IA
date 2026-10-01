@@ -82,6 +82,19 @@ public final class LaboratoryAiReviewContractInstrumentedTest {
         assertThrows(java.io.IOException.class, () ->
             store.requireActiveClaim(contract.reviewContractId));
 
+        decisions.routeForReview(proposal.proposalId);
+        assertThrows(java.io.IOException.class, () ->
+            store.requireActiveClaim(contract.reviewContractId));
+
+        LaboratoryAiReviewContractStore.Contract newContract =
+            store.createForRoutedProposal(proposal.proposalId);
+        assertFalse(contract.reviewContractId.equals(
+            newContract.reviewContractId));
+        LaboratoryAiReviewContractStore.Contract deduplicated =
+            store.createForRoutedProposal(proposal.proposalId);
+        assertEquals(newContract.reviewContractId,
+            deduplicated.reviewContractId);
+
         assertTrue(new LaboratoryAiSessionStore(
             app.getFilesDir(), project).list().isEmpty());
         assertTrue(LaboratoryAiLiveSessionRegistry.list(project).isEmpty());
