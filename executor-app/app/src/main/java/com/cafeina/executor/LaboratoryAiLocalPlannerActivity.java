@@ -456,8 +456,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                                 + (execution.sessionId.isEmpty()
                                     ? "nenhuma"
                                     : execution.sessionId)
-                                + "\n\nO Goal Lock foi consumido pelo "
-                                + "caminho determinístico da Testadora.")
+                                + "\n\nA Testadora usou o caminho de "
+                                + "admissão one-use. Confira Contratos Goal Lock "
+                                + "e o relatório para o estado persistido da admissão.")
                         .setPositiveButton(
                             "OK",
                             (dialog, which) -> refresh())
