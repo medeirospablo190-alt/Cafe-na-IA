@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -16,6 +17,8 @@ struct ModelSession
 {
     llama_model* model = nullptr;
     std::atomic<bool> cancelRequested{false};
+    std::atomic<bool> timedOut{false};
+    std::atomic<int64_t> deadlineNanos{0};
 };
 
 std::once_flag backendInit;
@@ -27,6 +30,29 @@ void ensureBackend()
     std::call_once(backendInit, [] {
         llama_backend_init();
     });
+}
+
+
+int64_t monotonicNanos()
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+bool shouldAbort(ModelSession* session)
+{
+    if (!session)
+        return true;
+    if (session->cancelRequested.load())
+        return true;
+
+    const int64_t deadline = session->deadlineNanos.load();
+    if (deadline > 0 && monotonicNanos() >= deadline)
+    {
+        session->timedOut.store(true);
+        return true;
+    }
+    return false;
 }
 
 std::string fromJString(JNIEnv* env, jstring value)
@@ -286,7 +312,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     jint topK,
     jfloat topP,
     jfloat temperature,
-    jlong seed
+    jlong seed,
+    jlong maxGenerationMs
 )
 {
     ModelSession* session = requireSession(handle);
@@ -308,7 +335,9 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             || threads < 1 || threads > 8
             || topK < 0 || topK > 200
             || topP <= 0.0f || topP > 1.0f
-            || temperature < 0.0f || temperature > 2.0f)
+            || temperature < 0.0f || temperature > 2.0f
+            || maxGenerationMs < 1'000L
+            || maxGenerationMs > 5L * 60L * 1'000L)
     {
         throwIOException(env, "invalid local generation limits");
         return nullptr;
@@ -377,9 +406,12 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.n_threads_batch = threads;
     params.no_perf = true;
     session->cancelRequested.store(false);
+    session->timedOut.store(false);
+    session->deadlineNanos.store(
+        monotonicNanos()
+            + static_cast<int64_t>(maxGenerationMs) * 1'000'000LL);
     params.abort_callback = [](void* data) -> bool {
-        auto* active = static_cast<ModelSession*>(data);
-        return active && active->cancelRequested.load();
+        return shouldAbort(static_cast<ModelSession*>(data));
     };
     params.abort_callback_data = session;
 
@@ -459,7 +491,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 context,
                 LLAMA_PROCESS_TYPE_DECODE,
                 batch) == 0;
-        if (session->cancelRequested.load())
+        if (shouldAbort(session))
             ok = false;
     }
 
@@ -473,7 +505,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             ok && generated < maxTokens;
             ++generated)
     {
-        if (session->cancelRequested.load())
+        if (shouldAbort(session))
         {
             ok = false;
             break;
@@ -520,9 +552,13 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     llama_batch_ext_free(batch);
     llama_free(context);
 
+    session->deadlineNanos.store(0);
+
     if (!ok)
     {
-        if (session->cancelRequested.load())
+        if (session->timedOut.load())
+            throwIOException(env, "local model generation timed out");
+        else if (session->cancelRequested.load())
             throwIOException(env, "local model generation cancelled");
         else
             throwIOException(env, "local model generation failed");
