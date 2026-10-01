@@ -21,13 +21,15 @@ public final class LaboratoryAiLlamaCppBackend
         public final int threads;
         public final int topK;
         public final float topP;
+        public final long maxGenerationMs;
 
         public RuntimeConfig(
                 int maxTokens,
                 int contextTokens,
                 int threads,
                 int topK,
-                float topP) {
+                float topP,
+                long maxGenerationMs) {
             if (maxTokens < 1
                     || maxTokens > LlamaBridge.MAX_GENERATED_TOKENS) {
                 throw new IllegalArgumentException(
@@ -52,18 +54,30 @@ public final class LaboratoryAiLlamaCppBackend
                 throw new IllegalArgumentException(
                     "invalid llama backend top-p");
             }
+            if (maxGenerationMs < 1_000L
+                    || maxGenerationMs > 5L * 60L * 1_000L) {
+                throw new IllegalArgumentException(
+                    "invalid llama backend generation time limit");
+            }
             this.maxTokens = maxTokens;
             this.contextTokens = contextTokens;
             this.threads = threads;
             this.topK = topK;
             this.topP = topP;
+            this.maxGenerationMs = maxGenerationMs;
         }
 
         public static RuntimeConfig plannerDefaults() {
             int threads = Math.max(
                 1,
                 Math.min(4, Runtime.getRuntime().availableProcessors()));
-            return new RuntimeConfig(1024, 4096, threads, 20, 0.8f);
+            return new RuntimeConfig(
+                1024,
+                4096,
+                threads,
+                20,
+                0.8f,
+                60_000L);
         }
     }
 
@@ -127,7 +141,8 @@ public final class LaboratoryAiLlamaCppBackend
                 config.topK,
                 config.topP,
                 request.temperature,
-                request.seed);
+                request.seed,
+                config.maxGenerationMs);
 
         String output = session.generate(request.prompt, generation);
         if (output.length() > request.maxOutputChars) {
