@@ -13,12 +13,21 @@
 
 namespace {
 
+enum GenerationPhase
+{
+    PHASE_NONE = 0,
+    PHASE_CONTEXT = 1,
+    PHASE_PROMPT = 2,
+    PHASE_TOKENS = 3
+};
+
 struct ModelSession
 {
     llama_model* model = nullptr;
     std::atomic<bool> cancelRequested{false};
     std::atomic<bool> timedOut{false};
     std::atomic<int64_t> deadlineNanos{0};
+    std::atomic<int> phase{PHASE_NONE};
 };
 
 std::once_flag backendInit;
@@ -92,6 +101,23 @@ void throwIOException(JNIEnv* env, const char* message)
     jclass type = env->FindClass("java/io/IOException");
     if (type)
         env->ThrowNew(type, message);
+}
+
+const char* timeoutMessage(const ModelSession* session)
+{
+    if (!session)
+        return "local model generation timed out";
+    switch (session->phase.load())
+    {
+        case PHASE_CONTEXT:
+            return "local model timed out during context setup";
+        case PHASE_PROMPT:
+            return "local model timed out while processing prompt";
+        case PHASE_TOKENS:
+            return "local model timed out while generating tokens";
+        default:
+            return "local model generation timed out";
+    }
 }
 
 bool setBatchTokens(
@@ -352,6 +378,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 session->cancelRequested.store(false);
                 session->timedOut.store(false);
                 session->deadlineNanos.store(0);
+                session->phase.store(PHASE_NONE);
             }
         }
     }
@@ -443,6 +470,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.n_threads = threads;
     params.n_threads_batch = threads;
     params.no_perf = true;
+    session->phase.store(PHASE_CONTEXT);
     session->deadlineNanos.store(
         monotonicNanos()
             + static_cast<int64_t>(maxGenerationMs) * 1'000'000LL);
@@ -455,7 +483,24 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         llama_init_from_model(session->model, params);
     if (!context)
     {
+        session->deadlineNanos.store(0);
+        session->phase.store(PHASE_NONE);
         throwIOException(env, "local model context could not be created");
+        return nullptr;
+    }
+    if (shouldAbort(session))
+    {
+        const bool timedOut = session->timedOut.load();
+        const bool cancelled = session->cancelRequested.load();
+        const char* message = timedOut
+            ? timeoutMessage(session)
+            : (cancelled
+                ? "local model generation cancelled"
+                : "local model generation failed");
+        llama_free(context);
+        session->deadlineNanos.store(0);
+        session->phase.store(PHASE_NONE);
+        throwIOException(env, message);
         return nullptr;
     }
 
@@ -507,6 +552,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     }
 
     bool ok = true;
+    session->phase.store(PHASE_PROMPT);
     const int32_t batchSize =
         static_cast<int32_t>(params.n_batch);
     for (int32_t offset = 0;
@@ -530,6 +576,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         if (shouldAbort(session))
             ok = false;
     }
+
+    session->phase.store(PHASE_TOKENS);
 
     std::string output;
     output.reserve(
@@ -588,18 +636,24 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     llama_batch_ext_free(batch);
     llama_free(context);
 
+    const int terminalPhase = session->phase.load();
     session->deadlineNanos.store(0);
 
     if (!ok)
     {
         if (session->timedOut.load())
-            throwIOException(env, "local model generation timed out");
+        {
+            session->phase.store(terminalPhase);
+            throwIOException(env, timeoutMessage(session));
+        }
         else if (session->cancelRequested.load())
             throwIOException(env, "local model generation cancelled");
         else
             throwIOException(env, "local model generation failed");
+        session->phase.store(PHASE_NONE);
         return nullptr;
     }
+    session->phase.store(PHASE_NONE);
     jbyteArray bytes = env->NewByteArray(
         static_cast<jsize>(output.size()));
     if (!bytes)
