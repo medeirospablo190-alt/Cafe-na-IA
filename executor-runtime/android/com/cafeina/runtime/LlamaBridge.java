@@ -2,25 +2,55 @@ package com.cafeina.runtime;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Experimental app-private bridge to the pinned llama.cpp runtime.
  *
- * This bridge owns model lifetime only. It has no access to Laboratory AI
- * execution handles, permissions, Goal Lock state, or tool APIs.
+ * This bridge owns model lifetime and bounded text generation only. It has no
+ * access to Laboratory AI execution handles, permissions, Goal Lock state, or
+ * tool APIs.
  */
 public final class LlamaBridge {
+    public static final int MAX_PROMPT_CHARS = 128 * 1024;
+    public static final int MAX_OUTPUT_CHARS = 96 * 1024;
+    public static final int MAX_GENERATED_TOKENS = 2048;
+    public static final int MAX_CONTEXT_TOKENS = 8192;
+    public static final int MAX_THREADS = 8;
+
+    private static final boolean NATIVE_AVAILABLE;
+    private static final String NATIVE_LOAD_ERROR;
+
     static {
-        System.loadLibrary("cafeina_llama_jni");
+        boolean loaded = false;
+        String error = "";
+        try {
+            System.loadLibrary("cafeina_llama_jni");
+            loaded = true;
+        } catch (UnsatisfiedLinkError failure) {
+            error = failure.getClass().getSimpleName();
+        }
+        NATIVE_AVAILABLE = loaded;
+        NATIVE_LOAD_ERROR = error;
     }
 
     private LlamaBridge() {}
 
-    public static String version() {
-        return nativeVersion();
+    public static boolean isRuntimeAvailable() {
+        return NATIVE_AVAILABLE;
+    }
+
+    public static String version() throws IOException {
+        requireNative();
+        String version = nativeVersion();
+        if (version == null || version.isEmpty()) {
+            throw new IOException("local llama runtime version unavailable");
+        }
+        return version;
     }
 
     public static Session open(File modelFile) throws IOException {
+        requireNative();
         if (modelFile == null
                 || !modelFile.isFile()
                 || !modelFile.canRead()) {
@@ -31,6 +61,67 @@ public final class LlamaBridge {
             throw new IOException("llama.cpp could not load local model");
         }
         return new Session(handle);
+    }
+
+    public static final class GenerationConfig {
+        public final int maxTokens;
+        public final int maxOutputChars;
+        public final int contextTokens;
+        public final int threads;
+        public final float temperature;
+        public final long seed;
+
+        public GenerationConfig(
+                int maxTokens,
+                int maxOutputChars,
+                int contextTokens,
+                int threads,
+                float temperature,
+                long seed) {
+            if (maxTokens < 1 || maxTokens > MAX_GENERATED_TOKENS) {
+                throw new IllegalArgumentException(
+                    "invalid local generation token limit");
+            }
+            if (maxOutputChars < 1
+                    || maxOutputChars > MAX_OUTPUT_CHARS) {
+                throw new IllegalArgumentException(
+                    "invalid local generation output limit");
+            }
+            if (contextTokens < 256
+                    || contextTokens > MAX_CONTEXT_TOKENS) {
+                throw new IllegalArgumentException(
+                    "invalid local generation context limit");
+            }
+            if (threads < 1 || threads > MAX_THREADS) {
+                throw new IllegalArgumentException(
+                    "invalid local generation thread count");
+            }
+            if (Float.isNaN(temperature)
+                    || temperature < 0.0f
+                    || temperature > 2.0f) {
+                throw new IllegalArgumentException(
+                    "invalid local generation temperature");
+            }
+            this.maxTokens = maxTokens;
+            this.maxOutputChars = maxOutputChars;
+            this.contextTokens = contextTokens;
+            this.threads = threads;
+            this.temperature = temperature;
+            this.seed = seed;
+        }
+
+        public static GenerationConfig plannerDefaults() {
+            int threads = Math.max(
+                1,
+                Math.min(4, Runtime.getRuntime().availableProcessors()));
+            return new GenerationConfig(
+                1024,
+                MAX_OUTPUT_CHARS,
+                4096,
+                threads,
+                0.0f,
+                20261001L);
+        }
     }
 
     public static final class Session implements AutoCloseable {
@@ -58,6 +149,42 @@ public final class LlamaBridge {
             return value;
         }
 
+        public synchronized String generate(
+                String prompt,
+                GenerationConfig config) throws IOException {
+            ensureOpen();
+            if (prompt == null
+                    || prompt.isEmpty()
+                    || prompt.length() > MAX_PROMPT_CHARS) {
+                throw new IllegalArgumentException(
+                    "invalid local generation prompt");
+            }
+            if (config == null) {
+                throw new IllegalArgumentException(
+                    "local generation config missing");
+            }
+
+            byte[] raw = nativeGenerateBytes(
+                handle,
+                prompt,
+                config.maxTokens,
+                config.maxOutputChars,
+                config.contextTokens,
+                config.threads,
+                config.temperature,
+                config.seed);
+            if (raw == null) {
+                throw new IOException("local model returned no generation");
+            }
+
+            String output = new String(raw, StandardCharsets.UTF_8);
+            if (output.length() > config.maxOutputChars) {
+                throw new IOException(
+                    "local model decoded output exceeds limit");
+            }
+            return output;
+        }
+
         public synchronized boolean isOpen() {
             return handle != 0L;
         }
@@ -76,9 +203,28 @@ public final class LlamaBridge {
         }
     }
 
+    private static void requireNative() throws IOException {
+        if (!NATIVE_AVAILABLE) {
+            throw new IOException(
+                "local llama runtime is not packaged"
+                    + (NATIVE_LOAD_ERROR.isEmpty()
+                        ? ""
+                        : " (" + NATIVE_LOAD_ERROR + ")"));
+        }
+    }
+
     private static native String nativeVersion();
     private static native long nativeOpen(String modelPath);
     private static native String nativeDescription(long handle);
     private static native long nativeModelSizeBytes(long handle);
+    private static native byte[] nativeGenerateBytes(
+        long handle,
+        String prompt,
+        int maxTokens,
+        int maxOutputChars,
+        int contextTokens,
+        int threads,
+        float temperature,
+        long seed) throws IOException;
     private static native void nativeClose(long handle);
 }
