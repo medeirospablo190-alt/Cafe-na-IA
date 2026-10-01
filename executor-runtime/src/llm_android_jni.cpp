@@ -2,9 +2,12 @@
 
 #include <jni.h>
 
+#include <algorithm>
+#include <cstdint>
 #include <mutex>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 namespace {
 
@@ -34,6 +37,72 @@ std::string fromJString(JNIEnv* env, jstring value)
     if (chars)
         env->ReleaseStringUTFChars(value, chars);
     return out;
+}
+
+void throwIOException(JNIEnv* env, const char* message)
+{
+    jclass type = env->FindClass("java/io/IOException");
+    if (type)
+        env->ThrowNew(type, message);
+}
+
+bool setBatchTokens(
+    llama_batch_ext* batch,
+    const llama_token* tokens,
+    int32_t count,
+    llama_pos firstPosition,
+    bool outputLast
+)
+{
+    llama_batch_ext_clear(batch);
+    for (int32_t i = 0; i < count; ++i)
+    {
+        const int32_t index =
+            llama_batch_ext_add_token(batch, 0, tokens[i]);
+        if (index < 0)
+            return false;
+
+        const llama_pos position = firstPosition + i;
+        if (!llama_batch_ext_set_pos(batch, index, &position))
+            return false;
+    }
+
+    if (outputLast && count > 0)
+        llama_batch_ext_set_output_logits(batch, count - 1, true);
+    return true;
+}
+
+bool tokenPiece(
+    const llama_vocab* vocab,
+    llama_token token,
+    std::string& piece
+)
+{
+    std::vector<char> buffer(256);
+    int32_t size = llama_token_to_piece(
+        vocab,
+        token,
+        buffer.data(),
+        static_cast<int32_t>(buffer.size()),
+        0,
+        true);
+
+    if (size < 0)
+    {
+        buffer.resize(static_cast<size_t>(-size));
+        size = llama_token_to_piece(
+            vocab,
+            token,
+            buffer.data(),
+            static_cast<int32_t>(buffer.size()),
+            0,
+            true);
+    }
+    if (size < 0)
+        return false;
+
+    piece.assign(buffer.data(), static_cast<size_t>(size));
+    return true;
 }
 
 ModelSession* requireSession(jlong handle)
@@ -143,4 +212,227 @@ Java_com_cafeina_runtime_LlamaBridge_nativeClose(
     llama_model_free(session->model);
     session->model = nullptr;
     delete session;
+}
+
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeGenerate(
+    JNIEnv* env,
+    jclass,
+    jlong handle,
+    jstring promptValue,
+    jint maxTokens,
+    jint maxOutputChars,
+    jint contextTokens,
+    jint threads,
+    jfloat temperature,
+    jlong seed
+)
+{
+    ModelSession* session = requireSession(handle);
+    if (!session || !session->model)
+    {
+        throwIOException(env, "local model session is unavailable");
+        return nullptr;
+    }
+
+    const std::string prompt = fromJString(env, promptValue);
+    if (prompt.empty())
+    {
+        throwIOException(env, "local model prompt is empty");
+        return nullptr;
+    }
+    if (maxTokens < 1 || maxTokens > 2048
+            || maxOutputChars < 1 || maxOutputChars > 96 * 1024
+            || contextTokens < 256 || contextTokens > 8192
+            || threads < 1 || threads > 8
+            || temperature < 0.0f || temperature > 2.0f)
+    {
+        throwIOException(env, "invalid local generation limits");
+        return nullptr;
+    }
+    if (llama_model_has_encoder(session->model))
+    {
+        throwIOException(
+            env,
+            "encoder models are not supported by local planner generation");
+        return nullptr;
+    }
+
+    const llama_vocab* vocab = llama_model_get_vocab(session->model);
+    if (!vocab)
+    {
+        throwIOException(env, "local model vocabulary is unavailable");
+        return nullptr;
+    }
+
+    const int32_t required = -llama_tokenize(
+        vocab,
+        prompt.data(),
+        static_cast<int32_t>(prompt.size()),
+        nullptr,
+        0,
+        true,
+        true);
+    if (required <= 0)
+    {
+        throwIOException(env, "local model prompt tokenization failed");
+        return nullptr;
+    }
+
+    std::vector<llama_token> promptTokens(
+        static_cast<size_t>(required));
+    const int32_t tokenized = llama_tokenize(
+        vocab,
+        prompt.data(),
+        static_cast<int32_t>(prompt.size()),
+        promptTokens.data(),
+        static_cast<int32_t>(promptTokens.size()),
+        true,
+        true);
+    if (tokenized <= 0)
+    {
+        throwIOException(env, "local model prompt tokenization failed");
+        return nullptr;
+    }
+    promptTokens.resize(static_cast<size_t>(tokenized));
+
+    if (tokenized + maxTokens + 1 > contextTokens)
+    {
+        throwIOException(env, "local model prompt exceeds context budget");
+        return nullptr;
+    }
+
+    llama_context_params params = llama_context_default_params();
+    params.n_ctx = static_cast<uint32_t>(contextTokens);
+    params.n_batch = static_cast<uint32_t>(
+        std::min(contextTokens, 512));
+    params.n_ubatch = params.n_batch;
+    params.n_threads = threads;
+    params.n_threads_batch = threads;
+    params.no_perf = true;
+
+    llama_context* context =
+        llama_init_from_model(session->model, params);
+    if (!context)
+    {
+        throwIOException(env, "local model context could not be created");
+        return nullptr;
+    }
+
+    llama_batch_ext* batch = llama_batch_ext_init(context);
+    if (!batch)
+    {
+        llama_free(context);
+        throwIOException(env, "local model batch could not be created");
+        return nullptr;
+    }
+
+    llama_sampler* sampler = llama_sampler_chain_init(
+        llama_sampler_chain_default_params());
+    if (!sampler)
+    {
+        llama_batch_ext_free(batch);
+        llama_free(context);
+        throwIOException(env, "local model sampler could not be created");
+        return nullptr;
+    }
+
+    if (temperature <= 0.0f)
+    {
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_greedy());
+    }
+    else
+    {
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_temp(temperature));
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_dist(
+                static_cast<uint32_t>(seed)));
+    }
+
+    bool ok = true;
+    const int32_t batchSize =
+        static_cast<int32_t>(params.n_batch);
+    for (int32_t offset = 0;
+            offset < tokenized && ok;
+            offset += batchSize)
+    {
+        const int32_t count =
+            std::min(batchSize, tokenized - offset);
+        const bool lastChunk = offset + count == tokenized;
+        ok = setBatchTokens(
+            batch,
+            promptTokens.data() + offset,
+            count,
+            offset,
+            lastChunk);
+        if (ok)
+            ok = llama_process(
+                context,
+                LLAMA_PROCESS_TYPE_DECODE,
+                batch) == 0;
+    }
+
+    std::string output;
+    output.reserve(
+        static_cast<size_t>(
+            std::min(maxOutputChars, maxTokens * 8)));
+
+    llama_pos position = tokenized;
+    for (int32_t generated = 0;
+            ok && generated < maxTokens;
+            ++generated)
+    {
+        const llama_token token =
+            llama_sampler_sample(sampler, context, -1);
+        if (llama_vocab_is_eog(vocab, token))
+            break;
+
+        std::string piece;
+        if (!tokenPiece(vocab, token, piece))
+        {
+            ok = false;
+            break;
+        }
+        if (output.size() + piece.size()
+                > static_cast<size_t>(maxOutputChars))
+            break;
+        output += piece;
+
+        if (!setBatchTokens(
+                batch,
+                &token,
+                1,
+                position,
+                true))
+        {
+            ok = false;
+            break;
+        }
+        if (llama_process(
+                context,
+                LLAMA_PROCESS_TYPE_DECODE,
+                batch) != 0)
+        {
+            ok = false;
+            break;
+        }
+        ++position;
+    }
+
+    llama_sampler_free(sampler);
+    llama_batch_ext_free(batch);
+    llama_free(context);
+
+    if (!ok)
+    {
+        throwIOException(env, "local model generation failed");
+        return nullptr;
+    }
+    return env->NewStringUTF(output.c_str());
 }
