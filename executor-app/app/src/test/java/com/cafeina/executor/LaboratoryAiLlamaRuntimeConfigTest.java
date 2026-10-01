@@ -13,12 +13,13 @@ public final class LaboratoryAiLlamaRuntimeConfigTest {
         LaboratoryAiLlamaCppBackend.RuntimeConfig planner =
             LaboratoryAiLlamaCppBackend.RuntimeConfig.plannerDefaults();
 
-        assertEquals(128, smoke.maxTokens);
-        assertEquals(2048, smoke.contextTokens);
-        assertEquals(30_000L, smoke.maxGenerationMs);
+        assertEquals(32, smoke.maxTokens);
+        assertEquals(1024, smoke.contextTokens);
+        assertEquals(90_000L, smoke.maxGenerationMs);
 
         assertTrue(smoke.maxTokens < planner.maxTokens);
         assertTrue(smoke.contextTokens < planner.contextTokens);
+        assertEquals(120_000L, planner.maxGenerationMs);
         assertTrue(smoke.maxGenerationMs < planner.maxGenerationMs);
         assertTrue(smoke.threads >= 1);
         assertTrue(smoke.threads <= 4);
