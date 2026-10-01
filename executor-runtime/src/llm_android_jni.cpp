@@ -269,8 +269,12 @@ Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration(
     jlong handle
 )
 {
-    ModelSession* session = requireSession(handle);
-    if (session)
+    if (handle == 0)
+        return;
+
+    auto* session = reinterpret_cast<ModelSession*>(handle);
+    std::lock_guard<std::mutex> guard(sessionsMutex);
+    if (sessions.count(session) == 1)
         session->cancelRequested.store(true);
 }
 
@@ -316,8 +320,22 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     jlong maxGenerationMs
 )
 {
-    ModelSession* session = requireSession(handle);
-    if (!session || !session->model)
+    ModelSession* session = nullptr;
+    {
+        std::lock_guard<std::mutex> guard(sessionsMutex);
+        if (handle != 0)
+        {
+            auto* candidate = reinterpret_cast<ModelSession*>(handle);
+            if (sessions.count(candidate) == 1 && candidate->model)
+            {
+                session = candidate;
+                session->cancelRequested.store(false);
+                session->timedOut.store(false);
+                session->deadlineNanos.store(0);
+            }
+        }
+    }
+    if (!session)
     {
         throwIOException(env, "local model session is unavailable");
         return nullptr;
@@ -405,8 +423,6 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.n_threads = threads;
     params.n_threads_batch = threads;
     params.no_perf = true;
-    session->cancelRequested.store(false);
-    session->timedOut.store(false);
     session->deadlineNanos.store(
         monotonicNanos()
             + static_cast<int64_t>(maxGenerationMs) * 1'000'000LL);
