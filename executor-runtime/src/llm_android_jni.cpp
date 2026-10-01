@@ -267,6 +267,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     jint maxOutputChars,
     jint contextTokens,
     jint threads,
+    jint topK,
+    jfloat topP,
     jfloat temperature,
     jlong seed
 )
@@ -288,6 +290,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             || maxOutputChars < 1 || maxOutputChars > 96 * 1024
             || contextTokens < 256 || contextTokens > 8192
             || threads < 1 || threads > 8
+            || topK < 0 || topK > 200
+            || topP <= 0.0f || topP > 1.0f
             || temperature < 0.0f || temperature > 2.0f)
     {
         throwIOException(env, "invalid local generation limits");
@@ -391,6 +395,18 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     }
     else
     {
+        if (topK > 0)
+        {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_top_k(topK));
+        }
+        if (topP < 1.0f)
+        {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_top_p(topP, 1));
+        }
         llama_sampler_chain_add(
             sampler,
             llama_sampler_init_temp(temperature));
