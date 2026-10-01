@@ -409,3 +409,17 @@ host/usuário.
 - A nova Activity é privada (`exported=false`) e o teste Android de Goal Lock verifica essa fronteira.
 
 **Fluxo móvel esperado:** selecionar/importar GGUF → abrir planejador → criar Goal Lock → voltar ao planejador → gerar plano sem executar → revisar plano → preparar Testadora → confirmar execução separadamente.
+
+
+## Ferramenta inicial para projeto vazio
+
+- Um projeto novo pode não possuir nenhuma ferramenta STABLE; nesse estado, o Goal Lock não deve inventar uma permissão nem contornar o lifecycle.
+- `LaboratoryInitialDiagnosticTool` define `diagnostic-roundtrip @ 1.0.0`, um artefato Luau mínimo (`return tool_input`) com capacidades `luau-isolated-no-files`, `diagnostics` e `text-roundtrip`.
+- A preparação cria o descriptor EXPERIMENTAL, snapshot imutável, binding verificado e evidência determinística do hash do artefato; em seguida qualifica a versão como CANDIDATE.
+- A preparação é idempotente e para obrigatoriamente em CANDIDATE. Ela não possui caminho para se promover, aprovar ou se conceder à IA.
+- `PERMISSÕES DA IA` mostra `PREPARAR DIAGNÓSTICO INICIAL` quando não existe STABLE. Depois da preparação, mostra `REVISAR PROMOÇÃO PARA STABLE`, que abre o gate humano existente.
+- Após a promoção STABLE ser explicitamente autorizada e aplicada, a ferramenta aparece na tela normal de permissões ainda como `BLOQUEADA PARA IA`. O usuário precisa executar a autorização separada `LIBERAR ESTA STABLE PARA A IA`.
+- Ao voltar das aprovações, a tela de permissões relê o estado em `onResume()`, evitando exigir fechar e abrir a tela para enxergar a nova STABLE.
+- Teste Android cobre: projeto vazio → CANDIDATE → ainda sem STABLE → aprovação humana → STABLE ainda negada para IA → grant explícito → execução isolada round-trip.
+
+**Fronteira:** bootstrap prepara uma candidata auditável; somente a decisão humana cria STABLE e somente uma segunda decisão humana libera o uso pela IA.
