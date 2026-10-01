@@ -215,8 +215,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeClose(
 }
 
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_cafeina_runtime_LlamaBridge_nativeGenerate(
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     JNIEnv* env,
     jclass,
     jlong handle,
@@ -434,5 +434,17 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerate(
         throwIOException(env, "local model generation failed");
         return nullptr;
     }
-    return env->NewStringUTF(output.c_str());
+    jbyteArray bytes = env->NewByteArray(
+        static_cast<jsize>(output.size()));
+    if (!bytes)
+        return nullptr;
+    if (!output.empty())
+    {
+        env->SetByteArrayRegion(
+            bytes,
+            0,
+            static_cast<jsize>(output.size()),
+            reinterpret_cast<const jbyte*>(output.data()));
+    }
+    return bytes;
 }
