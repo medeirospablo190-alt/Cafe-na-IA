@@ -36,6 +36,9 @@ public final class LaboratoryAiReviewContractStore {
         public final String proposalId;
         public final String proposalKeySha256;
         public final String targetRole;
+        public final String routingEventId;
+        public final int routingSequence;
+        public final String routingRecordSha256;
         public final String sourceRecommendationCode;
         public final String suggestedActionCode;
         public final long createdAtEpochMs;
@@ -44,6 +47,8 @@ public final class LaboratoryAiReviewContractStore {
 
         private Contract(String reviewContractId, String proposalId,
                 String proposalKeySha256, String targetRole,
+                String routingEventId, int routingSequence,
+                String routingRecordSha256,
                 String sourceRecommendationCode, String suggestedActionCode,
                 long createdAtEpochMs, String contractSha256,
                 boolean claimed) {
@@ -51,6 +56,9 @@ public final class LaboratoryAiReviewContractStore {
             this.proposalId = proposalId;
             this.proposalKeySha256 = proposalKeySha256;
             this.targetRole = targetRole;
+            this.routingEventId = routingEventId;
+            this.routingSequence = routingSequence;
+            this.routingRecordSha256 = routingRecordSha256;
             this.sourceRecommendationCode = sourceRecommendationCode;
             this.suggestedActionCode = suggestedActionCode;
             this.createdAtEpochMs = createdAtEpochMs;
@@ -111,6 +119,20 @@ public final class LaboratoryAiReviewContractStore {
             LaboratoryAiImprovementProposalStore.Proposal proposal =
                 new LaboratoryAiImprovementProposalStore(
                     appFilesDirectory, projectId).read(proposalId);
+            List<LaboratoryAiImprovementDecisionStore.Event> decisionHistory =
+                new LaboratoryAiImprovementDecisionStore(
+                    appFilesDirectory, projectId).history(proposalId);
+            if (decisionHistory.isEmpty()) {
+                throw new IOException("AI review routing event is missing");
+            }
+            LaboratoryAiImprovementDecisionStore.Event routing =
+                decisionHistory.get(decisionHistory.size() - 1);
+            if (!LaboratoryAiImprovementDecisionStore.ACTION_ROUTE.equals(
+                    routing.action)
+                    || !LaboratoryAiImprovementDecisionStore.STATE_ROUTED.equals(
+                        routing.newState)) {
+                throw new IOException("AI review routing event is not active");
+            }
 
             ensureRoot();
             if (countContracts() >= MAX_CONTRACTS) {
@@ -124,6 +146,9 @@ public final class LaboratoryAiReviewContractStore {
                 proposal.proposalId,
                 proposal.proposalKeySha256,
                 item.targetRole,
+                routing.eventId,
+                routing.sequence,
+                routing.recordSha256,
                 item.sourceRecommendationCode,
                 item.suggestedActionCode,
                 created);
@@ -139,6 +164,9 @@ public final class LaboratoryAiReviewContractStore {
                 json.put("proposalId", proposal.proposalId);
                 json.put("proposalKeySha256", proposal.proposalKeySha256);
                 json.put("targetRole", item.targetRole);
+                json.put("routingEventId", routing.eventId);
+                json.put("routingSequence", routing.sequence);
+                json.put("routingRecordSha256", routing.recordSha256);
                 json.put("sourceRecommendationCode",
                     item.sourceRecommendationCode);
                 json.put("suggestedActionCode", item.suggestedActionCode);
@@ -168,6 +196,9 @@ public final class LaboratoryAiReviewContractStore {
             String proposalId = json.getString("proposalId");
             String proposalKey = json.getString("proposalKeySha256");
             String targetRole = json.getString("targetRole");
+            String routingEventId = json.getString("routingEventId");
+            int routingSequence = json.getInt("routingSequence");
+            String routingRecordSha256 = json.getString("routingRecordSha256");
             String recommendation = json.getString("sourceRecommendationCode");
             String action = json.getString("suggestedActionCode");
             long created = json.getLong("createdAtEpochMs");
@@ -176,6 +207,13 @@ public final class LaboratoryAiReviewContractStore {
             validateUuid(id);
             validateUuid(proposalId);
             validateRole(targetRole);
+            validateUuid(routingEventId);
+            if (routingSequence < 1
+                    || routingSequence
+                        > LaboratoryAiImprovementDecisionStore.MAX_EVENTS_PER_PROPOSAL
+                    || !validSha(routingRecordSha256)) {
+                throw new IOException("invalid AI review routing event binding");
+            }
             validateCode(recommendation);
             validateCode(action);
 
@@ -185,8 +223,24 @@ public final class LaboratoryAiReviewContractStore {
 
             String expected = contractSha(
                 id, proposalId, proposalKey, targetRole,
+                routingEventId, routingSequence, routingRecordSha256,
                 recommendation, action, created);
+            List<LaboratoryAiImprovementDecisionStore.Event> history =
+                new LaboratoryAiImprovementDecisionStore(
+                    appFilesDirectory, projectId).history(proposalId);
+            if (routingSequence > history.size()) {
+                throw new IOException("AI review routing event no longer exists");
+            }
+            LaboratoryAiImprovementDecisionStore.Event boundRouting =
+                history.get(routingSequence - 1);
+
             if (!reviewContractId.equals(id)
+                    || !routingEventId.equals(boundRouting.eventId)
+                    || !routingRecordSha256.equals(boundRouting.recordSha256)
+                    || !LaboratoryAiImprovementDecisionStore.ACTION_ROUTE.equals(
+                        boundRouting.action)
+                    || !LaboratoryAiImprovementDecisionStore.STATE_ROUTED.equals(
+                        boundRouting.newState)
                     || !validSha(proposalKey)
                     || !proposal.proposalKeySha256.equals(proposalKey)
                     || !proposal.targetRole.equals(targetRole)
@@ -200,6 +254,7 @@ public final class LaboratoryAiReviewContractStore {
 
             return new Contract(
                 id, proposalId, proposalKey, targetRole,
+                routingEventId, routingSequence, routingRecordSha256,
                 recommendation, action, created, stored,
                 Files.exists(directory.resolve("claim.json"),
                     LinkOption.NOFOLLOW_LINKS));
@@ -218,11 +273,16 @@ public final class LaboratoryAiReviewContractStore {
                 new LaboratoryAiReviewInbox(
                     appFilesDirectory, projectId).readRouted(
                         contract.proposalId);
+            LaboratoryAiImprovementDecisionStore.Event activeRouting =
+                requireSameActiveRouting(contract);
             if (!contract.proposalKeySha256.equals(
                         new LaboratoryAiImprovementProposalStore(
                             appFilesDirectory, projectId)
                             .read(contract.proposalId).proposalKeySha256)
-                    || !contract.targetRole.equals(current.targetRole)) {
+                    || !contract.targetRole.equals(current.targetRole)
+                    || !contract.routingEventId.equals(activeRouting.eventId)
+                    || !contract.routingRecordSha256.equals(
+                        activeRouting.recordSha256)) {
                 throw new IOException("AI review authorization changed");
             }
 
@@ -326,7 +386,12 @@ public final class LaboratoryAiReviewContractStore {
             new LaboratoryAiReviewInbox(
                 appFilesDirectory, projectId).readRouted(
                     contract.proposalId);
+        LaboratoryAiImprovementDecisionStore.Event activeRouting =
+            requireSameActiveRouting(contract);
         if (!contract.targetRole.equals(current.targetRole)
+                || !contract.routingEventId.equals(activeRouting.eventId)
+                || !contract.routingRecordSha256.equals(
+                    activeRouting.recordSha256)
                 || !contract.proposalKeySha256.equals(
                     new LaboratoryAiImprovementProposalStore(
                         appFilesDirectory, projectId)
@@ -334,6 +399,27 @@ public final class LaboratoryAiReviewContractStore {
             throw new IOException("AI review authorization is no longer active");
         }
         return claim;
+    }
+
+    private LaboratoryAiImprovementDecisionStore.Event
+            requireSameActiveRouting(Contract contract) throws IOException {
+        List<LaboratoryAiImprovementDecisionStore.Event> history =
+            new LaboratoryAiImprovementDecisionStore(
+                appFilesDirectory, projectId).history(contract.proposalId);
+        if (history.isEmpty()) {
+            throw new IOException("AI review routing is no longer active");
+        }
+        LaboratoryAiImprovementDecisionStore.Event last =
+            history.get(history.size() - 1);
+        if (!LaboratoryAiImprovementDecisionStore.ACTION_ROUTE.equals(last.action)
+                || !LaboratoryAiImprovementDecisionStore.STATE_ROUTED.equals(
+                    last.newState)
+                || !contract.routingEventId.equals(last.eventId)
+                || contract.routingSequence != last.sequence
+                || !contract.routingRecordSha256.equals(last.recordSha256)) {
+            throw new IOException("AI review routing is no longer the authorized event");
+        }
+        return last;
     }
 
     public List<Contract> list() throws IOException {
@@ -446,12 +532,17 @@ public final class LaboratoryAiReviewContractStore {
     private static String contractSha(
             String reviewContractId, String proposalId,
             String proposalKey, String targetRole,
+            String routingEventId, int routingSequence,
+            String routingRecordSha256,
             String recommendation, String action, long created) {
         StringBuilder canonical = new StringBuilder();
         field(canonical, reviewContractId);
         field(canonical, proposalId);
         field(canonical, proposalKey);
         field(canonical, targetRole);
+        field(canonical, routingEventId);
+        field(canonical, Integer.toString(routingSequence));
+        field(canonical, routingRecordSha256);
         field(canonical, recommendation);
         field(canonical, action);
         field(canonical, Long.toString(created));
