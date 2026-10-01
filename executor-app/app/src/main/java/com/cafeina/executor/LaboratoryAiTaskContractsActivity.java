@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -20,7 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Private read-only viewer for immutable AI task contracts.
+ * Private viewer for immutable AI task contracts plus the host-owned entry
+ * point that creates a new Goal Lock through the controlled creation screen.
  */
 public final class LaboratoryAiTaskContractsActivity extends Activity {
     private static final int BG = Color.rgb(12, 13, 16);
@@ -55,9 +57,18 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
         root.addView(title, matchWrap());
 
         root.addView(text(
-            "Somente leitura. Cada contrato trava objetivo, modo, ferramentas "
-                + "e orçamento antes da sessão. Reivindicar um contrato é de uso único.",
+            "Cada contrato trava objetivo, modo, ferramentas e orçamento antes "
+                + "da sessão. Contratos existentes são somente leitura e cada "
+                + "reivindicação é de uso único.",
             14, MUTED, false), matchWrap());
+
+        Button create = button("CRIAR NOVO GOAL LOCK");
+        create.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiGoalLockCreateActivity.class)));
+        LinearLayout.LayoutParams createParams = matchWrap();
+        createParams.setMargins(0, dp(10), 0, 0);
+        root.addView(create, createParams);
 
         feedback = text("Carregando contratos…", 14, MUTED, false);
         feedback.setPadding(0, dp(12), 0, dp(8));
