@@ -2,6 +2,8 @@ package com.cafeina.executor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,9 +47,11 @@ public final class LaboratoryAiLocalModelCatalog {
         if (!directory.exists()) {
             return Collections.emptyList();
         }
-        if (!directory.isDirectory()) {
+        if (!Files.isDirectory(
+                directory.toPath(), LinkOption.NOFOLLOW_LINKS)
+                || Files.isSymbolicLink(directory.toPath())) {
             throw new IOException(
-                "local model catalog path is not a directory");
+                "local model catalog path is missing or unsafe");
         }
 
         File[] candidates = directory.listFiles(
