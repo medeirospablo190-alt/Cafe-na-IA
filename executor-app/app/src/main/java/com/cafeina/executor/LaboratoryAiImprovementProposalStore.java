@@ -92,7 +92,9 @@ public final class LaboratoryAiImprovementProposalStore {
         }
         validateCode(recommendationCode);
         validateCode(suggestedActionCode);
-        validateRole(targetRole);
+        if (!validRole(targetRole)) {
+            throw new IllegalArgumentException("invalid proposal target role");
+        }
         ensureRoot();
 
         String key = proposalKey(
