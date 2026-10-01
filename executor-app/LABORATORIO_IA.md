@@ -381,3 +381,17 @@ host/usuário.
 - Testes Android verificam Activity privada, lifecycle PENDING → ROUTED → PENDING → DISMISSED → PENDING, sequência append-only, transições inválidas bloqueadas, destino de revisão preso à proposta, adulteração rejeitada e ausência de qualquer sessão criada pela decisão.
 
 **Fronteira de segurança:** decidir o destino de uma proposta continua sendo workflow, não execução. Uma etapa futura poderá criar a caixa de entrada da IA Revisora, mas deverá consumir somente propostas explicitamente marcadas como `ROUTED_FOR_REVIEW`.
+
+
+## Caixa de revisão da equipe de IAs
+
+- `LaboratoryAiReviewInbox` é uma visão derivada, somente leitura, das propostas que o usuário marcou como `ROUTED_FOR_REVIEW`.
+- A caixa não mantém um segundo estado de workflow. Ela relê a proposta e o ledger append-only de decisões; por isso `REOPEN` ou `DISMISS` remove o item imediatamente sem sincronização paralela.
+- É possível consultar todas as propostas roteadas ou filtrar por papel de destino (`REVIEWER`, `TESTER`, `ORCHESTRATOR`, `DIAGNOSTIC` etc.).
+- Cada item expõe somente metadados sanitizados da proposta: IA afetada, recomendação de origem, ação sugerida, papel de destino, tendência e contadores agregados.
+- A caixa não cria sessão, não recebe `AiHandle`/`HostHandle`, não executa ferramenta e não altera a proposta.
+- `LaboratoryAiReviewInboxActivity` é privada e somente leitura. Agrupa os itens pelo papel de destino e deixa explícito que estar na caixa significa **autorizado para análise**, não autorizado para aplicação.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `CAIXA DE REVISÃO DAS IAS`.
+- Testes Android verificam Activity privada, proposta PENDING ausente, ROUTED presente no papel correto, REOPEN removendo, novo ROUTE recolocando, DISMISS removendo e ausência de qualquer sessão/execução criada pelo roteamento.
+
+**Próxima fronteira:** uma futura IA Revisora poderá receber somente itens desta caixa. Antes disso, ainda será necessário definir um contrato de revisão separado e de uso único, para que analisar uma proposta não dê poder para aplicá-la.
