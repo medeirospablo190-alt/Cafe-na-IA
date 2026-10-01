@@ -65,6 +65,15 @@ if(ANDROID)
                 android
                 log
         )
+
+        add_library(cafeina_llama_jni SHARED src/llm_android_jni.cpp)
+        target_link_libraries(
+            cafeina_llama_jni
+            PRIVATE
+                llama
+                android
+                log
+        )
     endif()
 else()
     add_executable(cafeina_luau_cli src/main.cpp)
