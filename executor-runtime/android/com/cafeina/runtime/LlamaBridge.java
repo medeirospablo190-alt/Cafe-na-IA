@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
  */
 public final class LlamaBridge {
     public static final int MAX_PROMPT_CHARS = 128 * 1024;
+    public static final int MAX_PROMPT_UTF8_BYTES = 128 * 1024;
     public static final int MAX_OUTPUT_CHARS = 96 * 1024;
     public static final int MAX_GENERATED_TOKENS = 2048;
     public static final int MAX_CONTEXT_TOKENS = 8192;
@@ -191,9 +192,15 @@ public final class LlamaBridge {
                     "local generation config missing");
             }
 
+            byte[] promptUtf8 = prompt.getBytes(StandardCharsets.UTF_8);
+            if (promptUtf8.length > MAX_PROMPT_UTF8_BYTES) {
+                throw new IllegalArgumentException(
+                    "local generation prompt exceeds UTF-8 byte limit");
+            }
+
             byte[] raw = nativeGenerateBytes(
                 handle,
-                prompt,
+                promptUtf8,
                 config.maxTokens,
                 config.maxOutputChars,
                 config.contextTokens,
@@ -256,7 +263,7 @@ public final class LlamaBridge {
     private static native long nativeModelSizeBytes(long handle);
     private static native byte[] nativeGenerateBytes(
         long handle,
-        String prompt,
+        byte[] promptUtf8,
         int maxTokens,
         int maxOutputChars,
         int contextTokens,
