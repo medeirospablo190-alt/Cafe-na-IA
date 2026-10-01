@@ -75,11 +75,6 @@ public final class LaboratoryAiLocalModelAdmission {
 
         Path candidate = modelFile.toPath()
             .toAbsolutePath().normalize();
-        if (candidate.getParent() == null
-                || !candidate.getParent().equals(modelsRoot)) {
-            throw new IOException(
-                "local model is outside the app-private model directory");
-        }
         if (!Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS)
                 || Files.isSymbolicLink(candidate)) {
             throw new IOException(
