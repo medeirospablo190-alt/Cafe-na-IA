@@ -39,7 +39,9 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
     private LinearLayout entries;
     private LaboratoryToolRegistry registry;
     private LaboratoryAiPermissionStore permissions;
+    private String projectId;
     private String pendingToolId;
+    private volatile boolean bootstrapBusy;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -55,7 +57,7 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
         root.setBackgroundColor(BG);
         setContentView(root);
 
-        Button back = button("← VOLTAR AOS RELATÓRIOS");
+        Button back = button("← VOLTAR");
         back.setOnClickListener(v -> finish());
         root.addView(back, matchWrap());
 
@@ -79,14 +81,21 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
+        projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         try {
             registry = new LaboratoryToolRegistry(getFilesDir(), projectId);
             permissions = new LaboratoryAiPermissionStore(getFilesDir(), projectId);
-            refresh();
         } catch (Exception error) {
             feedback.setText("Não foi possível abrir permissões: " + error.getMessage());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (registry != null && permissions != null && !bootstrapBusy) {
+            refresh();
         }
     }
 
@@ -111,7 +120,10 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
                     seen.add(descriptor.toolId);
                     active.add(stable);
                 }
-                runOnUiThread(() -> render(active));
+                LaboratoryInitialDiagnosticTool.State bootstrapState =
+                    LaboratoryInitialDiagnosticTool.state(
+                        getFilesDir(), projectId);
+                runOnUiThread(() -> render(active, bootstrapState));
             } catch (Exception error) {
                 runOnUiThread(() -> {
                     if (alive()) feedback.setText(
@@ -121,15 +133,73 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
         });
     }
 
-    private void render(List<LaboratoryToolRegistry.Descriptor> active) {
+    private void render(
+            List<LaboratoryToolRegistry.Descriptor> active,
+            LaboratoryInitialDiagnosticTool.State bootstrapState) {
         if (!alive()) return;
         entries.removeAllViews();
         feedback.setText(active.size() + " ferramenta(s) STABLE ativa(s)");
 
         if (active.isEmpty()) {
-            entries.addView(text(
-                "Nenhuma ferramenta STABLE está disponível neste projeto.",
-                14, MUTED, false), matchWrap());
+            LinearLayout onboarding = new LinearLayout(this);
+            onboarding.setOrientation(LinearLayout.VERTICAL);
+            onboarding.setPadding(dp(12), dp(10), dp(12), dp(10));
+            onboarding.setBackgroundTintList(ColorStateList.valueOf(PANEL));
+
+            if (bootstrapState == LaboratoryInitialDiagnosticTool.State.MISSING
+                    || bootstrapState
+                        == LaboratoryInitialDiagnosticTool.State.EXPERIMENTAL) {
+                onboarding.addView(text(
+                    "Este projeto ainda não possui uma ferramenta STABLE. "
+                        + "Prepare o diagnóstico inicial para criar, verificar "
+                        + "e congelar uma ferramenta mínima como CANDIDATE. "
+                        + "Ela ainda NÃO será STABLE e NÃO será liberada para a IA.",
+                    14, MUTED, false), matchWrap());
+
+                Button prepare = button(
+                    bootstrapBusy
+                        ? "PREPARANDO DIAGNÓSTICO…"
+                        : "PREPARAR DIAGNÓSTICO INICIAL");
+                prepare.setEnabled(!bootstrapBusy);
+                prepare.setOnClickListener(v ->
+                    prepareInitialDiagnostic());
+                LinearLayout.LayoutParams params = matchWrap();
+                params.setMargins(0, dp(10), 0, 0);
+                onboarding.addView(prepare, params);
+            } else if (bootstrapState
+                    == LaboratoryInitialDiagnosticTool.State.CANDIDATE) {
+                onboarding.addView(text(
+                    "diagnostic-roundtrip @ 1.0.0 está CANDIDATE. "
+                        + "O artefato já foi verificado, mas somente você pode "
+                        + "autorizar a promoção para STABLE.",
+                    14, FG, true), matchWrap());
+
+                Button approve = button(
+                    "REVISAR PROMOÇÃO PARA STABLE");
+                approve.setOnClickListener(v ->
+                    startActivity(new Intent(
+                        this, LaboratoryApprovalActivity.class)));
+                LinearLayout.LayoutParams params = matchWrap();
+                params.setMargins(0, dp(10), 0, 0);
+                onboarding.addView(approve, params);
+            } else {
+                onboarding.addView(text(
+                    "A ferramenta inicial já passou por STABLE, mas não foi "
+                        + "possível resolver uma seleção STABLE ativa. "
+                        + "Revise APROVAÇÕES HUMANAS antes de continuar.",
+                    14, MUTED, false), matchWrap());
+
+                Button approvals = button(
+                    "ABRIR APROVAÇÕES HUMANAS");
+                approvals.setOnClickListener(v ->
+                    startActivity(new Intent(
+                        this, LaboratoryApprovalActivity.class)));
+                LinearLayout.LayoutParams params = matchWrap();
+                params.setMargins(0, dp(10), 0, 0);
+                onboarding.addView(approvals, params);
+            }
+
+            entries.addView(onboarding, matchWrap());
             return;
         }
 
@@ -188,6 +258,41 @@ public final class LaboratoryAiPermissionsActivity extends Activity {
             params.setMargins(0, dp(8), 0, 0);
             entries.addView(card, params);
         }
+    }
+
+    private void prepareInitialDiagnostic() {
+        if (bootstrapBusy) return;
+        bootstrapBusy = true;
+        feedback.setText(
+            "Criando snapshot, verificando artefato e preparando CANDIDATE…");
+        entries.removeAllViews();
+
+        io.execute(() -> {
+            try {
+                LaboratoryInitialDiagnosticTool.State state =
+                    LaboratoryInitialDiagnosticTool.prepareCandidate(
+                        this, projectId);
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    bootstrapBusy = false;
+                    feedback.setText(
+                        state
+                            == LaboratoryInitialDiagnosticTool.State.CANDIDATE
+                            ? "Diagnóstico inicial verificado • CANDIDATE pronto para sua aprovação"
+                            : "Diagnóstico inicial já estava " + state.name());
+                    refresh();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    bootstrapBusy = false;
+                    feedback.setText(
+                        "Diagnóstico inicial não foi preparado: "
+                            + String.valueOf(error.getMessage()));
+                    refresh();
+                });
+            }
+        });
     }
 
     private void confirmGrant(LaboratoryToolRegistry.Descriptor descriptor) {
