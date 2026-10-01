@@ -990,18 +990,24 @@ public final class MainActivity extends Activity {
                                 + "\nCarga: " + loadMs + " ms"
                                 + "\nGeração: " + generationMs + " ms"
                                 + "\nTotal do teste: " + totalMs + " ms"
-                                + "\nPerfil smoke: 128 tokens • contexto 2048 • timeout 30 s"
+                                + "\nPerfil smoke: 32 tokens • contexto 1024 • timeout 90 s"
                                 + "\n\nSaída diagnóstica:\n"
                                 + output)
                         .setPositiveButton("OK", null)
                         .show();
                 });
             } catch (Exception error) {
+                final long failedAfterMs = Math.max(
+                    0L,
+                    android.os.SystemClock.elapsedRealtime()
+                        - totalStartedMs);
                 runOnUiThread(() -> {
                     if (!activityAlive()) return;
                     localModelRuntimeInProgress = false;
                     localModelMessage =
-                        "Teste local falhou: "
+                        "Teste local falhou após "
+                            + failedAfterMs
+                            + " ms: "
                             + String.valueOf(error.getMessage());
                     if (localModelStatus != null) {
                         localModelStatus.setText(localModelMessage);
@@ -1013,7 +1019,11 @@ public final class MainActivity extends Activity {
                     new AlertDialog.Builder(this)
                         .setTitle("Modelo local não testado")
                         .setMessage(
-                            "Nenhuma ferramenta ou plano foi executado. "
+                            "Nenhuma ferramenta ou plano foi executado."
+                                + "\nTempo até a falha: "
+                                + failedAfterMs + " ms"
+                                + "\nPerfil: 32 tokens • contexto 1024 • timeout 90 s"
+                                + "\n\n"
                                 + String.valueOf(error.getMessage()))
                         .setPositiveButton("OK", null)
                         .show();
