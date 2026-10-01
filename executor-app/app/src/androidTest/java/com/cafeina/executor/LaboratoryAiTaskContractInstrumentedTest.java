@@ -47,7 +47,10 @@ public final class LaboratoryAiTaskContractInstrumentedTest {
 
         ActivityInfo info = app.getPackageManager().getActivityInfo(
             new ComponentName(app, LaboratoryAiTaskContractsActivity.class), 0);
-        assertFalse("Goal Lock Activity must remain private", info.exported);
+        assertFalse("Goal Lock viewer Activity must remain private", info.exported);
+        ActivityInfo createInfo = app.getPackageManager().getActivityInfo(
+            new ComponentName(app, LaboratoryAiGoalLockCreateActivity.class), 0);
+        assertFalse("Goal Lock create Activity must remain private", createInfo.exported);
 
         String exactGoal =
             "  Criar exatamente o resultado pedido.\n"
