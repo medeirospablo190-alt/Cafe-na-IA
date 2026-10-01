@@ -66,6 +66,19 @@ public final class LaboratoryAiLlamaCppBackend
             this.maxGenerationMs = maxGenerationMs;
         }
 
+        public static RuntimeConfig smokeTestDefaults() {
+            int threads = Math.max(
+                1,
+                Math.min(4, Runtime.getRuntime().availableProcessors()));
+            return new RuntimeConfig(
+                128,
+                2048,
+                threads,
+                20,
+                0.8f,
+                30_000L);
+        }
+
         public static RuntimeConfig plannerDefaults() {
             int threads = Math.max(
                 1,
