@@ -143,7 +143,7 @@ public final class LlamaBridge {
     }
 
     public static final class Session implements AutoCloseable {
-        private long handle;
+        private volatile long handle;
 
         private Session(long handle) {
             this.handle = handle;
@@ -205,6 +205,13 @@ public final class LlamaBridge {
             return output;
         }
 
+        public void cancelGeneration() {
+            long current = handle;
+            if (current != 0L) {
+                nativeCancelGeneration(current);
+            }
+        }
+
         public synchronized boolean isOpen() {
             return handle != 0L;
         }
@@ -248,5 +255,6 @@ public final class LlamaBridge {
         float topP,
         float temperature,
         long seed) throws IOException;
+    private static native void nativeCancelGeneration(long handle);
     private static native void nativeClose(long handle);
 }
