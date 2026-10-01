@@ -634,6 +634,7 @@ public final class MainActivity extends Activity {
             localModelImportButton.setEnabled(false);
         }
         setControlsEnabled(false);
+        status.setText("Importando modelo local…");
 
         ioExecutor.submit(() -> {
             try {
@@ -665,6 +666,7 @@ public final class MainActivity extends Activity {
                         localModelImportButton.setEnabled(true);
                     }
                     setControlsEnabled(true);
+                    status.setText(localModelMessage);
                     refreshAutoExecButton();
 
                     new AlertDialog.Builder(this)
@@ -695,6 +697,7 @@ public final class MainActivity extends Activity {
                         localModelImportButton.setEnabled(true);
                     }
                     setControlsEnabled(true);
+                    status.setText("Falha ao importar modelo local");
                     refreshAutoExecButton();
                     new AlertDialog.Builder(this)
                         .setTitle("Modelo não importado")
