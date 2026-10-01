@@ -51,7 +51,11 @@ jobs:
       - name: Build ARM64 APK with local LLM probe enabled
         working-directory: executor-app
         run: |
-          gradle             -PcafeinaArm64Only=true             -PcafeinaLocalLlm=true             :app:assembleDebug             --stacktrace
+          gradle \
+            -PcafeinaArm64Only=true \
+            -PcafeinaLocalLlm=true \
+            :app:assembleDebug \
+            --stacktrace
 
       - name: Verify llama.cpp probe is packaged
         working-directory: executor-app
@@ -60,6 +64,7 @@ jobs:
           APK="$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)"
           test -s "$APK"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llm_probe.so"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llama_jni.so"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
           if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
             echo "Unexpected non-ARM64 library in local LLM probe APK"
