@@ -102,7 +102,7 @@ public final class LaboratoryAiLlamaCppBackend
         return open(admitted, config);
     }
 
-    public static LaboratoryAiLlamaCppBackend open(
+    static LaboratoryAiLlamaCppBackend open(
             LaboratoryAiLocalModelAdmission.AdmittedModel admittedModel,
             RuntimeConfig config) throws IOException {
         if (admittedModel == null) {
