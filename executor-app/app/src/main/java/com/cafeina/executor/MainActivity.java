@@ -301,6 +301,20 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams testModelParams = matchWrap();
             testModelParams.setMargins(0, 0, 0, dp(10));
             section.addView(localModelTestButton, testModelParams);
+
+            Button localPlannerButton = makeButton(
+                "TESTAR PLANEJADOR LOCAL",
+                PANEL_2);
+            localPlannerButton.setEnabled(
+                !localModelImportInProgress
+                    && !localModelRuntimeInProgress
+                    && !selectedLocalModelFileName().isEmpty());
+            localPlannerButton.setOnClickListener(v ->
+                startActivity(new Intent(
+                    this, LaboratoryAiLocalPlannerActivity.class)));
+            LinearLayout.LayoutParams plannerParams = matchWrap();
+            plannerParams.setMargins(0, 0, 0, dp(10));
+            section.addView(localPlannerButton, plannerParams);
         }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
