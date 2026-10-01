@@ -5,7 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -26,6 +28,10 @@ public final class LaboratoryAiReviewContractInstrumentedTest {
             .getTargetContext().getApplicationContext();
         String project = "reviewcontract"
             + UUID.randomUUID().toString().substring(0, 8);
+
+        ActivityInfo info = app.getPackageManager().getActivityInfo(
+            new ComponentName(app, LaboratoryAiReviewContractsActivity.class), 0);
+        assertFalse("Review contract Activity must remain private", info.exported);
 
         LaboratoryAiTeamRegistry team =
             new LaboratoryAiTeamRegistry(app.getFilesDir(), project);
