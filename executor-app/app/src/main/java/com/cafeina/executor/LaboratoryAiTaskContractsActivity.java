@@ -2,17 +2,25 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -20,7 +28,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Private read-only viewer for immutable AI task contracts.
+ * Private Goal Lock UI.
+ *
+ * Existing contracts remain immutable. New contracts can only be created from
+ * currently granted STABLE tools and are still validated by TaskAdmission.
  */
 public final class LaboratoryAiTaskContractsActivity extends Activity {
     private static final int BG = Color.rgb(12, 13, 16);
@@ -29,10 +40,17 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
     private static final int PANEL = Color.rgb(36, 41, 52);
     private static final int ACCENT = Color.rgb(59, 139, 254);
 
+    private static final int DEFAULT_MAX_INVOCATIONS = 8;
+    private static final int DEFAULT_MAX_TOTAL_INPUT_BYTES = 16 * 1024;
+    private static final long DEFAULT_MAX_SESSION_MS = 30L * 60L * 1000L;
+
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private TextView feedback;
     private LinearLayout entries;
+    private Button createButton;
     private LaboratoryAiTaskContractStore store;
+    private String projectId;
+    private volatile boolean busy;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -55,12 +73,19 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
         root.addView(title, matchWrap());
 
         root.addView(text(
-            "Somente leitura. Cada contrato trava objetivo, modo, ferramentas "
-                + "e orçamento antes da sessão. Reivindicar um contrato é de uso único.",
+            "Crie um Goal Lock com o objetivo exato antes do planejamento. "
+                + "Depois de criado, objetivo, modo, ferramentas e orçamento "
+                + "ficam imutáveis. O planejador apenas lê o contrato e não o consome.",
             14, MUTED, false), matchWrap());
 
+        createButton = button("CRIAR NOVO GOAL LOCK");
+        createButton.setOnClickListener(v -> loadCreationOptions());
+        LinearLayout.LayoutParams createParams = matchWrap();
+        createParams.setMargins(0, dp(12), 0, dp(8));
+        root.addView(createButton, createParams);
+
         feedback = text("Carregando contratos…", 14, MUTED, false);
-        feedback.setPadding(0, dp(12), 0, dp(8));
+        feedback.setPadding(0, dp(4), 0, dp(8));
         root.addView(feedback, matchWrap());
 
         ScrollView scroll = new ScrollView(this);
@@ -70,7 +95,7 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
+        projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         store = new LaboratoryAiTaskContractStore(getFilesDir(), projectId);
         refresh();
@@ -79,7 +104,238 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (store != null) refresh();
+        if (store != null && !busy) refresh();
+    }
+
+    private void loadCreationOptions() {
+        if (busy) return;
+        busy = true;
+        createButton.setEnabled(false);
+        feedback.setText("Lendo ferramentas STABLE já concedidas à IA…");
+
+        io.execute(() -> {
+            try {
+                List<LaboratoryAiToolController.Tool> tools =
+                    LaboratoryAiToolController.listAvailable(this, projectId);
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    createButton.setEnabled(true);
+                    if (tools.isEmpty()) {
+                        feedback.setText(
+                            "Nenhuma ferramenta STABLE está concedida à IA.");
+                        new AlertDialog.Builder(this)
+                            .setTitle("Goal Lock precisa de ferramentas")
+                            .setMessage(
+                                "Ainda não há ferramenta STABLE concedida à IA "
+                                    + "neste projeto. Conceda ao menos uma em "
+                                    + "Permissões da IA e volte para criar o contrato.")
+                            .setNegativeButton("FECHAR", null)
+                            .setPositiveButton(
+                                "ABRIR PERMISSÕES",
+                                (dialog, which) -> startActivity(new Intent(
+                                    this, LaboratoryAiPermissionsActivity.class)))
+                            .show();
+                        return;
+                    }
+                    showCreateDialog(tools);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    createButton.setEnabled(true);
+                    feedback.setText(
+                        "Falha ao ler ferramentas: "
+                            + String.valueOf(error.getMessage()));
+                });
+            }
+        });
+    }
+
+    private void showCreateDialog(List<LaboratoryAiToolController.Tool> tools) {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(14), dp(10), dp(14), dp(10));
+
+        form.addView(text(
+            "Modo do Goal Lock",
+            13, FG, true), matchWrap());
+
+        RadioGroup modes = new RadioGroup(this);
+        modes.setOrientation(RadioGroup.HORIZONTAL);
+        RadioButton creation = new RadioButton(this);
+        creation.setId(View.generateViewId());
+        creation.setText("CRIAÇÃO");
+        creation.setTextColor(FG);
+        creation.setChecked(true);
+        RadioButton learning = new RadioButton(this);
+        learning.setId(View.generateViewId());
+        learning.setText("APRENDIZADO");
+        learning.setTextColor(FG);
+        modes.addView(creation);
+        modes.addView(learning);
+        form.addView(modes, matchWrap());
+
+        TextView goalLabel = text(
+            "Objetivo exato",
+            13, FG, true);
+        goalLabel.setPadding(0, dp(10), 0, dp(4));
+        form.addView(goalLabel, matchWrap());
+
+        EditText goal = new EditText(this);
+        goal.setTextColor(FG);
+        goal.setHintTextColor(MUTED);
+        goal.setHint(
+            "Ex.: analisar a ferramenta e produzir um plano de teste controlado");
+        goal.setMinLines(3);
+        goal.setMaxLines(8);
+        goal.setSingleLine(false);
+        goal.setFilters(new InputFilter[] {
+            new InputFilter.LengthFilter(
+                LaboratoryAiTaskContractStore.MAX_GOAL_CHARS)
+        });
+        form.addView(goal, matchWrap());
+
+        TextView toolsLabel = text(
+            "Ferramentas já concedidas que este contrato poderá usar",
+            13, FG, true);
+        toolsLabel.setPadding(0, dp(10), 0, dp(4));
+        form.addView(toolsLabel, matchWrap());
+
+        List<CheckBox> checks = new ArrayList<>();
+        for (LaboratoryAiToolController.Tool tool : tools) {
+            CheckBox check = new CheckBox(this);
+            check.setText(
+                tool.toolId + " • " + tool.version
+                    + (tool.capabilities.isEmpty()
+                        ? ""
+                        : "\n" + tool.capabilities));
+            check.setTextColor(FG);
+            check.setTag(tool.toolId);
+            check.setChecked(true);
+            checks.add(check);
+            form.addView(check, matchWrap());
+        }
+
+        TextView budget = text(
+            "Orçamento da execução da Testadora: "
+                + DEFAULT_MAX_INVOCATIONS + " chamadas • "
+                + (DEFAULT_MAX_TOTAL_INPUT_BYTES / 1024)
+                + " KiB de entrada • 30 min. "
+                + "Esse limite é da sessão de ferramentas; não é o tempo "
+                + "de raciocínio do modelo.",
+            12, MUTED, false);
+        budget.setPadding(0, dp(10), 0, 0);
+        form.addView(budget, matchWrap());
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(form);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Criar Goal Lock")
+            .setView(scroll)
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton("CRIAR", null)
+            .create();
+
+        dialog.setOnShowListener(ignored ->
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
+                    String exactGoal = goal.getText().toString();
+                    if (exactGoal.trim().isEmpty()) {
+                        goal.setError("Digite o objetivo exato");
+                        return;
+                    }
+
+                    List<String> selectedTools = new ArrayList<>();
+                    for (CheckBox check : checks) {
+                        if (check.isChecked()) {
+                            selectedTools.add(String.valueOf(check.getTag()));
+                        }
+                    }
+                    if (selectedTools.isEmpty()) {
+                        feedback.setText(
+                            "Selecione ao menos uma ferramenta para o Goal Lock.");
+                        return;
+                    }
+
+                    LaboratoryAiTaskContractStore.Mode mode =
+                        modes.getCheckedRadioButtonId() == learning.getId()
+                            ? LaboratoryAiTaskContractStore.Mode.LEARNING
+                            : LaboratoryAiTaskContractStore.Mode.CREATION;
+
+                    dialog.dismiss();
+                    createGoalLock(mode, exactGoal, selectedTools);
+                }));
+        dialog.show();
+    }
+
+    private void createGoalLock(
+            LaboratoryAiTaskContractStore.Mode mode,
+            String exactGoal,
+            List<String> toolIds) {
+        if (busy) return;
+        busy = true;
+        createButton.setEnabled(false);
+        feedback.setText("Criando Goal Lock imutável…");
+
+        io.execute(() -> {
+            try {
+                LaboratoryAiSessionController.Policy policy =
+                    new LaboratoryAiSessionController.Policy(
+                        toolIds,
+                        DEFAULT_MAX_INVOCATIONS,
+                        DEFAULT_MAX_TOTAL_INPUT_BYTES,
+                        DEFAULT_MAX_SESSION_MS);
+
+                LaboratoryAiTaskContractStore.Contract contract =
+                    LaboratoryAiTaskAdmission.createContract(
+                        this,
+                        projectId,
+                        mode,
+                        exactGoal,
+                        policy);
+
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    createButton.setEnabled(true);
+                    feedback.setText(
+                        "Goal Lock criado • pronto para o planejador local");
+                    refresh();
+
+                    new AlertDialog.Builder(this)
+                        .setTitle("Goal Lock criado")
+                        .setMessage(
+                            "Modo: " + contract.mode.name()
+                                + "\nContrato: " + contract.contractId
+                                + "\nObjetivo SHA-256: " + contract.goalSha256
+                                + "\nFerramentas: " + contract.allowedToolIds
+                                + "\n\nO contrato ainda NÃO foi consumido.")
+                        .setNegativeButton("FICAR AQUI", null)
+                        .setPositiveButton(
+                            "TESTAR PLANEJADOR",
+                            (dialog, which) -> startActivity(new Intent(
+                                this, LaboratoryAiLocalPlannerActivity.class)))
+                        .show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    createButton.setEnabled(true);
+                    feedback.setText(
+                        "Goal Lock não foi criado: "
+                            + String.valueOf(error.getMessage()));
+                    new AlertDialog.Builder(this)
+                        .setTitle("Falha ao criar Goal Lock")
+                        .setMessage(String.valueOf(error.getMessage()))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            }
+        });
     }
 
     private void refresh() {
@@ -103,7 +359,9 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
 
         if (contracts.isEmpty()) {
             entries.addView(text(
-                "Nenhum Goal Lock foi criado ainda.",
+                "Nenhum Goal Lock foi criado ainda. "
+                    + "Use “CRIAR NOVO GOAL LOCK” acima para preparar "
+                    + "o primeiro teste do planejador.",
                 14, MUTED, false), matchWrap());
             return;
         }
@@ -138,6 +396,15 @@ public final class LaboratoryAiTaskContractsActivity extends Activity {
             LinearLayout.LayoutParams goalParams = matchWrap();
             goalParams.setMargins(0, dp(8), 0, 0);
             card.addView(goal, goalParams);
+
+            if (!contract.claimed && !contract.resultRecorded) {
+                Button planner = button("TESTAR NO PLANEJADOR LOCAL");
+                planner.setOnClickListener(v -> startActivity(new Intent(
+                    this, LaboratoryAiLocalPlannerActivity.class)));
+                LinearLayout.LayoutParams plannerParams = matchWrap();
+                plannerParams.setMargins(0, dp(8), 0, 0);
+                card.addView(planner, plannerParams);
+            }
 
             if (contract.resultRecorded) {
                 Button result = button("VER RESULTADO DA ADMISSÃO");
