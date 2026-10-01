@@ -68,6 +68,8 @@ public final class LlamaBridge {
         public final int maxOutputChars;
         public final int contextTokens;
         public final int threads;
+        public final int topK;
+        public final float topP;
         public final float temperature;
         public final long seed;
 
@@ -76,6 +78,8 @@ public final class LlamaBridge {
                 int maxOutputChars,
                 int contextTokens,
                 int threads,
+                int topK,
+                float topP,
                 float temperature,
                 long seed) {
             if (maxTokens < 1 || maxTokens > MAX_GENERATED_TOKENS) {
@@ -96,6 +100,16 @@ public final class LlamaBridge {
                 throw new IllegalArgumentException(
                     "invalid local generation thread count");
             }
+            if (topK < 0 || topK > 200) {
+                throw new IllegalArgumentException(
+                    "invalid local generation top-k");
+            }
+            if (Float.isNaN(topP)
+                    || topP <= 0.0f
+                    || topP > 1.0f) {
+                throw new IllegalArgumentException(
+                    "invalid local generation top-p");
+            }
             if (Float.isNaN(temperature)
                     || temperature < 0.0f
                     || temperature > 2.0f) {
@@ -106,6 +120,8 @@ public final class LlamaBridge {
             this.maxOutputChars = maxOutputChars;
             this.contextTokens = contextTokens;
             this.threads = threads;
+            this.topK = topK;
+            this.topP = topP;
             this.temperature = temperature;
             this.seed = seed;
         }
@@ -119,6 +135,8 @@ public final class LlamaBridge {
                 MAX_OUTPUT_CHARS,
                 4096,
                 threads,
+                20,
+                0.8f,
                 0.0f,
                 20261001L);
         }
@@ -171,6 +189,8 @@ public final class LlamaBridge {
                 config.maxOutputChars,
                 config.contextTokens,
                 config.threads,
+                config.topK,
+                config.topP,
                 config.temperature,
                 config.seed);
             if (raw == null) {
@@ -224,6 +244,8 @@ public final class LlamaBridge {
         int maxOutputChars,
         int contextTokens,
         int threads,
+        int topK,
+        float topP,
         float temperature,
         long seed) throws IOException;
     private static native void nativeClose(long handle);
