@@ -340,3 +340,25 @@ host/usuário.
 - Testes Android verificam Activity privada, identidade/vínculo imutáveis, integração automática da IA de Teste, duas sessões saudáveis seguidas de duas falhas gerando tendência `DEGRADING`, detecção de `INSPECT_TOOL_FAILURES` recorrente e ausência dos dados privados — inclusive seus hashes de entrada — no relatório agregado.
 
 **Fronteira de segurança:** diagnóstico de equipe é observação e recomendação. Ele não executa ferramenta, não altera outra IA, não muda orçamento, não promove versão e não aplica melhoria sozinho.
+
+
+## Propostas de melhoria derivadas do diagnóstico da equipe
+
+- `LaboratoryAiImprovementProposalStore` mantém uma fila create-only de propostas de melhoria. Cada proposta referencia apenas dados sanitizados do diagnóstico agregado: IA afetada, papel atual, recomendação de origem, tendência, quantidade de sessões/falhas e a ação sugerida.
+- Propostas não carregam prompt, objetivo, `tool_input`, retorno, stdout, erro bruto, runId ou conteúdo de conversa.
+- Cada proposta possui uma chave SHA-256 de deduplicação calculada sobre IA, recomendação, ação sugerida, papel de destino e o estado agregado das evidências. Reexecutar o planejador sobre a mesma evidência retorna a proposta existente em vez de criar spam.
+- Quando o diagnóstico agregado muda de forma material (por exemplo, novas sessões ou mais falhas), uma nova proposta pode ser criada, preservando o histórico antigo.
+- `LaboratoryAiImprovementPlanner` converte somente códigos conhecidos em ações conhecidas. Mapeamentos iniciais:
+  - `REVIEW_REPEATED_FAILURES → RUN_TARGETED_FAILURE_REVIEW → REVIEWER`;
+  - `REVIEW_REPEATED_CANCELLATIONS → REVIEW_SESSION_CONTROL_FLOW → REVIEWER`;
+  - `REVIEW_FREQUENT_INTERRUPTION → REVIEW_TASK_DECOMPOSITION → ORCHESTRATOR`;
+  - `REVIEW_BUDGET_FIT → REVIEW_BUDGET_POLICY → REVIEWER`;
+  - `PRIORITIZE_REGRESSION_REVIEW → RUN_REGRESSION_SUITE → TESTER`;
+  - `REVIEW_RECURRENT_SIGNALS → CORRELATE_RECURRENT_FAILURE_PATTERN → DIAGNOSTIC`.
+- Códigos como `NO_TEAM_ACTION` e `WAIT_FOR_SESSION_DATA` não viram proposta.
+- Ao finalizar uma atualização do diagnóstico da equipe, a atualização da fila de propostas é agendada em background. Falha nessa fila nunca controla ou bloqueia a IA que está executando.
+- `LaboratoryAiImprovementProposalsActivity` é privada e somente leitura. Mostra IA afetada, origem do diagnóstico, ação sugerida, papel recomendado para revisar e evidências agregadas.
+- `SISTEMA > RELATÓRIOS DO LABORATÓRIO` ganhou acesso a `PROPOSTAS DE MELHORIA DAS IAS`.
+- Testes Android verificam Activity privada, roteamento para papéis corretos, deduplicação da mesma evidência, criação de nova proposta quando a evidência muda e rejeição de adulteração do arquivo.
+
+**Fronteira de segurança:** proposta é recomendação, não comando. Esta etapa não altera código, não muda orçamento, não executa cenário, não promove ferramenta e não modifica outra IA.

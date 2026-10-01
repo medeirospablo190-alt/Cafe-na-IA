@@ -98,6 +98,7 @@ public final class LaboratoryAiTeamDiagnostics {
             .reversed()
             .thenComparing(report -> report.displayName)
             .thenComparing(report -> report.agentId));
+        LaboratoryAiImprovementPlanner.schedule(context, projectId);
         return Collections.unmodifiableList(result);
     }
 
