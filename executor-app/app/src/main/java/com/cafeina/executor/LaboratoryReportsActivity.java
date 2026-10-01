@@ -153,6 +153,14 @@ public final class LaboratoryReportsActivity extends Activity {
         root.addView(
             aiImprovementDecisionsButton, aiImprovementDecisionParams);
 
+        Button aiReviewInboxButton = button("CAIXA DE REVISÃO DAS IAS");
+        aiReviewInboxButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiReviewInboxActivity.class)));
+        LinearLayout.LayoutParams aiReviewInboxParams = matchWrap();
+        aiReviewInboxParams.setMargins(0, dp(8), 0, 0);
+        root.addView(aiReviewInboxButton, aiReviewInboxParams);
+
         String projectId = getSharedPreferences("cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         feedback = text("Carregando relatórios…", 14, MUTED, false);
