@@ -469,4 +469,4 @@ Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que 
 
 - O roteamento inicial conversa/ação é propositalmente conservador e host-side. Pedidos ambíguos permanecem como conversa até existir um sinal suficientemente claro de ação.
 - O histórico curto da conversa ainda é mantido apenas em memória da tela; memória persistente/consolidada da CAFEÍNA continua sendo uma etapa posterior.
-- A Testadora agora informa passo e ferramenta ao vivo, mas cancelamento/pausa diretamente pelo chat ainda deverá ser ligado ao controle host da sessão em uma etapa seguinte.
+- A Testadora informa passo e ferramenta ao vivo e o chat já pode solicitar cancelamento host-owned da execução ativa. O cancelamento interrompe a invocação isolada atual quando existir e cancela a sessão; ele não depende de cooperação do modelo. Pausa/continuação diretamente pelo chat ainda fica para a etapa seguinte.
