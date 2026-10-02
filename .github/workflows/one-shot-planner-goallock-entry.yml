@@ -1,0 +1,76 @@
+name: CAFEINA One-shot Planner Goal Lock Entry
+
+on:
+  push:
+    branches:
+      - app/lab-ai-action-support-bootstrap-integrated
+    paths:
+      - .github/workflows/one-shot-planner-goallock-entry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: app/lab-ai-action-support-bootstrap-integrated
+          fetch-depth: 0
+
+      - name: Apply planner Goal Lock entry patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('executor-app/app/src/main/java/com/cafeina/executor/LaboratoryAiLocalPlannerActivity.java')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  'import android.app.AlertDialog;\nimport android.content.res.ColorStateList;',
+                  'import android.app.AlertDialog;\nimport android.content.Intent;\nimport android.content.res.ColorStateList;'
+              ),
+              (
+                  '    private ProgressBar executionProgress;\n    private LinearLayout entries;\n    private Button cancelPlannerButton;',
+                  '    private ProgressBar executionProgress;\n    private LinearLayout entries;\n    private Button createGoalLockButton;\n    private Button cancelPlannerButton;'
+              ),
+              (
+                  '        feedback.setPadding(0, dp(4), 0, dp(8));\n        root.addView(feedback, matchWrap());\n\n        executionProgress = new ProgressBar(',
+                  '        feedback.setPadding(0, dp(4), 0, dp(8));\n        root.addView(feedback, matchWrap());\n\n        createGoalLockButton = button(\n            "CRIAR GOAL LOCK",\n            PANEL);\n        createGoalLockButton.setOnClickListener(v ->\n            startActivity(new Intent(\n                this, LaboratoryAiGoalLockCreateActivity.class)));\n        LinearLayout.LayoutParams createGoalParams = matchWrap();\n        createGoalParams.setMargins(0, 0, 0, dp(8));\n        root.addView(createGoalLockButton, createGoalParams);\n\n        executionProgress = new ProgressBar('
+              ),
+              (
+                  '    private void refresh() {\n        if (!busy && executionProgress != null) {',
+                  '    private void refresh() {\n        if (createGoalLockButton != null) {\n            createGoalLockButton.setEnabled(!busy);\n        }\n        if (!busy && executionProgress != null) {'
+              ),
+              (
+                  '                "Ainda não existe um Goal Lock não consumido neste projeto. "\n                    + "O planejador só trabalha em cima de contratos já "\n                    + "criados pelo fluxo do laboratório.",',
+                  '                "Ainda não existe um Goal Lock não consumido neste projeto. "\n                    + "Use CRIAR GOAL LOCK acima, defina o objetivo e as "\n                    + "ferramentas permitidas; ao voltar, ele aparecerá aqui.",'
+              ),
+              (
+                  '    private void refreshBusyState() {\n        for (int i = 0; i < entries.getChildCount(); i++) {',
+                  '    private void refreshBusyState() {\n        if (createGoalLockButton != null) {\n            createGoalLockButton.setEnabled(!busy);\n        }\n        for (int i = 0; i < entries.getChildCount(); i++) {'
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, found {count}: {old[:100]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "cafeina-ci"
+          git config user.email "cafeina-ci@users.noreply.github.com"
+          git rm .github/workflows/one-shot-planner-goallock-entry.yml
+          git add executor-app/app/src/main/java/com/cafeina/executor/LaboratoryAiLocalPlannerActivity.java
+          git commit -m "Add Goal Lock entry to local planner"
+          git push origin HEAD:app/lab-ai-action-support-bootstrap-integrated
