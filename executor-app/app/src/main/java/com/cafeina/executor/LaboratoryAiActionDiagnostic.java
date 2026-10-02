@@ -33,6 +33,7 @@ public final class LaboratoryAiActionDiagnostic {
         public final LaboratoryAiPlannerExecutionDiagnostic.Result
             plannerDiagnostic;
         public final LaboratoryAiTestAgentReportStore.Entry testReport;
+        public final LaboratoryAiSessionStore.Summary testSession;
 
         public final String explanation;
         public final String nextStep;
@@ -49,6 +50,7 @@ public final class LaboratoryAiActionDiagnostic {
                 LaboratoryAiPlannerExecutionDiagnostic.Result
                     plannerDiagnostic,
                 LaboratoryAiTestAgentReportStore.Entry testReport,
+                LaboratoryAiSessionStore.Summary testSession,
                 String explanation,
                 String nextStep,
                 String nextCheck) {
@@ -61,6 +63,7 @@ public final class LaboratoryAiActionDiagnostic {
             this.planner = planner;
             this.plannerDiagnostic = plannerDiagnostic;
             this.testReport = testReport;
+            this.testSession = testSession;
             this.explanation = explanation;
             this.nextStep = nextStep;
             this.nextCheck = nextCheck;
@@ -99,6 +102,13 @@ public final class LaboratoryAiActionDiagnostic {
                 filesDir,
                 projectId,
                 contractId);
+        LaboratoryAiSessionStore.Summary testSession =
+            report == null || report.sessionId.isEmpty()
+                ? null
+                : sessionSummary(
+                    filesDir,
+                    projectId,
+                    report.sessionId);
 
         Stage stage;
         String explanation;
@@ -152,6 +162,7 @@ public final class LaboratoryAiActionDiagnostic {
             planner,
             plannerDiagnosis,
             report,
+            testSession,
             explanation,
             userNextStep(nextCheck),
             nextCheck);
@@ -208,6 +219,22 @@ public final class LaboratoryAiActionDiagnostic {
         for (LaboratoryAiExecutionHistoryStore.Summary summary : summaries) {
             if (contractId.equals(summary.contractId)) {
                 return summary;
+            }
+        }
+        return null;
+    }
+
+    private static LaboratoryAiSessionStore.Summary sessionSummary(
+            File filesDir,
+            String projectId,
+            String sessionId) throws IOException {
+        List<LaboratoryAiSessionStore.Summary> sessions =
+            new LaboratoryAiSessionStore(
+                filesDir, projectId == null ? "" : projectId)
+                .list();
+        for (LaboratoryAiSessionStore.Summary session : sessions) {
+            if (sessionId.equals(session.sessionId)) {
+                return session;
             }
         }
         return null;
