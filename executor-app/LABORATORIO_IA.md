@@ -470,3 +470,17 @@ Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que 
 - O roteamento inicial conversa/ação é propositalmente conservador e host-side. Pedidos ambíguos permanecem como conversa até existir um sinal suficientemente claro de ação.
 - O histórico curto da conversa ainda é mantido apenas em memória da tela; memória persistente/consolidada da CAFEÍNA continua sendo uma etapa posterior.
 - A Testadora informa passo e ferramenta ao vivo e o chat já pode solicitar cancelamento host-owned da execução ativa. O cancelamento interrompe a invocação isolada atual quando existir e cancela a sessão; ele não depende de cooperação do modelo. Pausa/continuação diretamente pelo chat ainda fica para a etapa seguinte.
+
+
+## Persistência operacional do chat
+
+- O chat da aba `IA` possui agora um estado local por projeto em `files/laboratory/project-<id>/ai-chat-session/state.json` (ou `legacy` quando não existe projeto ativo). Esse arquivo é separado da memória de conhecimento da CAFEÍNA.
+- O snapshot guarda somente o necessário para reconstruir a superfície: mensagens visíveis limitadas, indicação de quais mensagens podem entrar novamente no contexto conversacional do modelo, estado operacional da tarefa e IDs de Goal Lock/cenário/relatório quando existirem.
+- Limites atuais: até 64 entradas, 8 KiB por entrada, detalhe operacional curto e arquivo total limitado a 384 KiB. A escrita usa arquivo temporário e substituição atômica quando suportada.
+- Mensagens operacionais do laboratório são restauradas visualmente, mas não entram automaticamente no contexto de conversa do modelo. Somente entradas marcadas como conversa normal voltam ao histórico curto usado pelo prompt.
+- Ao reconstruir a aba ou reabrir o app, o chat lê o snapshot fora da UI thread. Um `PLANNING` ou `TEST_RUNNING` que não chegou a estado terminal é convertido em `INTERRUPTED`; o app nunca reinicia uma ação automaticamente após processo/tela ter sido perdido.
+- Goal Lock ainda não consumido pode ser retomado pelo chat com nova geração de plano. Cenário `TEST_PREPARED` pode ser reaberto por revalidação do Goal Lock + cenário imutável, sem criar outro cenário e sem consumir o contrato.
+- Se o Goal Lock já tiver `resultRecorded`, o restore consulta os relatórios determinísticos e reconcilia o chat com o resultado persistido. Isso cobre o caso em que o teste terminou, mas o processo morreu antes da UI gravar o estado final do chat.
+- Se o Goal Lock foi consumido mas ainda não possui resultado, o chat não tenta repetir a execução: oferece a recuperação da sessão da IA.
+- `LIMPAR CONVERSA LOCAL` apaga somente esse snapshot visual/operacional. Goal Locks, cenários, relatórios, permissões e a futura memória de conhecimento permanecem intactos.
+- A persistência é observabilidade/continuidade de UI: falha ao salvar chat nunca concede permissão, nunca executa ferramenta e nunca altera o resultado de planejador/Testadora.
