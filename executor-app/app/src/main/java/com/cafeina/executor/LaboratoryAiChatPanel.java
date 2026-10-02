@@ -83,6 +83,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final EditText input;
     private final Button sendButton;
     private final Button cancelButton;
+    private final Button currentDiagnosticButton;
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
@@ -124,6 +125,16 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams clearParams = matchWrap();
         clearParams.setMargins(0, 0, 0, dp(8));
         addView(clearChat, clearParams);
+
+        currentDiagnosticButton =
+            button("DIAGNÓSTICO DA AÇÃO ATUAL", PANEL);
+        currentDiagnosticButton.setAllCaps(false);
+        currentDiagnosticButton.setEnabled(false);
+        currentDiagnosticButton.setOnClickListener(
+            v -> showCurrentActionDiagnostic());
+        LayoutParams diagnosticParams = matchWrap();
+        diagnosticParams.setMargins(0, 0, 0, dp(8));
+        addView(currentDiagnosticButton, diagnosticParams);
 
         messageScroll = new ScrollView(activity);
         messageScroll.setFillViewport(true);
@@ -249,6 +260,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         messages.removeAllViews();
         hideLiveStatus();
+        refreshActionDiagnosticButton();
 
         try {
             persistenceWorker.execute(() -> {
@@ -459,6 +471,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             setLiveStatus(restoredStatus.toString());
         }
 
+        refreshActionDiagnosticButton();
         renderRestoredWorkflowActions(
             state,
             contract,
@@ -605,7 +618,178 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             workflowReportId = reportId == null ? "" : reportId;
             workflowDetail = boundedStatus(detail);
         }
+        refreshActionDiagnosticButton();
         schedulePersist();
+    }
+
+    private void refreshActionDiagnosticButton() {
+        if (currentDiagnosticButton == null) return;
+        boolean enabled;
+        synchronized (persistedEntries) {
+            enabled = workflowContractId != null
+                && !workflowContractId.isEmpty();
+        }
+        currentDiagnosticButton.setEnabled(enabled && !busy);
+    }
+
+    private void showCurrentActionDiagnostic() {
+        if (closed || busy) return;
+
+        final String contractId;
+        synchronized (persistedEntries) {
+            contractId = workflowContractId;
+        }
+        if (contractId == null || contractId.isEmpty()) {
+            return;
+        }
+
+        currentDiagnosticButton.setEnabled(false);
+        setLiveStatus("Lendo diagnóstico desta ação…");
+        worker.execute(() -> {
+            try {
+                LaboratoryAiActionDiagnostic.Snapshot diagnosis =
+                    LaboratoryAiActionDiagnostic.inspect(
+                        activity.getFilesDir(),
+                        projectId,
+                        contractId);
+                final String rendered =
+                    renderActionDiagnostic(diagnosis);
+                runOnUi(() -> {
+                    if (closed) return;
+                    hideLiveStatus();
+                    refreshActionDiagnosticButton();
+                    showDiagnosticDialog(rendered);
+                });
+            } catch (Exception error) {
+                final String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (closed) return;
+                    hideLiveStatus();
+                    refreshActionDiagnosticButton();
+                    new AlertDialog.Builder(activity)
+                        .setTitle("Diagnóstico da ação")
+                        .setMessage(
+                            "Não consegui ler o diagnóstico desta ação."
+                                + "\n\n" + reason)
+                        .setPositiveButton("FECHAR", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private String renderActionDiagnostic(
+            LaboratoryAiActionDiagnostic.Snapshot snapshot) {
+        StringBuilder out = new StringBuilder();
+        out.append("AÇÃO ATUAL")
+            .append("\nEtapa: ")
+            .append(actionStageLabel(snapshot.stage))
+            .append("\nModo: ")
+            .append(snapshot.mode)
+            .append("\nFerramentas autorizadas: ")
+            .append(snapshot.allowedToolCount)
+            .append("\nGoal Lock consumido: ")
+            .append(snapshot.goalLockClaimed ? "SIM" : "NÃO")
+            .append("\nResultado terminal registrado: ")
+            .append(snapshot.resultRecorded ? "SIM" : "NÃO")
+            .append("\n\nDiagnóstico: ")
+            .append(snapshot.explanation)
+            .append("\nPróxima verificação: ")
+            .append(snapshot.nextCheck);
+
+        if (snapshot.planner != null) {
+            out.append("\n\nPLANEJADOR")
+                .append("\nEstado: ")
+                .append(snapshot.planner.state)
+                .append("\nFase final: ")
+                .append(phaseLabel(snapshot.planner.phase))
+                .append("\nDuração: ")
+                .append(formatElapsed(snapshot.planner.elapsedMs))
+                .append("\nTentativa: ")
+                .append(snapshot.planner.attempt)
+                .append("/")
+                .append(snapshot.planner.maxAttempts)
+                .append("\nPrompt: ")
+                .append(snapshot.planner.promptTokensProcessed)
+                .append("/")
+                .append(snapshot.planner.promptTokens)
+                .append(" tokens • ")
+                .append(snapshot.planner.promptEvalMs)
+                .append(" ms")
+                .append("\nGeração: ")
+                .append(snapshot.planner.generatedTokens)
+                .append("/")
+                .append(snapshot.planner.maxGeneratedTokens)
+                .append(" tokens • ")
+                .append(snapshot.planner.tokenGenerationMs)
+                .append(" ms");
+
+            if (snapshot.plannerDiagnostic != null) {
+                out.append("\nClassificação: ")
+                    .append(snapshot.plannerDiagnostic.code.name());
+            }
+        } else {
+            out.append("\n\nPLANEJADOR")
+                .append("\nAinda não há execução terminal registrada.");
+        }
+
+        if (snapshot.testReport != null) {
+            out.append("\n\nTESTADORA")
+                .append("\nStatus: ")
+                .append(snapshot.testReport.status)
+                .append("\nPassos: ")
+                .append(snapshot.testReport.executedSteps)
+                .append("/")
+                .append(snapshot.testReport.plannedSteps)
+                .append("\nPassaram: ")
+                .append(snapshot.testReport.passed)
+                .append(" • Falharam: ")
+                .append(snapshot.testReport.failed)
+                .append("\nRelatório: ")
+                .append(snapshot.testReport.reportId);
+        } else {
+            out.append("\n\nTESTADORA")
+                .append("\nNenhum relatório terminal registrado.");
+        }
+
+        out.append(
+            "\n\nSomente leitura: este diagnóstico não executa, "
+                + "não corrige e não altera permissões.");
+        return out.toString();
+    }
+
+    private void showDiagnosticDialog(String details) {
+        TextView body = text(details, 13, FG, false);
+        body.setTypeface(Typeface.MONOSPACE);
+        body.setTextIsSelectable(true);
+        body.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(body);
+        new AlertDialog.Builder(activity)
+            .setTitle("Diagnóstico da ação atual")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
+    private static String actionStageLabel(
+            LaboratoryAiActionDiagnostic.Stage stage) {
+        if (stage == null) return "desconhecida";
+        switch (stage) {
+            case GOAL_LOCK_READY:
+                return "Goal Lock pronto";
+            case PLANNER_COMPLETED:
+                return "planejamento concluído";
+            case PLANNER_FAILED:
+                return "planejamento com falha";
+            case TEST_AGENT_RUNNING_OR_INTERRUPTED:
+                return "Testadora consumiu o Goal Lock sem resultado terminal";
+            case TEST_AGENT_COMPLETED:
+                return "Teste concluído";
+            case UNKNOWN:
+            default:
+                return "desconhecida";
+        }
     }
 
     private void persistVisibleEntry(
@@ -1720,6 +1904,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         input.setEnabled(!value);
         cancelButton.setVisibility(value ? VISIBLE : GONE);
         cancelButton.setEnabled(value);
+        refreshActionDiagnosticButton();
         if (!value) {
             cancelButton.setText("CANCELAR RESPOSTA");
             hideLiveStatus();
