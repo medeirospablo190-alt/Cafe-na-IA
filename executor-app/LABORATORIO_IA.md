@@ -449,3 +449,24 @@ Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que 
 - O workflow `CAFEINA Local LLM Compile Probe` também verifica que o símbolo JNI de telemetria está presente no APK ARM64.
 
 **Interpretação importante:** `promptTokensProcessed` conta batches do prompt que terminaram com sucesso. Se o primeiro batch ficar preso até o timeout, esse contador pode continuar em zero enquanto `promptEvalMs` cresce. Isso é informação útil: indica que o gargalo está dentro do primeiro processamento nativo do prompt, e não significa que o runtime ficou sem atividade.
+
+
+## Chat da CAFEÍNA como superfície principal
+
+- A aba `IA` agora começa pela conversa com a CAFEÍNA, em vez de exigir que o usuário navegue primeiro por telas técnicas do laboratório.
+- Mensagens classificadas como conversa comum usam o modelo local sem receber handles de ferramentas, permissões, Goal Lock ou APIs mutáveis. O prompt dessa rota afirma explicitamente que nenhuma ação foi executada.
+- Pedidos com sinal claro de ação são desviados para o fluxo controlado. Antes de qualquer execução, o chat mostra as ferramentas STABLE atualmente concedidas e pede uma seleção por tarefa.
+- Confirmar as ferramentas cria um Goal Lock imutável com o texto exato do pedido, modo `CREATION` ou `LEARNING` e orçamento inicial limitado. Criar o contrato não executa ferramenta.
+- O botão `GERAR PLANO • NÃO EXECUTAR` agora roda o planejador dentro do próprio chat. O chat recebe o mesmo `LaboratoryAiExecutionStatus` usado no diagnóstico: fase real, tentativa, tempo, tokens, throughput e ETA quando há base suficiente para estimativa.
+- Falhas do planejador aparecem no chat com `LaboratoryAiPlannerExecutionDiagnostic`, métricas medidas e confirmação explícita de que nenhuma ferramenta foi executada e o Goal Lock permaneceu não consumido.
+- Plano aceito aparece no chat como passos, ferramentas e retorno esperado. `PREPARAR TESTADORA • NÃO EXECUTAR` grava o cenário imutável, ainda sem consumir o Goal Lock.
+- A execução da Testadora continua protegida por uma confirmação separada. O botão deixa explícito que executar consome o Goal Lock de uso único.
+- Durante a Testadora, eventos determinísticos mostram no chat a admissão da sessão, passo atual, ferramenta em teste e resultado de cada passo. Esses eventos são observabilidade somente leitura; exceções no observador não controlam a execução.
+- Ao final, o chat mostra status, passos executados, sucessos, falhas, duração, motivo terminal, sessão e relatório persistido, com atalho para os relatórios da Testadora.
+- O fluxo técnico antigo do planejador continua disponível para diagnóstico e inspeção; a nova superfície de chat não remove os gates determinísticos já existentes.
+
+### Limites desta etapa
+
+- O roteamento inicial conversa/ação é propositalmente conservador e host-side. Pedidos ambíguos permanecem como conversa até existir um sinal suficientemente claro de ação.
+- O histórico curto da conversa ainda é mantido apenas em memória da tela; memória persistente/consolidada da CAFEÍNA continua sendo uma etapa posterior.
+- A Testadora agora informa passo e ferramenta ao vivo, mas cancelamento/pausa diretamente pelo chat ainda deverá ser ligado ao controle host da sessão em uma etapa seguinte.
