@@ -353,6 +353,132 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
     }
 
     @Test
+    public void hostPauseAtSafeBoundaryResumesWithoutRepeatingStep()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "agentpause"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "test-agent-pause";
+        prepareGrantedStable(app, project, toolId);
+
+        LaboratoryAiTaskContractStore.Contract contract =
+            LaboratoryAiTaskAdmission.createContract(
+                app,
+                project,
+                LaboratoryAiTaskContractStore.Mode.LEARNING,
+                "Pausar em ponto seguro e continuar sem repetir ferramenta.",
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    2,
+                    256,
+                    30_000L));
+
+        LaboratoryAiTestAgent.Plan plan =
+            new LaboratoryAiTestAgent.Plan(
+                Collections.singletonList(
+                    new LaboratoryAiTestAgent.Step(
+                        "pause_once",
+                        toolId,
+                        "pause-input",
+                        "pause-input")),
+                true);
+
+        LaboratoryAiTestAgent.Control control =
+            new LaboratoryAiTestAgent.Control();
+        List<String> events = new ArrayList<>();
+
+        LaboratoryAiTestAgent.Report report =
+            LaboratoryAiTestAgent.runBlocking(
+                app,
+                project,
+                contract.contractId,
+                plan,
+                control,
+                new LaboratoryAiTestAgent.Observer() {
+                    @Override
+                    public void onAdmitted(
+                            String sessionId,
+                            int plannedSteps) {
+                        events.add("ADMITTED");
+                        control.pause();
+                    }
+
+                    @Override
+                    public void onPaused(
+                            int completedSteps,
+                            int totalSteps) {
+                        events.add(
+                            "PAUSED:" + completedSteps + "/" + totalSteps);
+                        control.resume();
+                    }
+
+                    @Override
+                    public void onResumed(
+                            int completedSteps,
+                            int totalSteps) {
+                        events.add(
+                            "RESUMED:" + completedSteps + "/" + totalSteps);
+                    }
+
+                    @Override
+                    public void onStepStarted(
+                            int stepIndex,
+                            int totalSteps,
+                            String stepName,
+                            String observedToolId) {
+                        events.add("START:" + stepIndex);
+                    }
+
+                    @Override
+                    public void onStepFinished(
+                            int stepIndex,
+                            int totalSteps,
+                            LaboratoryAiTestAgent.StepEvidence evidence) {
+                        events.add("FINISH:" + stepIndex);
+                    }
+                });
+
+        assertEquals("PASS", report.status);
+        assertEquals(1, report.executedSteps);
+        assertEquals(1, report.passed);
+        assertEquals(0, report.failed);
+        assertEquals(
+            Arrays.asList(
+                "ADMITTED",
+                "PAUSED:0/1",
+                "RESUMED:0/1",
+                "START:1",
+                "FINISH:1"),
+            events);
+
+        LaboratoryAiSessionStore sessionStore =
+            new LaboratoryAiSessionStore(app.getFilesDir(), project);
+        List<LaboratoryAiSessionStore.Event> sessionEvents =
+            sessionStore.readEvents(report.sessionId);
+        assertEquals(
+            1L,
+            sessionEvents.stream()
+                .filter(event ->
+                    LaboratoryAiSessionStore.PAUSE.equals(event.type))
+                .count());
+        assertEquals(
+            1L,
+            sessionEvents.stream()
+                .filter(event ->
+                    LaboratoryAiSessionStore.RESUME.equals(event.type))
+                .count());
+
+        LaboratoryAiSessionStore.Summary summary =
+            sessionStore.list().stream()
+                .filter(item -> report.sessionId.equals(item.sessionId))
+                .findFirst()
+                .orElseThrow(() ->
+                    new AssertionError("paused session missing"));
+        assertEquals(1, summary.invocationsUsed);
+        assertEquals("FINISHED", summary.state);
+    }
+
+    @Test
     public void invalidPlanDoesNotConsumeGoalLock() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String project = "agentbudget"
