@@ -18,8 +18,10 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -62,9 +64,50 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
                     "echo_beta", toolId, secondInput, secondInput)),
             true);
 
+        List<String> progress = new ArrayList<>();
         LaboratoryAiTestAgent.Report report =
             LaboratoryAiTestAgent.runBlocking(
-                app, project, contract.contractId, plan);
+                app,
+                project,
+                contract.contractId,
+                plan,
+                new LaboratoryAiTestAgent.Observer() {
+                    @Override
+                    public void onAdmitted(
+                            String sessionId,
+                            int plannedSteps) {
+                        progress.add(
+                            "ADMITTED:" + plannedSteps);
+                    }
+
+                    @Override
+                    public void onStepStarted(
+                            int stepIndex,
+                            int totalSteps,
+                            String stepName,
+                            String observedToolId) {
+                        progress.add(
+                            "START:" + stepIndex + ":"
+                                + observedToolId);
+                    }
+
+                    @Override
+                    public void onStepFinished(
+                            int stepIndex,
+                            int totalSteps,
+                            LaboratoryAiTestAgent.StepEvidence evidence) {
+                        progress.add(
+                            "FINISH:" + stepIndex + ":"
+                                + evidence.passed);
+                    }
+
+                    @Override
+                    public void onFinished(
+                            LaboratoryAiTestAgent.Report finished) {
+                        progress.add(
+                            "DONE:" + finished.status);
+                    }
+                });
 
         assertEquals("PASS", report.status);
         assertEquals("", report.terminalReason);
@@ -73,6 +116,15 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
         assertEquals(2, report.passed);
         assertEquals(0, report.failed);
         assertFalse(report.sessionId.isEmpty());
+        assertEquals(
+            Arrays.asList(
+                "ADMITTED:2",
+                "START:1:" + toolId,
+                "FINISH:1:true",
+                "START:2:" + toolId,
+                "FINISH:2:true",
+                "DONE:PASS"),
+            progress);
 
         LaboratoryAiTestAgentReportStore reports =
             new LaboratoryAiTestAgentReportStore(app.getFilesDir(), project);
