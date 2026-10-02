@@ -39,14 +39,20 @@ public final class LaboratoryDiagnosticEchoTool {
         public final boolean registered;
         public final boolean artifactBound;
         public final LaboratoryToolRegistry.Stage stage;
+        public final boolean activeStable;
+        public final boolean aiGranted;
 
         private State(
                 boolean registered,
                 boolean artifactBound,
-                LaboratoryToolRegistry.Stage stage) {
+                LaboratoryToolRegistry.Stage stage,
+                boolean activeStable,
+                boolean aiGranted) {
             this.registered = registered;
             this.artifactBound = artifactBound;
             this.stage = stage;
+            this.activeStable = activeStable;
+            this.aiGranted = aiGranted;
         }
     }
 
@@ -69,7 +75,12 @@ public final class LaboratoryDiagnosticEchoTool {
         }
 
         if (found == null) {
-            return new State(false, false, null);
+            return new State(
+                false,
+                false,
+                null,
+                false,
+                false);
         }
 
         validateDescriptor(found);
@@ -88,7 +99,23 @@ public final class LaboratoryDiagnosticEchoTool {
             bound = false;
         }
 
-        return new State(true, bound, stage);
+        LaboratoryToolRegistry.Descriptor active =
+            registry.activeStable(TOOL_ID);
+        boolean activeStable =
+            active != null
+                && VERSION.equals(active.version);
+        boolean aiGranted =
+            activeStable
+                && new LaboratoryAiPermissionStore(
+                    filesDir, projectId)
+                    .activeGrant(TOOL_ID) != null;
+
+        return new State(
+            true,
+            bound,
+            stage,
+            activeStable,
+            aiGranted);
     }
 
     public static State prepareExperimental(
