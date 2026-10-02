@@ -32,6 +32,18 @@ public final class LaboratoryAiExecutionStatusInstrumentedTest {
             1,
             2);
         tracker.updateNativePhase(2, 1, 2);
+        tracker.updateNativeTelemetry(
+            2,
+            1000,
+            500,
+            0,
+            1024,
+            1200L,
+            10_000L,
+            0L,
+            120_000L,
+            1,
+            2);
         tracker.fail("local model timed out while processing prompt");
 
         LaboratoryAiExecutionStatus.Snapshot snapshot =
@@ -47,6 +59,13 @@ public final class LaboratoryAiExecutionStatusInstrumentedTest {
         assertEquals(
             "local model timed out while processing prompt",
             snapshot.terminalReason);
+        assertEquals(1000, snapshot.promptTokens);
+        assertEquals(500, snapshot.promptTokensProcessed);
+        assertEquals(1200L, snapshot.contextSetupMs);
+        assertEquals(10_000L, snapshot.promptEvalMs);
+        assertEquals(120_000L, snapshot.generationTimeLimitMs);
+        assertEquals(10_000L, snapshot.estimatedRemainingMs);
+        assertEquals(50.0, snapshot.promptTokensPerSecond(), 0.001);
         assertTrue(snapshot.elapsedMs >= 0L);
         assertTrue(events.size() >= 4);
 
