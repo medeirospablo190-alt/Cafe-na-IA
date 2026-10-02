@@ -138,9 +138,30 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                     LaboratoryDiagnosticEchoTool.inspect(
                         getFilesDir(),
                         projectId);
+                LaboratoryCandidateEvidenceRecovery.Result recovered =
+                    null;
+                if (state.registered
+                        && state.artifactBound
+                        && state.stage
+                            == LaboratoryToolRegistry.Stage.EXPERIMENTAL) {
+                    try {
+                        recovered =
+                            LaboratoryCandidateEvidenceRecovery.inspect(
+                                this,
+                                projectId,
+                                LaboratoryDiagnosticEchoTool.TOOL_ID,
+                                LaboratoryDiagnosticEchoTool.VERSION,
+                                LaboratoryDiagnosticEchoTool.suiteCases());
+                    } catch (Exception ignored) {
+                        // Recovery is optional. The normal suite remains
+                        // available and lifecycle integrity stays unchanged.
+                    }
+                }
+                final LaboratoryCandidateEvidenceRecovery.Result
+                    recovery = recovered;
                 runOnUiThread(() -> {
                     if (!alive()) return;
-                    render(state);
+                    render(state, recovery);
                 });
             } catch (Exception error) {
                 final String reason =
@@ -155,7 +176,9 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
         });
     }
 
-    private void render(LaboratoryDiagnosticEchoTool.State state) {
+    private void render(
+            LaboratoryDiagnosticEchoTool.State state,
+            LaboratoryCandidateEvidenceRecovery.Result recovery) {
         content.removeAllViews();
 
         String stage = !state.registered
@@ -213,10 +236,51 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                     "REPARAR VÍNCULO DO TEMPLATE",
                     this::prepareExperimental);
             } else {
-                addCardButton(
-                    card,
-                    "RODAR SUÍTE ISOLADA E QUALIFICAR CANDIDATA",
-                    this::runCandidateSuite);
+                if (recovery != null && recovery.ready) {
+                    TextView recoveredNote = text(
+                        "Suíte PASS recuperada dos relatórios existentes: "
+                            + recovery.matchedCaseNames.size()
+                            + "/"
+                            + LaboratoryDiagnosticEchoTool.suiteCases().size()
+                            + " caso(s). Artefato, snapshot, ambiente, seed, "
+                            + "input e retorno esperado continuam idênticos. "
+                            + "Nada foi promovido automaticamente.",
+                        13,
+                        MUTED,
+                        false);
+                    recoveredNote.setPadding(0, dp(8), 0, 0);
+                    card.addView(recoveredNote, matchWrap());
+
+                    addCardButton(
+                        card,
+                        "QUALIFICAR CANDIDATE COM EVIDÊNCIA RECUPERADA",
+                        this::qualifyRecoveredSuite);
+                    addCardButton(
+                        card,
+                        "RODAR SUÍTE NOVAMENTE",
+                        this::runCandidateSuite);
+                } else {
+                    if (recovery != null
+                            && !recovery.matchedCaseNames.isEmpty()) {
+                        TextView partialNote = text(
+                            "Há evidência parcial recuperável: "
+                                + recovery.matchedCaseNames.size()
+                                + "/"
+                                + LaboratoryDiagnosticEchoTool.suiteCases().size()
+                                + " caso(s). Como a suíte completa não está "
+                                + "presente, ela não pode qualificar CANDIDATE.",
+                            13,
+                            MUTED,
+                            false);
+                        partialNote.setPadding(0, dp(8), 0, 0);
+                        card.addView(partialNote, matchWrap());
+                    }
+
+                    addCardButton(
+                        card,
+                        "RODAR SUÍTE ISOLADA E QUALIFICAR CANDIDATA",
+                        this::runCandidateSuite);
+                }
             }
         } else if (state.stage
                 == LaboratoryToolRegistry.Stage.CANDIDATE) {
@@ -285,7 +349,7 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                     feedback.setText(
                         "Template EXPERIMENTAL preparado. Nenhum teste "
                             + "foi executado automaticamente.");
-                    render(prepared);
+                    render(prepared, null);
                 });
             } catch (Exception error) {
                 final String reason =
@@ -295,6 +359,55 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                     busy = false;
                     feedback.setText(
                         "Não consegui preparar o template: " + reason);
+                    refresh();
+                });
+            }
+        });
+    }
+
+    private void qualifyRecoveredSuite() {
+        if (busy) return;
+
+        busy = true;
+        feedback.setText(
+            "Revalidando evidências recuperadas antes da qualificação…");
+        io.execute(() -> {
+            try {
+                LaboratoryCandidateEvidenceRecovery.Result recovered =
+                    LaboratoryCandidateEvidenceRecovery.inspect(
+                        this,
+                        projectId,
+                        LaboratoryDiagnosticEchoTool.TOOL_ID,
+                        LaboratoryDiagnosticEchoTool.VERSION,
+                        LaboratoryDiagnosticEchoTool.suiteCases());
+                if (!recovered.ready) {
+                    throw new java.io.IOException(
+                        "a suíte recuperada não está mais completa ou válida");
+                }
+
+                LaboratoryDiagnosticEchoTool.State qualified =
+                    LaboratoryDiagnosticEchoTool.qualifyCandidate(
+                        getFilesDir(),
+                        projectId,
+                        recovered);
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    feedback.setText(
+                        "CANDIDATE qualificada usando evidências já "
+                            + "persistidas. Nenhum teste foi repetido. "
+                            + "STABLE continua exigindo aprovação humana.");
+                    render(qualified, null);
+                });
+            } catch (Exception error) {
+                final String reason =
+                    String.valueOf(error.getMessage());
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    busy = false;
+                    feedback.setText(
+                        "Não consegui reutilizar a suíte anterior: "
+                            + reason);
                     refresh();
                 });
             }
@@ -404,7 +517,7 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                                     "CANDIDATE qualificada. A promoção para "
                                         + "STABLE continua aguardando sua "
                                         + "aprovação.");
-                                render(qualified);
+                                render(qualified, null);
                             });
                         } catch (Exception error) {
                             final String reason =
