@@ -1,5 +1,8 @@
 package com.cafeina.executor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -83,6 +86,7 @@ public final class LaboratoryAiExecutionStatus {
         private final String contractId;
         private final long startedAtEpochMs = System.currentTimeMillis();
         private final Listener listener;
+        private final List<Snapshot> history = new ArrayList<>();
 
         private Snapshot current;
 
@@ -100,11 +104,17 @@ public final class LaboratoryAiExecutionStatus {
                 0,
                 0,
                 "");
+            history.add(current);
             publish(current);
         }
 
         public synchronized Snapshot snapshot() {
             return current;
+        }
+
+        public synchronized List<Snapshot> history() {
+            return Collections.unmodifiableList(
+                new ArrayList<>(history));
         }
 
         public void update(Phase phase, String detail) {
@@ -131,6 +141,7 @@ public final class LaboratoryAiExecutionStatus {
                     attempt,
                     maxAttempts,
                     "");
+                history.add(current);
                 changed = current;
             }
             publish(changed);
@@ -173,6 +184,7 @@ public final class LaboratoryAiExecutionStatus {
                     attempt,
                     maxAttempts,
                     "");
+                history.add(current);
                 changed = current;
             }
             publish(changed);
@@ -189,6 +201,7 @@ public final class LaboratoryAiExecutionStatus {
                     current.attempt,
                     current.maxAttempts,
                     safe(reason));
+                history.add(current);
                 changed = current;
             }
             publish(changed);
@@ -205,6 +218,7 @@ public final class LaboratoryAiExecutionStatus {
                     current.attempt,
                     current.maxAttempts,
                     safe(reason));
+                history.add(current);
                 changed = current;
             }
             publish(changed);
