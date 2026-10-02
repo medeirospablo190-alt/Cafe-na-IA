@@ -336,6 +336,16 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams plannerParams = matchWrap();
             plannerParams.setMargins(0, 0, 0, dp(10));
             section.addView(localPlannerButton, plannerParams);
+
+            Button aiDiagnosticsButton = makeButton(
+                "ABRIR DIAGNÓSTICO DAS IAS",
+                PANEL_2);
+            aiDiagnosticsButton.setOnClickListener(v ->
+                startActivity(new Intent(
+                    this, LaboratoryAiDiagnosticsActivity.class)));
+            LinearLayout.LayoutParams diagnosticsParams = matchWrap();
+            diagnosticsParams.setMargins(0, 0, 0, dp(10));
+            section.addView(aiDiagnosticsButton, diagnosticsParams);
         }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
