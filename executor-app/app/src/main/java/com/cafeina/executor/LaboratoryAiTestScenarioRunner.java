@@ -56,7 +56,23 @@ public final class LaboratoryAiTestScenarioRunner {
             String scenarioId,
             String contractId,
             LaboratoryAiTestAgent.Observer observer) throws IOException {
-        if (context == null) {
+        return runBlocking(
+            context,
+            projectId,
+            scenarioId,
+            contractId,
+            new LaboratoryAiTestAgent.Control(),
+            observer);
+    }
+
+    public static Result runBlocking(
+            Context context,
+            String projectId,
+            String scenarioId,
+            String contractId,
+            LaboratoryAiTestAgent.Control control,
+            LaboratoryAiTestAgent.Observer observer) throws IOException {
+        if (context == null || control == null) {
             throw new IllegalArgumentException("test-scenario context missing");
         }
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -77,6 +93,7 @@ public final class LaboratoryAiTestScenarioRunner {
                 projectId,
                 contractId,
                 scenario.plan,
+                control,
                 observer);
         return new Result(scenario, report);
     }
