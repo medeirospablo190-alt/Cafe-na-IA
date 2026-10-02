@@ -153,18 +153,6 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                 }
                 runOnUiThread(() -> render(unused, selected));
             } catch (Exception error) {
-                LaboratoryAiExecutionStatus.Snapshot terminal =
-                    executionStatus.snapshot();
-                if (!terminal.terminal()) {
-                    if (cancellation.isCancelled()) {
-                        executionStatus.cancel(
-                            "Planejamento cancelado pelo usuário");
-                    } else {
-                        executionStatus.fail(
-                            String.valueOf(error.getMessage()));
-                    }
-                }
-                persistExecutionHistory(executionStatus);
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     feedback.setText(
@@ -302,6 +290,18 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                     showPlannerResult(contractId, result);
                 });
             } catch (Exception error) {
+                LaboratoryAiExecutionStatus.Snapshot terminal =
+                    executionStatus.snapshot();
+                if (!terminal.terminal()) {
+                    if (cancellation.isCancelled()) {
+                        executionStatus.cancel(
+                            "Planejamento cancelado pelo usuário");
+                    } else {
+                        executionStatus.fail(
+                            String.valueOf(error.getMessage()));
+                    }
+                }
+                persistExecutionHistory(executionStatus);
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     boolean cancelled = cancellation.isCancelled();
