@@ -43,6 +43,41 @@ public final class LaboratoryAiPlannerExecutionDiagnosticInstrumentedTest {
     }
 
     @Test
+    public void explainsFirstPromptBatchTimeoutFromTelemetry() {
+        LaboratoryAiExecutionStatus.Tracker tracker =
+            new LaboratoryAiExecutionStatus.Tracker(
+                UUID.randomUUID().toString(),
+                null);
+        tracker.updateNativeTelemetry(
+            2,
+            1200,
+            0,
+            0,
+            1024,
+            900L,
+            120_000L,
+            0L,
+            120_000L,
+            1,
+            2);
+        tracker.fail(
+            "local model timed out while processing prompt");
+
+        LaboratoryAiPlannerExecutionDiagnostic.Result result =
+            LaboratoryAiPlannerExecutionDiagnostic.analyze(
+                tracker.snapshot());
+
+        assertEquals(
+            LaboratoryAiPlannerExecutionDiagnostic.Code.PROMPT_TIMEOUT,
+            result.code);
+        assertEquals(
+            "MEASURE_FIRST_PROMPT_BATCH_LATENCY",
+            result.nextCheck);
+        assertTrue(result.explanation.contains("nenhum batch completo"));
+        assertTrue(result.explanation.contains("1200"));
+    }
+
+    @Test
     public void distinguishesTokenTimeoutAndUserCancellation() {
         LaboratoryAiExecutionStatus.Tracker timeout =
             new LaboratoryAiExecutionStatus.Tracker(
