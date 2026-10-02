@@ -97,6 +97,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button sendButton;
     private final Button cancelButton;
     private final Button currentDiagnosticButton;
+    private final Button currentTimelineButton;
     private final Button currentActionPrimaryButton;
     private final TextView currentActionStatus;
     private final ProgressBar currentActionProgress;
@@ -198,6 +199,16 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams diagnosticParams = matchWrap();
         diagnosticParams.setMargins(0, 0, 0, dp(8));
         addView(currentDiagnosticButton, diagnosticParams);
+
+        currentTimelineButton =
+            button("LINHA DO TEMPO DA AÇÃO", PANEL);
+        currentTimelineButton.setAllCaps(false);
+        currentTimelineButton.setEnabled(false);
+        currentTimelineButton.setOnClickListener(
+            v -> showCurrentActionTimeline());
+        LayoutParams timelineParams = matchWrap();
+        timelineParams.setMargins(0, 0, 0, dp(8));
+        addView(currentTimelineButton, timelineParams);
 
         messageScroll = new ScrollView(activity);
         messageScroll.setFillViewport(true);
@@ -712,6 +723,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 && !workflowContractId.isEmpty();
         }
         currentDiagnosticButton.setEnabled(enabled);
+        if (currentTimelineButton != null) {
+            currentTimelineButton.setEnabled(enabled);
+        }
         refreshCurrentActionStatus();
     }
 
@@ -1111,6 +1125,135 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             default:
                 return "Aguardando próxima ação.";
         }
+    }
+
+    private void showCurrentActionTimeline() {
+        if (closed) return;
+
+        final String contractId;
+        final String scenarioId;
+        synchronized (persistedEntries) {
+            contractId = workflowContractId;
+            scenarioId = workflowScenarioId;
+        }
+        if (contractId == null || contractId.isEmpty()) return;
+
+        currentTimelineButton.setEnabled(false);
+        diagnosticWorker.execute(() -> {
+            try {
+                LaboratoryAiActionTimeline.Snapshot timeline =
+                    LaboratoryAiActionTimeline.inspect(
+                        activity.getFilesDir(),
+                        projectId,
+                        contractId,
+                        scenarioId);
+                String rendered = renderActionTimeline(timeline);
+                runOnUi(() -> {
+                    if (closed) return;
+                    refreshActionDiagnosticButton();
+                    showTimelineDialog(rendered);
+                });
+            } catch (Exception error) {
+                String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (closed) return;
+                    refreshActionDiagnosticButton();
+                    new AlertDialog.Builder(activity)
+                        .setTitle("Linha do tempo da ação")
+                        .setMessage(
+                            "Não consegui montar a linha do tempo desta ação."
+                                + "\n\n" + reason)
+                        .setPositiveButton("FECHAR", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private String renderActionTimeline(
+            LaboratoryAiActionTimeline.Snapshot timeline) {
+        StringBuilder out = new StringBuilder();
+        out.append("LINHA DO TEMPO DA AÇÃO")
+            .append("\nContrato: ")
+            .append(shortId(timeline.contractId));
+
+        if (timeline.items.isEmpty()) {
+            return out.append(
+                "\n\nNenhum evento auditável encontrado.").toString();
+        }
+
+        int index = 1;
+        for (LaboratoryAiActionTimeline.Item item : timeline.items) {
+            out.append("\n\n")
+                .append(index++)
+                .append(". ")
+                .append(formatTimelineTime(item.atEpochMs))
+                .append(" • ")
+                .append(timelineSourceLabel(item.source))
+                .append("\n")
+                .append(item.title);
+            if (item.detail != null && !item.detail.isEmpty()) {
+                out.append("\n")
+                    .append(item.detail);
+            }
+            if (item.code != null && !item.code.isEmpty()) {
+                out.append("\nCódigo: ")
+                    .append(item.code);
+            }
+        }
+
+        out.append(
+            "\n\nSomente leitura: esta linha do tempo é montada a partir "
+                + "dos audits existentes e não executa nem altera a ação.");
+        return out.toString();
+    }
+
+    private void showTimelineDialog(String details) {
+        TextView body = text(details, 13, FG, false);
+        body.setTypeface(Typeface.MONOSPACE);
+        body.setTextIsSelectable(true);
+        body.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(body);
+        new AlertDialog.Builder(activity)
+            .setTitle("Linha do tempo da ação")
+            .setView(scroll)
+            .setPositiveButton("FECHAR", null)
+            .show();
+    }
+
+    private static String timelineSourceLabel(
+            LaboratoryAiActionTimeline.Source source) {
+        if (source == null) return "SISTEMA";
+        switch (source) {
+            case GOAL_LOCK:
+                return "GOAL LOCK";
+            case PLANNER:
+                return "PLANEJADOR";
+            case SCENARIO:
+                return "CENÁRIO";
+            case TEST_AGENT:
+                return "TESTADORA";
+            case RESULT:
+                return "RESULTADO";
+            default:
+                return "SISTEMA";
+        }
+    }
+
+    private static String formatTimelineTime(long epochMs) {
+        if (epochMs <= 0L) return "hora indisponível";
+        return java.text.DateFormat.getTimeInstance(
+            java.text.DateFormat.MEDIUM,
+            new Locale("pt", "BR"))
+            .format(new java.util.Date(epochMs));
+    }
+
+    private static String shortId(String value) {
+        if (value == null) return "";
+        return value.length() <= 8
+            ? value
+            : value.substring(0, 8);
     }
 
     private void showCurrentActionDiagnostic() {
