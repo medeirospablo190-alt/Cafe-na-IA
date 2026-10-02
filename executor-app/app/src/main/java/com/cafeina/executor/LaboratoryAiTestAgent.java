@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -154,6 +155,63 @@ public final class LaboratoryAiTestAgent {
         }
     }
 
+    public static final class Control {
+        private final AtomicBoolean cancelRequested =
+            new AtomicBoolean(false);
+        private final AtomicReference<
+            LaboratoryAiSessionController.HostHandle> host =
+                new AtomicReference<>();
+        private final AtomicReference<
+            LaboratorySandboxClient.Session> invocation =
+                new AtomicReference<>();
+
+        public void cancel() {
+            cancelRequested.set(true);
+
+            LaboratorySandboxClient.Session active =
+                invocation.get();
+            if (active != null) {
+                active.cancel();
+            }
+
+            LaboratoryAiSessionController.HostHandle currentHost =
+                host.get();
+            if (currentHost != null) {
+                currentHost.cancel();
+            }
+        }
+
+        public boolean isCancellationRequested() {
+            return cancelRequested.get();
+        }
+
+        private void attachHost(
+                LaboratoryAiSessionController.HostHandle value) {
+            host.set(value);
+            if (cancelRequested.get() && value != null) {
+                value.cancel();
+            }
+        }
+
+        private void detachHost(
+                LaboratoryAiSessionController.HostHandle value) {
+            host.compareAndSet(value, null);
+        }
+
+        private void attachInvocation(
+                LaboratorySandboxClient.Session value) {
+            invocation.set(value);
+            if (cancelRequested.get() && value != null) {
+                value.cancel();
+            }
+        }
+
+        private void detachInvocation(
+                LaboratorySandboxClient.Session value) {
+            invocation.compareAndSet(value, null);
+        }
+    }
+
     public interface Observer {
         default void onAdmitted(String sessionId, int plannedSteps) {
         }
@@ -194,6 +252,7 @@ public final class LaboratoryAiTestAgent {
             projectId,
             contractId,
             plan,
+            new Control(),
             null);
     }
 
@@ -203,12 +262,33 @@ public final class LaboratoryAiTestAgent {
             String contractId,
             Plan plan,
             Observer observer) throws IOException {
-        if (context == null || plan == null) {
+        return runBlocking(
+            context,
+            projectId,
+            contractId,
+            plan,
+            new Control(),
+            observer);
+    }
+
+    public static Report runBlocking(
+            Context context,
+            String projectId,
+            String contractId,
+            Plan plan,
+            Control control,
+            Observer observer) throws IOException {
+        if (context == null || plan == null || control == null) {
             throw new IllegalArgumentException("test-agent context or plan missing");
         }
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException(
                 "test agent must run off the UI thread");
+        }
+
+        if (control.isCancellationRequested()) {
+            throw new IOException(
+                "test agent cancelled before Goal Lock admission");
         }
 
         Context app = context.getApplicationContext();
@@ -269,6 +349,7 @@ public final class LaboratoryAiTestAgent {
                 attributionFailure);
         }
 
+        control.attachHost(admitted.host);
         notifyAdmitted(
             observer,
             admitted.ai.sessionId(),
@@ -284,6 +365,12 @@ public final class LaboratoryAiTestAgent {
                 stepIndex < plan.steps.size();
                 stepIndex++) {
             Step step = plan.steps.get(stepIndex);
+            if (control.isCancellationRequested()) {
+                terminalReason = "HOST_CANCELLED";
+                admitted.host.cancel();
+                break;
+            }
+
             LaboratoryAiSessionController.Snapshot before =
                 admitted.host.snapshot();
             if (before.state == LaboratoryAiSessionController.State.PAUSED) {
@@ -304,7 +391,10 @@ public final class LaboratoryAiTestAgent {
                 stepIndex + 1,
                 plan.steps.size(),
                 step);
-            StepOutcome outcome = runStep(admitted.ai, step);
+            StepOutcome outcome = runStep(
+                admitted.ai,
+                step,
+                control);
             evidence.add(outcome.evidence);
             notifyStepFinished(
                 observer,
@@ -382,6 +472,7 @@ public final class LaboratoryAiTestAgent {
             LaboratoryAiDiagnostics.schedule(
                 app, projectId, admitted.ai.sessionId());
             notifyFinished(observer, report);
+            control.detachHost(admitted.host);
         } catch (IOException saveFailure) {
             LaboratoryAiSessionController.Snapshot snapshot =
                 admitted.host.snapshot();
@@ -389,6 +480,7 @@ public final class LaboratoryAiTestAgent {
                     || snapshot.state == LaboratoryAiSessionController.State.PAUSED) {
                 admitted.host.cancel();
             }
+            control.detachHost(admitted.host);
             throw new IOException(
                 "test-agent run completed but report could not be persisted",
                 saveFailure);
@@ -453,7 +545,9 @@ public final class LaboratoryAiTestAgent {
     }
 
     private static StepOutcome runStep(
-            LaboratoryAiTaskAdmission.AiTaskHandle ai, Step step) {
+            LaboratoryAiTaskAdmission.AiTaskHandle ai,
+            Step step,
+            Control control) {
         String inputSha = hash(step.input);
         String expectedSha = hash(step.expectedFirstReturn);
         CountDownLatch done = new CountDownLatch(1);
@@ -468,6 +562,7 @@ public final class LaboratoryAiTestAgent {
                 failure.set(error);
                 done.countDown();
             });
+            control.attachInvocation(launched);
         } catch (IOException | RuntimeException launchFailure) {
             return new StepOutcome(
                 failedEvidence(
@@ -491,6 +586,8 @@ public final class LaboratoryAiTestAgent {
                 failedEvidence(
                     step, inputSha, expectedSha, "THREAD_INTERRUPTED"),
                 true);
+        } finally {
+            control.detachInvocation(launched);
         }
 
         IOException error = failure.get();
