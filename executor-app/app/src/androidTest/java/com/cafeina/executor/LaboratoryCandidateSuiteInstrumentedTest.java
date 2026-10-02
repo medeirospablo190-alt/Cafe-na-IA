@@ -51,7 +51,7 @@ public final class LaboratoryCandidateSuiteInstrumentedTest {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<LaboratoryCandidateSuiteRunner.Result> result =
             new AtomicReference<>();
-        AtomicReference<IOExceptionHolder> failure =
+        AtomicReference<Throwable> failure =
             new AtomicReference<>();
 
         new Thread(() -> {
@@ -66,12 +66,12 @@ public final class LaboratoryCandidateSuiteInstrumentedTest {
                     (suite, error) -> {
                         result.set(suite);
                         if (error != null) {
-                            failure.set(new IOExceptionHolder(error));
+                            failure.set(error);
                         }
                         done.countDown();
                     });
             } catch (Throwable error) {
-                failure.set(new IOExceptionHolder(error));
+                failure.set(error);
                 done.countDown();
             }
         }, "candidate-suite-test").start();
@@ -79,9 +79,9 @@ public final class LaboratoryCandidateSuiteInstrumentedTest {
         assertTrue(
             "candidate suite did not finish",
             done.await(80, TimeUnit.SECONDS));
-        assertNull(
-            failure.get() == null ? null : failure.get().error,
-            failure.get() == null ? null : failure.get().error);
+        if (failure.get() != null) {
+            throw new AssertionError(failure.get());
+        }
         assertNotNull(result.get());
         assertEquals("PASS", result.get().status);
         assertEquals(2, result.get().plannedCases);
@@ -202,11 +202,4 @@ public final class LaboratoryCandidateSuiteInstrumentedTest {
         assertEquals(1, snapshots.listVerified().size());
     }
 
-    private static final class IOExceptionHolder {
-        final Throwable error;
-
-        IOExceptionHolder(Throwable error) {
-            this.error = error;
-        }
-    }
 }
