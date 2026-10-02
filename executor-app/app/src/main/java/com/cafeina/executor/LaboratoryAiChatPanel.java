@@ -1496,6 +1496,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
         final String contractId;
         final LaboratoryAiChatSessionStore.WorkflowState state;
+        final String liveText =
+            liveStatus != null
+                    && liveStatus.getVisibility() == VISIBLE
+                    && liveStatus.getText() != null
+                ? liveStatus.getText().toString()
+                : "";
         synchronized (persistedEntries) {
             contractId = workflowContractId;
             state = workflowState;
@@ -1518,7 +1524,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         projectId,
                         contractId);
                 String answer =
-                    operationalDiagnosticAnswer(diagnosis, state);
+                    operationalDiagnosticAnswer(
+                        diagnosis,
+                        state,
+                        liveText);
                 runOnUi(() -> {
                     if (!closed) addAssistantMessage(answer);
                 });
@@ -1657,30 +1666,79 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
     private String operationalDiagnosticAnswer(
             LaboratoryAiActionDiagnostic.Snapshot diagnosis,
-            LaboratoryAiChatSessionStore.WorkflowState liveState) {
+            LaboratoryAiChatSessionStore.WorkflowState liveState,
+            String liveText) {
         StringBuilder out = new StringBuilder("DIAGNÓSTICO DA AÇÃO");
-        if (liveState
-                == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+        boolean active =
+            liveState
+                    == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
                 || liveState
                     == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
                 || liveState
-                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED;
+
+        if (active) {
             out.append("\nEstado ao vivo: ")
                 .append(workflowStateLabel(liveState));
-            if (liveStatus != null
-                    && liveStatus.getVisibility() == VISIBLE
-                    && liveStatus.getText() != null) {
+            if (liveText != null && !liveText.isEmpty()) {
                 out.append("\nAgora: ")
-                    .append(liveStatus.getText());
+                    .append(liveText);
             }
-            out.append("\nNão há falha terminal confirmada somente por a "
-                + "ação ainda estar em andamento.");
-        } else {
-            out.append("\nEtapa: ")
-                .append(actionStageLabel(diagnosis.stage));
+            out.append(
+                "\nNão há falha terminal confirmada neste momento.");
+
+            if (liveState
+                    == LaboratoryAiChatSessionStore.WorkflowState.PLANNING) {
+                LaboratoryAiExecutionStatus.Snapshot planner =
+                    latestPlannerSnapshot;
+                if (planner != null) {
+                    out.append("\nFase do planejador: ")
+                        .append(phaseLabel(planner.phase))
+                        .append(" • ")
+                        .append(formatElapsed(planner.elapsedMs));
+                    if (planner.promptTokens > 0) {
+                        out.append("\nPrompt: ")
+                            .append(planner.promptTokensProcessed)
+                            .append("/")
+                            .append(planner.promptTokens)
+                            .append(" tokens");
+                    }
+                }
+                out.append(
+                    "\nPróximo passo: aguardar a conclusão ou cancelar "
+                        + "se você quiser interromper.");
+            } else {
+                out.append("\nPassos concluídos: ")
+                    .append(currentTestCompletedSteps)
+                    .append("/")
+                    .append(currentTestTotalSteps);
+                LaboratoryAiTestAgent.Control control = activeTestControl;
+                LaboratoryAiSessionController.Snapshot budget =
+                    control == null ? null : control.snapshot();
+                if (budget != null) {
+                    out.append("\nOrçamento restante: ")
+                        .append(budget.invocationsRemaining)
+                        .append(" chamada(s) • ")
+                        .append(formatBytes(budget.inputBytesRemaining))
+                        .append(" • ")
+                        .append(formatElapsed(budget.remainingMs));
+                }
+                out.append(
+                    liveState
+                            == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED
+                        ? "\nPróximo passo: continuar ou cancelar o teste."
+                        : "\nPróximo passo: acompanhar, pausar ou cancelar.");
+            }
+
+            out.append(
+                "\nObservação: o histórico persistido só será usado como "
+                    + "diagnóstico terminal quando esta execução finalizar.");
+            return out.toString();
         }
 
-        out.append("\nLeitura: ")
+        out.append("\nEtapa: ")
+            .append(actionStageLabel(diagnosis.stage))
+            .append("\nLeitura: ")
             .append(diagnosis.explanation)
             .append("\nPróximo passo: ")
             .append(diagnosis.nextStep)
