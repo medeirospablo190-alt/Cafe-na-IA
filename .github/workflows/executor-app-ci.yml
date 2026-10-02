@@ -89,28 +89,52 @@ jobs:
             adb logcat -d -v brief > godot-world-android-logcat.txt
             ! grep -Ei 'SCRIPT ERROR|Parse Error|Failed to load script|Failed to load main scene' godot-world-android-logcat.txt
 
-      - name: Package installable ARM64 APK
+      - name: Package installable ARM64 APK with local LLM runtime
         working-directory: executor-app
-        run: gradle -PcafeinaArm64Only=true :app:assembleDebug --stacktrace
+        run: |
+          gradle \
+            -PcafeinaArm64Only=true \
+            -PcafeinaLocalLlm=true \
+            :app:assembleDebug \
+            --stacktrace
 
-      - name: Verify ARM64 APK contains no emulator libraries
+      - name: Verify ARM64 APK contains local LLM runtime and no emulator libraries
         working-directory: executor-app
         shell: bash
         run: |
           APK="$(find app/build/outputs/apk/debug -name '*.apk' -print -quit)"
           test -s "$APK"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_luau_jni.so"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llm_probe.so"
+          unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libcafeina_llama_jni.so"
           unzip -Z1 "$APK" | grep -F "lib/arm64-v8a/libgodot_android.so"
           unzip -p "$APK" assets/project.godot | grep -qx "window/handheld/orientation=0"
+
+          TMP="$(mktemp -d)"
+          unzip -q "$APK" "lib/arm64-v8a/libcafeina_llama_jni.so" -d "$TMP"
+          READELF="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          if [ ! -x "$READELF" ]; then
+            READELF="$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          fi
+          test -x "$READELF"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeOpen"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeClose"
+
           if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
             echo "Unexpected non-ARM64 library in installable APK"
             exit 1
           fi
 
-      - name: Upload ARM64 APK
+      - name: Upload ARM64 local-LLM APK
         uses: actions/upload-artifact@v4
         with:
-          name: cafeina-android-arm64-apk
+          name: cafeina-android-local-llm-arm64-apk
           path: executor-app/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
