@@ -35,6 +35,7 @@ public final class LaboratoryAiActionDiagnostic {
         public final LaboratoryAiTestAgentReportStore.Entry testReport;
 
         public final String explanation;
+        public final String nextStep;
         public final String nextCheck;
 
         private Snapshot(
@@ -49,6 +50,7 @@ public final class LaboratoryAiActionDiagnostic {
                     plannerDiagnostic,
                 LaboratoryAiTestAgentReportStore.Entry testReport,
                 String explanation,
+                String nextStep,
                 String nextCheck) {
             this.contractId = contractId;
             this.mode = mode;
@@ -60,6 +62,7 @@ public final class LaboratoryAiActionDiagnostic {
             this.plannerDiagnostic = plannerDiagnostic;
             this.testReport = testReport;
             this.explanation = explanation;
+            this.nextStep = nextStep;
             this.nextCheck = nextCheck;
         }
     }
@@ -150,7 +153,48 @@ public final class LaboratoryAiActionDiagnostic {
             plannerDiagnosis,
             report,
             explanation,
+            userNextStep(nextCheck),
             nextCheck);
+    }
+
+    private static String userNextStep(String code) {
+        if (code == null || code.isEmpty()) {
+            return "Abra a linha do tempo desta ação para localizar o próximo ponto de verificação.";
+        }
+        switch (code) {
+            case "GENERATE_PLAN_WHEN_USER_REQUESTS":
+                return "Se quiser continuar, gere o plano. Nenhuma ferramenta será executada nessa etapa.";
+            case "REVIEW_OR_PREPARE_TEST_AGENT":
+                return "Revise o plano validado e, se estiver correto, prepare a Testadora sem executar ainda.";
+            case "OPEN_TEST_AGENT_REPORT":
+                return "Abra o relatório da Testadora e veja qual passo ou ferramenta falhou.";
+            case "OPEN_AI_SESSION_RECOVERY":
+                return "Abra a recuperação da sessão antes de tentar qualquer nova execução.";
+            case "NO_FAILURE_TO_DIAGNOSE":
+                return "Nenhuma falha foi detectada nesta ação. Você pode revisar o relatório final.";
+            case "MEASURE_FIRST_PROMPT_BATCH_LATENCY":
+                return "Teste novamente medindo o primeiro batch do prompt; o gargalo aconteceu antes de um batch terminar.";
+            case "PROFILE_PROMPT_EVAL_THROUGHPUT":
+                return "Compare tamanho do prompt, tokens processados e velocidade para decidir se o limite ou o contexto precisa ser ajustado.";
+            case "PROFILE_TOKEN_GENERATION_THROUGHPUT":
+                return "Compare a velocidade de geração com o limite de saída e o tempo máximo configurado.";
+            case "PROFILE_CONTEXT_SETUP":
+            case "MEASURE_CONTEXT_SETUP_AND_MODEL_FIT":
+                return "Verifique tempo de criação do contexto e se o modelo/contexto cabem confortavelmente no dispositivo.";
+            case "CHECK_MODEL_ADMISSION":
+                return "Verifique o arquivo GGUF selecionado e a validação de admissão do modelo.";
+            case "CHECK_MEMORY_RUNTIME_AND_MODEL_FIT":
+            case "CHECK_MODEL_LOAD_AND_MEMORY":
+                return "Verifique memória disponível, tamanho do modelo e configuração do runtime antes de repetir.";
+            case "CHECK_PLAN_CONTRACT_VALIDATION":
+                return "Abra os erros da validação determinística e ajuste apenas o plano; não execute a Testadora ainda.";
+            case "RETRY_ONLY_IF_USER_REQUESTS":
+                return "A execução foi cancelada. Só repita se você quiser iniciar outra tentativa.";
+            case "OPEN_PLANNER_TIMELINE":
+            case "CHECK_FULL_EXECUTION_TIMELINE":
+            default:
+                return "Abra a linha do tempo do planejador e confira a última fase concluída antes da falha.";
+        }
     }
 
     private static LaboratoryAiExecutionHistoryStore.Summary latestPlanner(
