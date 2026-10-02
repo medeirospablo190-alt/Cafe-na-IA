@@ -89,6 +89,17 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
         assertTrue(diagnosis.explanation.contains("40/120"));
         assertNull(diagnosis.testReport);
 
+        LaboratoryAiRootCauseAssessment.Result assessment =
+            LaboratoryAiRootCauseAssessment.assess(diagnosis);
+        assertTrue(hasFinding(
+            assessment,
+            LaboratoryAiRootCauseAssessment.Strength.CONFIRMED,
+            "PLANNER_PROMPT_TIMEOUT"));
+        assertTrue(hasFinding(
+            assessment,
+            LaboratoryAiRootCauseAssessment.Strength.SUPPORTING,
+            "PROMPT_THROUGHPUT_OBSERVED"));
+
         LaboratoryAiTaskContractStore.Contract after =
             store.read(contract.contractId);
         assertFalse(after.claimed);
@@ -246,6 +257,13 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
             diagnosis.explanation.contains(
                 "não está viva no processo atual"));
 
+        LaboratoryAiRootCauseAssessment.Result assessment =
+            LaboratoryAiRootCauseAssessment.assess(diagnosis);
+        assertTrue(hasFinding(
+            assessment,
+            LaboratoryAiRootCauseAssessment.Strength.CONFIRMED,
+            "TEST_AGENT_PROCESS_INTERRUPTED"));
+
         LaboratoryAiTaskContractStore.Contract after =
             store.read(contract.contractId);
         assertTrue(after.claimed);
@@ -288,5 +306,18 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
             diagnosis.nextStep.contains("gere o plano"));
         assertFalse(diagnosis.goalLockClaimed);
         assertFalse(diagnosis.resultRecorded);
+    }
+    private static boolean hasFinding(
+            LaboratoryAiRootCauseAssessment.Result result,
+            LaboratoryAiRootCauseAssessment.Strength strength,
+            String code) {
+        for (LaboratoryAiRootCauseAssessment.Finding finding :
+                result.findings) {
+            if (finding.strength == strength
+                    && code.equals(finding.code)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
