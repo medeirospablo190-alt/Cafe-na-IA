@@ -31,17 +31,51 @@ public final class LaboratoryCandidateRunner {
     public static LaboratorySandboxClient.Session runInternal(Context context, String projectId,
             String candidate, String expectedFirstReturn, long seed, int timeoutMs,
             Completion completion) throws IOException {
-        return runInternal(context, projectId, candidate, "", expectedFirstReturn,
-            seed, timeoutMs, completion);
+        return runInternal(
+            context,
+            projectId,
+            candidate,
+            "",
+            "expected-return",
+            expectedFirstReturn,
+            seed,
+            timeoutMs,
+            completion);
     }
 
     public static LaboratorySandboxClient.Session runInternal(Context context, String projectId,
             String candidate, String toolInput, String expectedFirstReturn,
             long seed, int timeoutMs, Completion completion) throws IOException {
+        return runInternal(
+            context,
+            projectId,
+            candidate,
+            toolInput,
+            "expected-return",
+            expectedFirstReturn,
+            seed,
+            timeoutMs,
+            completion);
+    }
+
+    public static LaboratorySandboxClient.Session runInternal(
+            Context context,
+            String projectId,
+            String candidate,
+            String toolInput,
+            String caseName,
+            String expectedFirstReturn,
+            long seed,
+            int timeoutMs,
+            Completion completion) throws IOException {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(completion, "completion");
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException("laboratory preflight must run off the UI thread");
+        }
+        if (caseName == null
+                || !caseName.matches("[a-zA-Z0-9_-]{1,64}")) {
+            throw new IllegalArgumentException("invalid candidate test case name");
         }
         if (expectedFirstReturn == null || expectedFirstReturn.length() > 256) {
             throw new IllegalArgumentException("invalid expected Luau return");
@@ -79,8 +113,13 @@ public final class LaboratoryCandidateRunner {
                     recordingError = error;
                 }
                 try {
-                    reports.saveSandboxResult(result, "expected-return",
-                        expectedFirstReturn, seed, baseline.id, snapshotVerified);
+                    reports.saveSandboxResult(
+                        result,
+                        caseName,
+                        expectedFirstReturn,
+                        seed,
+                        baseline.id,
+                        snapshotVerified);
                 } catch (IOException error) {
                     if (recordingError != null) error.addSuppressed(recordingError);
                     recordingError = error;
