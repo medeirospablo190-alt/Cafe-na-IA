@@ -197,6 +197,326 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         persistenceWorker.shutdown();
     }
 
+    private void restoreSessionAsync() {
+        worker.execute(() -> {
+            LaboratoryAiChatSessionStore.Snapshot loaded;
+            LaboratoryAiTaskContractStore.Contract contract = null;
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared = null;
+            String error = "";
+
+            try {
+                loaded = sessionStore.load();
+            } catch (Exception failure) {
+                loaded = LaboratoryAiChatSessionStore.Snapshot.empty();
+                error = String.valueOf(failure.getMessage());
+            }
+
+            if (!loaded.contractId.isEmpty()) {
+                try {
+                    contract = new LaboratoryAiTaskContractStore(
+                        activity.getFilesDir(), projectId)
+                        .read(loaded.contractId);
+                } catch (Exception failure) {
+                    if (error.isEmpty()) {
+                        error = String.valueOf(failure.getMessage());
+                    }
+                }
+            }
+
+            if (loaded.workflowState
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED
+                    && !loaded.contractId.isEmpty()
+                    && !loaded.scenarioId.isEmpty()) {
+                try {
+                    prepared =
+                        LaboratoryAiValidatedPlanExecutionGate.restorePrepared(
+                            activity,
+                            projectId,
+                            loaded.contractId,
+                            loaded.scenarioId);
+                } catch (Exception failure) {
+                    if (error.isEmpty()) {
+                        error = String.valueOf(failure.getMessage());
+                    }
+                }
+            }
+
+            final LaboratoryAiChatSessionStore.Snapshot restored = loaded;
+            final LaboratoryAiTaskContractStore.Contract restoredContract =
+                contract;
+            final LaboratoryAiValidatedPlanExecutionGate.Prepared
+                restoredPrepared = prepared;
+            final String restoreError = error;
+
+            runOnUi(() -> applyRestoredSession(
+                restored,
+                restoredContract,
+                restoredPrepared,
+                restoreError));
+        });
+    }
+
+    private void applyRestoredSession(
+            LaboratoryAiChatSessionStore.Snapshot snapshot,
+            LaboratoryAiTaskContractStore.Contract contract,
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared,
+            String restoreError) {
+        if (closed) return;
+
+        messages.removeAllViews();
+        synchronized (transcript) {
+            transcript.clear();
+        }
+        synchronized (persistedEntries) {
+            persistedEntries.clear();
+            persistedEntries.addAll(snapshot.entries);
+            workflowState = snapshot.workflowState;
+            workflowContractId = snapshot.contractId;
+            workflowScenarioId = snapshot.scenarioId;
+            workflowReportId = snapshot.reportId;
+            workflowDetail = snapshot.statusDetail;
+        }
+
+        for (LaboratoryAiChatSessionStore.Entry entry :
+                snapshot.entries) {
+            addBubble(
+                entry.text,
+                entry.role
+                    == LaboratoryAiChatSessionStore.Role.USER);
+            if (entry.modelContext) {
+                remember(
+                    entry.role
+                        == LaboratoryAiChatSessionStore.Role.USER,
+                    entry.text);
+            }
+        }
+
+        hideLiveStatus();
+        input.setEnabled(true);
+        sendButton.setEnabled(true);
+
+        if (snapshot.entries.isEmpty()) {
+            addAssistantMessage(
+                "Pode falar comigo normalmente. Se você pedir uma ação no app, "
+                    + "eu separo conversa de execução e peço as permissões da tarefa.");
+        }
+
+        if (!restoreError.isEmpty()) {
+            addAssistantMessage(
+                "A conversa visível foi restaurada até onde foi possível, "
+                    + "mas uma parte do estado operacional precisa de revisão."
+                    + "\nDiagnóstico: " + restoreError);
+        }
+
+        LaboratoryAiChatSessionStore.WorkflowState state =
+            snapshot.workflowState;
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+                || state
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING) {
+            updateWorkflow(
+                LaboratoryAiChatSessionStore.WorkflowState.INTERRUPTED,
+                snapshot.contractId,
+                snapshot.scenarioId,
+                snapshot.reportId,
+                "Operação interrompida antes de registrar estado terminal");
+            addAssistantMessage(
+                "A operação que estava em andamento não será retomada "
+                    + "automaticamente. Marquei o fluxo como interrompido "
+                    + "para evitar repetir uma ação sem sua confirmação.");
+            state = LaboratoryAiChatSessionStore.WorkflowState.INTERRUPTED;
+        }
+
+        renderRestoredWorkflowActions(
+            state,
+            contract,
+            prepared);
+    }
+
+    private void renderRestoredWorkflowActions(
+            LaboratoryAiChatSessionStore.WorkflowState state,
+            LaboratoryAiTaskContractStore.Contract contract,
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        if (closed || state == null) return;
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW
+                && workflowContractId.isEmpty()) {
+            String pendingAction = lastPersistedUserMessage();
+            if (!pendingAction.isEmpty()) {
+                addActionButton(
+                    "RETOMAR PERMISSÕES DA TAREFA",
+                    () -> resumeActionReview(pendingAction));
+            }
+            return;
+        }
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED
+                && prepared != null) {
+            addActionButton(
+                "EXECUTAR TESTE • CONSOME GOAL LOCK",
+                () -> confirmAndExecutePrepared(prepared));
+            return;
+        }
+
+        if (contract != null) {
+            if (!contract.claimed && !contract.resultRecorded) {
+                addActionButton(
+                    "CONTINUAR TAREFA • GERAR PLANO",
+                    () -> runPlannerInline(contract.contractId));
+            } else if (contract.claimed && !contract.resultRecorded) {
+                addActionButton(
+                    "ABRIR RECUPERAÇÃO DA IA",
+                    () -> activity.startActivity(
+                        new Intent(
+                            activity,
+                            LaboratoryAiSessionRecoveryActivity.class)));
+            } else {
+                addActionButton(
+                    "ABRIR RELATÓRIOS DA TESTADORA",
+                    () -> activity.startActivity(
+                        new Intent(
+                            activity,
+                            LaboratoryAiTestAgentReportsActivity.class)));
+            }
+        } else if (!workflowReportId.isEmpty()) {
+            addActionButton(
+                "ABRIR RELATÓRIOS DA TESTADORA",
+                () -> activity.startActivity(
+                    new Intent(
+                        activity,
+                        LaboratoryAiTestAgentReportsActivity.class)));
+        }
+    }
+
+    private void resumeActionReview(String message) {
+        if (closed || busy || message == null || message.trim().isEmpty()) {
+            return;
+        }
+        LaboratoryAiChatRouter.Route route =
+            LaboratoryAiChatRouter.route(message);
+        worker.execute(() -> {
+            try {
+                List<LaboratoryAiToolController.Tool> available =
+                    LaboratoryAiToolController.listAvailable(
+                        activity, projectId);
+                runOnUi(() -> renderActionPreparation(
+                    message,
+                    route.modeHint,
+                    available));
+            } catch (Exception error) {
+                runOnUi(() -> addAssistantMessage(
+                    "Não consegui retomar as permissões desta tarefa: "
+                        + String.valueOf(error.getMessage())));
+            }
+        });
+    }
+
+    private String lastPersistedUserMessage() {
+        synchronized (persistedEntries) {
+            for (int i = persistedEntries.size() - 1; i >= 0; i--) {
+                LaboratoryAiChatSessionStore.Entry entry =
+                    persistedEntries.get(i);
+                if (entry.role
+                        == LaboratoryAiChatSessionStore.Role.USER) {
+                    return entry.text;
+                }
+            }
+        }
+        return "";
+    }
+
+    private void updateWorkflow(
+            LaboratoryAiChatSessionStore.WorkflowState state,
+            String contractId,
+            String scenarioId,
+            String reportId,
+            String detail) {
+        synchronized (persistedEntries) {
+            workflowState = state == null
+                ? LaboratoryAiChatSessionStore.WorkflowState.IDLE
+                : state;
+            workflowContractId = contractId == null ? "" : contractId;
+            workflowScenarioId = scenarioId == null ? "" : scenarioId;
+            workflowReportId = reportId == null ? "" : reportId;
+            workflowDetail = boundedStatus(detail);
+        }
+        schedulePersist();
+    }
+
+    private void persistVisibleEntry(
+            LaboratoryAiChatSessionStore.Role role,
+            String value,
+            boolean modelContext) {
+        String clean = boundedChatText(value);
+        if (clean.isEmpty()) return;
+
+        LaboratoryAiChatSessionStore.Entry entry =
+            LaboratoryAiChatSessionStore.Entry.create(
+                role,
+                clean,
+                modelContext);
+        synchronized (persistedEntries) {
+            persistedEntries.add(entry);
+            while (persistedEntries.size()
+                    > LaboratoryAiChatSessionStore.MAX_ENTRIES) {
+                persistedEntries.remove(0);
+            }
+        }
+        schedulePersist();
+    }
+
+    private void schedulePersist() {
+        final LaboratoryAiChatSessionStore.Snapshot snapshot;
+        synchronized (persistedEntries) {
+            snapshot = new LaboratoryAiChatSessionStore.Snapshot(
+                System.currentTimeMillis(),
+                new ArrayList<>(persistedEntries),
+                workflowState,
+                workflowContractId,
+                workflowScenarioId,
+                workflowReportId,
+                workflowDetail);
+        }
+
+        try {
+            persistenceWorker.execute(() -> {
+                try {
+                    sessionStore.save(snapshot);
+                } catch (Exception ignored) {
+                    // Chat persistence never controls model/tool execution.
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException ignored) {
+            // Panel is already closing.
+        }
+    }
+
+    private static String boundedChatText(String value) {
+        if (value == null) return "";
+        String clean = value.trim();
+        if (clean.length()
+                <= LaboratoryAiChatSessionStore.MAX_ENTRY_CHARS) {
+            return clean;
+        }
+        return clean.substring(
+            0,
+            LaboratoryAiChatSessionStore.MAX_ENTRY_CHARS);
+    }
+
+    private static String boundedStatus(String value) {
+        if (value == null) return "";
+        String clean = value.trim();
+        if (clean.length()
+                <= LaboratoryAiChatSessionStore.MAX_STATUS_CHARS) {
+            return clean;
+        }
+        return clean.substring(
+            0,
+            LaboratoryAiChatSessionStore.MAX_STATUS_CHARS);
+    }
+
     private void sendCurrent() {
         if (closed || busy) return;
         String message = input.getText().toString().trim();
