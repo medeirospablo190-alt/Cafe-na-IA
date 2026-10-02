@@ -484,3 +484,15 @@ Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que 
 - Se o Goal Lock foi consumido mas ainda não possui resultado, o chat não tenta repetir a execução: oferece a recuperação da sessão da IA.
 - `LIMPAR CONVERSA LOCAL` apaga somente esse snapshot visual/operacional. Goal Locks, cenários, relatórios, permissões e a futura memória de conhecimento permanecem intactos.
 - A persistência é observabilidade/continuidade de UI: falha ao salvar chat nunca concede permissão, nunca executa ferramenta e nunca altera o resultado de planejador/Testadora.
+
+
+## Pausa segura da Testadora
+
+- O cartão `AÇÃO ATUAL` pode solicitar `PAUSAR TESTE` e `CONTINUAR TESTE` enquanto a Testadora determinística está ativa.
+- Pausa é host-owned: o modelo não decide se aceita ou não. A solicitação fica no `LaboratoryAiTestAgent.Control`.
+- A pausa só entra em vigor em um ponto seguro entre passos. Se uma ferramenta já está executando, ela não é cancelada apenas para pausar; o passo termina e a sessão pausa antes do próximo. Isso evita repetir efeitos parcialmente executados.
+- Enquanto a pausa está pendente, o cartão mostra `PAUSA SOLICITADA • AGUARDANDO PONTO SEGURO`. Quando o host realmente entra em `PAUSED`, o estado persistido do chat vira `TEST_PAUSED` e o botão principal passa para `CONTINUAR TESTE`.
+- `CONTINUAR TESTE` libera a espera e o host executa `resume()` antes do próximo passo. A pausa e a retomada entram no audit append-only da sessão como eventos `PAUSE` e `RESUME`.
+- Cancelar continua tendo prioridade: um cancelamento durante a pausa desperta a espera, cancela a sessão e produz resultado `CANCELLED`/`HOST_CANCELLED`.
+- Tempo de sessão continua correndo durante a pausa. Se o orçamento temporal expirar, a Testadora não força continuação.
+- Se o processo for perdido enquanto `TEST_PAUSED`, a reabertura converte a operação para `INTERRUPTED`; ela nunca retoma automaticamente uma execução que estava pausada.
