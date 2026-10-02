@@ -703,6 +703,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             String reportId,
             String detail) {
         synchronized (persistedEntries) {
+            String previousContractId = workflowContractId;
             workflowState = state == null
                 ? LaboratoryAiChatSessionStore.WorkflowState.IDLE
                 : state;
@@ -710,6 +711,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             workflowScenarioId = scenarioId == null ? "" : scenarioId;
             workflowReportId = reportId == null ? "" : reportId;
             workflowDetail = boundedStatus(detail);
+            if (!previousContractId.equals(workflowContractId)) {
+                latestActionPreflight = null;
+            }
         }
         if (state
                 != LaboratoryAiChatSessionStore.WorkflowState.PLAN_READY) {
