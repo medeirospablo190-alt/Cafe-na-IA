@@ -154,6 +154,27 @@ public final class LaboratoryAiTestAgent {
         }
     }
 
+    public interface Observer {
+        default void onAdmitted(String sessionId, int plannedSteps) {
+        }
+
+        default void onStepStarted(
+                int stepIndex,
+                int totalSteps,
+                String stepName,
+                String toolId) {
+        }
+
+        default void onStepFinished(
+                int stepIndex,
+                int totalSteps,
+                StepEvidence evidence) {
+        }
+
+        default void onFinished(Report report) {
+        }
+    }
+
     private static final class StepOutcome {
         final StepEvidence evidence;
         final boolean callbackTimedOut;
@@ -168,6 +189,20 @@ public final class LaboratoryAiTestAgent {
 
     public static Report runBlocking(Context context, String projectId,
             String contractId, Plan plan) throws IOException {
+        return runBlocking(
+            context,
+            projectId,
+            contractId,
+            plan,
+            null);
+    }
+
+    public static Report runBlocking(
+            Context context,
+            String projectId,
+            String contractId,
+            Plan plan,
+            Observer observer) throws IOException {
         if (context == null || plan == null) {
             throw new IllegalArgumentException("test-agent context or plan missing");
         }
@@ -212,6 +247,7 @@ public final class LaboratoryAiTestAgent {
                 plan.stopOnFailure,
                 Collections.emptyList());
             reportStore.save(report);
+            notifyFinished(observer, report);
             return report;
         }
 
@@ -233,13 +269,21 @@ public final class LaboratoryAiTestAgent {
                 attributionFailure);
         }
 
+        notifyAdmitted(
+            observer,
+            admitted.ai.sessionId(),
+            plan.steps.size());
+
         List<StepEvidence> evidence = new ArrayList<>();
         int passed = 0;
         int failed = 0;
         boolean forcedInfrastructureCancel = false;
         String terminalReason = "";
 
-        for (Step step : plan.steps) {
+        for (int stepIndex = 0;
+                stepIndex < plan.steps.size();
+                stepIndex++) {
+            Step step = plan.steps.get(stepIndex);
             LaboratoryAiSessionController.Snapshot before =
                 admitted.host.snapshot();
             if (before.state == LaboratoryAiSessionController.State.PAUSED) {
@@ -255,8 +299,18 @@ public final class LaboratoryAiTestAgent {
                 break;
             }
 
+            notifyStepStarted(
+                observer,
+                stepIndex + 1,
+                plan.steps.size(),
+                step);
             StepOutcome outcome = runStep(admitted.ai, step);
             evidence.add(outcome.evidence);
+            notifyStepFinished(
+                observer,
+                stepIndex + 1,
+                plan.steps.size(),
+                outcome.evidence);
             if (outcome.evidence.passed) {
                 passed++;
             } else {
@@ -327,6 +381,7 @@ public final class LaboratoryAiTestAgent {
             reportStore.save(report);
             LaboratoryAiDiagnostics.schedule(
                 app, projectId, admitted.ai.sessionId());
+            notifyFinished(observer, report);
         } catch (IOException saveFailure) {
             LaboratoryAiSessionController.Snapshot snapshot =
                 admitted.host.snapshot();
@@ -339,6 +394,62 @@ public final class LaboratoryAiTestAgent {
                 saveFailure);
         }
         return report;
+    }
+
+    private static void notifyAdmitted(
+            Observer observer,
+            String sessionId,
+            int plannedSteps) {
+        if (observer == null) return;
+        try {
+            observer.onAdmitted(sessionId, plannedSteps);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
+    }
+
+    private static void notifyStepStarted(
+            Observer observer,
+            int stepIndex,
+            int totalSteps,
+            Step step) {
+        if (observer == null || step == null) return;
+        try {
+            observer.onStepStarted(
+                stepIndex,
+                totalSteps,
+                step.name,
+                step.toolId);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
+    }
+
+    private static void notifyStepFinished(
+            Observer observer,
+            int stepIndex,
+            int totalSteps,
+            StepEvidence evidence) {
+        if (observer == null || evidence == null) return;
+        try {
+            observer.onStepFinished(
+                stepIndex,
+                totalSteps,
+                evidence);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
+    }
+
+    private static void notifyFinished(
+            Observer observer,
+            Report report) {
+        if (observer == null || report == null) return;
+        try {
+            observer.onFinished(report);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
     }
 
     private static StepOutcome runStep(
