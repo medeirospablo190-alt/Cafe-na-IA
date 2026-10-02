@@ -16,6 +16,7 @@ public final class LaboratoryAiActionDiagnostic {
         GOAL_LOCK_READY,
         PLANNER_COMPLETED,
         PLANNER_FAILED,
+        PLANNER_RUNNING_OR_INTERRUPTED,
         TEST_AGENT_RUNNING_OR_INTERRUPTED,
         TEST_AGENT_COMPLETED,
         UNKNOWN
@@ -30,6 +31,8 @@ public final class LaboratoryAiActionDiagnostic {
         public final Stage stage;
 
         public final LaboratoryAiExecutionHistoryStore.Summary planner;
+        public final LaboratoryAiPlannerCheckpointStore.Checkpoint
+            plannerCheckpoint;
         public final LaboratoryAiPlannerExecutionDiagnostic.Result
             plannerDiagnostic;
         public final LaboratoryAiTestAgentReportStore.Entry testReport;
@@ -47,6 +50,8 @@ public final class LaboratoryAiActionDiagnostic {
                 boolean resultRecorded,
                 Stage stage,
                 LaboratoryAiExecutionHistoryStore.Summary planner,
+                LaboratoryAiPlannerCheckpointStore.Checkpoint
+                    plannerCheckpoint,
                 LaboratoryAiPlannerExecutionDiagnostic.Result
                     plannerDiagnostic,
                 LaboratoryAiTestAgentReportStore.Entry testReport,
@@ -61,6 +66,7 @@ public final class LaboratoryAiActionDiagnostic {
             this.resultRecorded = resultRecorded;
             this.stage = stage;
             this.planner = planner;
+            this.plannerCheckpoint = plannerCheckpoint;
             this.plannerDiagnostic = plannerDiagnostic;
             this.testReport = testReport;
             this.testSession = testSession;
@@ -92,6 +98,11 @@ public final class LaboratoryAiActionDiagnostic {
                 filesDir,
                 projectId,
                 contractId);
+        LaboratoryAiPlannerCheckpointStore.Checkpoint plannerCheckpoint =
+            new LaboratoryAiPlannerCheckpointStore(
+                filesDir,
+                projectId == null ? "" : projectId)
+                .read(contractId);
         LaboratoryAiPlannerExecutionDiagnostic.Result plannerDiagnosis =
             planner == null
                 ? null
@@ -144,6 +155,32 @@ public final class LaboratoryAiActionDiagnostic {
             nextCheck = plannerDiagnosis == null
                 ? "OPEN_PLANNER_TIMELINE"
                 : plannerDiagnosis.nextCheck;
+        } else if (plannerCheckpoint != null) {
+            stage = Stage.PLANNER_RUNNING_OR_INTERRUPTED;
+            StringBuilder checkpointText = new StringBuilder()
+                .append("Existe um checkpoint não terminal do planejador. ")
+                .append("Última fase conhecida: ")
+                .append(plannerCheckpoint.phase.name())
+                .append(" após ")
+                .append(plannerCheckpoint.elapsedMs)
+                .append(" ms.");
+            if (plannerCheckpoint.promptTokens > 0) {
+                checkpointText.append(" Prompt: ")
+                    .append(plannerCheckpoint.promptTokensProcessed)
+                    .append("/")
+                    .append(plannerCheckpoint.promptTokens)
+                    .append(" tokens.");
+            }
+            if (plannerCheckpoint.generatedTokens > 0
+                    || plannerCheckpoint.maxGeneratedTokens > 0) {
+                checkpointText.append(" Geração: ")
+                    .append(plannerCheckpoint.generatedTokens)
+                    .append("/")
+                    .append(plannerCheckpoint.maxGeneratedTokens)
+                    .append(" tokens.");
+            }
+            explanation = checkpointText.toString();
+            nextCheck = "REVIEW_PLANNER_CHECKPOINT";
         } else {
             stage = Stage.GOAL_LOCK_READY;
             explanation =
@@ -160,6 +197,7 @@ public final class LaboratoryAiActionDiagnostic {
             contract.resultRecorded,
             stage,
             planner,
+            plannerCheckpoint,
             plannerDiagnosis,
             report,
             testSession,
@@ -201,6 +239,8 @@ public final class LaboratoryAiActionDiagnostic {
                 return "Abra os erros da validação determinística e ajuste apenas o plano; não execute a Testadora ainda.";
             case "RETRY_ONLY_IF_USER_REQUESTS":
                 return "A execução foi cancelada. Só repita se você quiser iniciar outra tentativa.";
+            case "REVIEW_PLANNER_CHECKPOINT":
+                return "Revise o último checkpoint antes de repetir o planejamento. O Goal Lock continua não consumido e nenhuma repetição deve acontecer automaticamente.";
             case "OPEN_PLANNER_TIMELINE":
             case "CHECK_FULL_EXECUTION_TIMELINE":
             default:
