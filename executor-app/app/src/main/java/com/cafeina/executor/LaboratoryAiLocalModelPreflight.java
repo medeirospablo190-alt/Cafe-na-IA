@@ -146,6 +146,15 @@ public final class LaboratoryAiLocalModelPreflight {
             File modelFile,
             LaboratoryAiLlamaCppBackend.RuntimeConfig config)
             throws IOException {
+        return open(context, modelFile, config, null);
+    }
+
+    public static LaboratoryAiLlamaCppBackend open(
+            Context context,
+            File modelFile,
+            LaboratoryAiLlamaCppBackend.RuntimeConfig config,
+            LaboratoryAiLlamaCppBackend.GenerationObserver observer)
+            throws IOException {
         if (context == null) {
             throw new IllegalArgumentException(
                 "local model preflight context missing");
@@ -166,6 +175,6 @@ public final class LaboratoryAiLocalModelPreflight {
                     + report.signalCodes);
         }
         return LaboratoryAiLlamaCppBackend.open(
-            admitted, config);
+            admitted, config, observer);
     }
 }
