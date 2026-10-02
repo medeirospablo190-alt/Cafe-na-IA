@@ -90,8 +90,15 @@ public final class LaboratorySandboxInstrumentedTest {
         AtomicReference<Throwable> problem = new AtomicReference<>();
         new Thread(() -> {
             try {
-                LaboratoryCandidateRunner.runInternal(app, projectId, fixture,
-                    toolInput, "4", 42L, 1000,
+                LaboratoryCandidateRunner.runInternal(
+                    app,
+                    projectId,
+                    fixture,
+                    toolInput,
+                    "private-input-roundtrip",
+                    "4",
+                    42L,
+                    1000,
                     (result, passed, recordingError) -> {
                         execution.set(result);
                         if (!passed || recordingError != null) {
@@ -121,6 +128,11 @@ public final class LaboratorySandboxInstrumentedTest {
         assertTrue(entry.reportText.contains(execution.get().sourceSha256));
         assertTrue(entry.reportText.contains(execution.get().inputSha256));
         JSONObject report = new JSONObject(entry.reportText);
+        assertEquals(
+            "private-input-roundtrip",
+            report.getJSONArray("checks")
+                .getJSONObject(0)
+                .getString("name"));
         assertEquals(execution.get().inputSha256,
             report.getString("toolInputSha256"));
         assertTrue("Candidate source baseline must have been verified",
