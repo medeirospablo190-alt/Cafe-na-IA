@@ -117,6 +117,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         note.setPadding(0, 0, 0, dp(8));
         addView(note, matchWrap());
 
+        Button clearChat = button("LIMPAR CONVERSA LOCAL", PANEL);
+        clearChat.setAllCaps(false);
+        clearChat.setOnClickListener(v -> confirmClearConversation());
+        LayoutParams clearParams = matchWrap();
+        clearParams.setMargins(0, 0, 0, dp(8));
+        addView(clearChat, clearParams);
+
         messageScroll = new ScrollView(activity);
         messageScroll.setFillViewport(true);
         messages = new LinearLayout(activity);
@@ -195,6 +202,68 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         cancelActiveResponse();
         worker.shutdownNow();
         persistenceWorker.shutdown();
+    }
+
+    private void confirmClearConversation() {
+        if (closed || busy) {
+            return;
+        }
+
+        String extra;
+        synchronized (persistedEntries) {
+            extra = workflowContractId.isEmpty()
+                ? ""
+                : "\n\nImportante: limpar o chat NÃO apaga o Goal Lock, "
+                    + "cenários, relatórios ou a memória de conhecimento. "
+                    + "Esses registros continuam no laboratório.";
+        }
+
+        new AlertDialog.Builder(activity)
+            .setTitle("Limpar conversa local?")
+            .setMessage(
+                "Isso apaga somente o histórico visível deste chat "
+                    + "salvo no armazenamento privado do projeto."
+                    + extra)
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton(
+                "LIMPAR CONVERSA",
+                (dialog, which) -> clearConversationLocal())
+            .show();
+    }
+
+    private void clearConversationLocal() {
+        if (closed || busy) return;
+
+        synchronized (transcript) {
+            transcript.clear();
+        }
+        synchronized (persistedEntries) {
+            persistedEntries.clear();
+            workflowState =
+                LaboratoryAiChatSessionStore.WorkflowState.IDLE;
+            workflowContractId = "";
+            workflowScenarioId = "";
+            workflowReportId = "";
+            workflowDetail = "";
+        }
+        messages.removeAllViews();
+        hideLiveStatus();
+
+        try {
+            persistenceWorker.execute(() -> {
+                try {
+                    sessionStore.clear();
+                } catch (Exception ignored) {
+                    // Clearing visible chat never mutates external task state.
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException ignored) {
+            // Panel is closing.
+        }
+
+        addAssistantMessage(
+            "Conversa local limpa. Goal Locks, relatórios, cenários e "
+                + "conhecimento do projeto não foram alterados.");
     }
 
     private void restoreSessionAsync() {
