@@ -49,6 +49,19 @@ public final class LaboratoryAiActionSupportReport {
             .append("\nproxima_verificacao=")
             .append(safe(diagnostic.nextCheck));
 
+        LaboratoryAiRootCauseAssessment.Result assessment =
+            LaboratoryAiRootCauseAssessment.assess(diagnostic);
+        out.append("\n\n[CORRELACAO_EVIDENCIAS]");
+        for (LaboratoryAiRootCauseAssessment.Finding finding :
+                assessment.findings) {
+            out.append("\n")
+                .append(finding.strength)
+                .append("|")
+                .append(safe(finding.code))
+                .append("|")
+                .append(safe(finding.title));
+        }
+
         if (diagnostic.plannerEnvironment != null) {
             LaboratoryAiPlannerEnvironmentStore.Snapshot env =
                 diagnostic.plannerEnvironment;
