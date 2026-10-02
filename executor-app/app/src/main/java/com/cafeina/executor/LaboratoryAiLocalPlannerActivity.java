@@ -28,6 +28,11 @@ import java.util.concurrent.Executors;
  * confirms a second, separate TestAgent execution gate.
  */
 public final class LaboratoryAiLocalPlannerActivity extends Activity {
+    public static final String EXTRA_CONTRACT_ID =
+        "com.cafeina.executor.extra.AI_CONTRACT_ID";
+    public static final String EXTRA_AUTOSTART =
+        "com.cafeina.executor.extra.AI_AUTOSTART";
+
     private static final int BG = Color.rgb(12, 13, 16);
     private static final int FG = Color.rgb(240, 242, 247);
     private static final int MUTED = Color.rgb(170, 177, 192);
@@ -52,6 +57,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation
         activePlanningCancellation;
     private volatile boolean busy;
+    private String pendingAutoStartContractId;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -66,6 +72,15 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             getFilesDir(), projectId);
         executionHistory = new LaboratoryAiExecutionHistoryStore(
             getFilesDir(), projectId);
+
+        if (state != null) {
+            pendingAutoStartContractId =
+                state.getString("pendingAutoStartContractId");
+        } else if (getIntent() != null
+                && getIntent().getBooleanExtra(EXTRA_AUTOSTART, false)) {
+            pendingAutoStartContractId =
+                getIntent().getStringExtra(EXTRA_CONTRACT_ID);
+        }
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -200,7 +215,12 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             return;
         }
 
+        boolean autoStartTargetExists = false;
         for (LaboratoryAiTaskContractStore.Contract contract : unused) {
+            if (pendingAutoStartContractId != null
+                    && pendingAutoStartContractId.equals(contract.contractId)) {
+                autoStartTargetExists = true;
+            }
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setPadding(dp(12), dp(10), dp(12), dp(10));
@@ -251,6 +271,26 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             cardParams.setMargins(0, dp(8), 0, 0);
             entries.addView(card, cardParams);
         }
+
+        if (pendingAutoStartContractId != null) {
+            if (!autoStartTargetExists) {
+                feedback.setText(
+                    "O Goal Lock solicitado pelo chat não está mais disponível.");
+                pendingAutoStartContractId = null;
+            } else if (!selectedModel.isEmpty() && !busy) {
+                final String contractId = pendingAutoStartContractId;
+                pendingAutoStartContractId = null;
+                entries.post(() -> planContract(contractId));
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(
+            "pendingAutoStartContractId",
+            pendingAutoStartContractId);
+        super.onSaveInstanceState(outState);
     }
 
     private void planContract(String contractId) {
