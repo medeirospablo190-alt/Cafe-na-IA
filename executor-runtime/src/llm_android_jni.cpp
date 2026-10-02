@@ -308,6 +308,28 @@ Java_com_cafeina_runtime_LlamaBridge_nativeModelSizeBytes(
 
 
 
+extern "C" JNIEXPORT jint JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeGenerationPhase(
+    JNIEnv*,
+    jclass,
+    jlong handle
+)
+{
+    ModelSession* session = requireSession(handle);
+    return session ? static_cast<jint>(session->phase.load()) : PHASE_NONE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeGenerationTimedOut(
+    JNIEnv*,
+    jclass,
+    jlong handle
+)
+{
+    ModelSession* session = requireSession(handle);
+    return session && session->timedOut.load() ? JNI_TRUE : JNI_FALSE;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration(
     JNIEnv*,
