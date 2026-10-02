@@ -873,6 +873,20 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         return String.format(Locale.ROOT, "%.1f KiB", kib);
     }
 
+    private static String formatStorageBytes(long bytes) {
+        long safe = Math.max(0L, bytes);
+        if (safe < 1024L) return safe + " B";
+        double kib = safe / 1024.0;
+        if (kib < 1024.0) {
+            return String.format(Locale.ROOT, "%.1f KiB", kib);
+        }
+        double mib = kib / 1024.0;
+        if (mib < 1024.0) {
+            return String.format(Locale.ROOT, "%.1f MiB", mib);
+        }
+        return String.format(Locale.ROOT, "%.2f GiB", mib / 1024.0);
+    }
+
     private void renderTestProgress(
             int completedSteps,
             int totalSteps) {
@@ -1450,6 +1464,42 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 "\nOs dados terminais abaixo podem ainda refletir a última "
                     + "etapa persistida; eles serão atualizados quando a "
                     + "operação atual terminar.");
+        }
+
+        if (snapshot.plannerEnvironment != null) {
+            LaboratoryAiPlannerEnvironmentStore.Snapshot env =
+                snapshot.plannerEnvironment;
+            out.append("\n\nAMBIENTE DO PLANEJADOR")
+                .append("\nModelo: ")
+                .append(env.modelFileName)
+                .append(" • ")
+                .append(formatStorageBytes(env.modelSizeBytes))
+                .append("\nPreflight: ")
+                .append(env.preflightStatus)
+                .append("\nRAM disponível: ")
+                .append(formatStorageBytes(env.availableRamBytes))
+                .append("/")
+                .append(formatStorageBytes(env.totalRamBytes))
+                .append("\nCPU: ")
+                .append(env.cpuCores)
+                .append(" núcleo(s) • runtime ")
+                .append(env.threads)
+                .append(" thread(s)")
+                .append("\nContexto: ")
+                .append(env.contextTokens)
+                .append(" tokens • saída máx.: ")
+                .append(env.maxTokens)
+                .append(" tokens")
+                .append("\nTimeout de geração: ")
+                .append(formatElapsed(env.maxGenerationMs));
+            if (!env.signalCodes.isEmpty()) {
+                out.append("\nSinais do preflight: ")
+                    .append(env.signalCodes);
+            }
+            if (!env.runtimeVersion.isEmpty()) {
+                out.append("\nRuntime: ")
+                    .append(env.runtimeVersion);
+            }
         }
 
         if (snapshot.planner != null) {
