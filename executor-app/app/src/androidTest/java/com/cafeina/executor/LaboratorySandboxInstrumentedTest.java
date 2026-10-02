@@ -135,6 +135,12 @@ public final class LaboratorySandboxInstrumentedTest {
                 .getString("name"));
         assertEquals(execution.get().inputSha256,
             report.getString("toolInputSha256"));
+        assertEquals(
+            LaboratorySandboxEnvironment.fingerprint(app),
+            report.getString("environmentSha256"));
+        assertEquals(
+            64,
+            report.getString("environmentSha256").length());
         assertTrue("Candidate source baseline must have been verified",
             report.getBoolean("snapshotVerified"));
         String snapshotId = report.getString("candidateSnapshotId");
