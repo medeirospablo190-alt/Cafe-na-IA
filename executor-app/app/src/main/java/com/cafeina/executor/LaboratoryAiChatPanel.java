@@ -86,12 +86,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button sendButton;
     private final Button cancelButton;
     private final Button currentDiagnosticButton;
+    private final Button currentActionPrimaryButton;
     private final TextView currentActionStatus;
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation activePlannerCancellation;
     private volatile LaboratoryAiTestAgent.Control activeTestControl;
+    private volatile LaboratoryAiTestAgent.Plan latestValidatedPlan;
     private volatile boolean busy;
     private volatile boolean closed;
 
@@ -134,6 +136,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams actionStatusParams = matchWrap();
         actionStatusParams.setMargins(0, 0, 0, dp(8));
         addView(currentActionStatus, actionStatusParams);
+
+        currentActionPrimaryButton =
+            button("CONTINUAR AÇÃO", ACCENT);
+        currentActionPrimaryButton.setAllCaps(false);
+        currentActionPrimaryButton.setVisibility(GONE);
+        LayoutParams primaryActionParams = matchWrap();
+        primaryActionParams.setMargins(0, 0, 0, dp(8));
+        addView(currentActionPrimaryButton, primaryActionParams);
 
         Button clearChat = button("LIMPAR CONVERSA LOCAL", PANEL);
         clearChat.setAllCaps(false);
@@ -681,6 +691,165 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         currentActionStatus.setText(value.toString());
         currentActionStatus.setVisibility(VISIBLE);
+        refreshCurrentActionPrimaryButton(state);
+    }
+
+    private void refreshCurrentActionPrimaryButton(
+            LaboratoryAiChatSessionStore.WorkflowState state) {
+        if (currentActionPrimaryButton == null) return;
+
+        currentActionPrimaryButton.setVisibility(GONE);
+        currentActionPrimaryButton.setEnabled(true);
+        currentActionPrimaryButton.setOnClickListener(null);
+
+        if (state == null
+                || state
+                    == LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
+            return;
+        }
+
+        switch (state) {
+            case ACTION_REVIEW:
+                currentActionPrimaryButton.setText(
+                    "CONTINUAR PERMISSÕES");
+                currentActionPrimaryButton.setEnabled(!busy);
+                currentActionPrimaryButton.setOnClickListener(v -> {
+                    String pending = lastPersistedUserMessage();
+                    if (!pending.isEmpty()) {
+                        resumeActionReview(pending);
+                    }
+                });
+                break;
+            case GOAL_LOCK_CREATED:
+                currentActionPrimaryButton.setText(
+                    "GERAR PLANO • NÃO EXECUTAR");
+                currentActionPrimaryButton.setEnabled(!busy);
+                currentActionPrimaryButton.setOnClickListener(v -> {
+                    String contractId;
+                    synchronized (persistedEntries) {
+                        contractId = workflowContractId;
+                    }
+                    if (contractId != null && !contractId.isEmpty()) {
+                        runPlannerInline(contractId);
+                    }
+                });
+                break;
+            case PLANNING:
+                currentActionPrimaryButton.setText(
+                    "CANCELAR PLANEJAMENTO");
+                currentActionPrimaryButton.setEnabled(
+                    activePlannerCancellation != null);
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> cancelActiveResponse());
+                break;
+            case PLAN_READY:
+                currentActionPrimaryButton.setText(
+                    "PREPARAR TESTADORA • NÃO EXECUTAR");
+                currentActionPrimaryButton.setEnabled(
+                    !busy && latestValidatedPlan != null);
+                currentActionPrimaryButton.setOnClickListener(v -> {
+                    String contractId;
+                    LaboratoryAiTestAgent.Plan plan =
+                        latestValidatedPlan;
+                    synchronized (persistedEntries) {
+                        contractId = workflowContractId;
+                    }
+                    if (contractId != null
+                            && !contractId.isEmpty()
+                            && plan != null) {
+                        prepareTestAgentInline(contractId, plan);
+                    }
+                });
+                break;
+            case TEST_PREPARED:
+                currentActionPrimaryButton.setText(
+                    "REVISAR E EXECUTAR TESTE");
+                currentActionPrimaryButton.setEnabled(!busy);
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> restoreAndConfirmPreparedTest());
+                break;
+            case TEST_RUNNING:
+                currentActionPrimaryButton.setText("CANCELAR TESTE");
+                currentActionPrimaryButton.setEnabled(
+                    activeTestControl != null);
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> cancelActiveResponse());
+                break;
+            case COMPLETED:
+                currentActionPrimaryButton.setText(
+                    "ABRIR RELATÓRIO DA TESTADORA");
+                currentActionPrimaryButton.setOnClickListener(v ->
+                    activity.startActivity(
+                        new Intent(
+                            activity,
+                            LaboratoryAiTestAgentReportsActivity.class)));
+                break;
+            case FAILED:
+            case INTERRUPTED:
+                currentActionPrimaryButton.setText(
+                    "ABRIR DIAGNÓSTICO DA AÇÃO");
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> showCurrentActionDiagnostic());
+                break;
+            case CANCELLED:
+                currentActionPrimaryButton.setText(
+                    "VER DIAGNÓSTICO DA AÇÃO");
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> showCurrentActionDiagnostic());
+                break;
+            default:
+                return;
+        }
+
+        currentActionPrimaryButton.setVisibility(VISIBLE);
+    }
+
+    private void restoreAndConfirmPreparedTest() {
+        if (closed || busy) return;
+
+        final String contractId;
+        final String scenarioId;
+        synchronized (persistedEntries) {
+            contractId = workflowContractId;
+            scenarioId = workflowScenarioId;
+        }
+        if (contractId == null || contractId.isEmpty()
+                || scenarioId == null || scenarioId.isEmpty()) {
+            showCurrentActionDiagnostic();
+            return;
+        }
+
+        setLiveStatus("Revalidando cenário preparado…");
+        worker.execute(() -> {
+            try {
+                LaboratoryAiValidatedPlanExecutionGate.Prepared prepared =
+                    LaboratoryAiValidatedPlanExecutionGate.restorePrepared(
+                        activity,
+                        projectId,
+                        contractId,
+                        scenarioId);
+                runOnUi(() -> {
+                    if (closed) return;
+                    hideLiveStatus();
+                    confirmAndExecutePrepared(prepared);
+                });
+            } catch (Exception error) {
+                runOnUi(() -> {
+                    if (closed) return;
+                    hideLiveStatus();
+                    addAssistantMessage(
+                        "Não consegui revalidar o cenário preparado. "
+                            + "Nenhuma execução foi iniciada."
+                            + "\n" + String.valueOf(error.getMessage()));
+                    updateWorkflow(
+                        LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                        contractId,
+                        scenarioId,
+                        "",
+                        "Falha ao revalidar cenário preparado");
+                });
+            }
+        });
     }
 
     private static String workflowNextStep(
@@ -1340,9 +1509,6 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + ", com " + contract.allowedToolIds.size()
                             + " ferramenta(s). Nada foi executado.\n"
                             + "Contrato: " + contract.contractId);
-                    addActionButton(
-                        "GERAR PLANO • NÃO EXECUTAR",
-                        () -> runPlannerInline(contract.contractId));
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
@@ -1587,6 +1753,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         accepted.append(
             "\n\nO Goal Lock permanece não consumido. "
                 + "Preparar a Testadora também não executa o plano.");
+        latestValidatedPlan = planner.plan;
         updateWorkflow(
             LaboratoryAiChatSessionStore.WorkflowState.PLAN_READY,
             contractId,
@@ -1594,11 +1761,6 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             "",
             "Plano validado; Testadora ainda não preparada");
         addAssistantMessage(accepted.toString());
-
-        addActionButton(
-            "PREPARAR TESTADORA • NÃO EXECUTAR",
-            () -> prepareTestAgentInline(
-                contractId, planner.plan));
     }
 
     private void prepareTestAgentInline(
@@ -1636,9 +1798,6 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + "\n\nExecutar agora consumirá o Goal Lock "
                             + "de uso único e permitirá somente as ferramentas "
                             + "que você aprovou para esta tarefa.");
-                    addActionButton(
-                        "EXECUTAR TESTE • CONSOME GOAL LOCK",
-                        () -> confirmAndExecutePrepared(prepared));
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
