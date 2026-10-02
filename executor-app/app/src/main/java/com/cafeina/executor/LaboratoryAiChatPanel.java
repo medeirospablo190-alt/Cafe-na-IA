@@ -1024,20 +1024,44 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             return;
         }
 
+        LaboratoryAiPermissionSuggestion.Result suggestion =
+            LaboratoryAiPermissionSuggestion.suggest(message, safe);
+
         StringBuilder names = new StringBuilder();
         for (LaboratoryAiToolController.Tool tool : safe) {
             if (names.length() > 0) names.append(", ");
             names.append(tool.toolId);
         }
+
+        String permissionMessage;
+        if (suggestion.confident) {
+            permissionMessage =
+                "Para reduzir os cliques, preparei uma sugestão de menor "
+                    + "permissão para esta tarefa: "
+                    + String.join(", ", suggestion.suggestedToolIds)
+                    + ". Isso ainda NÃO é autorização. Você pode revisar, "
+                    + "desmarcar ou adicionar ferramentas antes de confirmar.";
+        } else {
+            permissionMessage =
+                "Não encontrei uma sugestão de ferramentas com confiança "
+                    + "suficiente, então não marquei nada automaticamente. "
+                    + "Ferramentas STABLE disponíveis: " + names + ".";
+        }
+
         addAssistantMessage(
-            "Ferramentas disponíveis para este pedido: " + names
-                + ". Você escolhe explicitamente quais entram no Goal Lock. "
-                + "Orçamento inicial: " + TASK_MAX_INVOCATIONS
+            permissionMessage
+                + "\nOrçamento inicial: " + TASK_MAX_INVOCATIONS
                 + " chamadas • " + (TASK_MAX_TOTAL_INPUT_BYTES / 1024)
                 + " KiB • " + (TASK_MAX_SESSION_MS / 60_000L) + " min.");
         addActionButton(
-            "PREPARAR GOAL LOCK",
-            () -> showTaskPermissionDialog(message, modeHint, safe));
+            suggestion.confident
+                ? "REVISAR E CONFIRMAR PERMISSÕES"
+                : "ESCOLHER PERMISSÕES DA TAREFA",
+            () -> showTaskPermissionDialog(
+                message,
+                modeHint,
+                safe,
+                suggestion.suggestedToolIds));
         addActionButton(
             "REVISAR PERMISSÕES GLOBAIS",
             () -> activity.startActivity(
@@ -1049,14 +1073,19 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void showTaskPermissionDialog(
             String message,
             LaboratoryAiChatRouter.ModeHint modeHint,
-            List<LaboratoryAiToolController.Tool> tools) {
+            List<LaboratoryAiToolController.Tool> tools,
+            List<String> suggestedToolIds) {
         if (tools == null || tools.isEmpty()) return;
 
+        List<String> suggestions = suggestedToolIds == null
+            ? Collections.emptyList()
+            : suggestedToolIds;
         String[] labels = new String[tools.size()];
         boolean[] checked = new boolean[tools.size()];
         for (int i = 0; i < tools.size(); i++) {
             LaboratoryAiToolController.Tool tool = tools.get(i);
             labels[i] = tool.toolId + " • " + tool.version;
+            checked[i] = suggestions.contains(tool.toolId);
         }
 
         String modeLabel =
@@ -1067,8 +1096,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         AlertDialog dialog = new AlertDialog.Builder(activity)
             .setTitle("Permissões desta tarefa • " + modeLabel)
             .setMessage(
-                "Escolha somente as ferramentas que esta tarefa poderá usar.\n\n"
-                    + "Orçamento inicial: "
+                (suggestions.isEmpty()
+                    ? "Escolha somente as ferramentas que esta tarefa poderá usar."
+                    : "As sugestões de menor permissão já estão marcadas. "
+                        + "Revise antes de confirmar; você continua no controle.")
+                    + "\n\nOrçamento inicial: "
                     + TASK_MAX_INVOCATIONS + " chamadas • "
                     + (TASK_MAX_TOTAL_INPUT_BYTES / 1024) + " KiB • "
                     + (TASK_MAX_SESSION_MS / 60_000L) + " min.\n"
@@ -1095,7 +1127,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         modeHint == LaboratoryAiChatRouter.ModeHint.LEARNING
                             ? LaboratoryAiChatRouter.ModeHint.CREATION
                             : LaboratoryAiChatRouter.ModeHint.LEARNING;
-                    showTaskPermissionDialog(message, other, tools);
+                    showTaskPermissionDialog(
+                        message,
+                        other,
+                        tools,
+                        suggestions);
                 });
 
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)
