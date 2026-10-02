@@ -147,6 +147,9 @@ public final class LaboratoryAiLocalPlannerProbe {
             LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
                 LaboratoryAiLocalModelAdmission.admit(
                     app.getFilesDir(), modelFile);
+            LaboratoryAiLlamaCppBackend.RuntimeConfig runtimeConfig =
+                LaboratoryAiLlamaCppBackend.RuntimeConfig
+                    .plannerDefaults();
 
             update(
                 status,
@@ -154,6 +157,17 @@ public final class LaboratoryAiLocalPlannerProbe {
                 "Verificando runtime, memória e modelo");
             LaboratoryAiLocalModelPreflight.Report preflight =
                 LaboratoryAiLocalModelPreflight.inspect(app, admitted);
+            try {
+                new LaboratoryAiPlannerEnvironmentStore(
+                    app.getFilesDir(), safeProjectId)
+                    .writePreflight(
+                        contractId,
+                        admitted,
+                        preflight,
+                        runtimeConfig);
+            } catch (Exception ignored) {
+                // Environment diagnostics never control planning.
+            }
             if (!preflight.canAttemptLoad) {
                 throw new IOException(
                     "local planner preflight blocked load: "
@@ -168,8 +182,7 @@ public final class LaboratoryAiLocalPlannerProbe {
                     LaboratoryAiLocalModelPreflight.open(
                         app,
                         modelFile,
-                        LaboratoryAiLlamaCppBackend.RuntimeConfig
-                            .plannerDefaults(),
+                        runtimeConfig,
                         new LaboratoryAiLlamaCppBackend.GenerationObserver() {
                             @Override
                             public void onNativePhase(int phase) {
@@ -209,6 +222,16 @@ public final class LaboratoryAiLocalPlannerProbe {
                         "Lendo versão do runtime e descrição do modelo");
                     String runtimeVersion = backend.runtimeVersion();
                     String modelDescription = backend.modelDescription();
+                    try {
+                        new LaboratoryAiPlannerEnvironmentStore(
+                            app.getFilesDir(), safeProjectId)
+                            .updateRuntimeMetadata(
+                                contractId,
+                                runtimeVersion,
+                                modelDescription);
+                    } catch (Exception ignored) {
+                        // Environment diagnostics never control planning.
+                    }
                     LaboratoryAiLocalModelTestPlannerGateway gateway =
                         new LaboratoryAiLocalModelTestPlannerGateway(backend);
 
