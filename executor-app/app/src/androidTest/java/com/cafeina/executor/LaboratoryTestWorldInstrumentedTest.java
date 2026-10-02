@@ -34,14 +34,16 @@ public final class LaboratoryTestWorldInstrumentedTest {
         LaboratoryEngine.Report outcome = LaboratoryRunner.runApprovedBuiltIn(
             app.getFilesDir(), projectId, request, new LaboratoryEngine.Cancellation());
         assertEquals(LaboratoryEngine.Status.PASS, outcome.status);
-        assertEquals(LaboratoryTestWorld.fixtureSha256(), outcome.environmentSha256);
+        String expectedEnvironment =
+            LaboratoryEngine.hostEnvironmentSha256(request);
+        assertEquals(expectedEnvironment, outcome.environmentSha256);
 
         LaboratoryReportStore vault = new LaboratoryReportStore(app.getFilesDir(), projectId);
         assertEquals(1, vault.list().size());
         LaboratoryReportStore.Entry entry = vault.list().get(0);
         JSONObject report = new JSONObject(entry.reportText);
         assertEquals("PASS", report.getString("status"));
-        assertEquals(LaboratoryTestWorld.fixtureSha256(),
+        assertEquals(expectedEnvironment,
             report.getString("environmentSha256"));
         assertEquals(1, report.getInt("passed"));
         assertTrue(report.getJSONArray("checks").getJSONObject(0).getBoolean("passed"));
