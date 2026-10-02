@@ -90,6 +90,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button currentActionPrimaryButton;
     private final TextView currentActionStatus;
     private final ProgressBar currentActionProgress;
+    private final TextView currentActionBudgetStatus;
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
@@ -149,6 +150,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams currentProgressParams = matchWrap();
         currentProgressParams.setMargins(0, 0, 0, dp(8));
         addView(currentActionProgress, currentProgressParams);
+
+        currentActionBudgetStatus = text("", 12, MUTED, false);
+        currentActionBudgetStatus.setPadding(
+            dp(10), 0, dp(10), dp(8));
+        currentActionBudgetStatus.setVisibility(GONE);
+        addView(currentActionBudgetStatus, matchWrap());
 
         currentActionPrimaryButton =
             button("CONTINUAR AÇÃO", ACCENT);
@@ -748,6 +755,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             currentActionProgress.setIndeterminate(true);
             currentActionProgress.setProgress(0);
         }
+
+        if (state
+                != LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                && state
+                    != LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
+            currentActionBudgetStatus.setText("");
+            currentActionBudgetStatus.setVisibility(GONE);
+        }
     }
 
     private void renderPlannerProgress(
@@ -773,6 +788,34 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         } else {
             currentActionProgress.setIndeterminate(true);
         }
+    }
+
+    private void renderTestBudget(
+            LaboratoryAiSessionController.Snapshot snapshot) {
+        if (currentActionBudgetStatus == null) return;
+        if (snapshot == null) {
+            currentActionBudgetStatus.setText("");
+            currentActionBudgetStatus.setVisibility(GONE);
+            return;
+        }
+
+        String text =
+            "ORÇAMENTO • "
+                + snapshot.invocationsRemaining
+                + " chamada(s) restante(s) • "
+                + formatBytes(snapshot.inputBytesRemaining)
+                + " de entrada • "
+                + formatElapsed(snapshot.remainingMs)
+                + " restantes";
+        currentActionBudgetStatus.setText(text);
+        currentActionBudgetStatus.setVisibility(VISIBLE);
+    }
+
+    private static String formatBytes(int bytes) {
+        int safe = Math.max(0, bytes);
+        if (safe < 1024) return safe + " B";
+        double kib = safe / 1024.0;
+        return String.format(Locale.ROOT, "%.1f KiB", kib);
     }
 
     private void renderTestProgress(
@@ -2098,6 +2141,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             0,
                                             plannedSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
@@ -2119,6 +2163,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             Math.max(0, stepIndex - 1),
                                             totalSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
@@ -2145,6 +2190,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             stepIndex,
                                             totalSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
@@ -2173,6 +2219,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             completedSteps,
                                             totalSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
@@ -2198,6 +2245,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             completedSteps,
                                             totalSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
@@ -2216,6 +2264,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                         renderTestProgress(
                                             report.executedSteps,
                                             report.plannedSteps);
+                                        renderTestBudget(control.snapshot());
                                     }
                                 });
                             }
