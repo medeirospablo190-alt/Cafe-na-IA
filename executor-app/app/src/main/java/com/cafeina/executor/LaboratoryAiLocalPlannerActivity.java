@@ -639,9 +639,16 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             LaboratoryAiExecutionHistoryStore.Summary summary =
                 summaries.get(i);
             if (i > 0) out.append("\n\n");
+            LaboratoryAiPlannerExecutionDiagnostic.Result diagnostic =
+                LaboratoryAiPlannerExecutionDiagnostic.analyze(
+                    summary.state,
+                    summary.phase,
+                    summary.terminalReason);
             out.append(summary.state.name())
                 .append(" • ")
                 .append(summary.phase.name())
+                .append("\nDiagnóstico: ")
+                .append(diagnostic.code.name())
                 .append("\nExecução: ")
                 .append(summary.executionId)
                 .append("\nContrato: ")
@@ -704,11 +711,16 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private static String diagnosticSummary(
             LaboratoryAiExecutionStatus.Snapshot snapshot) {
         if (snapshot == null) return "Diagnóstico de execução indisponível.";
+        LaboratoryAiPlannerExecutionDiagnostic.Result diagnostic =
+            LaboratoryAiPlannerExecutionDiagnostic.analyze(snapshot);
         StringBuilder out = new StringBuilder()
             .append("Execução: ").append(snapshot.executionId)
             .append("\nContrato: ").append(snapshot.contractId)
             .append("\nEstado: ").append(snapshot.state.name())
             .append("\nFase: ").append(snapshot.phase.name())
+            .append("\nDiagnóstico: ").append(diagnostic.code.name())
+            .append("\nLeitura: ").append(diagnostic.explanation)
+            .append("\nPróxima verificação: ").append(diagnostic.nextCheck)
             .append("\nTempo decorrido: ")
             .append(snapshot.elapsedMs).append(" ms");
         if (snapshot.attempt > 0 && snapshot.maxAttempts > 0) {
