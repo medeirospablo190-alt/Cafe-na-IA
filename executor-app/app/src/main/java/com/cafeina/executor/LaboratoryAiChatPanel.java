@@ -30,9 +30,9 @@ import java.util.concurrent.Executors;
 /**
  * First chat-style host surface for CAFEÍNA.
  *
- * Conversation is model-only and receives no tool handles. Obvious action
- * requests are diverted into Goal Lock + per-task permission review before the
- * existing controlled planner is opened.
+ * Conversation and analysis are model-only and receive no tool handles.
+ * Obvious action requests are diverted into Goal Lock + per-task permission
+ * review before the existing controlled planner is opened.
  */
 public final class LaboratoryAiChatPanel extends LinearLayout {
     private static final int BG = Color.rgb(12, 13, 16);
@@ -109,8 +109,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         addView(heading, matchWrap());
 
         TextView note = text(
-            "Mensagens comuns vão direto ao modelo local. Pedidos de ação entram "
-                + "no Goal Lock e nas permissões antes de qualquer execução.",
+            "Mensagens comuns e perguntas de análise/viabilidade vão ao modelo "
+                + "local sem ferramentas. Pedidos de ação entram no Goal Lock e "
+                + "nas permissões antes de qualquer execução.",
             12,
             MUTED,
             false);
@@ -687,18 +688,20 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
         LaboratoryAiChatRouter.Route route =
             LaboratoryAiChatRouter.route(message);
-        boolean conversation =
-            route.kind == LaboratoryAiChatRouter.Kind.CONVERSATION;
-        addUserMessage(message, conversation);
+        boolean modelOnly =
+            route.kind != LaboratoryAiChatRouter.Kind.ACTION;
+        addUserMessage(message, modelOnly);
 
-        if (conversation) {
-            runConversation(message);
-        } else {
+        if (route.kind == LaboratoryAiChatRouter.Kind.ACTION) {
             handleAction(message, route);
+        } else {
+            runConversation(message, route.kind);
         }
     }
 
-    private void runConversation(String message) {
+    private void runConversation(
+            String message,
+            LaboratoryAiChatRouter.Kind kind) {
         final String selected = selectedModelFileName();
         if (selected.isEmpty()) {
             addAssistantMessage(
@@ -708,7 +711,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
 
         setBusy(true);
-        setLiveStatus("Preparando modelo local…");
+        setLiveStatus(
+            kind == LaboratoryAiChatRouter.Kind.ANALYSIS
+                ? "Analisando viabilidade no modelo local…"
+                : "Preparando modelo local…");
         worker.execute(() -> {
             LaboratoryAiLlamaCppBackend backend = null;
             try {
@@ -736,7 +742,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
                 String response = backend.generate(
                     new LaboratoryAiLocalModelBackend.GenerationRequest(
-                        buildConversationPrompt(message),
+                        buildConversationPrompt(message, kind),
                         8 * 1024,
                         0.65f,
                         20261002L));
@@ -1535,14 +1541,39 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
     }
 
-    private String buildConversationPrompt(String latestMessage) {
+    private String buildConversationPrompt(
+            String latestMessage,
+            LaboratoryAiChatRouter.Kind kind) {
+        final String modelOnlyRule =
+            "Você NÃO recebeu ferramentas, não executou ações, não alterou "
+                + "arquivos e não deve afirmar que verificou ou modificou o "
+                + "estado real do aplicativo. ";
+
+        final String modeInstruction;
+        if (kind == LaboratoryAiChatRouter.Kind.ANALYSIS) {
+            modeInstruction =
+                "Esta chamada é de ANÁLISE/VIABILIDADE. Você pode avaliar "
+                    + "se uma ideia ou processo parece viável, montar um plano "
+                    + "conceitual, explicitar hipóteses, riscos, dependências e "
+                    + "critérios de validação usando somente o contexto da "
+                    + "conversa. Se a conclusão depender de inspecionar arquivos, "
+                    + "executar testes, pesquisar dados ou medir o app real, diga "
+                    + "claramente o que falta e que essa verificação exige o "
+                    + "fluxo controlado de ação. Não crie Goal Lock nem finja "
+                    + "que uma verificação prática aconteceu. ";
+        } else {
+            modeInstruction =
+                "Esta chamada é somente conversa. Se o usuário pedir uma ação, "
+                    + "explique brevemente que ações usam o fluxo controlado "
+                    + "do app. ";
+        }
+
         final String instruction =
             "Você é a CAFEÍNA, assistente local do aplicativo CAFEÍNA. "
                 + "Responda em português brasileiro, de forma natural e clara. "
-                + "Esta chamada é somente conversa: você NÃO recebeu ferramentas, "
-                + "não executou ações, não alterou arquivos e não deve afirmar que "
-                + "fez algo no aplicativo. Se o usuário pedir uma ação, explique "
-                + "brevemente que ações usam o fluxo controlado do app.\n\n";
+                + modelOnlyRule
+                + modeInstruction
+                + "\n\n";
 
         StringBuilder conversation = new StringBuilder();
         synchronized (transcript) {

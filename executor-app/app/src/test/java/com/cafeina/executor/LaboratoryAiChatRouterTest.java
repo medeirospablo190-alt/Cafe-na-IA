@@ -53,4 +53,52 @@ public final class LaboratoryAiChatRouterTest {
             LaboratoryAiChatRouter.Kind.CONVERSATION,
             route.kind);
     }
+
+    @Test
+    public void feasibilityQuestionUsesModelOnlyAnalysis() {
+        LaboratoryAiChatRouter.Route route =
+            LaboratoryAiChatRouter.route(
+                "Esse processo é viável para um modelo local pequeno?");
+
+        assertEquals(
+            LaboratoryAiChatRouter.Kind.ANALYSIS,
+            route.kind);
+        assertEquals(
+            LaboratoryAiChatRouter.ModeHint.LEARNING,
+            route.modeHint);
+        assertEquals("MODEL_ONLY_ANALYSIS", route.reasonCode);
+    }
+
+    @Test
+    public void explicitAnalyzeWhetherRequestUsesModelOnlyAnalysis() {
+        LaboratoryAiChatRouter.Route route =
+            LaboratoryAiChatRouter.route(
+                "Analise se esse processo é viável e monte um plano conceitual");
+
+        assertEquals(
+            LaboratoryAiChatRouter.Kind.ANALYSIS,
+            route.kind);
+    }
+
+    @Test
+    public void planOnlyRequestDoesNotAskForExecutionPermissions() {
+        LaboratoryAiChatRouter.Route route =
+            LaboratoryAiChatRouter.route(
+                "Faça um plano para organizar esse processo");
+
+        assertEquals(
+            LaboratoryAiChatRouter.Kind.ANALYSIS,
+            route.kind);
+    }
+
+    @Test
+    public void analysisThatAlsoRequestsExecutionUsesControlledPath() {
+        LaboratoryAiChatRouter.Route route =
+            LaboratoryAiChatRouter.route(
+                "Analise se é viável e depois implemente no app");
+
+        assertEquals(
+            LaboratoryAiChatRouter.Kind.ACTION,
+            route.kind);
+    }
 }
