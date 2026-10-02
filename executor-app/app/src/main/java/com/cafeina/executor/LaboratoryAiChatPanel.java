@@ -317,7 +317,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         addAssistantMessage(
             "Ferramentas disponíveis para este pedido: " + names
-                + ". Você escolhe explicitamente quais entram no Goal Lock.");
+                + ". Você escolhe explicitamente quais entram no Goal Lock. "
+                + "Orçamento inicial: " + TASK_MAX_INVOCATIONS
+                + " chamadas • " + (TASK_MAX_TOTAL_INPUT_BYTES / 1024)
+                + " KiB • " + (TASK_MAX_SESSION_MS / 60_000L) + " min.");
         addActionButton(
             "PREPARAR GOAL LOCK",
             () -> showTaskPermissionDialog(message, modeHint, safe));
@@ -454,39 +457,49 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     }
 
     private String buildConversationPrompt(String latestMessage) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append(
+        final String instruction =
             "Você é a CAFEÍNA, assistente local do aplicativo CAFEÍNA. "
                 + "Responda em português brasileiro, de forma natural e clara. "
                 + "Esta chamada é somente conversa: você NÃO recebeu ferramentas, "
                 + "não executou ações, não alterou arquivos e não deve afirmar que "
                 + "fez algo no aplicativo. Se o usuário pedir uma ação, explique "
-                + "brevemente que ações usam o fluxo controlado do app.\n\n");
+                + "brevemente que ações usam o fluxo controlado do app.\n\n";
 
-        int start = Math.max(
-            0,
-            transcript.size() - MAX_TRANSCRIPT_ENTRIES);
-        for (int i = start; i < transcript.size(); i++) {
-            ChatEntry entry = transcript.get(i);
-            prompt.append(entry.user ? "Usuário: " : "CAFEÍNA: ")
-                .append(entry.text)
-                .append('\n');
+        StringBuilder conversation = new StringBuilder();
+        synchronized (transcript) {
+            int start = Math.max(
+                0,
+                transcript.size() - MAX_TRANSCRIPT_ENTRIES);
+            for (int i = start; i < transcript.size(); i++) {
+                ChatEntry entry = transcript.get(i);
+                conversation.append(
+                    entry.user ? "Usuário: " : "CAFEÍNA: ")
+                    .append(entry.text)
+                    .append('\n');
+            }
+            if (transcript.isEmpty()
+                    || !transcript.get(transcript.size() - 1).user
+                    || !transcript.get(transcript.size() - 1).text
+                        .equals(latestMessage)) {
+                conversation.append("Usuário: ")
+                    .append(latestMessage)
+                    .append('\n');
+            }
         }
-        if (transcript.isEmpty()
-                || !transcript.get(transcript.size() - 1).user
-                || !transcript.get(transcript.size() - 1).text
-                    .equals(latestMessage)) {
-            prompt.append("Usuário: ")
-                .append(latestMessage)
-                .append('\n');
-        }
-        prompt.append("CAFEÍNA:");
+        conversation.append("CAFEÍNA:");
 
-        if (prompt.length() <= MAX_TRANSCRIPT_CHARS) {
-            return prompt.toString();
+        int conversationBudget = Math.max(
+            512,
+            MAX_TRANSCRIPT_CHARS - instruction.length());
+        String body = conversation.toString();
+        if (body.length() > conversationBudget) {
+            body = body.substring(body.length() - conversationBudget);
+            int firstBreak = body.indexOf('\n');
+            if (firstBreak >= 0 && firstBreak + 1 < body.length()) {
+                body = body.substring(firstBreak + 1);
+            }
         }
-        return prompt.substring(
-            prompt.length() - MAX_TRANSCRIPT_CHARS);
+        return instruction + body;
     }
 
     private void cancelActiveResponse() {
@@ -644,9 +657,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
     private void remember(boolean user, String value) {
         if (value == null || value.trim().isEmpty()) return;
-        transcript.add(new ChatEntry(user, value.trim()));
-        while (transcript.size() > MAX_TRANSCRIPT_ENTRIES) {
-            transcript.remove(0);
+        synchronized (transcript) {
+            transcript.add(new ChatEntry(user, value.trim()));
+            while (transcript.size() > MAX_TRANSCRIPT_ENTRIES) {
+                transcript.remove(0);
+            }
         }
     }
 
