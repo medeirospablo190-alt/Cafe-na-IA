@@ -44,6 +44,7 @@ public final class LaboratoryAiChatSessionStore {
         PLAN_READY,
         TEST_PREPARED,
         TEST_RUNNING,
+        TEST_PAUSED,
         COMPLETED,
         FAILED,
         CANCELLED,
