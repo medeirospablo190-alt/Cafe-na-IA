@@ -209,6 +209,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
         final String projectId;
         final LaboratoryToolRegistry.Descriptor descriptor;
         final LaboratoryToolArtifactStore.Binding binding;
+        final LaboratorySnapshotStore.Snapshot baseline;
         final List<TestCase> cases;
         final Control control;
         final Observer observer;
@@ -221,6 +222,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
                 String projectId,
                 LaboratoryToolRegistry.Descriptor descriptor,
                 LaboratoryToolArtifactStore.Binding binding,
+                LaboratorySnapshotStore.Snapshot baseline,
                 List<TestCase> cases,
                 Control control,
                 Observer observer,
@@ -229,6 +231,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
             this.projectId = projectId;
             this.descriptor = descriptor;
             this.binding = binding;
+            this.baseline = baseline;
             this.cases = cases;
             this.control = control;
             this.observer = observer;
@@ -285,6 +288,15 @@ public final class LaboratoryCandidateTestSuiteRunner {
                         "verified candidate artifact does not match descriptor");
                 }
 
+                LaboratorySnapshotStore.Snapshot baseline =
+                    new LaboratorySnapshotStore(
+                        app.getFilesDir(), projectId)
+                        .readCopy(binding.snapshotId);
+                if (!binding.artifactSha256.equals(baseline.sha256)) {
+                    throw new IOException(
+                        "verified candidate snapshot does not match artifact binding");
+                }
+
                 LaboratoryReportStore reports =
                     new LaboratoryReportStore(
                         app.getFilesDir(), projectId);
@@ -300,6 +312,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
                     projectId,
                     descriptor,
                     binding,
+                    baseline,
                     requested,
                     control,
                     observer,
@@ -350,7 +363,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
 
             final LaboratorySandboxClient.Session session;
             try {
-                session = LaboratoryCandidateRunner.runInternal(
+                session = LaboratoryCandidateRunner.runPreparedInternal(
                     state.app,
                     state.projectId,
                     state.binding.luauSource(),
@@ -361,6 +374,7 @@ public final class LaboratoryCandidateTestSuiteRunner {
                     Math.min(
                         testCase.timeoutMs,
                         state.descriptor.maxRuntimeMs),
+                    state.baseline,
                     (execution, testPassed, recordingError) -> {
                         state.control.detach(
                             state.control.active.get());
