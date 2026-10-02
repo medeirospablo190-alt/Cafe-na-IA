@@ -64,6 +64,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Activity activity;
     private final String projectId;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final ExecutorService diagnosticWorker =
+        Executors.newSingleThreadExecutor();
     private final ExecutorService persistenceWorker =
         Executors.newSingleThreadExecutor();
     private final List<ChatEntry> transcript = new ArrayList<>();
@@ -227,6 +229,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         closed = true;
         cancelActiveResponse();
         worker.shutdownNow();
+        diagnosticWorker.shutdownNow();
         persistenceWorker.shutdown();
     }
 
@@ -643,7 +646,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             enabled = workflowContractId != null
                 && !workflowContractId.isEmpty();
         }
-        currentDiagnosticButton.setEnabled(enabled && !busy);
+        currentDiagnosticButton.setEnabled(enabled);
         refreshCurrentActionStatus();
     }
 
@@ -711,19 +714,36 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     }
 
     private void showCurrentActionDiagnostic() {
-        if (closed || busy) return;
+        if (closed) return;
 
         final String contractId;
+        final LaboratoryAiChatSessionStore.WorkflowState liveWorkflow;
+        final String liveDetail;
         synchronized (persistedEntries) {
             contractId = workflowContractId;
+            liveWorkflow = workflowState;
+            liveDetail = workflowDetail;
         }
         if (contractId == null || contractId.isEmpty()) {
             return;
         }
 
+        final String liveStatusText =
+            liveStatus.getVisibility() == VISIBLE
+                ? liveStatus.getText().toString()
+                : "";
+        final boolean operationRunning =
+            liveWorkflow
+                    == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+                || liveWorkflow
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING;
+
         currentDiagnosticButton.setEnabled(false);
-        setLiveStatus("Lendo diagnóstico desta ação…");
-        worker.execute(() -> {
+        if (!operationRunning) {
+            setLiveStatus("Lendo diagnóstico desta ação…");
+        }
+
+        diagnosticWorker.execute(() -> {
             try {
                 LaboratoryAiActionDiagnostic.Snapshot diagnosis =
                     LaboratoryAiActionDiagnostic.inspect(
@@ -731,10 +751,17 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         projectId,
                         contractId);
                 final String rendered =
-                    renderActionDiagnostic(diagnosis);
+                    renderActionDiagnostic(
+                        diagnosis,
+                        liveWorkflow,
+                        liveDetail,
+                        liveStatusText,
+                        operationRunning);
                 runOnUi(() -> {
                     if (closed) return;
-                    hideLiveStatus();
+                    if (!operationRunning) {
+                        hideLiveStatus();
+                    }
                     refreshActionDiagnosticButton();
                     showDiagnosticDialog(rendered);
                 });
@@ -742,7 +769,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 final String reason = String.valueOf(error.getMessage());
                 runOnUi(() -> {
                     if (closed) return;
-                    hideLiveStatus();
+                    if (!operationRunning) {
+                        hideLiveStatus();
+                    }
                     refreshActionDiagnosticButton();
                     new AlertDialog.Builder(activity)
                         .setTitle("Diagnóstico da ação")
@@ -757,11 +786,17 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     }
 
     private String renderActionDiagnostic(
-            LaboratoryAiActionDiagnostic.Snapshot snapshot) {
+            LaboratoryAiActionDiagnostic.Snapshot snapshot,
+            LaboratoryAiChatSessionStore.WorkflowState liveWorkflow,
+            String liveDetail,
+            String liveStatusText,
+            boolean operationRunning) {
         StringBuilder out = new StringBuilder();
         out.append("AÇÃO ATUAL")
             .append("\nEtapa: ")
-            .append(actionStageLabel(snapshot.stage))
+            .append(operationRunning
+                ? workflowStateLabel(liveWorkflow)
+                : actionStageLabel(snapshot.stage))
             .append("\nModo: ")
             .append(snapshot.mode)
             .append("\nFerramentas autorizadas: ")
@@ -776,6 +811,22 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             .append(snapshot.nextStep)
             .append("\nCódigo técnico: ")
             .append(snapshot.nextCheck);
+
+        if (operationRunning) {
+            out.append("\n\nSTATUS AO VIVO")
+                .append("\n")
+                .append(liveStatusText == null || liveStatusText.isEmpty()
+                    ? "Operação em andamento; aguardando a próxima amostra."
+                    : liveStatusText);
+            if (liveDetail != null && !liveDetail.isEmpty()) {
+                out.append("\n")
+                    .append(liveDetail);
+            }
+            out.append(
+                "\nOs dados terminais abaixo podem ainda refletir a última "
+                    + "etapa persistida; eles serão atualizados quando a "
+                    + "operação atual terminar.");
+        }
 
         if (snapshot.planner != null) {
             out.append("\n\nPLANEJADOR")
