@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -45,6 +46,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private LaboratoryAiExecutionHistoryStore executionHistory;
     private TextView feedback;
     private TextView modelStatus;
+    private ProgressBar executionProgress;
     private LinearLayout entries;
     private Button cancelPlannerButton;
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation
@@ -99,6 +101,17 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         feedback.setPadding(0, dp(4), 0, dp(8));
         root.addView(feedback, matchWrap());
 
+        executionProgress = new ProgressBar(
+            this,
+            null,
+            android.R.attr.progressBarStyleHorizontal);
+        executionProgress.setMax(1000);
+        executionProgress.setIndeterminate(true);
+        executionProgress.setVisibility(View.GONE);
+        LinearLayout.LayoutParams executionProgressParams = matchWrap();
+        executionProgressParams.setMargins(0, 0, 0, dp(8));
+        root.addView(executionProgress, executionProgressParams);
+
         Button historyButton = button(
             "HISTÓRICO DO PLANEJADOR",
             PANEL);
@@ -135,6 +148,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     }
 
     private void refresh() {
+        if (!busy && executionProgress != null) {
+            executionProgress.setVisibility(View.GONE);
+        }
         final String selected = selectedModelFileName();
         modelStatus.setText(selected.isEmpty()
             ? "Modelo ativo: nenhum. Selecione um GGUF na aba IA."
@@ -682,6 +698,63 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             LaboratoryAiExecutionStatus.Snapshot snapshot) {
         if (!alive() || snapshot == null) return;
         feedback.setText(statusLine(snapshot));
+        renderExecutionProgress(snapshot);
+    }
+
+    private void renderExecutionProgress(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (executionProgress == null || snapshot == null) return;
+
+        executionProgress.setVisibility(View.VISIBLE);
+        if (snapshot.state
+                == LaboratoryAiExecutionStatus.State.COMPLETED) {
+            executionProgress.setIndeterminate(false);
+            executionProgress.setProgress(1000);
+            return;
+        }
+
+        if (snapshot.state
+                == LaboratoryAiExecutionStatus.State.FAILED
+                || snapshot.state
+                == LaboratoryAiExecutionStatus.State.CANCELLED) {
+            executionProgress.setIndeterminate(false);
+            if (snapshot.phase
+                    == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                    && snapshot.promptTokens > 0) {
+                executionProgress.setProgress(
+                    progressFraction(
+                        snapshot.promptTokensProcessed,
+                        snapshot.promptTokens));
+            } else {
+                executionProgress.setProgress(0);
+            }
+            return;
+        }
+
+        if (snapshot.phase
+                == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                && snapshot.promptTokens > 0) {
+            executionProgress.setIndeterminate(false);
+            executionProgress.setProgress(
+                progressFraction(
+                    snapshot.promptTokensProcessed,
+                    snapshot.promptTokens));
+        } else {
+            // Context setup and token generation do not have a trustworthy
+            // completion percentage. Keep the bar indeterminate rather than
+            // inventing an overall progress value.
+            executionProgress.setIndeterminate(true);
+        }
+    }
+
+    private static int progressFraction(int completed, int total) {
+        if (completed <= 0 || total <= 0) return 0;
+        if (completed >= total) return 1000;
+        return (int) Math.max(
+            0L,
+            Math.min(
+                1000L,
+                Math.round(completed * 1000.0 / total)));
     }
 
     private static String statusLine(
