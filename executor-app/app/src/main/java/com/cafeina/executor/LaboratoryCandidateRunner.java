@@ -89,6 +89,8 @@ public final class LaboratoryCandidateRunner {
         }
         LaboratoryReportStore reports =
             new LaboratoryReportStore(context.getFilesDir(), projectId);
+        String environmentSha256 =
+            LaboratorySandboxEnvironment.fingerprint(context);
         LaboratorySnapshotStore snapshots =
             new LaboratorySnapshotStore(context.getFilesDir(), projectId);
         reports.ensureWritable();
@@ -190,7 +192,8 @@ public final class LaboratoryCandidateRunner {
                         expectedFirstReturn,
                         seed,
                         baseline.id,
-                        snapshotVerified);
+                        snapshotVerified,
+                        environmentSha256);
                 } catch (IOException error) {
                     if (recordingError != null) {
                         error.addSuppressed(recordingError);
