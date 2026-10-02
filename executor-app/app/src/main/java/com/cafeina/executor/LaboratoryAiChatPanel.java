@@ -1131,15 +1131,31 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 + "\nOrçamento inicial: " + TASK_MAX_INVOCATIONS
                 + " chamadas • " + (TASK_MAX_TOTAL_INPUT_BYTES / 1024)
                 + " KiB • " + (TASK_MAX_SESSION_MS / 60_000L) + " min.");
-        addActionButton(
-            suggestion.confident
-                ? "REVISAR E CONFIRMAR PERMISSÕES"
-                : "ESCOLHER PERMISSÕES DA TAREFA",
-            () -> showTaskPermissionDialog(
-                message,
-                modeHint,
-                safe,
-                suggestion.suggestedToolIds));
+
+        if (suggestion.confident) {
+            addActionButton(
+                "PERMITIR SUGESTÃO • CRIAR GOAL LOCK",
+                () -> createGoalLock(
+                    message,
+                    modeHint,
+                    suggestion.suggestedToolIds));
+            addActionButton(
+                "REVISAR PERMISSÕES DESTA TAREFA",
+                () -> showTaskPermissionDialog(
+                    message,
+                    modeHint,
+                    safe,
+                    suggestion.suggestedToolIds));
+        } else {
+            addActionButton(
+                "ESCOLHER PERMISSÕES DA TAREFA",
+                () -> showTaskPermissionDialog(
+                    message,
+                    modeHint,
+                    safe,
+                    suggestion.suggestedToolIds));
+        }
+
         addActionButton(
             "REVISAR PERMISSÕES GLOBAIS",
             () -> activity.startActivity(
