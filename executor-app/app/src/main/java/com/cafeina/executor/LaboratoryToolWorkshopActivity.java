@@ -35,6 +35,7 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
 
     private LinearLayout content;
     private TextView feedback;
+    private Button cancelSuiteButton;
     private String projectId;
     private volatile boolean busy;
     private volatile LaboratoryCandidateTestSuiteRunner.Control
@@ -93,6 +94,22 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
             false);
         feedback.setPadding(0, dp(12), 0, dp(8));
         root.addView(feedback, matchWrap());
+
+        cancelSuiteButton = button("CANCELAR SUÍTE", PANEL);
+        cancelSuiteButton.setVisibility(android.view.View.GONE);
+        cancelSuiteButton.setOnClickListener(v -> {
+            LaboratoryCandidateTestSuiteRunner.Control control =
+                activeSuiteControl;
+            if (control != null) {
+                control.cancel();
+                feedback.setText(
+                    "Cancelamento solicitado à suíte…");
+                cancelSuiteButton.setEnabled(false);
+            }
+        });
+        LinearLayout.LayoutParams cancelParams = matchWrap();
+        cancelParams.setMargins(0, 0, 0, dp(8));
+        root.addView(cancelSuiteButton, cancelParams);
 
         ScrollView scroll = new ScrollView(this);
         content = new LinearLayout(this);
@@ -257,21 +274,6 @@ Estágio: " + stage,
         cardParams.setMargins(0, dp(8), 0, dp(8));
         content.addView(card, cardParams);
 
-        if (busy && activeSuiteControl != null) {
-            Button cancel = button(
-                "CANCELAR SUÍTE",
-                PANEL);
-            cancel.setOnClickListener(v -> {
-                LaboratoryCandidateTestSuiteRunner.Control control =
-                    activeSuiteControl;
-                if (control != null) {
-                    control.cancel();
-                    feedback.setText(
-                        "Cancelamento solicitado à suíte…");
-                }
-            });
-            content.addView(cancel, matchWrap());
-        }
     }
 
     private void prepareExperimental() {
@@ -314,6 +316,8 @@ Estágio: " + stage,
         LaboratoryCandidateTestSuiteRunner.Control control =
             new LaboratoryCandidateTestSuiteRunner.Control();
         activeSuiteControl = control;
+        cancelSuiteButton.setEnabled(true);
+        cancelSuiteButton.setVisibility(android.view.View.VISIBLE);
         feedback.setText(
             "Suíte isolada iniciada • aguardando primeiro caso…");
 
@@ -362,6 +366,8 @@ Estágio: " + stage,
                 (result, failure) -> {
                     if (!alive()) return;
                     activeSuiteControl = null;
+                    cancelSuiteButton.setVisibility(android.view.View.GONE);
+                    cancelSuiteButton.setEnabled(true);
 
                     if (failure != null) {
                         busy = false;
@@ -424,6 +430,8 @@ Estágio: " + stage,
                 });
         } catch (Exception error) {
             activeSuiteControl = null;
+            cancelSuiteButton.setVisibility(android.view.View.GONE);
+            cancelSuiteButton.setEnabled(true);
             busy = false;
             feedback.setText(
                 "Não consegui iniciar a suíte: "
