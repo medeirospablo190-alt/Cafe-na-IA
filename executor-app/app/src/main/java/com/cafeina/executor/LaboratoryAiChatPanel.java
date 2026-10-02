@@ -64,7 +64,19 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Activity activity;
     private final String projectId;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final ExecutorService persistenceWorker =
+        Executors.newSingleThreadExecutor();
     private final List<ChatEntry> transcript = new ArrayList<>();
+    private final List<LaboratoryAiChatSessionStore.Entry> persistedEntries =
+        new ArrayList<>();
+    private final LaboratoryAiChatSessionStore sessionStore;
+
+    private LaboratoryAiChatSessionStore.WorkflowState workflowState =
+        LaboratoryAiChatSessionStore.WorkflowState.IDLE;
+    private String workflowContractId = "";
+    private String workflowScenarioId = "";
+    private String workflowReportId = "";
+    private String workflowDetail = "";
 
     private final ScrollView messageScroll;
     private final LinearLayout messages;
@@ -86,6 +98,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         this.activity = activity;
         this.projectId = projectId;
+        this.sessionStore = new LaboratoryAiChatSessionStore(
+            activity.getFilesDir(), projectId);
 
         setOrientation(VERTICAL);
         setBackgroundColor(BG);
@@ -158,16 +172,29 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         cancelParams.setMargins(0, dp(6), 0, 0);
         addView(cancelButton, cancelParams);
 
-        addAssistantMessage(
-            "Pode falar comigo normalmente. Se você pedir uma ação no app, "
-                + "eu separo conversa de execução e peço as permissões da tarefa.");
+        input.setEnabled(false);
+        sendButton.setEnabled(false);
+        setLiveStatus("Restaurando conversa local…");
+        restoreSessionAsync();
     }
 
     public void close() {
         if (closed) return;
+
+        if (activePlannerCancellation != null
+                || activeTestControl != null) {
+            updateWorkflow(
+                LaboratoryAiChatSessionStore.WorkflowState.CANCELLED,
+                workflowContractId,
+                workflowScenarioId,
+                workflowReportId,
+                "Fluxo cancelado ao fechar a tela");
+        }
+
         closed = true;
         cancelActiveResponse();
         worker.shutdownNow();
+        persistenceWorker.shutdown();
     }
 
     private void sendCurrent() {
