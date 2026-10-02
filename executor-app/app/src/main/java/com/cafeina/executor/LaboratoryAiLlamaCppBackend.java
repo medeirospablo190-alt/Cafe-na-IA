@@ -3,6 +3,7 @@ package com.cafeina.executor;
 import com.cafeina.runtime.LlamaBridge;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * llama.cpp implementation of the planner's runtime-neutral local model backend.
@@ -13,6 +14,10 @@ import java.io.IOException;
  */
 public final class LaboratoryAiLlamaCppBackend
         implements LaboratoryAiLocalModelBackend, AutoCloseable {
+
+    public interface GenerationObserver {
+        void onNativePhase(int phase);
+    }
 
     public static final class RuntimeConfig {
         public final int maxTokens;
@@ -95,18 +100,28 @@ public final class LaboratoryAiLlamaCppBackend
 
     private final LlamaBridge.Session session;
     private final RuntimeConfig config;
+    private final GenerationObserver generationObserver;
     private volatile boolean closed;
 
     private LaboratoryAiLlamaCppBackend(
             LlamaBridge.Session session,
-            RuntimeConfig config) {
+            RuntimeConfig config,
+            GenerationObserver generationObserver) {
         this.session = session;
         this.config = config;
+        this.generationObserver = generationObserver;
     }
 
     static LaboratoryAiLlamaCppBackend open(
             LaboratoryAiLocalModelAdmission.AdmittedModel admittedModel,
             RuntimeConfig config) throws IOException {
+        return open(admittedModel, config, null);
+    }
+
+    static LaboratoryAiLlamaCppBackend open(
+            LaboratoryAiLocalModelAdmission.AdmittedModel admittedModel,
+            RuntimeConfig config,
+            GenerationObserver generationObserver) throws IOException {
         if (admittedModel == null) {
             throw new IllegalArgumentException(
                 "admitted local model missing");
@@ -117,7 +132,8 @@ public final class LaboratoryAiLlamaCppBackend
         }
         return new LaboratoryAiLlamaCppBackend(
             LlamaBridge.open(admittedModel.fileForRuntime()),
-            config);
+            config,
+            generationObserver);
     }
 
     public static boolean isRuntimePackaged() {
@@ -160,12 +176,52 @@ public final class LaboratoryAiLlamaCppBackend
                 request.seed,
                 config.maxGenerationMs);
 
-        String output = session.generate(request.prompt, generation);
-        if (output.length() > request.maxOutputChars) {
-            throw new IOException(
-                "llama backend output exceeds planner limit");
+        final AtomicBoolean monitoring =
+            new AtomicBoolean(generationObserver != null);
+        Thread phaseMonitor = null;
+        if (generationObserver != null) {
+            phaseMonitor = new Thread(() -> {
+                int lastPhase = Integer.MIN_VALUE;
+                while (monitoring.get()) {
+                    int phase = session.generationPhase();
+                    if (phase != lastPhase) {
+                        lastPhase = phase;
+                        try {
+                            generationObserver.onNativePhase(phase);
+                        } catch (RuntimeException ignored) {
+                            // Observability must never control generation.
+                        }
+                    }
+                    try {
+                        Thread.sleep(100L);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            }, "cafeina-llm-phase");
+            phaseMonitor.setDaemon(true);
+            phaseMonitor.start();
         }
-        return output;
+
+        try {
+            String output = session.generate(request.prompt, generation);
+            if (output.length() > request.maxOutputChars) {
+                throw new IOException(
+                    "llama backend output exceeds planner limit");
+            }
+            return output;
+        } finally {
+            monitoring.set(false);
+            if (phaseMonitor != null) {
+                phaseMonitor.interrupt();
+                try {
+                    phaseMonitor.join(250L);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     public void cancelGeneration() {
