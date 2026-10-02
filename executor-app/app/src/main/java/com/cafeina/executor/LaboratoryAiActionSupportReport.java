@@ -49,6 +49,54 @@ public final class LaboratoryAiActionSupportReport {
             .append("\nproxima_verificacao=")
             .append(safe(diagnostic.nextCheck));
 
+        if (diagnostic.plannerEnvironment != null) {
+            LaboratoryAiPlannerEnvironmentStore.Snapshot env =
+                diagnostic.plannerEnvironment;
+            out.append("\n\n[AMBIENTE_PLANEJADOR]")
+                .append("\nmodelo=")
+                .append(safe(env.modelFileName))
+                .append("\nmodelo_bytes=")
+                .append(env.modelSizeBytes)
+                .append("\npreflight=")
+                .append(env.preflightStatus)
+                .append("\nruntime_empacotado=")
+                .append(env.runtimePackaged)
+                .append("\nandroid_low_memory=")
+                .append(env.androidLowMemory)
+                .append("\nram_total_bytes=")
+                .append(env.totalRamBytes)
+                .append("\nram_disponivel_bytes=")
+                .append(env.availableRamBytes)
+                .append("\nram_limite_low_memory_bytes=")
+                .append(env.lowMemoryThresholdBytes)
+                .append("\narmazenamento_app_disponivel_bytes=")
+                .append(env.appUsableStorageBytes)
+                .append("\ncpu_cores=")
+                .append(env.cpuCores)
+                .append("\ncontexto_tokens=")
+                .append(env.contextTokens)
+                .append("\nmax_saida_tokens=")
+                .append(env.maxTokens)
+                .append("\nthreads=")
+                .append(env.threads)
+                .append("\ntop_k=")
+                .append(env.topK)
+                .append("\ntop_p=")
+                .append(env.topP)
+                .append("\ntimeout_ms=")
+                .append(env.maxGenerationMs)
+                .append("\nsinais=")
+                .append(env.signalCodes);
+            if (!env.runtimeVersion.isEmpty()) {
+                out.append("\nruntime=")
+                    .append(safe(env.runtimeVersion));
+            }
+            if (!env.modelDescription.isEmpty()) {
+                out.append("\ndescricao_modelo=")
+                    .append(safe(env.modelDescription));
+            }
+        }
+
         if (diagnostic.planner != null) {
             out.append("\n\n[PLANEJADOR]")
                 .append("\nestado=")
