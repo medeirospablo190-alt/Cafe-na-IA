@@ -125,6 +125,11 @@ public final class LaboratoryAiActionTimeline {
             }
         }
 
+        addPlannerEnvironment(
+            filesDir,
+            safeProjectId,
+            contractId,
+            items);
         addPlannerTimeline(
             filesDir,
             safeProjectId,
@@ -147,6 +152,46 @@ public final class LaboratoryAiActionTimeline {
             .thenComparing(item -> item.code));
 
         return new Snapshot(contractId, items);
+    }
+
+    private static void addPlannerEnvironment(
+            File filesDir,
+            String projectId,
+            String contractId,
+            List<Item> items) throws IOException {
+        LaboratoryAiPlannerEnvironmentStore.Snapshot env =
+            new LaboratoryAiPlannerEnvironmentStore(
+                filesDir, projectId)
+                .read(contractId);
+        if (env == null) return;
+
+        StringBuilder detail = new StringBuilder()
+            .append(env.modelFileName)
+            .append(" • ")
+            .append(env.modelSizeBytes)
+            .append(" bytes • RAM disponível ")
+            .append(env.availableRamBytes)
+            .append("/")
+            .append(env.totalRamBytes)
+            .append(" • contexto ")
+            .append(env.contextTokens)
+            .append(" • saída ")
+            .append(env.maxTokens)
+            .append(" tokens • ")
+            .append(env.threads)
+            .append(" thread(s) • timeout ")
+            .append(env.maxGenerationMs)
+            .append(" ms");
+        if (!env.signalCodes.isEmpty()) {
+            detail.append(" • sinais ")
+                .append(env.signalCodes);
+        }
+        items.add(new Item(
+            env.capturedAtEpochMs,
+            Source.PLANNER,
+            "Ambiente do planejador registrado",
+            detail.toString(),
+            "PLANNER_ENVIRONMENT"));
     }
 
     private static void addPlannerTimeline(
