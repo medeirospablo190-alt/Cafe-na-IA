@@ -622,8 +622,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 == LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED
                 && prepared != null) {
             addActionButton(
-                "EXECUTAR TESTE • CONSOME GOAL LOCK",
-                () -> confirmAndExecutePrepared(prepared));
+                "PRÉ-CHECK • EXECUTAR TESTE",
+                () -> restoreAndConfirmPreparedTest());
             return;
         }
 
@@ -1020,7 +1020,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 break;
             case TEST_PREPARED:
                 currentActionPrimaryButton.setText(
-                    "REVISAR E EXECUTAR TESTE");
+                    "PRÉ-CHECK • EXECUTAR TESTE");
                 currentActionPrimaryButton.setEnabled(!busy);
                 currentActionPrimaryButton.setOnClickListener(
                     v -> restoreAndConfirmPreparedTest());
@@ -1090,11 +1090,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             return;
         }
 
-        setLiveStatus("Revalidando cenário preparado…");
+        setLiveStatus(
+            "Pré-check • validando Goal Lock, cenário, ferramentas e auditoria…");
         worker.execute(() -> {
             try {
-                LaboratoryAiValidatedPlanExecutionGate.Prepared prepared =
-                    LaboratoryAiValidatedPlanExecutionGate.restorePrepared(
+                LaboratoryAiExecutionPreflight.Result preflight =
+                    LaboratoryAiExecutionPreflight.inspect(
                         activity,
                         projectId,
                         contractId,
@@ -1102,22 +1103,40 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 runOnUi(() -> {
                     if (closed) return;
                     hideLiveStatus();
-                    confirmAndExecutePrepared(prepared);
+                    if (preflight.prepared == null) {
+                        updateWorkflow(
+                            LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                            contractId,
+                            scenarioId,
+                            "",
+                            "Pré-check bloqueou cenário/Goal Lock inválido");
+                    } else {
+                        updateWorkflow(
+                            LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
+                            contractId,
+                            scenarioId,
+                            "",
+                            preflight.ready
+                                ? "Pré-check aprovado; aguarda confirmação"
+                                : "Pré-check bloqueado; Goal Lock não consumido");
+                    }
+                    showExecutionPreflightDialog(preflight);
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
                     if (closed) return;
                     hideLiveStatus();
                     addAssistantMessage(
-                        "Não consegui revalidar o cenário preparado. "
-                            + "Nenhuma execução foi iniciada."
+                        "Não consegui concluir o pré-check. "
+                            + "Nenhuma execução foi iniciada e o Goal Lock "
+                            + "não foi consumido."
                             + "\n" + String.valueOf(error.getMessage()));
                     updateWorkflow(
-                        LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                        LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
                         contractId,
                         scenarioId,
                         "",
-                        "Falha ao revalidar cenário preparado");
+                        "Pré-check não pôde ser concluído");
                 });
             }
         });
@@ -1136,7 +1155,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             case PLAN_READY:
                 return "Próximo: revisar o plano e preparar a Testadora.";
             case TEST_PREPARED:
-                return "Próximo: confirmar ou cancelar a execução do teste.";
+                return "Próximo: rodar o pré-check e só então confirmar a execução.";
             case TEST_RUNNING:
                 return "Agora: a Testadora está executando o cenário aprovado.";
             case TEST_PAUSED:
@@ -2963,6 +2982,98 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 });
             }
         });
+    }
+
+    private void showExecutionPreflightDialog(
+            LaboratoryAiExecutionPreflight.Result result) {
+        String details = renderExecutionPreflight(result);
+        TextView body = text(details, 13, FG, false);
+        body.setTypeface(Typeface.MONOSPACE);
+        body.setTextIsSelectable(true);
+        body.setPadding(dp(14), dp(12), dp(14), dp(12));
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(body);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(activity)
+            .setTitle(
+                result.ready
+                    ? "Pré-check • pronto para executar"
+                    : "Pré-check • execução bloqueada")
+            .setView(scroll)
+            .setNegativeButton("FECHAR", null);
+
+        if (result.ready && result.prepared != null) {
+            dialog.setPositiveButton(
+                "CONTINUAR PARA CONFIRMAÇÃO",
+                (ignored, which) ->
+                    confirmAndExecutePrepared(result.prepared));
+        } else if (result.hasBlockCode(
+                "ALLOWLIST_TOOL_NOT_AVAILABLE")) {
+            dialog.setNeutralButton(
+                "ABRIR PERMISSÕES",
+                (ignored, which) ->
+                    activity.startActivity(
+                        new Intent(
+                            activity,
+                            LaboratoryAiPermissionsActivity.class)));
+        }
+
+        dialog.show();
+    }
+
+    private String renderExecutionPreflight(
+            LaboratoryAiExecutionPreflight.Result result) {
+        StringBuilder out = new StringBuilder();
+        out.append(
+                result.ready
+                    ? "PRONTO PARA EXECUTAR"
+                    : "EXECUÇÃO BLOQUEADA")
+            .append("\nPassos: ")
+            .append(result.stepCount)
+            .append("\nEntrada prevista: ")
+            .append(formatBytes(result.totalInputBytes))
+            .append("\nTempo máximo teórico das ferramentas: ")
+            .append(formatElapsed(result.worstCaseToolRuntimeMs))
+            .append("\n\nResumo: ")
+            .append(result.passedChecks)
+            .append(" passou/passaram • ")
+            .append(result.warningChecks)
+            .append(" aviso(s) • ")
+            .append(result.blockedChecks)
+            .append(" bloqueio(s)");
+
+        for (LaboratoryAiExecutionPreflight.Check check :
+                result.checks) {
+            out.append("\n\n[")
+                .append(preflightLevelLabel(check.level))
+                .append("] ")
+                .append(check.title)
+                .append("\n")
+                .append(check.detail)
+                .append("\nCódigo: ")
+                .append(check.code);
+        }
+
+        out.append(
+            "\n\nSomente leitura: o pré-check não cria sessão, não executa "
+                + "ferramenta e não consome o Goal Lock. A execução ainda "
+                + "revalida tudo novamente no momento do uso.");
+        return out.toString();
+    }
+
+    private static String preflightLevelLabel(
+            LaboratoryAiExecutionPreflight.Level level) {
+        if (level == null) return "INFO";
+        switch (level) {
+            case PASS:
+                return "PASSOU";
+            case WARNING:
+                return "AVISO";
+            case BLOCK:
+                return "BLOQUEIO";
+            default:
+                return "INFO";
+        }
     }
 
     private void confirmAndExecutePrepared(
