@@ -35,6 +35,8 @@ public final class LaboratoryAiActionDiagnostic {
             plannerCheckpoint;
         public final LaboratoryAiPlannerExecutionDiagnostic.Result
             plannerDiagnostic;
+        public final LaboratoryAiPlannerEnvironmentStore.Snapshot
+            plannerEnvironment;
         public final LaboratoryAiTestAgentReportStore.Entry testReport;
         public final LaboratoryAiSessionStore.Summary testSession;
 
@@ -54,6 +56,8 @@ public final class LaboratoryAiActionDiagnostic {
                     plannerCheckpoint,
                 LaboratoryAiPlannerExecutionDiagnostic.Result
                     plannerDiagnostic,
+                LaboratoryAiPlannerEnvironmentStore.Snapshot
+                    plannerEnvironment,
                 LaboratoryAiTestAgentReportStore.Entry testReport,
                 LaboratoryAiSessionStore.Summary testSession,
                 String explanation,
@@ -68,6 +72,7 @@ public final class LaboratoryAiActionDiagnostic {
             this.planner = planner;
             this.plannerCheckpoint = plannerCheckpoint;
             this.plannerDiagnostic = plannerDiagnostic;
+            this.plannerEnvironment = plannerEnvironment;
             this.testReport = testReport;
             this.testSession = testSession;
             this.explanation = explanation;
@@ -109,6 +114,11 @@ public final class LaboratoryAiActionDiagnostic {
             planner == null
                 ? null
                 : LaboratoryAiPlannerExecutionDiagnostic.analyze(planner);
+        LaboratoryAiPlannerEnvironmentStore.Snapshot plannerEnvironment =
+            new LaboratoryAiPlannerEnvironmentStore(
+                filesDir,
+                projectId == null ? "" : projectId)
+                .read(contractId);
 
         LaboratoryAiTestAgentReportStore.Entry report =
             latestReport(
@@ -247,6 +257,7 @@ public final class LaboratoryAiActionDiagnostic {
             planner,
             plannerCheckpoint,
             plannerDiagnosis,
+            plannerEnvironment,
             report,
             testSession,
             explanation,
