@@ -1460,8 +1460,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         return;
                     }
                     if (objective.length()
-                            > LaboratoryAiChatSessionStore.MAX_ENTRY_CHARS) {
-                        goal.setError("Objetivo muito longo");
+                            > LaboratoryAiTaskContractStore.MAX_GOAL_CHARS) {
+                        goal.setError(
+                            "Objetivo deve ter no máximo "
+                                + LaboratoryAiTaskContractStore.MAX_GOAL_CHARS
+                                + " caracteres");
                         return;
                     }
 
