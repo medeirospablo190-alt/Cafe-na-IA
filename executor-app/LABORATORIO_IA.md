@@ -435,3 +435,17 @@ host/usuário.
 - Testes Android verificam pelo menos `PROMPT_TIMEOUT`, `TOKEN_TIMEOUT` e cancelamento do usuário.
 
 Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que o planejador falhou, o app consegue registrar em qual etapa falhou e qual medição deve ser feita em seguida.
+
+
+## Telemetria de desempenho do modelo local
+
+- O runtime local agora mede o trabalho do `llama.cpp` sem registrar prompt ou resposta: quantidade total de tokens do prompt, tokens de prompt concluídos em batches, tokens gerados, limite de saída, tempo de preparação do contexto, tempo de avaliação do prompt, tempo de geração e limite temporal configurado.
+- `LlamaBridge.GenerationMetrics` expõe um snapshot somente leitura desses contadores. A JNI usa apenas atomics pertencentes à sessão do modelo; a leitura de métricas não recebe acesso a Goal Lock, permissões, ferramentas ou código executável.
+- Os tempos de `CONTEXT`, `PROMPT` e `TOKENS` continuam avançando ao vivo mesmo quando uma chamada nativa está bloqueada dentro de uma etapa longa. Isso permite distinguir “está processando há 40 s” de uma interface simplesmente congelada.
+- `LaboratoryAiLlamaCppBackend` amostra a telemetria em background durante a geração e entrega os valores ao mesmo `LaboratoryAiExecutionStatus` usado pela UI e pelo diagnóstico.
+- Durante `MODEL_PROMPT`, quando já existe uma amostra útil, o status mostra `processados/total`, taxa aproximada em tokens/s e ETA calculada com o ritmo observado. Durante `MODEL_TOKENS`, mostra tokens gerados, taxa e uma estimativa até o limite máximo de saída; a resposta pode terminar antes por EOG, portanto esta última é um teto aproximado, não uma promessa.
+- Ao terminar ou falhar, os contadores finais entram no histórico persistente da execução. Assim um `PROMPT_TIMEOUT` pode ser inspecionado com números concretos como tokens totais, tokens de batches concluídos, tempo de prompt e ritmo observado.
+- O histórico continua sem persistir conteúdo do prompt, texto de saída, Goal Lock bruto ou fonte executável.
+- O workflow `CAFEINA Local LLM Compile Probe` também verifica que o símbolo JNI de telemetria está presente no APK ARM64.
+
+**Interpretação importante:** `promptTokensProcessed` conta batches do prompt que terminaram com sucesso. Se o primeiro batch ficar preso até o timeout, esse contador pode continuar em zero enquanto `promptEvalMs` cresce. Isso é informação útil: indica que o gargalo está dentro do primeiro processamento nativo do prompt, e não significa que o runtime ficou sem atividade.
