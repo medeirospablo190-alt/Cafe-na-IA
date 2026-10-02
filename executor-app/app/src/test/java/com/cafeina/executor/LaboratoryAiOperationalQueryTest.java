@@ -42,6 +42,18 @@ public final class LaboratoryAiOperationalQueryTest {
     }
 
     @Test
+    public void recognizesTimelineQuestions() {
+        assertEquals(
+            LaboratoryAiOperationalQuery.Kind.TIMELINE,
+            LaboratoryAiOperationalQuery.classify(
+                "Mostra a linha do tempo"));
+        assertEquals(
+            LaboratoryAiOperationalQuery.Kind.TIMELINE,
+            LaboratoryAiOperationalQuery.classify(
+                "O que aconteceu nessa ação?"));
+    }
+
+    @Test
     public void ordinaryConversationIsNotOperational() {
         assertEquals(
             LaboratoryAiOperationalQuery.Kind.NONE,
