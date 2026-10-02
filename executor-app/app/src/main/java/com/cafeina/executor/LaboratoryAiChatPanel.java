@@ -2356,18 +2356,38 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
     private void persistPlannerHistory(
             LaboratoryAiExecutionStatus.Tracker status) {
+        final String contractId;
         try {
             new LaboratoryAiExecutionHistoryStore(
                 activity.getFilesDir(), projectId)
                 .saveExecution(status.history());
-            LaboratoryAiExecutionStatus.Snapshot terminal =
-                status.snapshot();
-            new LaboratoryAiPlannerCheckpointStore(
-                activity.getFilesDir(), projectId)
-                .clear(terminal.contractId);
+            contractId = status.snapshot().contractId;
         } catch (Exception ignored) {
             // If terminal persistence fails, keep the latest checkpoint so
             // diagnostics still have a last-known execution position.
+            return;
+        }
+
+        // Queue cleanup behind any already-scheduled checkpoint writes so a
+        // stale live snapshot cannot reappear after terminal history is saved.
+        try {
+            persistenceWorker.execute(() -> {
+                try {
+                    new LaboratoryAiPlannerCheckpointStore(
+                        activity.getFilesDir(), projectId)
+                        .clear(contractId);
+                } catch (Exception ignored) {
+                    // Terminal history remains authoritative.
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException rejected) {
+            try {
+                new LaboratoryAiPlannerCheckpointStore(
+                    activity.getFilesDir(), projectId)
+                    .clear(contractId);
+            } catch (Exception ignored) {
+                // Terminal history remains authoritative.
+            }
         }
     }
 
