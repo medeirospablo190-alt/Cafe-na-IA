@@ -99,10 +99,12 @@ public final class LaboratoryAiActionDiagnostic {
                 projectId,
                 contractId);
         LaboratoryAiPlannerCheckpointStore.Checkpoint plannerCheckpoint =
-            new LaboratoryAiPlannerCheckpointStore(
-                filesDir,
-                projectId == null ? "" : projectId)
-                .read(contractId);
+            planner == null
+                ? new LaboratoryAiPlannerCheckpointStore(
+                    filesDir,
+                    projectId == null ? "" : projectId)
+                    .read(contractId)
+                : null;
         LaboratoryAiPlannerExecutionDiagnostic.Result plannerDiagnosis =
             planner == null
                 ? null
@@ -184,6 +186,15 @@ public final class LaboratoryAiActionDiagnostic {
                 "O planejador concluiu esta ação sem consumir o Goal Lock. "
                     + "A execução prática ainda depende da Testadora.";
             nextCheck = "REVIEW_OR_PREPARE_TEST_AGENT";
+        } else if (planner != null
+                && planner.state
+                    == LaboratoryAiExecutionStatus.State.RUNNING) {
+            stage = Stage.PLANNER_RUNNING_OR_INTERRUPTED;
+            explanation =
+                "Existe histórico não terminal do planejador. Última fase "
+                    + "registrada: " + planner.phase.name()
+                    + " após " + planner.elapsedMs + " ms.";
+            nextCheck = "REVIEW_PLANNER_CHECKPOINT";
         } else if (planner != null) {
             stage = Stage.PLANNER_FAILED;
             explanation = plannerDiagnosis == null
