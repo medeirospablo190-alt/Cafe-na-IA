@@ -74,6 +74,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
+    private volatile LaboratoryAiLocalPlannerProbe.Cancellation activePlannerCancellation;
     private volatile boolean busy;
     private volatile boolean closed;
 
@@ -440,18 +441,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + "Contrato: " + contract.contractId);
                     addActionButton(
                         "GERAR PLANO • NÃO EXECUTAR",
-                        () -> {
-                            Intent planner = new Intent(
-                                activity,
-                                LaboratoryAiLocalPlannerActivity.class);
-                            planner.putExtra(
-                                LaboratoryAiLocalPlannerActivity.EXTRA_CONTRACT_ID,
-                                contract.contractId);
-                            planner.putExtra(
-                                LaboratoryAiLocalPlannerActivity.EXTRA_AUTOSTART,
-                                true);
-                            activity.startActivity(planner);
-                        });
+                        () -> runPlannerInline(contract.contractId));
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
@@ -462,6 +452,402 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 });
             }
         });
+    }
+
+    private void runPlannerInline(String contractId) {
+        if (closed || busy) return;
+
+        final String selected = selectedModelFileName();
+        if (selected.isEmpty()) {
+            addAssistantMessage(
+                "Não há modelo local ativo para gerar o plano. "
+                    + "Selecione um GGUF nos controles da aba IA.");
+            return;
+        }
+
+        final LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
+            new LaboratoryAiLocalPlannerProbe.Cancellation();
+        activePlannerCancellation = cancellation;
+
+        final LaboratoryAiExecutionStatus.Tracker status =
+            new LaboratoryAiExecutionStatus.Tracker(
+                contractId,
+                snapshot -> runOnUi(() ->
+                    renderPlannerStatus(snapshot)));
+
+        setBusy(true);
+        cancelButton.setText("CANCELAR PLANEJAMENTO");
+        setLiveStatus("Preparando planejamento controlado…");
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiLocalModelCatalog.Model model =
+                    LaboratoryAiLocalModelCatalog.resolve(
+                        activity.getFilesDir(), selected);
+
+                LaboratoryAiLocalPlannerProbe.Result result =
+                    LaboratoryAiLocalPlannerProbe.plan(
+                        activity,
+                        projectId,
+                        contractId,
+                        model.modelFile,
+                        cancellation,
+                        status);
+
+                LaboratoryAiTaskContractStore.Contract after =
+                    new LaboratoryAiTaskContractStore(
+                        activity.getFilesDir(), projectId)
+                        .read(contractId);
+                if (after.claimed || after.resultRecorded) {
+                    throw new IllegalStateException(
+                        "Goal Lock foi alterado durante o planejamento");
+                }
+
+                persistPlannerHistory(status);
+                runOnUi(() -> {
+                    if (closed) return;
+                    activePlannerCancellation = null;
+                    setBusy(false);
+                    renderPlannerResult(contractId, result);
+                });
+            } catch (Exception error) {
+                LaboratoryAiExecutionStatus.Snapshot snapshot =
+                    status.snapshot();
+                if (!snapshot.terminal()) {
+                    if (cancellation.isCancelled()) {
+                        status.cancel(
+                            "Planejamento cancelado pelo usuário");
+                    } else {
+                        status.fail(
+                            String.valueOf(error.getMessage()));
+                    }
+                }
+                persistPlannerHistory(status);
+                final LaboratoryAiExecutionStatus.Snapshot terminal =
+                    status.snapshot();
+                runOnUi(() -> {
+                    if (closed) return;
+                    activePlannerCancellation = null;
+                    setBusy(false);
+                    LaboratoryAiPlannerExecutionDiagnostic.Result diagnosis =
+                        LaboratoryAiPlannerExecutionDiagnostic.analyze(
+                            terminal);
+                    addAssistantMessage(
+                        (terminal.state
+                            == LaboratoryAiExecutionStatus.State.CANCELLED
+                                ? "Planejamento cancelado."
+                                : "Não consegui produzir o plano.")
+                            + "\nFase: " + phaseLabel(terminal.phase)
+                            + "\nDiagnóstico: " + diagnosis.code.name()
+                            + "\n" + diagnosis.explanation
+                            + "\nPróxima verificação: "
+                            + diagnosis.nextCheck
+                            + plannerMetricSummary(terminal)
+                            + "\nNenhuma ferramenta foi executada e o "
+                            + "Goal Lock continua não consumido.");
+                });
+            }
+        });
+    }
+
+    private void persistPlannerHistory(
+            LaboratoryAiExecutionStatus.Tracker status) {
+        try {
+            new LaboratoryAiExecutionHistoryStore(
+                activity.getFilesDir(), projectId)
+                .saveExecution(status.history());
+        } catch (Exception ignored) {
+            // Diagnostic persistence cannot control the planner result.
+        }
+    }
+
+    private void renderPlannerStatus(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot == null || snapshot.terminal() || !busy) return;
+
+        StringBuilder out = new StringBuilder();
+        out.append(phaseLabel(snapshot.phase))
+            .append(" • ")
+            .append(formatElapsed(snapshot.elapsedMs));
+
+        if (snapshot.attempt > 0 && snapshot.maxAttempts > 0) {
+            out.append(" • tentativa ")
+                .append(snapshot.attempt)
+                .append("/")
+                .append(snapshot.maxAttempts);
+        }
+
+        if (snapshot.phase
+                == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                && snapshot.promptTokens > 0) {
+            out.append(" • prompt ")
+                .append(snapshot.promptTokensProcessed)
+                .append("/")
+                .append(snapshot.promptTokens);
+            if (snapshot.promptTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(
+                        snapshot.promptTokensPerSecond()))
+                    .append(" tok/s");
+            }
+            if (snapshot.estimatedRemainingMs > 0L) {
+                out.append(" • ~")
+                    .append(formatElapsed(
+                        snapshot.estimatedRemainingMs))
+                    .append(" restante");
+            }
+        } else if (snapshot.phase
+                == LaboratoryAiExecutionStatus.Phase.MODEL_TOKENS
+                && snapshot.maxGeneratedTokens > 0) {
+            out.append(" • saída ")
+                .append(snapshot.generatedTokens)
+                .append("/")
+                .append(snapshot.maxGeneratedTokens);
+            if (snapshot.generatedTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(
+                        snapshot.generatedTokensPerSecond()))
+                    .append(" tok/s");
+            }
+        }
+
+        setLiveStatus(out.toString());
+    }
+
+    private void renderPlannerResult(
+            String contractId,
+            LaboratoryAiLocalPlannerProbe.Result result) {
+        LaboratoryAiLlmTestPlanner.Result planner = result.planner;
+        if (!planner.accepted || planner.plan == null) {
+            StringBuilder rejected = new StringBuilder(
+                "O modelo terminou o planejamento, mas o plano foi rejeitado "
+                    + "pela validação determinística.");
+            rejected.append("\nTentativas: ")
+                .append(planner.attempts);
+            for (LaboratoryAiTestPlanContract.Issue issue :
+                    planner.issues) {
+                rejected.append("\n• ")
+                    .append(issue.code)
+                    .append(" • passo ")
+                    .append(issue.stepIndex)
+                    .append(" • ")
+                    .append(issue.field);
+            }
+            rejected.append(
+                "\nNenhuma ferramenta foi executada e o Goal Lock "
+                    + "continua não consumido.");
+            addAssistantMessage(rejected.toString());
+            return;
+        }
+
+        StringBuilder accepted = new StringBuilder();
+        accepted.append("Plano validado. Ainda não executei nenhuma ferramenta.")
+            .append("\nPassos: ")
+            .append(planner.plan.steps.size())
+            .append(" • tentativa ")
+            .append(planner.attempts)
+            .append("\nModelo: ")
+            .append(result.modelFileName);
+
+        int index = 1;
+        for (LaboratoryAiTestAgent.Step step :
+                planner.plan.steps) {
+            accepted.append("\n\n")
+                .append(index++)
+                .append(". ")
+                .append(step.name)
+                .append("\nFerramenta: ")
+                .append(step.toolId)
+                .append("\nRetorno esperado: ")
+                .append(step.expectedFirstReturn);
+        }
+        accepted.append(
+            "\n\nO Goal Lock permanece não consumido. "
+                + "Preparar a Testadora também não executa o plano.");
+        addAssistantMessage(accepted.toString());
+
+        addActionButton(
+            "PREPARAR TESTADORA • NÃO EXECUTAR",
+            () -> prepareTestAgentInline(
+                contractId, planner.plan));
+    }
+
+    private void prepareTestAgentInline(
+            String contractId,
+            LaboratoryAiTestAgent.Plan plan) {
+        if (closed || busy || plan == null) return;
+
+        setBusy(true);
+        cancelButton.setVisibility(GONE);
+        setLiveStatus("Preparando cenário imutável para revisão…");
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiValidatedPlanExecutionGate.Prepared prepared =
+                    LaboratoryAiValidatedPlanExecutionGate.prepare(
+                        activity,
+                        projectId,
+                        contractId,
+                        plan);
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        "Testadora preparada, mas ainda não executada."
+                            + "\nCenário: " + prepared.scenarioId
+                            + "\nPassos: " + prepared.stepCount
+                            + "\nStop on failure: "
+                            + (prepared.stopOnFailure ? "SIM" : "NÃO")
+                            + "\n\nExecutar agora consumirá o Goal Lock "
+                            + "de uso único e permitirá somente as ferramentas "
+                            + "que você aprovou para esta tarefa.");
+                    addActionButton(
+                        "EXECUTAR TESTE • CONSOME GOAL LOCK",
+                        () -> confirmAndExecutePrepared(prepared));
+                });
+            } catch (Exception error) {
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        "Não consegui preparar a Testadora. "
+                            + "Nada foi executado e o Goal Lock não foi consumido."
+                            + "\n" + String.valueOf(error.getMessage()));
+                });
+            }
+        });
+    }
+
+    private void confirmAndExecutePrepared(
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        new AlertDialog.Builder(activity)
+            .setTitle("Executar teste controlado?")
+            .setMessage(
+                "Esta confirmação inicia a Testadora determinística e consome "
+                    + "o Goal Lock de uso único. Somente as ferramentas "
+                    + "explicitamente aprovadas para a tarefa poderão ser usadas.\n\n"
+                    + "Cenário: " + prepared.scenarioId
+                    + "\nPassos: " + prepared.stepCount)
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton(
+                "EXECUTAR TESTE",
+                (dialog, which) -> executePreparedInline(prepared))
+            .show();
+    }
+
+    private void executePreparedInline(
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        if (closed || busy) return;
+
+        setBusy(true);
+        cancelButton.setVisibility(GONE);
+        setLiveStatus(
+            "Testadora executando cenário controlado…");
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiValidatedPlanExecutionGate.Execution execution =
+                    LaboratoryAiValidatedPlanExecutionGate.executePrepared(
+                        activity,
+                        projectId,
+                        prepared);
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        "Teste concluído."
+                            + "\nStatus: " + execution.status
+                            + "\nRelatório: " + execution.reportId
+                            + "\nSessão: " + execution.sessionId
+                            + "\nGoal Lock consumido: "
+                            + (execution.goalLockClaimed ? "SIM" : "NÃO")
+                            + "\nResultado registrado: "
+                            + (execution.resultRecorded ? "SIM" : "NÃO"));
+                    addActionButton(
+                        "ABRIR RELATÓRIOS DA TESTADORA",
+                        () -> activity.startActivity(
+                            new Intent(
+                                activity,
+                                LaboratoryAiTestAgentReportsActivity.class)));
+                });
+            } catch (Exception error) {
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        "A Testadora não concluiu o cenário."
+                            + "\n" + String.valueOf(error.getMessage())
+                            + "\nConsulte os relatórios e o diagnóstico "
+                            + "antes de tentar novamente.");
+                    addActionButton(
+                        "ABRIR RELATÓRIOS DA TESTADORA",
+                        () -> activity.startActivity(
+                            new Intent(
+                                activity,
+                                LaboratoryAiTestAgentReportsActivity.class)));
+                });
+            }
+        });
+    }
+
+    private static String plannerMetricSummary(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        StringBuilder out = new StringBuilder();
+        if (snapshot.contextSetupMs > 0L) {
+            out.append("\nContexto: ")
+                .append(snapshot.contextSetupMs)
+                .append(" ms");
+        }
+        if (snapshot.promptTokens > 0) {
+            out.append("\nPrompt: ")
+                .append(snapshot.promptTokensProcessed)
+                .append("/")
+                .append(snapshot.promptTokens)
+                .append(" tokens • ")
+                .append(snapshot.promptEvalMs)
+                .append(" ms");
+        }
+        if (snapshot.maxGeneratedTokens > 0) {
+            out.append("\nGeração: ")
+                .append(snapshot.generatedTokens)
+                .append("/")
+                .append(snapshot.maxGeneratedTokens)
+                .append(" tokens • ")
+                .append(snapshot.tokenGenerationMs)
+                .append(" ms");
+        }
+        return out.toString();
+    }
+
+    private static String phaseLabel(
+            LaboratoryAiExecutionStatus.Phase phase) {
+        if (phase == null) return "Etapa desconhecida";
+        switch (phase) {
+            case PREPARING:
+                return "Preparando";
+            case MODEL_ADMISSION:
+                return "Validando modelo";
+            case PREFLIGHT:
+                return "Verificando dispositivo";
+            case MODEL_OPEN:
+                return "Abrindo modelo";
+            case RUNTIME_METADATA:
+                return "Lendo runtime";
+            case PLANNING:
+                return "Montando plano";
+            case MODEL_CONTEXT:
+                return "Preparando contexto";
+            case MODEL_PROMPT:
+                return "Processando prompt";
+            case MODEL_TOKENS:
+                return "Gerando plano";
+            case VALIDATING:
+                return "Validando plano";
+            case COMPLETED:
+                return "Concluído";
+            default:
+                return phase.name();
+        }
     }
 
     private String buildConversationPrompt(String latestMessage) {
@@ -511,6 +897,15 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     }
 
     private void cancelActiveResponse() {
+        LaboratoryAiLocalPlannerProbe.Cancellation planner =
+            activePlannerCancellation;
+        if (planner != null) {
+            planner.cancel();
+            setLiveStatus("Cancelamento solicitado ao planejador…");
+            cancelButton.setEnabled(false);
+            return;
+        }
+
         LaboratoryAiLlamaCppBackend backend = activeBackend;
         if (backend != null) {
             backend.cancelGeneration();
@@ -600,7 +995,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         input.setEnabled(!value);
         cancelButton.setVisibility(value ? VISIBLE : GONE);
         cancelButton.setEnabled(value);
-        if (!value) hideLiveStatus();
+        if (!value) {
+            cancelButton.setText("CANCELAR RESPOSTA");
+            hideLiveStatus();
+        }
     }
 
     private void setLiveStatus(String value) {
