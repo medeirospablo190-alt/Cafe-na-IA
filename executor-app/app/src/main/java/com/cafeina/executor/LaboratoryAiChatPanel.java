@@ -750,13 +750,94 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     LaboratoryAiValidatedPlanExecutionGate.executePrepared(
                         activity,
                         projectId,
-                        prepared);
+                        prepared,
+                        new LaboratoryAiTestAgent.Observer() {
+                            @Override
+                            public void onAdmitted(
+                                    String sessionId,
+                                    int plannedSteps) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        setLiveStatus(
+                                            "Testadora admitida • "
+                                                + plannedSteps
+                                                + " passo(s)");
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onStepStarted(
+                                    int stepIndex,
+                                    int totalSteps,
+                                    String stepName,
+                                    String toolId) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        setLiveStatus(
+                                            "Testadora • passo "
+                                                + stepIndex + "/"
+                                                + totalSteps
+                                                + " • " + toolId
+                                                + " • executando");
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onStepFinished(
+                                    int stepIndex,
+                                    int totalSteps,
+                                    LaboratoryAiTestAgent.StepEvidence evidence) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        setLiveStatus(
+                                            "Testadora • passo "
+                                                + stepIndex + "/"
+                                                + totalSteps
+                                                + " • " + evidence.toolId
+                                                + " • "
+                                                + (evidence.passed
+                                                    ? "PASSOU"
+                                                    : "FALHOU")
+                                                + " • "
+                                                + evidence.durationMs
+                                                + " ms");
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onFinished(
+                                    LaboratoryAiTestAgent.Report report) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        setLiveStatus(
+                                            "Finalizando relatório • "
+                                                + report.executedSteps
+                                                + "/"
+                                                + report.plannedSteps
+                                                + " passo(s)");
+                                    }
+                                });
+                            }
+                        });
                 runOnUi(() -> {
                     if (closed) return;
                     setBusy(false);
                     addAssistantMessage(
                         "Teste concluído."
                             + "\nStatus: " + execution.status
+                            + "\nPassos: " + execution.executedSteps
+                            + "/" + execution.plannedSteps
+                            + "\nPassaram: " + execution.passed
+                            + " • Falharam: " + execution.failed
+                            + "\nDuração: "
+                            + formatElapsed(execution.durationMs)
+                            + (execution.terminalReason.isEmpty()
+                                ? ""
+                                : "\nMotivo terminal: "
+                                    + execution.terminalReason)
                             + "\nRelatório: " + execution.reportId
                             + "\nSessão: " + execution.sessionId
                             + "\nGoal Lock consumido: "
