@@ -213,6 +213,14 @@ public final class LaboratoryAiTestAgent {
             return pauseRequested.get();
         }
 
+        public LaboratoryAiSessionController.Snapshot snapshot() {
+            LaboratoryAiSessionController.HostHandle currentHost =
+                host.get();
+            return currentHost == null
+                ? null
+                : currentHost.snapshot();
+        }
+
         private boolean awaitIfPaused(
                 LaboratoryAiSessionController.HostHandle currentHost,
                 Observer observer,
