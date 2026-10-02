@@ -694,7 +694,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             .append(snapshot.resultRecorded ? "SIM" : "NÃO")
             .append("\n\nDiagnóstico: ")
             .append(snapshot.explanation)
-            .append("\nPróxima verificação: ")
+            .append("\nO que fazer agora: ")
+            .append(snapshot.nextStep)
+            .append("\nCódigo técnico: ")
             .append(snapshot.nextCheck);
 
         if (snapshot.planner != null) {
