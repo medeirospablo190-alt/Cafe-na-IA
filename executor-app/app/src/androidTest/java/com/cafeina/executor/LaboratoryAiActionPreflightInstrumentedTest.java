@@ -141,17 +141,32 @@ public final class LaboratoryAiActionPreflightInstrumentedTest {
                 contract.contractId,
                 modelName);
 
-        assertTrue(report.canPlan);
-        assertTrue(
-            report.status == LaboratoryAiActionPreflight.Status.READY
-                || report.status
-                    == LaboratoryAiActionPreflight.Status.ATTENTION);
         assertTrue(report.checks.stream().anyMatch(check ->
             "GOAL_LOCK_UNUSED".equals(check.code)));
         assertTrue(report.checks.stream().anyMatch(check ->
             "TASK_TOOLS_READY".equals(check.code)));
         assertTrue(report.checks.stream().anyMatch(check ->
             "LOCAL_MODEL_ADMITTED".equals(check.code)));
+
+        if (LaboratoryAiLlamaCppBackend.isRuntimePackaged()) {
+            assertTrue(report.canPlan);
+            assertTrue(
+                report.status == LaboratoryAiActionPreflight.Status.READY
+                    || report.status
+                        == LaboratoryAiActionPreflight.Status.ATTENTION);
+        } else {
+            assertFalse(report.canPlan);
+            assertEquals(
+                LaboratoryAiActionPreflight.Status.BLOCKED,
+                report.status);
+            assertTrue(report.checks.stream().anyMatch(check ->
+                "LOCAL_MODEL_DEVICE_PREFLIGHT".equals(check.code)
+                    && check.status
+                        == LaboratoryAiActionPreflight.Status.BLOCKED
+                    && check.detail.contains(
+                        LaboratoryAiLocalModelPreflight
+                            .RUNTIME_NOT_PACKAGED)));
+        }
     }
 
     private static String prepareMinimalGguf(
