@@ -110,6 +110,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private volatile LaboratoryAiTestAgent.Control activeTestControl;
     private volatile LaboratoryAiTestAgent.Plan latestValidatedPlan;
     private volatile LaboratoryAiExecutionStatus.Snapshot latestPlannerSnapshot;
+    private volatile LaboratoryAiActionPreflight.Report latestActionPreflight;
     private volatile int currentTestCompletedSteps;
     private volatile int currentTestTotalSteps;
     private volatile long currentTestObservedDurationMs;
@@ -784,6 +785,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 && liveStatus.getText().length() > 0) {
             value.append("\nAndamento: ")
                 .append(liveStatus.getText());
+        }
+        LaboratoryAiActionPreflight.Report preflight =
+            latestActionPreflight;
+        if (preflight != null) {
+            value.append("\nPré-diagnóstico: ")
+                .append(preflight.status.name());
         }
         currentActionStatus.setText(value.toString());
         currentActionStatus.setVisibility(VISIBLE);
@@ -1954,6 +1961,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 .append(detail);
         }
 
+        LaboratoryAiActionPreflight.Report preflight =
+            latestActionPreflight;
+        if (preflight != null) {
+            out.append("\nPré-diagnóstico: ")
+                .append(preflight.status.name());
+        }
+
         LaboratoryAiTestAgent.Control control = activeTestControl;
         if (control != null) {
             LaboratoryAiSessionController.Snapshot budget =
@@ -2615,41 +2629,97 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (closed || busy) return;
 
         final String selected = selectedModelFileName();
-        if (selected.isEmpty()) {
-            addAssistantMessage(
-                "Não há modelo local ativo para gerar o plano. "
-                    + "Selecione um GGUF nos controles da aba IA.");
-            return;
-        }
-
-        updateWorkflow(
-            LaboratoryAiChatSessionStore.WorkflowState.PLANNING,
-            contractId,
-            "",
-            "",
-            "Planejador local em execução");
-
-        final LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
-            new LaboratoryAiLocalPlannerProbe.Cancellation();
-        activePlannerCancellation = cancellation;
-
-        latestPlannerSnapshot = null;
-        resetPlannerCheckpointThrottle();
-        final LaboratoryAiExecutionStatus.Tracker status =
-            new LaboratoryAiExecutionStatus.Tracker(
-                contractId,
-                snapshot -> {
-                    latestPlannerSnapshot = snapshot;
-                    schedulePlannerCheckpoint(snapshot);
-                    runOnUi(() ->
-                        renderPlannerStatus(snapshot));
-                });
+        latestActionPreflight = null;
 
         setBusy(true);
-        cancelButton.setText("CANCELAR PLANEJAMENTO");
-        setLiveStatus("Preparando planejamento controlado…");
+        cancelButton.setVisibility(GONE);
+        setLiveStatus("Pré-diagnóstico da ação…");
 
         worker.execute(() -> {
+            final LaboratoryAiActionPreflight.Report preflight;
+            try {
+                preflight = LaboratoryAiActionPreflight.inspect(
+                    activity,
+                    projectId,
+                    contractId,
+                    selected);
+                latestActionPreflight = preflight;
+            } catch (Exception preflightFailure) {
+                final String reason =
+                    String.valueOf(preflightFailure.getMessage());
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        "O pré-diagnóstico não conseguiu validar a ação. "
+                            + "O planejador não foi iniciado e o Goal Lock "
+                            + "não foi consumido.\n"
+                            + reason);
+                    refreshCurrentActionStatus();
+                });
+                return;
+            }
+
+            if (!preflight.canPlan) {
+                runOnUi(() -> {
+                    if (closed) return;
+                    setBusy(false);
+                    addAssistantMessage(
+                        renderActionPreflight(preflight, true)
+                            + "\n\nPlanejamento NÃO iniciado. "
+                            + "Nenhuma ferramenta foi executada e o Goal Lock "
+                            + "continua não consumido.");
+                    refreshCurrentActionStatus();
+                });
+                return;
+            }
+
+            final LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
+                new LaboratoryAiLocalPlannerProbe.Cancellation();
+            activePlannerCancellation = cancellation;
+
+            latestPlannerSnapshot = null;
+            resetPlannerCheckpointThrottle();
+            final LaboratoryAiExecutionStatus.Tracker status =
+                new LaboratoryAiExecutionStatus.Tracker(
+                    contractId,
+                    snapshot -> {
+                        latestPlannerSnapshot = snapshot;
+                        schedulePlannerCheckpoint(snapshot);
+                        runOnUi(() ->
+                            renderPlannerStatus(snapshot));
+                    });
+
+            runOnUi(() -> {
+                if (closed) return;
+                updateWorkflow(
+                    LaboratoryAiChatSessionStore.WorkflowState.PLANNING,
+                    contractId,
+                    "",
+                    "",
+                    preflight.status
+                            == LaboratoryAiActionPreflight.Status.ATTENTION
+                        ? "Pré-diagnóstico com atenção; planejador em execução"
+                        : "Pré-diagnóstico pronto; planejador em execução");
+                setBusy(true);
+                cancelButton.setText("CANCELAR PLANEJAMENTO");
+                cancelButton.setVisibility(VISIBLE);
+                cancelButton.setEnabled(true);
+                setLiveStatus(
+                    preflight.status
+                            == LaboratoryAiActionPreflight.Status.ATTENTION
+                        ? "Pré-diagnóstico • ATENÇÃO • iniciando planejador…"
+                        : "Pré-diagnóstico • PRONTO • iniciando planejador…");
+                if (preflight.status
+                        == LaboratoryAiActionPreflight.Status.ATTENTION) {
+                    addAssistantMessage(
+                        renderActionPreflight(preflight, false)
+                            + "\n\nO alerta não bloqueia a tentativa. "
+                            + "O planejador seguirá, mas o diagnóstico ficará "
+                            + "disponível caso o modelo não carregue.");
+                }
+            });
+
             try {
                 LaboratoryAiLocalModelCatalog.Model model =
                     LaboratoryAiLocalModelCatalog.resolve(
@@ -2727,6 +2797,47 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 });
             }
         });
+    }
+
+    private String renderActionPreflight(
+            LaboratoryAiActionPreflight.Report report,
+            boolean includeReadyChecks) {
+        StringBuilder out = new StringBuilder();
+        out.append("PRÉ-DIAGNÓSTICO • ")
+            .append(report.status.name());
+
+        if (!report.modelFileName.isEmpty()) {
+            out.append("\nModelo: ")
+                .append(report.modelFileName);
+        }
+        if (report.modelSizeBytes > 0L) {
+            out.append(" • ")
+                .append(formatStorageBytes(report.modelSizeBytes));
+        }
+        if (report.availableRamBytes > 0L) {
+            out.append("\nRAM disponível: ")
+                .append(formatStorageBytes(report.availableRamBytes));
+        }
+        out.append("\nCPU: ")
+            .append(report.cpuCores)
+            .append(" núcleo(s)")
+            .append(" • armazenamento disponível: ")
+            .append(formatStorageBytes(report.appUsableStorageBytes));
+
+        for (LaboratoryAiActionPreflight.Check check : report.checks) {
+            if (!includeReadyChecks
+                    && check.status
+                        == LaboratoryAiActionPreflight.Status.READY) {
+                continue;
+            }
+            out.append("\n• ")
+                .append(check.status.name())
+                .append(" • ")
+                .append(check.code)
+                .append(" • ")
+                .append(check.detail);
+        }
+        return out.toString();
     }
 
     private void persistPlannerHistory(
