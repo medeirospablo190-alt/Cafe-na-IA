@@ -84,6 +84,8 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
         assertEquals(
             "PROFILE_PROMPT_EVAL_THROUGHPUT",
             diagnosis.nextCheck);
+        assertTrue(
+            diagnosis.nextStep.contains("tamanho do prompt"));
         assertTrue(diagnosis.explanation.contains("40/120"));
         assertNull(diagnosis.testReport);
 
@@ -125,6 +127,8 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
         assertNull(diagnosis.planner);
         assertNull(diagnosis.plannerDiagnostic);
         assertNull(diagnosis.testReport);
+        assertTrue(
+            diagnosis.nextStep.contains("gere o plano"));
         assertFalse(diagnosis.goalLockClaimed);
         assertFalse(diagnosis.resultRecorded);
     }
