@@ -440,10 +440,18 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + "Contrato: " + contract.contractId);
                     addActionButton(
                         "GERAR PLANO • NÃO EXECUTAR",
-                        () -> activity.startActivity(
-                            new Intent(
+                        () -> {
+                            Intent planner = new Intent(
                                 activity,
-                                LaboratoryAiLocalPlannerActivity.class)));
+                                LaboratoryAiLocalPlannerActivity.class);
+                            planner.putExtra(
+                                LaboratoryAiLocalPlannerActivity.EXTRA_CONTRACT_ID,
+                                contract.contractId);
+                            planner.putExtra(
+                                LaboratoryAiLocalPlannerActivity.EXTRA_AUTOSTART,
+                                true);
+                            activity.startActivity(planner);
+                        });
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
