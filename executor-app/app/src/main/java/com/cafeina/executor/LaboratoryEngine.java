@@ -199,7 +199,7 @@ public final class LaboratoryEngine {
             batchHash, status, passed, failed, checks);
     }
 
-    private static String hostEnvironmentSha256(
+    static String hostEnvironmentSha256(
             Request request) {
         StringBuilder identity = new StringBuilder()
             .append("CAFEINA_HOST_LAB_V1|")
