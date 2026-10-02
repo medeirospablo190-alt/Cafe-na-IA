@@ -2116,6 +2116,28 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             out.append("\nPlanejador: ")
                 .append(diagnosis.plannerDiagnostic.code.name());
         }
+        if (diagnosis.plannerEnvironment != null) {
+            LaboratoryAiPlannerEnvironmentStore.Snapshot env =
+                diagnosis.plannerEnvironment;
+            out.append("\nAmbiente: ")
+                .append(env.modelFileName)
+                .append(" • modelo ")
+                .append(formatStorageBytes(env.modelSizeBytes))
+                .append(" • RAM disponível ")
+                .append(formatStorageBytes(env.availableRamBytes))
+                .append(" • contexto ")
+                .append(env.contextTokens)
+                .append(" • ")
+                .append(env.threads)
+                .append(" thread(s) • timeout ")
+                .append(formatElapsed(env.maxGenerationMs));
+            if (!env.signalCodes.isEmpty()) {
+                out.append("\nSinais do preflight: ")
+                    .append(env.signalCodes)
+                    .append(
+                        " (sinais de atenção; não provam sozinhos a causa da falha)");
+            }
+        }
         if (diagnosis.testReport != null) {
             out.append("\nTestadora: ")
                 .append(diagnosis.testReport.status)
