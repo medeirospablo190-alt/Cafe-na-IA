@@ -52,10 +52,70 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "Não existe snapshot suficiente para localizar a falha.",
                 "CHECK_EXECUTION_STATUS_SOURCE");
         }
-        return analyze(
+        Result base = analyze(
             snapshot.state,
             snapshot.phase,
             snapshot.terminalReason);
+
+        if (base.code == Code.PROMPT_TIMEOUT
+                && snapshot.promptTokens > 0) {
+            if (snapshot.promptTokensProcessed == 0
+                    && snapshot.promptEvalMs > 0L) {
+                return result(
+                    Code.PROMPT_TIMEOUT,
+                    "O timeout ocorreu no prompt com "
+                        + snapshot.promptTokens
+                        + " tokens totais e nenhum batch completo após "
+                        + snapshot.promptEvalMs
+                        + " ms. O gargalo está dentro do primeiro processamento nativo do prompt.",
+                    "MEASURE_FIRST_PROMPT_BATCH_LATENCY");
+            }
+            if (snapshot.promptTokensProcessed > 0
+                    && snapshot.promptTokensProcessed
+                        < snapshot.promptTokens
+                    && snapshot.promptEvalMs > 0L) {
+                double rate = snapshot.promptTokensPerSecond();
+                return result(
+                    Code.PROMPT_TIMEOUT,
+                    "O timeout ocorreu após "
+                        + snapshot.promptTokensProcessed
+                        + "/"
+                        + snapshot.promptTokens
+                        + " tokens do prompt, em "
+                        + snapshot.promptEvalMs
+                        + " ms, com ritmo aproximado de "
+                        + formatRate(rate)
+                        + " tok/s.",
+                    "PROFILE_PROMPT_EVAL_THROUGHPUT");
+            }
+        }
+
+        if (base.code == Code.TOKEN_TIMEOUT
+                && snapshot.generatedTokens > 0
+                && snapshot.tokenGenerationMs > 0L) {
+            return result(
+                Code.TOKEN_TIMEOUT,
+                "O timeout ocorreu durante a geração após "
+                    + snapshot.generatedTokens
+                    + " tokens em "
+                    + snapshot.tokenGenerationMs
+                    + " ms, com ritmo aproximado de "
+                    + formatRate(snapshot.generatedTokensPerSecond())
+                    + " tok/s.",
+                "PROFILE_TOKEN_GENERATION_THROUGHPUT");
+        }
+
+        if (base.code == Code.CONTEXT_TIMEOUT
+                && snapshot.contextSetupMs > 0L) {
+            return result(
+                Code.CONTEXT_TIMEOUT,
+                "O timeout ocorreu durante a preparação do contexto após "
+                    + snapshot.contextSetupMs
+                    + " ms.",
+                "PROFILE_CONTEXT_SETUP");
+        }
+
+        return base;
     }
 
     public static Result analyze(
@@ -162,6 +222,18 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                     "A execução falhou, mas a fase registrada não permite uma classificação mais específica.",
                     "CHECK_FULL_EXECUTION_TIMELINE");
         }
+    }
+
+    private static String formatRate(double value) {
+        if (Double.isNaN(value)
+                || Double.isInfinite(value)
+                || value <= 0.0) {
+            return "0.0";
+        }
+        return String.format(
+            Locale.ROOT,
+            "%.1f",
+            value);
     }
 
     private static Result result(
