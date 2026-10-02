@@ -476,7 +476,7 @@ Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que 
 
 - O chat da aba `IA` possui agora um estado local por projeto em `files/laboratory/project-<id>/ai-chat-session/state.json` (ou `legacy` quando não existe projeto ativo). Esse arquivo é separado da memória de conhecimento da CAFEÍNA.
 - O snapshot guarda somente o necessário para reconstruir a superfície: mensagens visíveis limitadas, indicação de quais mensagens podem entrar novamente no contexto conversacional do modelo, estado operacional da tarefa e IDs de Goal Lock/cenário/relatório quando existirem.
-- Limites atuais: até 64 entradas, 8 KiB por entrada, detalhe operacional curto e arquivo total limitado a 384 KiB. A escrita usa arquivo temporário e substituição atômica quando suportada.
+- Limites atuais: até 64 entradas, 8 KiB por entrada, detalhe operacional curto e arquivo total limitado a 640 KiB. A escrita usa arquivo temporário e substituição atômica quando suportada.
 - Mensagens operacionais do laboratório são restauradas visualmente, mas não entram automaticamente no contexto de conversa do modelo. Somente entradas marcadas como conversa normal voltam ao histórico curto usado pelo prompt.
 - Ao reconstruir a aba ou reabrir o app, o chat lê o snapshot fora da UI thread. Um `PLANNING` ou `TEST_RUNNING` que não chegou a estado terminal é convertido em `INTERRUPTED`; o app nunca reinicia uma ação automaticamente após processo/tela ter sido perdido.
 - Goal Lock ainda não consumido pode ser retomado pelo chat com nova geração de plano. Cenário `TEST_PREPARED` pode ser reaberto por revalidação do Goal Lock + cenário imutável, sem criar outro cenário e sem consumir o contrato.
