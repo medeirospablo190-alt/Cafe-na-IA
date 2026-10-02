@@ -10,11 +10,14 @@ import android.content.Context;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -123,11 +126,38 @@ public final class LaboratoryCandidateTestSuiteRunnerInstrumentedTest {
             new LaboratoryReportStore(
                 app.getFilesDir(), project);
         assertEquals(2, reports.list().size());
+
+        Set<String> snapshotIds = new HashSet<>();
+        Set<String> caseNames = new HashSet<>();
         for (LaboratoryReportStore.Entry entry : reports.list()) {
             assertEquals("PASS", entry.status);
             assertFalse(entry.reportText.contains(source));
+            assertFalse(entry.reportText.contains("alpha"));
+            assertFalse(entry.reportText.contains("beta"));
             assertTrue(entry.reportText.contains(artifactSha));
+
+            JSONObject report = new JSONObject(entry.reportText);
+            snapshotIds.add(
+                report.getString("candidateSnapshotId"));
+            caseNames.add(
+                report.getJSONArray("checks")
+                    .getJSONObject(0)
+                    .getString("name"));
         }
+        assertEquals(
+            new HashSet<>(Arrays.asList("echo-a", "echo-b")),
+            caseNames);
+        assertEquals(1, snapshotIds.size());
+        assertTrue(snapshotIds.contains(snapshot.id));
+        assertEquals(
+            snapshot.id,
+            result.snapshotId);
+        assertEquals(
+            1,
+            new LaboratorySnapshotStore(
+                app.getFilesDir(), project)
+                .listVerified()
+                .size());
 
         registry.qualifyCandidate(
             toolId,
