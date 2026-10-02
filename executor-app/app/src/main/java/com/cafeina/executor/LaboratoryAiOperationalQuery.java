@@ -15,7 +15,8 @@ public final class LaboratoryAiOperationalQuery {
         NONE,
         STATUS,
         ETA,
-        DIAGNOSTIC
+        DIAGNOSTIC,
+        TIMELINE
     }
 
     private LaboratoryAiOperationalQuery() {}
@@ -23,6 +24,17 @@ public final class LaboratoryAiOperationalQuery {
     public static Kind classify(String message) {
         String value = normalize(message);
         if (value.isEmpty()) return Kind.NONE;
+
+        if (containsAny(
+                value,
+                "linha do tempo",
+                "historico da acao",
+                "historico desta acao",
+                "o que aconteceu nessa acao",
+                "o que aconteceu nesta acao",
+                "oq aconteceu nessa acao")) {
+            return Kind.TIMELINE;
+        }
 
         if (containsAny(
                 value,
