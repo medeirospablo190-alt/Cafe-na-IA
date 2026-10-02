@@ -229,6 +229,56 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
     }
 
     @Test
+    public void cancellationBeforeAdmissionDoesNotConsumeGoalLock()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "agentcancel"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "test-agent-cancel";
+        prepareGrantedStable(app, project, toolId);
+
+        LaboratoryAiTaskContractStore.Contract contract =
+            LaboratoryAiTaskAdmission.createContract(
+                app,
+                project,
+                LaboratoryAiTaskContractStore.Mode.LEARNING,
+                "Cancelar antes da admissão sem consumir Goal Lock.",
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    1,
+                    128,
+                    30_000L));
+
+        LaboratoryAiTestAgent.Plan plan =
+            new LaboratoryAiTestAgent.Plan(
+                Collections.singletonList(
+                    new LaboratoryAiTestAgent.Step(
+                        "cancelled", toolId, "x", "x")),
+                true);
+        LaboratoryAiTestAgent.Control control =
+            new LaboratoryAiTestAgent.Control();
+        control.cancel();
+
+        assertThrows(java.io.IOException.class, () ->
+            LaboratoryAiTestAgent.runBlocking(
+                app,
+                project,
+                contract.contractId,
+                plan,
+                control,
+                null));
+
+        LaboratoryAiTaskContractStore.Contract after =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), project)
+                .read(contract.contractId);
+        assertFalse(after.claimed);
+        assertFalse(after.resultRecorded);
+        assertTrue(new LaboratoryAiTestAgentReportStore(
+            app.getFilesDir(), project).list().isEmpty());
+    }
+
+    @Test
     public void invalidPlanDoesNotConsumeGoalLock() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String project = "agentbudget"
