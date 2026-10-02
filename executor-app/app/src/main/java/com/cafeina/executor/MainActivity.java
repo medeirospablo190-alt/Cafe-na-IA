@@ -81,6 +81,7 @@ public final class MainActivity extends Activity {
     private boolean autoExecStartupTriggered;
     private LinearLayout screenHost;
     private LinearLayout codeScreen;
+    private LaboratoryAiChatPanel aiChatPanel;
     private Button localModelImportButton;
     private Button localModelSelectButton;
     private Button localModelTestButton;
@@ -245,15 +246,35 @@ public final class MainActivity extends Activity {
             detail.setText("O módulo de criação e edição 3D ainda está em desenvolvimento. Nenhuma alteração será feita nos seus scripts ao entrar nesta área.");
         } else if ("IA".equals(name)) {
             detail.setText(
-                "O runtime local e o planejador estão em integração controlada. "
-                    + "Você já pode importar um arquivo GGUF para o armazenamento "
-                    + "privado do app. Importar não carrega nem executa o modelo.");
+                "Converse com a CAFEÍNA normalmente. Mensagens comuns usam o "
+                    + "modelo local sem ferramentas; pedidos de ação entram no "
+                    + "Goal Lock e nas permissões antes de qualquer execução.");
         } else {
             detail.setText("A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
         }
         section.addView(detail, matchWrap());
 
         if ("IA".equals(name)) {
+            if (aiChatPanel == null) {
+                aiChatPanel = new LaboratoryAiChatPanel(
+                    this, workspace.id());
+            }
+            section.addView(
+                aiChatPanel,
+                new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    0,
+                    1f));
+
+            TextView modelConfigTitle = new TextView(this);
+            modelConfigTitle.setText("MODELO LOCAL • CONFIGURAÇÃO");
+            modelConfigTitle.setTextColor(TEXT);
+            modelConfigTitle.setTextSize(13);
+            modelConfigTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+            LinearLayout.LayoutParams configTitleParams = matchWrap();
+            configTitleParams.setMargins(0, dp(10), 0, dp(4));
+            section.addView(modelConfigTitle, configTitleParams);
+
             localModelStatus = new TextView(this);
             localModelStatus.setText(localModelImportInProgress
                 ? "Importando modelo para o armazenamento privado…"
@@ -1915,6 +1936,9 @@ public final class MainActivity extends Activity {
     protected void onDestroy() {
         if (editor != null && tabs.size() > 0) {
             tabs.updateActiveContent(editor.getText().toString());
+        }
+        if (aiChatPanel != null) {
+            aiChatPanel.close();
         }
         runtimeExecutor.shutdownNow();
         ioExecutor.shutdownNow();
