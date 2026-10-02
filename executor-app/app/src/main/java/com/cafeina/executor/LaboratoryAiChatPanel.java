@@ -714,7 +714,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 .append(detail);
         }
         if ((state == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
-                    || state == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING)
+                    || state == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                    || state == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED)
                 && liveStatus != null
                 && liveStatus.getVisibility() == VISIBLE
                 && liveStatus.getText() != null
@@ -888,11 +889,18 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     v -> restoreAndConfirmPreparedTest());
                 break;
             case TEST_RUNNING:
-                currentActionPrimaryButton.setText("PAUSAR TESTE");
-                currentActionPrimaryButton.setEnabled(
-                    activeTestControl != null);
-                currentActionPrimaryButton.setOnClickListener(
-                    v -> pauseActiveTest());
+                if (activeTestControl != null
+                        && activeTestControl.isPauseRequested()) {
+                    currentActionPrimaryButton.setText(
+                        "PAUSA SOLICITADA • AGUARDANDO PONTO SEGURO");
+                    currentActionPrimaryButton.setEnabled(false);
+                } else {
+                    currentActionPrimaryButton.setText("PAUSAR TESTE");
+                    currentActionPrimaryButton.setEnabled(
+                        activeTestControl != null);
+                    currentActionPrimaryButton.setOnClickListener(
+                        v -> pauseActiveTest());
+                }
                 break;
             case TEST_PAUSED:
                 currentActionPrimaryButton.setText("CONTINUAR TESTE");
@@ -1033,7 +1041,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             liveWorkflow
                     == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
                 || liveWorkflow
-                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING;
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                || liveWorkflow
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED;
 
         currentDiagnosticButton.setEnabled(false);
         if (!operationRunning) {
