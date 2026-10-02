@@ -1496,6 +1496,23 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     + "operação atual terminar.");
         }
 
+        LaboratoryAiRootCauseAssessment.Result assessment =
+            LaboratoryAiRootCauseAssessment.assess(snapshot);
+        if (!assessment.findings.isEmpty()) {
+            out.append("\n\nCORRELAÇÃO DE EVIDÊNCIAS");
+            for (LaboratoryAiRootCauseAssessment.Finding finding :
+                    assessment.findings) {
+                out.append("\n")
+                    .append(rootCauseStrengthLabel(finding.strength))
+                    .append(" • ")
+                    .append(finding.title)
+                    .append("\n")
+                    .append(finding.detail)
+                    .append("\nCódigo: ")
+                    .append(finding.code);
+            }
+        }
+
         if (snapshot.plannerEnvironment != null) {
             LaboratoryAiPlannerEnvironmentStore.Snapshot env =
                 snapshot.plannerEnvironment;
@@ -2319,6 +2336,24 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (diagnosis.plannerDiagnostic != null) {
             out.append("\nPlanejador: ")
                 .append(diagnosis.plannerDiagnostic.code.name());
+        }
+
+        LaboratoryAiRootCauseAssessment.Result assessment =
+            LaboratoryAiRootCauseAssessment.assess(diagnosis);
+        int shownFindings = 0;
+        for (LaboratoryAiRootCauseAssessment.Finding finding :
+                assessment.findings) {
+            if (finding.strength
+                    == LaboratoryAiRootCauseAssessment.Strength.CONTEXT
+                    && shownFindings > 0) {
+                continue;
+            }
+            out.append("\n")
+                .append(rootCauseStrengthLabel(finding.strength))
+                .append(": ")
+                .append(finding.title);
+            shownFindings++;
+            if (shownFindings >= 3) break;
         }
         if (diagnosis.plannerEnvironment != null) {
             LaboratoryAiPlannerEnvironmentStore.Snapshot env =
@@ -3378,6 +3413,21 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 return "BLOQUEIO";
             default:
                 return "INFO";
+        }
+    }
+
+    private static String rootCauseStrengthLabel(
+            LaboratoryAiRootCauseAssessment.Strength strength) {
+        if (strength == null) return "INFO";
+        switch (strength) {
+            case CONFIRMED:
+                return "CONFIRMADO";
+            case SUPPORTING:
+                return "APOIO";
+            case CONTEXT:
+                return "CONTEXTO";
+            default:
+                return strength.name();
         }
     }
 
