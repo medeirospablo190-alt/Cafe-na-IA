@@ -28,6 +28,14 @@ struct ModelSession
     std::atomic<bool> timedOut{false};
     std::atomic<int64_t> deadlineNanos{0};
     std::atomic<int> phase{PHASE_NONE};
+    std::atomic<int32_t> promptTokens{0};
+    std::atomic<int32_t> promptTokensProcessed{0};
+    std::atomic<int32_t> generatedTokens{0};
+    std::atomic<int32_t> maxGeneratedTokens{0};
+    std::atomic<int64_t> contextSetupNanos{0};
+    std::atomic<int64_t> promptEvalNanos{0};
+    std::atomic<int64_t> tokenGenerationNanos{0};
+    std::atomic<int64_t> generationTimeLimitMs{0};
 };
 
 std::once_flag backendInit;
@@ -340,6 +348,47 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerationTimedOut(
     return session->timedOut.load() ? JNI_TRUE : JNI_FALSE;
 }
 
+extern "C" JNIEXPORT jlongArray JNICALL
+Java_com_cafeina_runtime_LlamaBridge_nativeGenerationMetrics(
+    JNIEnv* env,
+    jclass,
+    jlong handle
+)
+{
+    jlong values[10] = {};
+    if (handle != 0)
+    {
+        auto* session = reinterpret_cast<ModelSession*>(handle);
+        std::lock_guard<std::mutex> guard(sessionsMutex);
+        if (sessions.count(session) == 1)
+        {
+            values[0] = static_cast<jlong>(session->phase.load());
+            values[1] = session->timedOut.load() ? 1 : 0;
+            values[2] = static_cast<jlong>(session->promptTokens.load());
+            values[3] = static_cast<jlong>(
+                session->promptTokensProcessed.load());
+            values[4] = static_cast<jlong>(session->generatedTokens.load());
+            values[5] = static_cast<jlong>(
+                session->maxGeneratedTokens.load());
+            values[6] = static_cast<jlong>(
+                session->contextSetupNanos.load() / 1'000'000LL);
+            values[7] = static_cast<jlong>(
+                session->promptEvalNanos.load() / 1'000'000LL);
+            values[8] = static_cast<jlong>(
+                session->tokenGenerationNanos.load() / 1'000'000LL);
+            values[9] = static_cast<jlong>(
+                session->generationTimeLimitMs.load());
+        }
+    }
+
+    jlongArray result = env->NewLongArray(10);
+    if (!result)
+        return nullptr;
+    env->SetLongArrayRegion(result, 0, 10, values);
+    return result;
+}
+
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration(
     JNIEnv*,
@@ -411,6 +460,14 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 session->timedOut.store(false);
                 session->deadlineNanos.store(0);
                 session->phase.store(PHASE_NONE);
+                session->promptTokens.store(0);
+                session->promptTokensProcessed.store(0);
+                session->generatedTokens.store(0);
+                session->maxGeneratedTokens.store(maxTokens);
+                session->contextSetupNanos.store(0);
+                session->promptEvalNanos.store(0);
+                session->tokenGenerationNanos.store(0);
+                session->generationTimeLimitMs.store(maxGenerationMs);
             }
         }
     }
@@ -487,6 +544,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         return nullptr;
     }
     promptTokens.resize(static_cast<size_t>(tokenized));
+    session->promptTokens.store(tokenized);
 
     if (tokenized + maxTokens + 1 > contextTokens)
     {
@@ -503,6 +561,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.n_threads_batch = threads;
     params.no_perf = true;
     session->phase.store(PHASE_CONTEXT);
+    const int64_t contextStartedNanos = monotonicNanos();
     session->deadlineNanos.store(
         monotonicNanos()
             + static_cast<int64_t>(maxGenerationMs) * 1'000'000LL);
@@ -513,6 +572,8 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
 
     llama_context* context =
         llama_init_from_model(session->model, params);
+    session->contextSetupNanos.store(
+        std::max<int64_t>(0, monotonicNanos() - contextStartedNanos));
     if (!context)
     {
         session->deadlineNanos.store(0);
@@ -589,6 +650,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
 
     bool ok = true;
     session->phase.store(PHASE_PROMPT);
+    const int64_t promptStartedNanos = monotonicNanos();
     const int32_t batchSize =
         static_cast<int32_t>(params.n_batch);
     for (int32_t offset = 0;
@@ -609,12 +671,21 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 context,
                 LLAMA_PROCESS_TYPE_DECODE,
                 batch) == 0;
+        session->promptEvalNanos.store(
+            std::max<int64_t>(
+                0, monotonicNanos() - promptStartedNanos));
+        if (ok)
+            session->promptTokensProcessed.store(offset + count);
         if (shouldAbort(session))
             ok = false;
     }
 
+    int64_t tokenStartedNanos = 0;
     if (ok)
+    {
         session->phase.store(PHASE_TOKENS);
+        tokenStartedNanos = monotonicNanos();
+    }
 
     std::string output;
     output.reserve(
@@ -647,6 +718,13 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 > static_cast<size_t>(maxOutputChars))
             break;
         output += piece;
+        session->generatedTokens.store(generated + 1);
+        if (tokenStartedNanos > 0)
+        {
+            session->tokenGenerationNanos.store(
+                std::max<int64_t>(
+                    0, monotonicNanos() - tokenStartedNanos));
+        }
 
         if (!setBatchTokens(
                 batch,
@@ -665,6 +743,12 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         {
             ok = false;
             break;
+        }
+        if (tokenStartedNanos > 0)
+        {
+            session->tokenGenerationNanos.store(
+                std::max<int64_t>(
+                    0, monotonicNanos() - tokenStartedNanos));
         }
         ++position;
     }
