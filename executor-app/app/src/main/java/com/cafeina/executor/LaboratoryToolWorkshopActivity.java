@@ -178,30 +178,22 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
 
         TextView details = text(
             "ID: " + LaboratoryDiagnosticEchoTool.TOOL_ID
-                + "
-Versão: "
+                + "\nVersão: "
                 + LaboratoryDiagnosticEchoTool.VERSION
-                + "
-Artefato SHA-256: "
+                + "\nArtefato SHA-256: "
                 + LaboratoryDiagnosticEchoTool.sourceSha256()
-                + "
-Execução: Luau isolado, sem filesystem"
-                + "
-Entrada máxima: "
+                + "\nExecução: Luau isolado, sem filesystem"
+                + "\nEntrada máxima: "
                 + LaboratoryDiagnosticEchoTool.MAX_INPUT_BYTES
                 + " bytes"
-                + "
-Timeout: "
+                + "\nTimeout: "
                 + LaboratoryDiagnosticEchoTool.MAX_RUNTIME_MS
                 + " ms"
-                + "
-Registro: "
+                + "\nRegistro: "
                 + (state.registered ? "SIM" : "NÃO")
-                + "
-Artefato vinculado: "
+                + "\nArtefato vinculado: "
                 + (state.artifactBound ? "SIM" : "NÃO")
-                + "
-Estágio: " + stage,
+                + "\nEstágio: " + stage,
             13,
             FG,
             false);
