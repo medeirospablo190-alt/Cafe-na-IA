@@ -84,6 +84,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button sendButton;
     private final Button cancelButton;
     private final Button currentDiagnosticButton;
+    private final TextView currentActionStatus;
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
@@ -118,6 +119,19 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             false);
         note.setPadding(0, 0, 0, dp(8));
         addView(note, matchWrap());
+
+        currentActionStatus = text("", 13, FG, true);
+        currentActionStatus.setPadding(
+            dp(12), dp(9), dp(12), dp(9));
+        GradientDrawable actionStatusBackground =
+            new GradientDrawable();
+        actionStatusBackground.setColor(PANEL);
+        actionStatusBackground.setCornerRadius(dp(12));
+        currentActionStatus.setBackground(actionStatusBackground);
+        currentActionStatus.setVisibility(GONE);
+        LayoutParams actionStatusParams = matchWrap();
+        actionStatusParams.setMargins(0, 0, 0, dp(8));
+        addView(currentActionStatus, actionStatusParams);
 
         Button clearChat = button("LIMPAR CONVERSA LOCAL", PANEL);
         clearChat.setAllCaps(false);
@@ -630,6 +644,70 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 && !workflowContractId.isEmpty();
         }
         currentDiagnosticButton.setEnabled(enabled && !busy);
+        refreshCurrentActionStatus();
+    }
+
+    private void refreshCurrentActionStatus() {
+        if (currentActionStatus == null) return;
+
+        LaboratoryAiChatSessionStore.WorkflowState state;
+        String detail;
+        synchronized (persistedEntries) {
+            state = workflowState;
+            detail = workflowDetail;
+        }
+
+        if (state == null
+                || state
+                    == LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
+            currentActionStatus.setText("");
+            currentActionStatus.setVisibility(GONE);
+            return;
+        }
+
+        StringBuilder value = new StringBuilder();
+        value.append("AÇÃO ATUAL • ")
+            .append(workflowStateLabel(state))
+            .append("\n")
+            .append(workflowNextStep(state));
+        if (detail != null && !detail.isEmpty()
+                && state
+                    != LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW) {
+            value.append("\n")
+                .append(detail);
+        }
+        currentActionStatus.setText(value.toString());
+        currentActionStatus.setVisibility(VISIBLE);
+    }
+
+    private static String workflowNextStep(
+            LaboratoryAiChatSessionStore.WorkflowState state) {
+        if (state == null) return "Aguardando próxima ação.";
+        switch (state) {
+            case ACTION_REVIEW:
+                return "Próximo: revisar e confirmar as permissões desta tarefa.";
+            case GOAL_LOCK_CREATED:
+                return "Próximo: gerar o plano sem executar ferramentas.";
+            case PLANNING:
+                return "Agora: o planejador está montando e validando o plano.";
+            case PLAN_READY:
+                return "Próximo: revisar o plano e preparar a Testadora.";
+            case TEST_PREPARED:
+                return "Próximo: confirmar ou cancelar a execução do teste.";
+            case TEST_RUNNING:
+                return "Agora: a Testadora está executando o cenário aprovado.";
+            case COMPLETED:
+                return "Concluído: revise o resultado ou o relatório se quiser.";
+            case FAILED:
+                return "Próximo: abra o diagnóstico da ação antes de repetir.";
+            case CANCELLED:
+                return "Cancelado: nenhuma nova tentativa será iniciada sozinha.";
+            case INTERRUPTED:
+                return "Próximo: diagnosticar e escolher conscientemente como retomar.";
+            case IDLE:
+            default:
+                return "Aguardando próxima ação.";
+        }
     }
 
     private void showCurrentActionDiagnostic() {
