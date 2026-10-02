@@ -178,6 +178,50 @@ public final class LaboratoryDiagnosticEchoTool {
         return inspect(filesDir, projectId);
     }
 
+    public static State qualifyCandidate(
+            File filesDir,
+            String projectId,
+            LaboratoryCandidateEvidenceRecovery.Result recovered)
+            throws IOException {
+        if (recovered == null
+                || !recovered.ready
+                || !TOOL_ID.equals(recovered.toolId)
+                || !VERSION.equals(recovered.version)
+                || !sourceSha256().equals(recovered.artifactSha256)
+                || recovered.runIds.isEmpty()) {
+            throw new IOException(
+                "recovered diagnostic echo evidence is not eligible");
+        }
+
+        LaboratoryToolRegistry registry =
+            new LaboratoryToolRegistry(filesDir, projectId);
+        LaboratoryToolRegistry.Descriptor descriptor =
+            registry.readDescriptor(TOOL_ID, VERSION);
+        validateDescriptor(descriptor);
+        if (registry.stage(TOOL_ID, VERSION)
+                != LaboratoryToolRegistry.Stage.EXPERIMENTAL) {
+            throw new IOException(
+                "diagnostic echo is no longer EXPERIMENTAL");
+        }
+
+        LaboratoryToolArtifactStore.Binding binding =
+            new LaboratoryToolArtifactStore(
+                filesDir, projectId)
+                .readVerified(TOOL_ID, VERSION);
+        if (!binding.snapshotId.equals(recovered.snapshotId)
+                || !binding.artifactSha256.equals(
+                    recovered.artifactSha256)) {
+            throw new IOException(
+                "recovered evidence no longer matches bound artifact");
+        }
+
+        registry.qualifyCandidate(
+            TOOL_ID,
+            VERSION,
+            recovered.runIds);
+        return inspect(filesDir, projectId);
+    }
+
     public static String sourceSha256() {
         return LaboratoryEngine.fingerprint(SOURCE).substring(7, 71);
     }
