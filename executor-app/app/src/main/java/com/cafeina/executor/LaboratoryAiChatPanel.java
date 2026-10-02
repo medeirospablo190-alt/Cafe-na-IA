@@ -107,6 +107,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation activePlannerCancellation;
     private volatile LaboratoryAiTestAgent.Control activeTestControl;
     private volatile LaboratoryAiTestAgent.Plan latestValidatedPlan;
+    private volatile LaboratoryAiExecutionStatus.Snapshot latestPlannerSnapshot;
+    private volatile int currentTestCompletedSteps;
+    private volatile int currentTestTotalSteps;
+    private volatile long currentTestObservedDurationMs;
     private volatile boolean busy;
     private volatile boolean closed;
 
@@ -1410,9 +1414,42 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     }
 
     private void sendCurrent() {
-        if (closed || busy) return;
+        if (closed) return;
         String message = input.getText().toString().trim();
         if (message.isEmpty()) return;
+
+        LaboratoryAiOperationalQuery.Kind operational =
+            LaboratoryAiOperationalQuery.classify(message);
+        boolean hasAction = hasCurrentOperationalAction();
+
+        if (busy) {
+            if (!allowsOperationalQuestionsWhileBusy()) {
+                return;
+            }
+            input.setText("");
+            addUserMessage(message, false);
+            if (operational
+                    == LaboratoryAiOperationalQuery.Kind.NONE) {
+                addAssistantMessage(
+                    "A ação atual ainda está em execução. Enquanto ela roda, "
+                        + "você pode me perguntar “status”, “quanto falta?” "
+                        + "ou “onde travou?”. Para iniciar outro pedido, "
+                        + "conclua ou cancele a ação atual primeiro.");
+                return;
+            }
+            handleOperationalQuery(operational);
+            return;
+        }
+
+        if (hasAction
+                && operational
+                    != LaboratoryAiOperationalQuery.Kind.NONE) {
+            input.setText("");
+            addUserMessage(message, false);
+            handleOperationalQuery(operational);
+            return;
+        }
+
         input.setText("");
 
         LaboratoryAiChatRouter.Route route =
@@ -1426,6 +1463,244 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         } else {
             runConversation(message, route.kind);
         }
+    }
+
+    private boolean hasCurrentOperationalAction() {
+        synchronized (persistedEntries) {
+            return workflowState != null
+                && workflowState
+                    != LaboratoryAiChatSessionStore.WorkflowState.IDLE;
+        }
+    }
+
+    private boolean allowsOperationalQuestionsWhileBusy() {
+        return activePlannerCancellation != null
+            || activeTestControl != null;
+    }
+
+    private void handleOperationalQuery(
+            LaboratoryAiOperationalQuery.Kind kind) {
+        if (kind == null
+                || kind == LaboratoryAiOperationalQuery.Kind.NONE) {
+            return;
+        }
+
+        if (kind == LaboratoryAiOperationalQuery.Kind.STATUS) {
+            addAssistantMessage(operationalStatusAnswer());
+            return;
+        }
+        if (kind == LaboratoryAiOperationalQuery.Kind.ETA) {
+            addAssistantMessage(operationalEtaAnswer());
+            return;
+        }
+
+        final String contractId;
+        final LaboratoryAiChatSessionStore.WorkflowState state;
+        synchronized (persistedEntries) {
+            contractId = workflowContractId;
+            state = workflowState;
+        }
+
+        if (contractId == null || contractId.isEmpty()) {
+            addAssistantMessage(
+                "Diagnóstico da ação atual:\n"
+                    + operationalStatusAnswer()
+                    + "\nAinda não existe Goal Lock para consultar "
+                    + "diagnóstico persistido.");
+            return;
+        }
+
+        diagnosticWorker.execute(() -> {
+            try {
+                LaboratoryAiActionDiagnostic.Snapshot diagnosis =
+                    LaboratoryAiActionDiagnostic.inspect(
+                        activity.getFilesDir(),
+                        projectId,
+                        contractId);
+                String answer =
+                    operationalDiagnosticAnswer(diagnosis, state);
+                runOnUi(() -> {
+                    if (!closed) addAssistantMessage(answer);
+                });
+            } catch (Exception error) {
+                String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (!closed) {
+                        addAssistantMessage(
+                            "Não consegui ler o diagnóstico persistido desta "
+                                + "ação. A execução atual não foi alterada.\n"
+                                + reason);
+                    }
+                });
+            }
+        });
+    }
+
+    private String operationalStatusAnswer() {
+        LaboratoryAiChatSessionStore.WorkflowState state;
+        String detail;
+        synchronized (persistedEntries) {
+            state = workflowState;
+            detail = workflowDetail;
+        }
+
+        StringBuilder out = new StringBuilder()
+            .append("AÇÃO ATUAL • ")
+            .append(workflowStateLabel(state))
+            .append("\n")
+            .append(workflowNextStep(state));
+
+        if (liveStatus != null
+                && liveStatus.getVisibility() == VISIBLE
+                && liveStatus.getText() != null
+                && liveStatus.getText().length() > 0) {
+            out.append("\nAgora: ")
+                .append(liveStatus.getText());
+        } else if (detail != null && !detail.isEmpty()) {
+            out.append("\nDetalhe: ")
+                .append(detail);
+        }
+
+        LaboratoryAiTestAgent.Control control = activeTestControl;
+        if (control != null) {
+            LaboratoryAiSessionController.Snapshot budget =
+                control.snapshot();
+            if (budget != null) {
+                out.append("\nOrçamento: ")
+                    .append(budget.invocationsRemaining)
+                    .append(" chamada(s) • ")
+                    .append(formatBytes(budget.inputBytesRemaining))
+                    .append(" de entrada • ")
+                    .append(formatElapsed(budget.remainingMs))
+                    .append(" de tempo restante");
+            }
+        }
+        return out.toString();
+    }
+
+    private String operationalEtaAnswer() {
+        LaboratoryAiChatSessionStore.WorkflowState state;
+        synchronized (persistedEntries) {
+            state = workflowState;
+        }
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.PLANNING) {
+            LaboratoryAiExecutionStatus.Snapshot snapshot =
+                latestPlannerSnapshot;
+            if (snapshot == null) {
+                return "Ainda não tenho dados suficientes para estimar o "
+                    + "tempo do planejamento. A execução está começando.";
+            }
+            if (snapshot.estimatedRemainingMs > 0L) {
+                return "Estimativa atual: cerca de "
+                    + formatElapsed(snapshot.estimatedRemainingMs)
+                    + " restantes nesta fase. É uma estimativa baseada no "
+                    + "ritmo real observado do processamento do prompt, não "
+                    + "uma promessa para a tarefa inteira.";
+            }
+            if (snapshot.phase
+                    == LaboratoryAiExecutionStatus.Phase.MODEL_TOKENS) {
+                return "O modelo está gerando o plano. Ainda não existe um "
+                    + "tempo final confiável nessa fase porque a resposta "
+                    + "pode terminar antes do limite máximo de tokens. "
+                    + "Tempo decorrido: "
+                    + formatElapsed(snapshot.elapsedMs) + ".";
+            }
+            return "Ainda não há uma estimativa confiável para esta fase "
+                + "(" + phaseLabel(snapshot.phase) + "). "
+                + "Tempo decorrido: "
+                + formatElapsed(snapshot.elapsedMs) + ".";
+        }
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
+            LaboratoryAiTestAgent.Control control = activeTestControl;
+            LaboratoryAiSessionController.Snapshot budget =
+                control == null ? null : control.snapshot();
+            return "A Testadora está pausada em um ponto seguro. Não calculo "
+                + "tempo de conclusão enquanto ela está parada."
+                + (budget == null
+                    ? ""
+                    : " O orçamento temporal da sessão continua correndo: "
+                        + formatElapsed(budget.remainingMs)
+                        + " restantes.");
+        }
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING) {
+            int completed = currentTestCompletedSteps;
+            int total = currentTestTotalSteps;
+            long observed = currentTestObservedDurationMs;
+            if (completed > 0 && total > completed && observed > 0L) {
+                long average = Math.max(1L, observed / completed);
+                long estimate =
+                    average * Math.max(0, total - completed);
+                return "Estimativa atual da Testadora: cerca de "
+                    + formatElapsed(estimate)
+                    + " para os passos restantes, usando a média dos "
+                    + completed + " passo(s) já concluído(s). "
+                    + "Ferramentas diferentes podem levar tempos diferentes.";
+            }
+            if (total > 0 && completed >= total) {
+                return "Todos os passos previstos já foram processados. "
+                    + "A Testadora está finalizando o relatório.";
+            }
+            return "Ainda não há dados suficientes para estimar a duração "
+                + "da Testadora. Preciso de pelo menos um passo concluído "
+                + "para calcular uma média real.";
+        }
+
+        return "Não existe uma execução cronometrável ativa agora. "
+            + workflowNextStep(state);
+    }
+
+    private String operationalDiagnosticAnswer(
+            LaboratoryAiActionDiagnostic.Snapshot diagnosis,
+            LaboratoryAiChatSessionStore.WorkflowState liveState) {
+        StringBuilder out = new StringBuilder("DIAGNÓSTICO DA AÇÃO");
+        if (liveState
+                == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+                || liveState
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                || liveState
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
+            out.append("\nEstado ao vivo: ")
+                .append(workflowStateLabel(liveState));
+            if (liveStatus != null
+                    && liveStatus.getVisibility() == VISIBLE
+                    && liveStatus.getText() != null) {
+                out.append("\nAgora: ")
+                    .append(liveStatus.getText());
+            }
+            out.append("\nNão há falha terminal confirmada somente por a "
+                + "ação ainda estar em andamento.");
+        } else {
+            out.append("\nEtapa: ")
+                .append(actionStageLabel(diagnosis.stage));
+        }
+
+        out.append("\nLeitura: ")
+            .append(diagnosis.explanation)
+            .append("\nPróximo passo: ")
+            .append(diagnosis.nextStep)
+            .append("\nCódigo técnico: ")
+            .append(diagnosis.nextCheck);
+
+        if (diagnosis.plannerDiagnostic != null) {
+            out.append("\nPlanejador: ")
+                .append(diagnosis.plannerDiagnostic.code.name());
+        }
+        if (diagnosis.testReport != null) {
+            out.append("\nTestadora: ")
+                .append(diagnosis.testReport.status)
+                .append(" • ")
+                .append(diagnosis.testReport.executedSteps)
+                .append("/")
+                .append(diagnosis.testReport.plannedSteps)
+                .append(" passo(s)");
+        }
+        return out.toString();
     }
 
     private void runConversation(
@@ -1879,11 +2154,15 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             new LaboratoryAiLocalPlannerProbe.Cancellation();
         activePlannerCancellation = cancellation;
 
+        latestPlannerSnapshot = null;
         final LaboratoryAiExecutionStatus.Tracker status =
             new LaboratoryAiExecutionStatus.Tracker(
                 contractId,
-                snapshot -> runOnUi(() ->
-                    renderPlannerStatus(snapshot)));
+                snapshot -> {
+                    latestPlannerSnapshot = snapshot;
+                    runOnUi(() ->
+                        renderPlannerStatus(snapshot));
+                });
 
         setBusy(true);
         cancelButton.setText("CANCELAR PLANEJAMENTO");
@@ -2186,6 +2465,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         final LaboratoryAiTestAgent.Control control =
             new LaboratoryAiTestAgent.Control();
         activeTestControl = control;
+        currentTestCompletedSteps = 0;
+        currentTestTotalSteps = prepared.stepCount;
+        currentTestObservedDurationMs = 0L;
 
         setBusy(true);
         cancelButton.setText("CANCELAR TESTE");
@@ -2205,6 +2487,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             public void onAdmitted(
                                     String sessionId,
                                     int plannedSteps) {
+                                currentTestTotalSteps = plannedSteps;
                                 runOnUi(() -> {
                                     if (!closed && busy) {
                                         setLiveStatus(
@@ -2246,6 +2529,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                     int stepIndex,
                                     int totalSteps,
                                     LaboratoryAiTestAgent.StepEvidence evidence) {
+                                currentTestCompletedSteps = stepIndex;
+                                currentTestTotalSteps = totalSteps;
+                                currentTestObservedDurationMs +=
+                                    Math.max(0L, evidence.durationMs);
                                 runOnUi(() -> {
                                     if (!closed && busy) {
                                         setLiveStatus(
@@ -2703,8 +2990,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
     private void setBusy(boolean value) {
         busy = value;
-        sendButton.setEnabled(!value);
-        input.setEnabled(!value);
+        boolean operationalChat =
+            value && allowsOperationalQuestionsWhileBusy();
+        sendButton.setEnabled(!value || operationalChat);
+        input.setEnabled(!value || operationalChat);
+        input.setHint(
+            operationalChat
+                ? "Pergunte: status, quanto falta, diagnóstico"
+                : "Mensagem para a CAFEÍNA");
         cancelButton.setVisibility(value ? VISIBLE : GONE);
         cancelButton.setEnabled(value);
         refreshActionDiagnosticButton();
