@@ -46,6 +46,16 @@ public final class LaboratoryAiExecutionStatus {
         public final int maxAttempts;
         public final String terminalReason;
 
+        public final int promptTokens;
+        public final int promptTokensProcessed;
+        public final int generatedTokens;
+        public final int maxGeneratedTokens;
+        public final long contextSetupMs;
+        public final long promptEvalMs;
+        public final long tokenGenerationMs;
+        public final long generationTimeLimitMs;
+        public final long estimatedRemainingMs;
+
         private Snapshot(
                 String executionId,
                 String contractId,
@@ -56,7 +66,16 @@ public final class LaboratoryAiExecutionStatus {
                 String detail,
                 int attempt,
                 int maxAttempts,
-                String terminalReason) {
+                String terminalReason,
+                int promptTokens,
+                int promptTokensProcessed,
+                int generatedTokens,
+                int maxGeneratedTokens,
+                long contextSetupMs,
+                long promptEvalMs,
+                long tokenGenerationMs,
+                long generationTimeLimitMs,
+                long estimatedRemainingMs) {
             this.executionId = executionId;
             this.contractId = contractId;
             this.startedAtEpochMs = startedAtEpochMs;
@@ -68,10 +87,29 @@ public final class LaboratoryAiExecutionStatus {
             this.attempt = attempt;
             this.maxAttempts = maxAttempts;
             this.terminalReason = terminalReason;
+            this.promptTokens = promptTokens;
+            this.promptTokensProcessed = promptTokensProcessed;
+            this.generatedTokens = generatedTokens;
+            this.maxGeneratedTokens = maxGeneratedTokens;
+            this.contextSetupMs = contextSetupMs;
+            this.promptEvalMs = promptEvalMs;
+            this.tokenGenerationMs = tokenGenerationMs;
+            this.generationTimeLimitMs = generationTimeLimitMs;
+            this.estimatedRemainingMs = estimatedRemainingMs;
         }
 
         public boolean terminal() {
             return state != State.RUNNING;
+        }
+
+        public double promptTokensPerSecond() {
+            if (promptTokensProcessed <= 0 || promptEvalMs <= 0L) return 0.0;
+            return promptTokensProcessed * 1000.0 / promptEvalMs;
+        }
+
+        public double generatedTokensPerSecond() {
+            if (generatedTokens <= 0 || tokenGenerationMs <= 0L) return 0.0;
+            return generatedTokens * 1000.0 / tokenGenerationMs;
         }
     }
 
@@ -88,6 +126,16 @@ public final class LaboratoryAiExecutionStatus {
         private final long startedAtEpochMs = System.currentTimeMillis();
         private final Listener listener;
         private final List<Snapshot> history = new ArrayList<>();
+
+        private int promptTokens;
+        private int promptTokensProcessed;
+        private int generatedTokens;
+        private int maxGeneratedTokens;
+        private long contextSetupMs;
+        private long promptEvalMs;
+        private long tokenGenerationMs;
+        private long generationTimeLimitMs;
+        private long estimatedRemainingMs;
 
         private Snapshot current;
 
@@ -135,6 +183,7 @@ public final class LaboratoryAiExecutionStatus {
                         "invalid running execution phase");
                 }
                 validateAttempt(attempt, maxAttempts);
+                estimatedRemainingMs = estimateRemainingMs(phase);
                 current = build(
                     State.RUNNING,
                     phase,
@@ -152,20 +201,8 @@ public final class LaboratoryAiExecutionStatus {
                 int nativePhase,
                 int attempt,
                 int maxAttempts) {
-            Phase mapped;
-            switch (nativePhase) {
-                case 1:
-                    mapped = Phase.MODEL_CONTEXT;
-                    break;
-                case 2:
-                    mapped = Phase.MODEL_PROMPT;
-                    break;
-                case 3:
-                    mapped = Phase.MODEL_TOKENS;
-                    break;
-                default:
-                    return;
-            }
+            Phase mapped = mapNativePhase(nativePhase);
+            if (mapped == null) return;
             update(
                 mapped,
                 nativeDetail(mapped),
@@ -173,11 +210,74 @@ public final class LaboratoryAiExecutionStatus {
                 maxAttempts);
         }
 
+        /**
+         * Updates live performance counters without adding a new persisted
+         * timeline event on every poll. Phase transitions and terminal states
+         * remain in history; the current snapshot carries the freshest metrics.
+         */
+        public void updateNativeTelemetry(
+                int nativePhase,
+                int promptTokens,
+                int promptTokensProcessed,
+                int generatedTokens,
+                int maxGeneratedTokens,
+                long contextSetupMs,
+                long promptEvalMs,
+                long tokenGenerationMs,
+                long generationTimeLimitMs,
+                int attempt,
+                int maxAttempts) {
+            Snapshot changed;
+            synchronized (this) {
+                if (current.terminal()) return;
+                validateAttempt(attempt, maxAttempts);
+                validateTelemetry(
+                    promptTokens,
+                    promptTokensProcessed,
+                    generatedTokens,
+                    maxGeneratedTokens,
+                    contextSetupMs,
+                    promptEvalMs,
+                    tokenGenerationMs,
+                    generationTimeLimitMs);
+
+                this.promptTokens = promptTokens;
+                this.promptTokensProcessed = promptTokensProcessed;
+                this.generatedTokens = generatedTokens;
+                this.maxGeneratedTokens = maxGeneratedTokens;
+                this.contextSetupMs = contextSetupMs;
+                this.promptEvalMs = promptEvalMs;
+                this.tokenGenerationMs = tokenGenerationMs;
+                this.generationTimeLimitMs = generationTimeLimitMs;
+
+                Phase mapped = mapNativePhase(nativePhase);
+                Phase nextPhase = mapped == null ? current.phase : mapped;
+                String nextDetail = mapped == null
+                    ? current.detail
+                    : nativeDetail(mapped);
+                int nextAttempt = attempt > 0 ? attempt : current.attempt;
+                int nextMaxAttempts =
+                    maxAttempts > 0 ? maxAttempts : current.maxAttempts;
+
+                estimatedRemainingMs = estimateRemainingMs(nextPhase);
+                current = build(
+                    State.RUNNING,
+                    nextPhase,
+                    nextDetail,
+                    nextAttempt,
+                    nextMaxAttempts,
+                    "");
+                changed = current;
+            }
+            publish(changed);
+        }
+
         public void complete(String detail, int attempt, int maxAttempts) {
             Snapshot changed;
             synchronized (this) {
                 if (current.terminal()) return;
                 validateAttempt(attempt, maxAttempts);
+                estimatedRemainingMs = 0L;
                 current = build(
                     State.COMPLETED,
                     Phase.COMPLETED,
@@ -195,6 +295,7 @@ public final class LaboratoryAiExecutionStatus {
             Snapshot changed;
             synchronized (this) {
                 if (current.terminal()) return;
+                estimatedRemainingMs = 0L;
                 current = build(
                     State.FAILED,
                     current.phase,
@@ -212,6 +313,7 @@ public final class LaboratoryAiExecutionStatus {
             Snapshot changed;
             synchronized (this) {
                 if (current.terminal()) return;
+                estimatedRemainingMs = 0L;
                 current = build(
                     State.CANCELLED,
                     current.phase,
@@ -253,7 +355,66 @@ public final class LaboratoryAiExecutionStatus {
                 detail,
                 attempt,
                 maxAttempts,
-                terminalReason);
+                terminalReason,
+                promptTokens,
+                promptTokensProcessed,
+                generatedTokens,
+                maxGeneratedTokens,
+                contextSetupMs,
+                promptEvalMs,
+                tokenGenerationMs,
+                generationTimeLimitMs,
+                estimatedRemainingMs);
+        }
+
+        private long estimateRemainingMs(Phase phase) {
+            if (phase == Phase.MODEL_PROMPT
+                    && promptTokens > 0
+                    && promptTokensProcessed > 0
+                    && promptTokensProcessed < promptTokens
+                    && promptEvalMs > 0L) {
+                long remaining = promptTokens - promptTokensProcessed;
+                return boundedEstimate(
+                    promptEvalMs,
+                    remaining,
+                    promptTokensProcessed);
+            }
+
+            if (phase == Phase.MODEL_TOKENS
+                    && maxGeneratedTokens > 0
+                    && generatedTokens > 0
+                    && generatedTokens < maxGeneratedTokens
+                    && tokenGenerationMs > 0L) {
+                long remaining =
+                    maxGeneratedTokens - generatedTokens;
+                return boundedEstimate(
+                    tokenGenerationMs,
+                    remaining,
+                    generatedTokens);
+            }
+            return 0L;
+        }
+
+        private long boundedEstimate(
+                long elapsed,
+                long remainingUnits,
+                long completedUnits) {
+            if (elapsed <= 0L
+                    || remainingUnits <= 0L
+                    || completedUnits <= 0L) {
+                return 0L;
+            }
+            double value =
+                elapsed * (double) remainingUnits / completedUnits;
+            long estimate = value >= Long.MAX_VALUE
+                ? Long.MAX_VALUE
+                : Math.max(0L, Math.round(value));
+            if (generationTimeLimitMs > 0L) {
+                estimate = Math.min(
+                    estimate,
+                    generationTimeLimitMs);
+            }
+            return estimate;
         }
 
         private void publish(Snapshot snapshot) {
@@ -265,12 +426,49 @@ public final class LaboratoryAiExecutionStatus {
             }
         }
 
+        private static Phase mapNativePhase(int nativePhase) {
+            switch (nativePhase) {
+                case 1:
+                    return Phase.MODEL_CONTEXT;
+                case 2:
+                    return Phase.MODEL_PROMPT;
+                case 3:
+                    return Phase.MODEL_TOKENS;
+                default:
+                    return null;
+            }
+        }
+
         private static void validateAttempt(int attempt, int maxAttempts) {
             if (attempt < 0 || maxAttempts < 0
                     || attempt > maxAttempts
                     || (attempt > 0 && maxAttempts == 0)) {
                 throw new IllegalArgumentException(
                     "invalid execution status attempt");
+            }
+        }
+
+        private static void validateTelemetry(
+                int promptTokens,
+                int promptTokensProcessed,
+                int generatedTokens,
+                int maxGeneratedTokens,
+                long contextSetupMs,
+                long promptEvalMs,
+                long tokenGenerationMs,
+                long generationTimeLimitMs) {
+            if (promptTokens < 0
+                    || promptTokensProcessed < 0
+                    || promptTokensProcessed > promptTokens
+                    || generatedTokens < 0
+                    || maxGeneratedTokens < 0
+                    || generatedTokens > maxGeneratedTokens
+                    || contextSetupMs < 0L
+                    || promptEvalMs < 0L
+                    || tokenGenerationMs < 0L
+                    || generationTimeLimitMs < 0L) {
+                throw new IllegalArgumentException(
+                    "invalid execution telemetry");
             }
         }
 
