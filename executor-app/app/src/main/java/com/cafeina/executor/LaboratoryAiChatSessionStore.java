@@ -29,7 +29,7 @@ public final class LaboratoryAiChatSessionStore {
     public static final int MAX_ENTRIES = 64;
     public static final int MAX_ENTRY_CHARS = 8 * 1024;
     public static final int MAX_STATUS_CHARS = 240;
-    public static final int MAX_FILE_BYTES = 384 * 1024;
+    public static final int MAX_FILE_BYTES = 640 * 1024;
 
     public enum Role {
         USER,
