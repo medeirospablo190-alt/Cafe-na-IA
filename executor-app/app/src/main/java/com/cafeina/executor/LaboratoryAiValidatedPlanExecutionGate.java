@@ -45,6 +45,12 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
         public final String sessionId;
         public final boolean goalLockClaimed;
         public final boolean resultRecorded;
+        public final String terminalReason;
+        public final int plannedSteps;
+        public final int executedSteps;
+        public final int passed;
+        public final int failed;
+        public final long durationMs;
 
         private Execution(
                 Prepared prepared,
@@ -58,6 +64,12 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
             this.sessionId = result.sessionId;
             this.goalLockClaimed = persistedContract.claimed;
             this.resultRecorded = persistedContract.resultRecorded;
+            this.terminalReason = result.terminalReason;
+            this.plannedSteps = result.plannedSteps;
+            this.executedSteps = result.executedSteps;
+            this.passed = result.passed;
+            this.failed = result.failed;
+            this.durationMs = result.durationMs;
         }
     }
 
