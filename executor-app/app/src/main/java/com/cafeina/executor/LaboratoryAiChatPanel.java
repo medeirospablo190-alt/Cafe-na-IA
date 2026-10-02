@@ -75,6 +75,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation activePlannerCancellation;
+    private volatile LaboratoryAiTestAgent.Control activeTestControl;
     private volatile boolean busy;
     private volatile boolean closed;
 
@@ -739,8 +740,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
         if (closed || busy) return;
 
+        final LaboratoryAiTestAgent.Control control =
+            new LaboratoryAiTestAgent.Control();
+        activeTestControl = control;
+
         setBusy(true);
-        cancelButton.setVisibility(GONE);
+        cancelButton.setText("CANCELAR TESTE");
         setLiveStatus(
             "Testadora executando cenário controlado…");
 
@@ -751,6 +756,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         activity,
                         projectId,
                         prepared,
+                        control,
                         new LaboratoryAiTestAgent.Observer() {
                             @Override
                             public void onAdmitted(
@@ -824,6 +830,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         });
                 runOnUi(() -> {
                     if (closed) return;
+                    activeTestControl = null;
                     setBusy(false);
                     addAssistantMessage(
                         "Teste concluído."
@@ -854,6 +861,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             } catch (Exception error) {
                 runOnUi(() -> {
                     if (closed) return;
+                    activeTestControl = null;
                     setBusy(false);
                     addAssistantMessage(
                         "A Testadora não concluiu o cenário."
@@ -983,6 +991,15 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (planner != null) {
             planner.cancel();
             setLiveStatus("Cancelamento solicitado ao planejador…");
+            cancelButton.setEnabled(false);
+            return;
+        }
+
+        LaboratoryAiTestAgent.Control testControl =
+            activeTestControl;
+        if (testControl != null) {
+            testControl.cancel();
+            setLiveStatus("Cancelamento solicitado à Testadora…");
             cancelButton.setEnabled(false);
             return;
         }
