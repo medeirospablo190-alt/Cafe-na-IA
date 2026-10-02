@@ -88,6 +88,19 @@ public final class LaboratoryAiLlamaCppBackend
                 90_000L);
         }
 
+        public static RuntimeConfig chatDefaults() {
+            int threads = Math.max(
+                1,
+                Math.min(4, Runtime.getRuntime().availableProcessors()));
+            return new RuntimeConfig(
+                256,
+                2048,
+                threads,
+                40,
+                0.9f,
+                90_000L);
+        }
+
         public static RuntimeConfig plannerDefaults() {
             int threads = Math.max(
                 1,
