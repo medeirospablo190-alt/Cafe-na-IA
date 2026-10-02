@@ -1,0 +1,64 @@
+name: CAFEINA One-shot Planner Button Refresh
+
+on:
+  push:
+    branches:
+      - app/lab-ai-action-support-bootstrap-integrated
+    paths:
+      - .github/workflows/one-shot-planner-button-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: app/lab-ai-action-support-bootstrap-integrated
+          fetch-depth: 0
+
+      - name: Apply planner refresh patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('executor-app/app/src/main/java/com/cafeina/executor/MainActivity.java')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  '    private Button localModelTestButton;\n    private TextView localModelStatus;',
+                  '    private Button localModelTestButton;\n    private Button localPlannerButton;\n    private TextView localModelStatus;'
+              ),
+              (
+                  '            Button localPlannerButton = makeButton(\n',
+                  '            localPlannerButton = makeButton(\n'
+              ),
+              (
+                  '            localModelTestButton.setEnabled(\n                idle && !selectedLocalModelFileName().isEmpty());\n        }\n    }\n\n    private static String modelSizeLabel(long bytes) {',
+                  '            localModelTestButton.setEnabled(\n                idle && !selectedLocalModelFileName().isEmpty());\n        }\n        if (localPlannerButton != null) {\n            boolean hasModel = !selectedLocalModelFileName().isEmpty();\n            localPlannerButton.setText(\n                hasModel\n                    ? "TESTAR PLANEJADOR LOCAL"\n                    : "TESTAR PLANEJADOR LOCAL • SELECIONE UM MODELO");\n            localPlannerButton.setEnabled(idle && hasModel);\n        }\n    }\n\n    private static String modelSizeLabel(long bytes) {'
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, found {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "cafeina-ci"
+          git config user.email "cafeina-ci@users.noreply.github.com"
+          git rm .github/workflows/one-shot-planner-button-refresh.yml
+          git add executor-app/app/src/main/java/com/cafeina/executor/MainActivity.java
+          git commit -m "Fix local planner button refresh"
+          git push origin HEAD:app/lab-ai-action-support-bootstrap-integrated
