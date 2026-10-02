@@ -211,6 +211,16 @@ public final class LaboratoryAiLlamaCppBackend
                     "llama backend output exceeds planner limit");
             }
             return output;
+        } catch (IOException failure) {
+            if (generationObserver != null) {
+                try {
+                    generationObserver.onNativePhase(
+                        session.generationPhase());
+                } catch (RuntimeException ignored) {
+                    // Preserve the generation failure as the authoritative one.
+                }
+            }
+            throw failure;
         } finally {
             monitoring.set(false);
             if (phaseMonitor != null) {
