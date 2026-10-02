@@ -54,6 +54,18 @@ public final class LaboratoryAiOperationalQueryTest {
     }
 
     @Test
+    public void recognizesReadinessQuestions() {
+        assertEquals(
+            LaboratoryAiOperationalQuery.Kind.READINESS,
+            LaboratoryAiOperationalQuery.classify(
+                "Está pronto para executar?"));
+        assertEquals(
+            LaboratoryAiOperationalQuery.Kind.READINESS,
+            LaboratoryAiOperationalQuery.classify(
+                "Já pode começar?"));
+    }
+
+    @Test
     public void ordinaryConversationIsNotOperational() {
         assertEquals(
             LaboratoryAiOperationalQuery.Kind.NONE,
