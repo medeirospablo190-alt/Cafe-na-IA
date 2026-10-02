@@ -216,7 +216,15 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                 + (state.registered ? "SIM" : "NÃO")
                 + "\nArtefato vinculado: "
                 + (state.artifactBound ? "SIM" : "NÃO")
-                + "\nEstágio: " + stage,
+                + "\nEstágio: " + stage
+                + (state.stage == LaboratoryToolRegistry.Stage.STABLE
+                    ? "\nSTABLE ativa: "
+                        + (state.activeStable ? "SIM" : "NÃO")
+                        + "\nPermissão da IA: "
+                        + (state.aiGranted
+                            ? "CONCEDIDA"
+                            : "NÃO CONCEDIDA")
+                    : ""),
             13,
             FG,
             false);
@@ -302,21 +310,49 @@ public final class LaboratoryToolWorkshopActivity extends Activity {
                     LaboratoryApprovalActivity.class)));
         } else if (state.stage
                 == LaboratoryToolRegistry.Stage.STABLE) {
+            String stableMessage;
+            if (!state.activeStable) {
+                stableMessage =
+                    "Esta versão já foi STABLE no histórico, mas não é a "
+                        + "versão STABLE ativa agora. Ela não será oferecida "
+                        + "à IA como ferramenta ativa.";
+            } else if (!state.aiGranted) {
+                stableMessage =
+                    "A ferramenta é a STABLE ativa, mas a IA ainda NÃO pode "
+                        + "usá-la. A permissão continua sendo uma decisão "
+                        + "separada da promoção.";
+            } else {
+                stableMessage =
+                    "Ciclo completo: esta é a STABLE ativa e a permissão da "
+                        + "IA está concedida. A ferramenta pode aparecer nos "
+                        + "Goal Locks que você autorizar por tarefa.";
+            }
+
             TextView note = text(
-                "A ferramenta já é STABLE. Isso ainda não significa que a IA "
-                    + "possa usá-la: a autorização da IA é separada.",
+                stableMessage,
                 13,
-                MUTED,
-                false);
+                state.aiGranted ? FG : MUTED,
+                state.aiGranted);
             note.setPadding(0, dp(8), 0, 0);
             card.addView(note, matchWrap());
 
-            addCardButton(
-                card,
-                "ABRIR PERMISSÕES DA IA",
-                () -> startActivity(new Intent(
-                    this,
-                    LaboratoryAiPermissionsActivity.class)));
+            if (state.activeStable) {
+                addCardButton(
+                    card,
+                    state.aiGranted
+                        ? "REVISAR PERMISSÃO DA IA"
+                        : "CONCEDER PERMISSÃO À IA",
+                    () -> startActivity(new Intent(
+                        this,
+                        LaboratoryAiPermissionsActivity.class)));
+            } else {
+                addCardButton(
+                    card,
+                    "ABRIR APROVAÇÕES / ROLLBACK",
+                    () -> startActivity(new Intent(
+                        this,
+                        LaboratoryApprovalActivity.class)));
+            }
         }
 
         addCardButton(
