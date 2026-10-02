@@ -315,8 +315,13 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerationPhase(
     jlong handle
 )
 {
-    ModelSession* session = requireSession(handle);
-    return session ? static_cast<jint>(session->phase.load()) : PHASE_NONE;
+    if (handle == 0)
+        return PHASE_NONE;
+    auto* session = reinterpret_cast<ModelSession*>(handle);
+    std::lock_guard<std::mutex> guard(sessionsMutex);
+    if (sessions.count(session) != 1)
+        return PHASE_NONE;
+    return static_cast<jint>(session->phase.load());
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
@@ -326,8 +331,13 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerationTimedOut(
     jlong handle
 )
 {
-    ModelSession* session = requireSession(handle);
-    return session && session->timedOut.load() ? JNI_TRUE : JNI_FALSE;
+    if (handle == 0)
+        return JNI_FALSE;
+    auto* session = reinterpret_cast<ModelSession*>(handle);
+    std::lock_guard<std::mutex> guard(sessionsMutex);
+    if (sessions.count(session) != 1)
+        return JNI_FALSE;
+    return session->timedOut.load() ? JNI_TRUE : JNI_FALSE;
 }
 
 extern "C" JNIEXPORT void JNICALL
