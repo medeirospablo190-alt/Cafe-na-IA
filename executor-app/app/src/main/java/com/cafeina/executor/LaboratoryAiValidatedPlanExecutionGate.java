@@ -129,6 +129,64 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
         return new Prepared(after, stored);
     }
 
+    public static Prepared restorePrepared(
+            Context context,
+            String projectId,
+            String contractId,
+            String scenarioId) throws IOException {
+        if (context == null
+                || contractId == null
+                || contractId.isEmpty()
+                || scenarioId == null
+                || scenarioId.isEmpty()) {
+            throw new IllegalArgumentException(
+                "prepared execution restore input missing");
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException(
+                "prepared execution restore must run off the UI thread");
+        }
+
+        Context app = context.getApplicationContext();
+        String safeProjectId = projectId == null ? "" : projectId;
+
+        LaboratoryAiTaskContractStore contracts =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), safeProjectId);
+        LaboratoryAiTaskContractStore.Contract contract =
+            contracts.read(contractId);
+        requireUnused(contract);
+
+        LaboratoryAiTestScenarioStore scenarios =
+            new LaboratoryAiTestScenarioStore(
+                app.getFilesDir(), safeProjectId);
+        LaboratoryAiTestScenarioStore.Scenario scenario =
+            scenarios.read(scenarioId);
+
+        LaboratoryAiTestPlanContract.requireValid(
+            contract, scenario.plan);
+
+        LaboratoryAiTaskContractStore.Contract after =
+            contracts.read(contractId);
+        requireUnused(after);
+        if (!contract.contractSha256.equals(after.contractSha256)
+                || !contract.goalSha256.equals(after.goalSha256)) {
+            throw new IOException(
+                "Goal Lock changed while restoring prepared scenario");
+        }
+
+        LaboratoryAiTestScenarioStore.Scenario stored =
+            scenarios.read(scenarioId);
+        if (!scenario.scenarioSha256.equals(stored.scenarioSha256)
+                || scenario.stepCount != stored.stepCount
+                || scenario.stopOnFailure != stored.stopOnFailure) {
+            throw new IOException(
+                "prepared scenario changed while restoring");
+        }
+
+        return new Prepared(after, stored);
+    }
+
     public static Execution executePrepared(
             Context context,
             String projectId,
