@@ -13,6 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -92,8 +93,10 @@ public final class LaboratoryAiPlannerCheckpointStoreInstrumentedTest {
             .resolve("laboratory")
             .resolve("project-" + project)
             .resolve("ai-planner-checkpoints");
-        String raw = Files.readString(
-            checkpointRoot.resolve(contractId + ".json"));
+        String raw = new String(
+            Files.readAllBytes(
+                checkpointRoot.resolve(contractId + ".json")),
+            StandardCharsets.UTF_8);
         assertFalse(raw.contains("PRIVATE_GOAL"));
         assertFalse(raw.contains("PRIVATE_PROMPT"));
         assertFalse(raw.contains("PRIVATE_MODEL_OUTPUT"));
