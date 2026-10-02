@@ -231,6 +231,12 @@ public final class LaboratoryAiTestAgent {
             LaboratoryAiSessionController.Snapshot snapshot =
                 currentHost.snapshot();
             if (snapshot.state
+                    == LaboratoryAiSessionController.State.CANCELLED
+                    || snapshot.state
+                        == LaboratoryAiSessionController.State.FINISHED) {
+                return false;
+            }
+            if (snapshot.state
                     == LaboratoryAiSessionController.State.ACTIVE) {
                 currentHost.pause();
             }
