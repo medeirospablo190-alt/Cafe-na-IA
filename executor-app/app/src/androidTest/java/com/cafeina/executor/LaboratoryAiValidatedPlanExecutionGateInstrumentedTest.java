@@ -55,6 +55,17 @@ public final class LaboratoryAiValidatedPlanExecutionGateInstrumentedTest {
         assertEquals(prepared.scenarioSha256, scenario.scenarioSha256);
         assertEquals(toolId, scenario.plan.steps.get(0).toolId);
 
+        LaboratoryAiValidatedPlanExecutionGate.Prepared restored =
+            LaboratoryAiValidatedPlanExecutionGate.restorePrepared(
+                app,
+                project,
+                contract.contractId,
+                prepared.scenarioId);
+        assertEquals(prepared.contractId, restored.contractId);
+        assertEquals(prepared.scenarioId, restored.scenarioId);
+        assertEquals(prepared.scenarioSha256, restored.scenarioSha256);
+        assertEquals(prepared.stepCount, restored.stepCount);
+
         LaboratoryAiTaskContractStore.Contract after =
             new LaboratoryAiTaskContractStore(
                 app.getFilesDir(), project)
