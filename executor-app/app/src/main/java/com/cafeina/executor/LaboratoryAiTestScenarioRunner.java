@@ -15,6 +15,12 @@ public final class LaboratoryAiTestScenarioRunner {
         public final String reportId;
         public final String status;
         public final String sessionId;
+        public final String terminalReason;
+        public final int plannedSteps;
+        public final int executedSteps;
+        public final int passed;
+        public final int failed;
+        public final long durationMs;
 
         private Result(LaboratoryAiTestScenarioStore.Scenario scenario,
                 LaboratoryAiTestAgent.Report report) {
@@ -23,6 +29,12 @@ public final class LaboratoryAiTestScenarioRunner {
             this.reportId = report.reportId;
             this.status = report.status;
             this.sessionId = report.sessionId;
+            this.terminalReason = report.terminalReason;
+            this.plannedSteps = report.plannedSteps;
+            this.executedSteps = report.executedSteps;
+            this.passed = report.passed;
+            this.failed = report.failed;
+            this.durationMs = report.durationMs;
         }
     }
 
