@@ -423,3 +423,15 @@ host/usuário.
 - O mesmo contrato de `Snapshot` usado na UI ao vivo é o que alimenta o histórico. Isso deixa a fonte pronta para um futuro chat da aba IA consumir status ao vivo e execuções passadas sem criar um segundo sistema de progresso.
 
 **Limite atual:** o histórico é persistido quando a execução chega a um estado terminal. Uma morte abrupta do processo antes desse ponto ainda pode perder a sequência em memória daquela execução; persistência incremental/crash-safe poderá ser adicionada depois se os testes no aparelho mostrarem necessidade.
+
+
+## Classificação determinística das falhas do planejador
+
+- `LaboratoryAiPlannerExecutionDiagnostic` transforma o estado terminal e a fase real do runtime em um código de diagnóstico sem usar outro modelo de linguagem e sem alterar a execução.
+- As classes iniciais distinguem admissão, preflight, abertura do modelo, preparação de contexto, processamento de prompt, geração de tokens, validação do plano, cancelamento e falha genérica.
+- Timeouts são classificados pelo ponto real em que ocorreram. Por exemplo, `MODEL_PROMPT + timed out` vira `PROMPT_TIMEOUT`; `MODEL_TOKENS + timed out` vira `TOKEN_TIMEOUT`.
+- Cada diagnóstico fornece uma explicação curta e um código de próxima verificação. Esses códigos são orientação para investigação; não aumentam timeout, não diminuem contexto e não mudam configuração automaticamente.
+- O diálogo de falha e o histórico do planejador mostram a classificação derivada da mesma fonte de status usada pelo runtime.
+- Testes Android verificam pelo menos `PROMPT_TIMEOUT`, `TOKEN_TIMEOUT` e cancelamento do usuário.
+
+Isso fecha a primeira parte do diagnóstico interno: em vez de apenas saber que o planejador falhou, o app consegue registrar em qual etapa falhou e qual medição deve ser feita em seguida.
