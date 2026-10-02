@@ -1787,7 +1787,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 addAssistantMessage(
                     "A ação atual ainda está em execução. Enquanto ela roda, "
                         + "você pode me perguntar “status”, “quanto falta?”, "
-                        + "“onde travou?” ou “linha do tempo”. "
+                        + "“onde travou?”, “está pronto?” ou “linha do tempo”. "
                         + "Para iniciar outro pedido, "
                         + "conclua ou cancele a ação atual primeiro.");
                 return;
@@ -1846,6 +1846,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         if (kind == LaboratoryAiOperationalQuery.Kind.ETA) {
             addAssistantMessage(operationalEtaAnswer());
+            return;
+        }
+
+        if (kind == LaboratoryAiOperationalQuery.Kind.READINESS) {
+            handleReadinessQuery();
             return;
         }
 
@@ -1934,6 +1939,168 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             "Não consegui ler o diagnóstico persistido desta "
                                 + "ação. A execução atual não foi alterada.\n"
                                 + reason);
+                    }
+                });
+            }
+        });
+    }
+
+    private void handleReadinessQuery() {
+        final LaboratoryAiChatSessionStore.WorkflowState state;
+        final String contractId;
+        final String scenarioId;
+        synchronized (persistedEntries) {
+            state = workflowState;
+            contractId = workflowContractId;
+            scenarioId = workflowScenarioId;
+        }
+
+        if (state == null
+                || state
+                    == LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
+            addAssistantMessage(
+                "Ainda não existe uma ação atual para verificar.");
+            return;
+        }
+
+        switch (state) {
+            case ACTION_REVIEW:
+                addAssistantMessage(
+                    "Ainda não. O objetivo já foi entendido como ação, mas "
+                        + "as permissões da tarefa ainda precisam ser "
+                        + "confirmadas antes do Goal Lock.");
+                return;
+            case PLANNING:
+                addAssistantMessage(
+                    "O pré-diagnóstico já permitiu o planejamento e ele está "
+                        + "em execução agora.\n"
+                        + operationalStatusAnswer());
+                return;
+            case PLAN_READY:
+                addAssistantMessage(
+                    "O plano já foi validado. Ainda falta preparar o cenário "
+                        + "imutável da Testadora; nenhuma ferramenta foi "
+                        + "executada e o Goal Lock continua não consumido.");
+                return;
+            case TEST_RUNNING:
+                addAssistantMessage(
+                    "A execução já começou e passou pelas barreiras de "
+                        + "admissão.\n" + operationalStatusAnswer());
+                return;
+            case TEST_PAUSED:
+                addAssistantMessage(
+                    "A Testadora já foi admitida, mas está pausada em ponto "
+                        + "seguro. Ela pode continuar ou ser cancelada.");
+                return;
+            case COMPLETED:
+                addAssistantMessage(
+                    "Esta ação já foi concluída. Abra o relatório ou a linha "
+                        + "do tempo para revisar o resultado.");
+                return;
+            case FAILED:
+            case INTERRUPTED:
+            case CANCELLED:
+                addAssistantMessage(
+                    "Não considero esta ação pronta para continuar "
+                        + "automaticamente. Abra o diagnóstico antes de uma "
+                        + "nova tentativa.");
+                return;
+            case GOAL_LOCK_CREATED:
+                runPlanningReadinessCheck(contractId);
+                return;
+            case TEST_PREPARED:
+                runExecutionReadinessCheck(contractId, scenarioId);
+                return;
+            default:
+                addAssistantMessage(
+                    "Não há uma transição executável pronta neste estado.\n"
+                        + operationalStatusAnswer());
+        }
+    }
+
+    private void runPlanningReadinessCheck(String contractId) {
+        if (contractId == null || contractId.isEmpty()) {
+            addAssistantMessage(
+                "Não encontrei o Goal Lock da ação atual.");
+            return;
+        }
+        final String selected = selectedModelFileName();
+        diagnosticWorker.execute(() -> {
+            try {
+                LaboratoryAiActionPreflight.Report report =
+                    LaboratoryAiActionPreflight.inspect(
+                        activity,
+                        projectId,
+                        contractId,
+                        selected);
+                latestActionPreflight = report;
+                String answer =
+                    renderActionPreflight(report, true)
+                        + "\n\n"
+                        + (report.canPlan
+                            ? "Resultado: pronto para iniciar o planejador "
+                                + "quando você pedir."
+                            : "Resultado: ainda não está pronto para "
+                                + "planejar. Os itens BLOCKED precisam ser "
+                                + "resolvidos primeiro.");
+                runOnUi(() -> {
+                    if (!closed) {
+                        addAssistantMessage(answer);
+                        refreshCurrentActionStatus();
+                    }
+                });
+            } catch (Exception error) {
+                String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (!closed) {
+                        addAssistantMessage(
+                            "Não consegui verificar se o planejamento está "
+                                + "pronto. Nada foi executado.\n" + reason);
+                    }
+                });
+            }
+        });
+    }
+
+    private void runExecutionReadinessCheck(
+            String contractId,
+            String scenarioId) {
+        if (contractId == null || contractId.isEmpty()
+                || scenarioId == null || scenarioId.isEmpty()) {
+            addAssistantMessage(
+                "Ainda não existe cenário preparado suficiente para verificar "
+                    + "a execução.");
+            return;
+        }
+
+        diagnosticWorker.execute(() -> {
+            try {
+                LaboratoryAiExecutionPreflight.Result result =
+                    LaboratoryAiExecutionPreflight.inspect(
+                        activity,
+                        projectId,
+                        contractId,
+                        scenarioId);
+                String answer =
+                    renderExecutionPreflight(result)
+                        + "\n\n"
+                        + (result.ready
+                            ? "Resultado: pronto para seguir para a "
+                                + "confirmação final. O Goal Lock ainda não "
+                                + "foi consumido."
+                            : "Resultado: execução bloqueada. O Goal Lock "
+                                + "continua não consumido.");
+                runOnUi(() -> {
+                    if (!closed) addAssistantMessage(answer);
+                });
+            } catch (Exception error) {
+                String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (!closed) {
+                        addAssistantMessage(
+                            "Não consegui verificar a prontidão da Testadora. "
+                                + "Nada foi executado e o Goal Lock não foi "
+                                + "consumido.\n" + reason);
                     }
                 });
             }
@@ -3736,7 +3903,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         input.setEnabled(!value || operationalChat);
         input.setHint(
             operationalChat
-                ? "Pergunte: status, quanto falta, diagnóstico, linha do tempo"
+                ? "Pergunte: status, quanto falta, está pronto, diagnóstico, linha do tempo"
                 : "Mensagem para a CAFEÍNA");
         cancelButton.setVisibility(value ? VISIBLE : GONE);
         cancelButton.setEnabled(value);
