@@ -3,7 +3,11 @@ plugins {
 }
 
 val cafeinaArm64Only = providers.gradleProperty("cafeinaArm64Only").orNull == "true"
-val cafeinaLocalLlm = providers.gradleProperty("cafeinaLocalLlm").orNull == "true"
+val cafeinaLocalLlmProperty = providers.gradleProperty("cafeinaLocalLlm").orNull
+// Device-targeted ARM64 builds are the installable CAFEÍNA test/product APKs.
+// They must carry the local llama runtime by default so the AI cannot reach
+// RUNTIME_NOT_PACKAGED merely because a build flag was forgotten.
+val cafeinaLocalLlm = cafeinaLocalLlmProperty?.toBooleanStrictOrNull() ?: cafeinaArm64Only
 val cafeinaAbis = if (cafeinaArm64Only) listOf("arm64-v8a")
     else listOf("arm64-v8a", "x86_64")
 
@@ -81,6 +85,7 @@ dependencies {
     implementation("org.godotengine:godot:4.7.0.stable")
     // GodotActivity extends FragmentActivity; the Godot AAR marks this as runtime-only.
     implementation("androidx.fragment:fragment:1.8.6")
+    implementation("androidx.drawerlayout:drawerlayout:1.2.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")

@@ -132,20 +132,6 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         setOrientation(VERTICAL);
         setBackgroundColor(BG);
 
-        TextView heading = text("CONVERSA COM A CAFEÍNA", 15, FG, true);
-        heading.setPadding(0, 0, 0, dp(6));
-        addView(heading, matchWrap());
-
-        TextView note = text(
-            "Mensagens comuns e perguntas de análise/viabilidade vão ao modelo "
-                + "local sem ferramentas. Pedidos de ação entram no Goal Lock e "
-                + "nas permissões antes de qualquer execução.",
-            12,
-            MUTED,
-            false);
-        note.setPadding(0, 0, 0, dp(8));
-        addView(note, matchWrap());
-
         currentActionStatus = text("", 13, FG, true);
         currentActionStatus.setPadding(
             dp(12), dp(9), dp(12), dp(9));
@@ -184,42 +170,18 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         primaryActionParams.setMargins(0, 0, 0, dp(8));
         addView(currentActionPrimaryButton, primaryActionParams);
 
-        Button clearChat = button("LIMPAR CONVERSA LOCAL", PANEL);
-        clearChat.setAllCaps(false);
-        clearChat.setOnClickListener(v -> confirmClearConversation());
-        LayoutParams clearParams = matchWrap();
-        clearParams.setMargins(0, 0, 0, dp(8));
-        addView(clearChat, clearParams);
-
-        currentDiagnosticButton =
-            button("DIAGNÓSTICO DA AÇÃO ATUAL", PANEL);
-        currentDiagnosticButton.setAllCaps(false);
+        // Technical controls stay in the side drawer instead of above the chat.
+        currentDiagnosticButton = button("DIAGNÓSTICO DA AÇÃO ATUAL", PANEL);
         currentDiagnosticButton.setEnabled(false);
-        currentDiagnosticButton.setOnClickListener(
-            v -> showCurrentActionDiagnostic());
-        LayoutParams diagnosticParams = matchWrap();
-        diagnosticParams.setMargins(0, 0, 0, dp(8));
-        addView(currentDiagnosticButton, diagnosticParams);
+        currentDiagnosticButton.setOnClickListener(v -> showCurrentActionDiagnostic());
 
-        currentTimelineButton =
-            button("LINHA DO TEMPO DA AÇÃO", PANEL);
-        currentTimelineButton.setAllCaps(false);
+        currentTimelineButton = button("LINHA DO TEMPO DA AÇÃO", PANEL);
         currentTimelineButton.setEnabled(false);
-        currentTimelineButton.setOnClickListener(
-            v -> showCurrentActionTimeline());
-        LayoutParams timelineParams = matchWrap();
-        timelineParams.setMargins(0, 0, 0, dp(8));
-        addView(currentTimelineButton, timelineParams);
+        currentTimelineButton.setOnClickListener(v -> showCurrentActionTimeline());
 
-        currentSupportReportButton =
-            button("COPIAR RELATÓRIO TÉCNICO", PANEL);
-        currentSupportReportButton.setAllCaps(false);
+        currentSupportReportButton = button("COPIAR RELATÓRIO TÉCNICO", PANEL);
         currentSupportReportButton.setEnabled(false);
-        currentSupportReportButton.setOnClickListener(
-            v -> copyCurrentActionSupportReport());
-        LayoutParams supportParams = matchWrap();
-        supportParams.setMargins(0, 0, 0, dp(8));
-        addView(currentSupportReportButton, supportParams);
+        currentSupportReportButton.setOnClickListener(v -> copyCurrentActionSupportReport());
 
         messageScroll = new ScrollView(activity);
         messageScroll.setFillViewport(true);
@@ -249,7 +211,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         input.setSingleLine(false);
         input.setMaxLines(4);
         input.setImeOptions(EditorInfo.IME_ACTION_SEND);
-        input.setBackgroundTintList(ColorStateList.valueOf(MUTED));
+        GradientDrawable inputBackground = new GradientDrawable();
+        inputBackground.setColor(PANEL);
+        inputBackground.setCornerRadius(dp(22));
+        input.setBackground(inputBackground);
+        input.setPadding(dp(14), dp(10), dp(14), dp(10));
         input.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEND) {
                 sendCurrent();
@@ -261,10 +227,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             input,
             new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        sendButton = button("ENVIAR", ACCENT);
+        sendButton = button("↑", ACCENT);
+        sendButton.setTextSize(20);
+        sendButton.setContentDescription("Enviar mensagem");
         sendButton.setOnClickListener(v -> sendCurrent());
         LayoutParams sendParams =
-            new LayoutParams(dp(92), ViewGroup.LayoutParams.WRAP_CONTENT);
+            new LayoutParams(dp(52), dp(48));
         sendParams.setMargins(dp(8), 0, 0, 0);
         inputRow.addView(sendButton, sendParams);
         addView(inputRow, matchWrap());
@@ -280,6 +248,40 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         sendButton.setEnabled(false);
         setLiveStatus("Restaurando conversa local…");
         restoreSessionAsync();
+    }
+
+    public void requestClearConversation() {
+        confirmClearConversation();
+    }
+
+    public void requestCurrentActionDiagnostic() {
+        if (!hasCurrentActionForMenu()) {
+            android.widget.Toast.makeText(activity, "Ainda não existe uma ação atual", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        showCurrentActionDiagnostic();
+    }
+
+    public void requestCurrentActionTimeline() {
+        if (!hasCurrentActionForMenu()) {
+            android.widget.Toast.makeText(activity, "Ainda não existe uma ação atual", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        showCurrentActionTimeline();
+    }
+
+    public void requestCurrentActionSupportReport() {
+        if (!hasCurrentActionForMenu()) {
+            android.widget.Toast.makeText(activity, "Ainda não existe uma ação atual", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        copyCurrentActionSupportReport();
+    }
+
+    private boolean hasCurrentActionForMenu() {
+        synchronized (persistedEntries) {
+            return workflowContractId != null && !workflowContractId.isEmpty();
+        }
     }
 
     public void close() {
@@ -2097,8 +2099,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         final String selected = selectedModelFileName();
         if (selected.isEmpty()) {
             addAssistantMessage(
-                "Ainda não há modelo local ativo. Selecione um GGUF nos "
-                    + "controles logo abaixo do chat e envie a mensagem novamente.");
+                "Ainda não há modelo local ativo. Abra o menu lateral da IA, "
+                    + "selecione um GGUF e envie a mensagem novamente.");
             return;
         }
 
@@ -2527,7 +2529,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (selected.isEmpty()) {
             addAssistantMessage(
                 "Não há modelo local ativo para gerar o plano. "
-                    + "Selecione um GGUF nos controles da aba IA.");
+                    + "Abra o menu lateral da IA e selecione um GGUF.");
             return;
         }
 
@@ -3603,8 +3605,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         result.setText(label);
         result.setTextColor(FG);
         result.setTextSize(12);
-        result.setBackgroundTintList(
-            ColorStateList.valueOf(color));
+        result.setAllCaps(false);
+        result.setMinHeight(dp(44));
+        result.setPadding(dp(14), dp(8), dp(14), dp(8));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(color);
+        background.setCornerRadius(dp(18));
+        result.setBackground(background);
         return result;
     }
 
