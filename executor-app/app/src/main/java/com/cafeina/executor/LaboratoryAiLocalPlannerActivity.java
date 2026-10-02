@@ -664,6 +664,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                     .append("/")
                     .append(summary.maxAttempts);
             }
+            appendHistoryMetrics(out, summary);
             if (!summary.terminalReason.isEmpty()) {
                 out.append("\nMotivo: ")
                     .append(summary.terminalReason);
@@ -696,6 +697,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                 .append(snapshot.maxAttempts);
         }
         out.append(" • ").append(formatElapsed(snapshot.elapsedMs));
+        appendLiveMetrics(out, snapshot);
         if (snapshot.state == LaboratoryAiExecutionStatus.State.FAILED) {
             out.append(" • FALHOU");
         } else if (snapshot.state
@@ -729,6 +731,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                 .append("/")
                 .append(snapshot.maxAttempts);
         }
+        appendDiagnosticMetrics(out, snapshot);
         if (!snapshot.detail.isEmpty()) {
             out.append("\nÚltimo status: ").append(snapshot.detail);
         }
@@ -736,6 +739,143 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             out.append("\nMotivo: ").append(snapshot.terminalReason);
         }
         return out.toString();
+    }
+
+    private static void appendLiveMetrics(
+            StringBuilder out,
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot.phase == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                && snapshot.promptTokens > 0) {
+            out.append(" • prompt ")
+                .append(snapshot.promptTokensProcessed)
+                .append("/")
+                .append(snapshot.promptTokens);
+            if (snapshot.promptTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(snapshot.promptTokensPerSecond()))
+                    .append(" tok/s");
+            }
+            if (snapshot.estimatedRemainingMs > 0L) {
+                out.append(" • ~")
+                    .append(formatElapsed(snapshot.estimatedRemainingMs))
+                    .append(" restante");
+            }
+        } else if (snapshot.phase
+                == LaboratoryAiExecutionStatus.Phase.MODEL_TOKENS
+                && snapshot.maxGeneratedTokens > 0) {
+            out.append(" • saída ")
+                .append(snapshot.generatedTokens)
+                .append("/")
+                .append(snapshot.maxGeneratedTokens);
+            if (snapshot.generatedTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(snapshot.generatedTokensPerSecond()))
+                    .append(" tok/s");
+            }
+            if (snapshot.estimatedRemainingMs > 0L) {
+                out.append(" • até ~")
+                    .append(formatElapsed(snapshot.estimatedRemainingMs));
+            }
+        }
+    }
+
+    private static void appendDiagnosticMetrics(
+            StringBuilder out,
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot.generationTimeLimitMs > 0L) {
+            out.append("\nLimite do modelo: ")
+                .append(snapshot.generationTimeLimitMs)
+                .append(" ms");
+        }
+        if (snapshot.contextSetupMs > 0L) {
+            out.append("\nContexto: ")
+                .append(snapshot.contextSetupMs)
+                .append(" ms");
+        }
+        if (snapshot.promptTokens > 0) {
+            out.append("\nPrompt: ")
+                .append(snapshot.promptTokensProcessed)
+                .append("/")
+                .append(snapshot.promptTokens)
+                .append(" tokens • ")
+                .append(snapshot.promptEvalMs)
+                .append(" ms");
+            if (snapshot.promptTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(snapshot.promptTokensPerSecond()))
+                    .append(" tok/s");
+            }
+        }
+        if (snapshot.maxGeneratedTokens > 0) {
+            out.append("\nGeração: ")
+                .append(snapshot.generatedTokens)
+                .append("/")
+                .append(snapshot.maxGeneratedTokens)
+                .append(" tokens • ")
+                .append(snapshot.tokenGenerationMs)
+                .append(" ms");
+            if (snapshot.generatedTokensPerSecond() > 0.0) {
+                out.append(" • ")
+                    .append(formatRate(snapshot.generatedTokensPerSecond()))
+                    .append(" tok/s");
+            }
+        }
+    }
+
+    private static void appendHistoryMetrics(
+            StringBuilder out,
+            LaboratoryAiExecutionHistoryStore.Summary summary) {
+        if (summary.contextSetupMs > 0L) {
+            out.append("\nContexto: ")
+                .append(summary.contextSetupMs)
+                .append(" ms");
+        }
+        if (summary.promptTokens > 0) {
+            out.append("\nPrompt: ")
+                .append(summary.promptTokensProcessed)
+                .append("/")
+                .append(summary.promptTokens)
+                .append(" tokens • ")
+                .append(summary.promptEvalMs)
+                .append(" ms");
+            if (summary.promptTokensProcessed > 0
+                    && summary.promptEvalMs > 0L) {
+                out.append(" • ")
+                    .append(formatRate(
+                        summary.promptTokensProcessed
+                            * 1000.0 / summary.promptEvalMs))
+                    .append(" tok/s");
+            }
+        }
+        if (summary.maxGeneratedTokens > 0) {
+            out.append("\nGeração: ")
+                .append(summary.generatedTokens)
+                .append("/")
+                .append(summary.maxGeneratedTokens)
+                .append(" tokens • ")
+                .append(summary.tokenGenerationMs)
+                .append(" ms");
+            if (summary.generatedTokens > 0
+                    && summary.tokenGenerationMs > 0L) {
+                out.append(" • ")
+                    .append(formatRate(
+                        summary.generatedTokens
+                            * 1000.0 / summary.tokenGenerationMs))
+                    .append(" tok/s");
+            }
+        }
+    }
+
+    private static String formatRate(double value) {
+        if (Double.isNaN(value)
+                || Double.isInfinite(value)
+                || value <= 0.0) {
+            return "0";
+        }
+        return String.format(
+            java.util.Locale.ROOT,
+            "%.1f",
+            value);
     }
 
     private static String phaseLabel(
