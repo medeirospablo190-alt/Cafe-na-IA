@@ -645,6 +645,10 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             workflowReportId = reportId == null ? "" : reportId;
             workflowDetail = boundedStatus(detail);
         }
+        if (state
+                != LaboratoryAiChatSessionStore.WorkflowState.PLAN_READY) {
+            latestValidatedPlan = null;
+        }
         refreshActionDiagnosticButton();
         schedulePersist();
     }
@@ -675,6 +679,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     == LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
             currentActionStatus.setText("");
             currentActionStatus.setVisibility(GONE);
+            refreshCurrentActionPrimaryButton(
+                LaboratoryAiChatSessionStore.WorkflowState.IDLE);
             return;
         }
 
@@ -743,23 +749,38 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     v -> cancelActiveResponse());
                 break;
             case PLAN_READY:
-                currentActionPrimaryButton.setText(
-                    "PREPARAR TESTADORA • NÃO EXECUTAR");
-                currentActionPrimaryButton.setEnabled(
-                    !busy && latestValidatedPlan != null);
-                currentActionPrimaryButton.setOnClickListener(v -> {
-                    String contractId;
-                    LaboratoryAiTestAgent.Plan plan =
-                        latestValidatedPlan;
-                    synchronized (persistedEntries) {
-                        contractId = workflowContractId;
-                    }
-                    if (contractId != null
-                            && !contractId.isEmpty()
-                            && plan != null) {
-                        prepareTestAgentInline(contractId, plan);
-                    }
-                });
+                if (latestValidatedPlan != null) {
+                    currentActionPrimaryButton.setText(
+                        "PREPARAR TESTADORA • NÃO EXECUTAR");
+                    currentActionPrimaryButton.setEnabled(!busy);
+                    currentActionPrimaryButton.setOnClickListener(v -> {
+                        String contractId;
+                        LaboratoryAiTestAgent.Plan plan =
+                            latestValidatedPlan;
+                        synchronized (persistedEntries) {
+                            contractId = workflowContractId;
+                        }
+                        if (contractId != null
+                                && !contractId.isEmpty()
+                                && plan != null) {
+                            prepareTestAgentInline(contractId, plan);
+                        }
+                    });
+                } else {
+                    currentActionPrimaryButton.setText(
+                        "REGERAR PLANO PARA CONTINUAR");
+                    currentActionPrimaryButton.setEnabled(!busy);
+                    currentActionPrimaryButton.setOnClickListener(v -> {
+                        String contractId;
+                        synchronized (persistedEntries) {
+                            contractId = workflowContractId;
+                        }
+                        if (contractId != null
+                                && !contractId.isEmpty()) {
+                            runPlannerInline(contractId);
+                        }
+                    });
+                }
                 break;
             case TEST_PREPARED:
                 currentActionPrimaryButton.setText(
