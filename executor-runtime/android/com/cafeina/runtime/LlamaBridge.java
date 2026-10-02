@@ -157,6 +157,43 @@ public final class LlamaBridge {
         }
     }
 
+    public static final class GenerationMetrics {
+        public final int phase;
+        public final boolean timedOut;
+        public final int promptTokens;
+        public final int promptTokensProcessed;
+        public final int generatedTokens;
+        public final int maxGeneratedTokens;
+        public final long contextSetupMs;
+        public final long promptEvalMs;
+        public final long tokenGenerationMs;
+        public final long generationTimeLimitMs;
+
+        private GenerationMetrics(long[] raw) {
+            if (raw == null || raw.length != 10) {
+                throw new IllegalArgumentException(
+                    "invalid local generation metrics");
+            }
+            phase = (int) raw[0];
+            timedOut = raw[1] != 0L;
+            promptTokens = safeInt(raw[2]);
+            promptTokensProcessed = safeInt(raw[3]);
+            generatedTokens = safeInt(raw[4]);
+            maxGeneratedTokens = safeInt(raw[5]);
+            contextSetupMs = Math.max(0L, raw[6]);
+            promptEvalMs = Math.max(0L, raw[7]);
+            tokenGenerationMs = Math.max(0L, raw[8]);
+            generationTimeLimitMs = Math.max(0L, raw[9]);
+        }
+
+        private static int safeInt(long value) {
+            if (value <= 0L) return 0;
+            return value >= Integer.MAX_VALUE
+                ? Integer.MAX_VALUE
+                : (int) value;
+        }
+    }
+
     public static final class Session implements AutoCloseable {
         private volatile long handle;
 
@@ -238,6 +275,15 @@ public final class LlamaBridge {
             return current != 0L && nativeGenerationTimedOut(current);
         }
 
+        public GenerationMetrics generationMetrics() {
+            long current = handle;
+            if (current == 0L) {
+                return new GenerationMetrics(new long[10]);
+            }
+            return new GenerationMetrics(
+                nativeGenerationMetrics(current));
+        }
+
         public void cancelGeneration() {
             long current = handle;
             if (current != 0L) {
@@ -291,6 +337,7 @@ public final class LlamaBridge {
         long maxGenerationMs) throws IOException;
     private static native int nativeGenerationPhase(long handle);
     private static native boolean nativeGenerationTimedOut(long handle);
+    private static native long[] nativeGenerationMetrics(long handle);
     private static native void nativeCancelGeneration(long handle);
     private static native void nativeClose(long handle);
 }
