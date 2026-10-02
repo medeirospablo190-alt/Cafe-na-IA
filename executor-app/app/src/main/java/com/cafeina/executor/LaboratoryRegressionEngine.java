@@ -182,9 +182,14 @@ public final class LaboratoryRegressionEngine {
         if (baseline.seed != candidate.seed) {
             reasons.add("seed differs");
         }
-        if (policy.requireSameEnvironment
-                && !baseline.environmentSha256.equals(candidate.environmentSha256)) {
-            reasons.add("test environment differs");
+        if (policy.requireSameEnvironment) {
+            if (baseline.environmentSha256.isEmpty()
+                    || candidate.environmentSha256.isEmpty()) {
+                reasons.add("test environment missing");
+            } else if (!baseline.environmentSha256.equals(
+                    candidate.environmentSha256)) {
+                reasons.add("test environment differs");
+            }
         }
 
         Map<String, CheckEvidence> baselineChecks = indexed(baseline.checks, reasons, "baseline");
