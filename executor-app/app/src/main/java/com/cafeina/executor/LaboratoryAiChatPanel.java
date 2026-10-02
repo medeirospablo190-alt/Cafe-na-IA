@@ -447,10 +447,51 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             state = LaboratoryAiChatSessionStore.WorkflowState.INTERRUPTED;
         }
 
+        if (state != LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
+            StringBuilder restoredStatus =
+                new StringBuilder("Tarefa restaurada • ")
+                    .append(workflowStateLabel(state));
+            if (!workflowDetail.isEmpty()) {
+                restoredStatus.append(" • ")
+                    .append(workflowDetail);
+            }
+            setLiveStatus(restoredStatus.toString());
+        }
+
         renderRestoredWorkflowActions(
             state,
             contract,
             prepared);
+    }
+
+    private static String workflowStateLabel(
+            LaboratoryAiChatSessionStore.WorkflowState state) {
+        if (state == null) return "estado desconhecido";
+        switch (state) {
+            case ACTION_REVIEW:
+                return "aguardando permissões";
+            case GOAL_LOCK_CREATED:
+                return "Goal Lock criado";
+            case PLANNING:
+                return "planejando";
+            case PLAN_READY:
+                return "plano validado";
+            case TEST_PREPARED:
+                return "Testadora preparada";
+            case TEST_RUNNING:
+                return "Testadora em execução";
+            case COMPLETED:
+                return "concluída";
+            case FAILED:
+                return "falha registrada";
+            case CANCELLED:
+                return "cancelada";
+            case INTERRUPTED:
+                return "interrompida";
+            case IDLE:
+            default:
+                return "livre";
+        }
     }
 
     private void renderRestoredWorkflowActions(
