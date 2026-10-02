@@ -138,8 +138,8 @@ public final class LaboratoryEngine {
             this.startedAtEpochMs = started;
             this.durationMs = duration;
             this.candidateBatchSha256 = batchHash;
-            this.environmentSha256 = WORLD_CONTACT_TOOL.equals(request.toolId)
-                ? LaboratoryTestWorld.fixtureSha256() : "";
+            this.environmentSha256 =
+                hostEnvironmentSha256(request);
             this.status = status;
             this.passed = passed;
             this.failed = failed;
@@ -197,6 +197,21 @@ public final class LaboratoryEngine {
         if (status == Status.PASS && failed > 0) status = Status.FAIL;
         return new Report(id, request, started, elapsedMs(startNanos),
             batchHash, status, passed, failed, checks);
+    }
+
+    private static String hostEnvironmentSha256(
+            Request request) {
+        StringBuilder identity = new StringBuilder()
+            .append("CAFEINA_HOST_LAB_V1|")
+            .append(request.toolId)
+            .append("|")
+            .append(request.toolVersion);
+        if (WORLD_CONTACT_TOOL.equals(request.toolId)) {
+            identity.append("|fixture=")
+                .append(LaboratoryTestWorld.fixtureSha256());
+        }
+        return sha256(
+            identity.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     /** Stable, source-only fingerprint. This is not a Luau correctness verdict. */
