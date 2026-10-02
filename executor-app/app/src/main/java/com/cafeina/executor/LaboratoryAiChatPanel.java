@@ -1228,6 +1228,19 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 .append(snapshot.testReport.failed)
                 .append("\nRelatório: ")
                 .append(snapshot.testReport.reportId);
+            if (snapshot.testSession != null) {
+                out.append("\nChamadas usadas: ")
+                    .append(snapshot.testSession.invocationsUsed)
+                    .append("/")
+                    .append(snapshot.testSession.maxInvocations)
+                    .append("\nEntrada usada: ")
+                    .append(formatBytes(snapshot.testSession.inputBytesUsed))
+                    .append("/")
+                    .append(formatBytes(
+                        snapshot.testSession.maxTotalInputBytes))
+                    .append("\nEstado da sessão: ")
+                    .append(snapshot.testSession.state);
+            }
         } else {
             out.append("\n\nTESTADORA")
                 .append("\nNenhum relatório terminal registrado.");
@@ -2269,6 +2282,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                 });
                             }
                         });
+                LaboratoryAiSessionStore.Summary finalUsage =
+                    findSessionSummary(execution.sessionId);
                 runOnUi(() -> {
                     if (closed) return;
                     activeTestControl = null;
@@ -2311,7 +2326,18 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + "\nGoal Lock consumido: "
                             + (execution.goalLockClaimed ? "SIM" : "NÃO")
                             + "\nResultado registrado: "
-                            + (execution.resultRecorded ? "SIM" : "NÃO"));
+                            + (execution.resultRecorded ? "SIM" : "NÃO")
+                            + (finalUsage == null
+                                ? ""
+                                : "\nUso final: "
+                                    + finalUsage.invocationsUsed
+                                    + "/" + finalUsage.maxInvocations
+                                    + " chamada(s) • "
+                                    + formatBytes(finalUsage.inputBytesUsed)
+                                    + "/"
+                                    + formatBytes(
+                                        finalUsage.maxTotalInputBytes)
+                                    + " de entrada"));
                     addActionButton(
                         "ABRIR RELATÓRIOS DA TESTADORA",
                         () -> activity.startActivity(
@@ -2346,6 +2372,23 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 });
             }
         });
+    }
+
+    private LaboratoryAiSessionStore.Summary findSessionSummary(
+            String sessionId) {
+        if (sessionId == null || sessionId.isEmpty()) return null;
+        try {
+            for (LaboratoryAiSessionStore.Summary summary :
+                    new LaboratoryAiSessionStore(
+                        activity.getFilesDir(), projectId).list()) {
+                if (sessionId.equals(summary.sessionId)) {
+                    return summary;
+                }
+            }
+        } catch (Exception ignored) {
+            // Usage display is diagnostic-only and cannot alter execution.
+        }
+        return null;
     }
 
     private static String plannerMetricSummary(
