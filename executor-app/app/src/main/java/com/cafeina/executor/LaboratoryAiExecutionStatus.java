@@ -81,6 +81,7 @@ public final class LaboratoryAiExecutionStatus {
 
     public static final class Tracker {
         private static final int MAX_DETAIL_CHARS = 240;
+        private static final int MAX_HISTORY_EVENTS = 64;
 
         private final String executionId = UUID.randomUUID().toString();
         private final String contractId;
@@ -104,7 +105,7 @@ public final class LaboratoryAiExecutionStatus {
                 0,
                 0,
                 "");
-            history.add(current);
+            remember(current);
             publish(current);
         }
 
@@ -141,7 +142,7 @@ public final class LaboratoryAiExecutionStatus {
                     attempt,
                     maxAttempts,
                     "");
-                history.add(current);
+                remember(current);
                 changed = current;
             }
             publish(changed);
@@ -184,7 +185,7 @@ public final class LaboratoryAiExecutionStatus {
                     attempt,
                     maxAttempts,
                     "");
-                history.add(current);
+                remember(current);
                 changed = current;
             }
             publish(changed);
@@ -201,7 +202,7 @@ public final class LaboratoryAiExecutionStatus {
                     current.attempt,
                     current.maxAttempts,
                     safe(reason));
-                history.add(current);
+                remember(current);
                 changed = current;
             }
             publish(changed);
@@ -218,10 +219,21 @@ public final class LaboratoryAiExecutionStatus {
                     current.attempt,
                     current.maxAttempts,
                     safe(reason));
-                history.add(current);
+                remember(current);
                 changed = current;
             }
             publish(changed);
+        }
+
+        private void remember(Snapshot snapshot) {
+            if (snapshot == null) return;
+            if (history.size() < MAX_HISTORY_EVENTS) {
+                history.add(snapshot);
+                return;
+            }
+            if (snapshot.terminal() && !history.isEmpty()) {
+                history.set(history.size() - 1, snapshot);
+            }
         }
 
         private Snapshot build(
