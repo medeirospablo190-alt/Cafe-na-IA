@@ -3187,21 +3187,135 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
     }
 
-    private void confirmAndExecutePrepared(
+    private void runExecutionPreflight(
             LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
-        new AlertDialog.Builder(activity)
-            .setTitle("Executar teste controlado?")
-            .setMessage(
-                "Esta confirmação inicia a Testadora determinística e consome "
-                    + "o Goal Lock de uso único. Somente as ferramentas "
-                    + "explicitamente aprovadas para a tarefa poderão ser usadas.\n\n"
-                    + "Cenário: " + prepared.scenarioId
-                    + "\nPassos: " + prepared.stepCount)
-            .setNegativeButton("CANCELAR", null)
-            .setPositiveButton(
-                "EXECUTAR TESTE",
-                (dialog, which) -> executePreparedInline(prepared))
-            .show();
+        if (closed || busy || prepared == null) return;
+
+        busy = true;
+        sendButton.setEnabled(false);
+        input.setEnabled(false);
+        currentActionPrimaryButton.setEnabled(false);
+        setLiveStatus(
+            "Verificando cenário, permissões, orçamentos e auditoria…");
+
+        worker.execute(() -> {
+            try {
+                LaboratoryAiExecutionPreflight.Result result =
+                    LaboratoryAiExecutionPreflight.inspect(
+                        activity,
+                        projectId,
+                        prepared.contractId,
+                        prepared.scenarioId);
+                runOnUi(() -> {
+                    if (closed) return;
+                    busy = false;
+                    sendButton.setEnabled(true);
+                    input.setEnabled(true);
+                    hideLiveStatus();
+                    refreshActionDiagnosticButton();
+                    renderExecutionPreflightDialog(result);
+                });
+            } catch (Exception error) {
+                final String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (closed) return;
+                    busy = false;
+                    sendButton.setEnabled(true);
+                    input.setEnabled(true);
+                    hideLiveStatus();
+                    updateWorkflow(
+                        LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
+                        prepared.contractId,
+                        prepared.scenarioId,
+                        "",
+                        "Falha ao concluir preflight de execução");
+                    addAssistantMessage(
+                        "Não consegui concluir a pré-verificação da execução. "
+                            + "Nada foi executado e o Goal Lock continua não "
+                            + "consumido.\n" + reason);
+                });
+            }
+        });
+    }
+
+    private void renderExecutionPreflightDialog(
+            LaboratoryAiExecutionPreflight.Result result) {
+        if (result == null) return;
+
+        StringBuilder message = new StringBuilder();
+        message.append(
+            result.ready
+                ? "PRONTO PARA EXECUTAR"
+                : "EXECUÇÃO BLOQUEADA");
+        message.append("\n\nGoal Lock ainda não consumido.")
+            .append("\nPassos: ")
+            .append(result.stepCount)
+            .append("\nEntrada total: ")
+            .append(formatBytes(result.totalInputBytes))
+            .append("\nTempo máximo teórico das ferramentas: ")
+            .append(formatElapsed(result.worstCaseToolRuntimeMs))
+            .append("\n");
+
+        for (LaboratoryAiExecutionPreflight.Check check :
+                result.checks) {
+            message.append("\n")
+                .append(executionPreflightLevelLabel(check.level))
+                .append(" • ")
+                .append(check.title)
+                .append("\n")
+                .append(check.detail)
+                .append("\nCódigo: ")
+                .append(check.code);
+        }
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(activity)
+            .setTitle("Pré-verificação da execução")
+            .setMessage(message.toString())
+            .setNegativeButton("FECHAR", null)
+            .setNeutralButton(
+                "DIAGNÓSTICO",
+                (whichDialog, which) -> showCurrentActionDiagnostic());
+
+        if (result.ready && result.prepared != null) {
+            dialog.setPositiveButton(
+                "EXECUTAR TESTE • CONSOME GOAL LOCK",
+                (whichDialog, which) ->
+                    executePreparedInline(result.prepared));
+            updateWorkflow(
+                LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
+                result.prepared.contractId,
+                result.prepared.scenarioId,
+                "",
+                "Preflight aprovado; execução aguarda confirmação final");
+        } else {
+            updateWorkflow(
+                LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
+                workflowContractId,
+                workflowScenarioId,
+                "",
+                "Preflight bloqueou a execução; Goal Lock não consumido");
+            addAssistantMessage(
+                "A pré-verificação bloqueou a execução antes de consumir o "
+                    + "Goal Lock. Corrija os itens marcados como BLOQUEIO e "
+                    + "revise novamente.");
+        }
+
+        dialog.show();
+    }
+
+    private static String executionPreflightLevelLabel(
+            LaboratoryAiExecutionPreflight.Level level) {
+        if (level == null) return "INFO";
+        switch (level) {
+            case PASS:
+                return "OK";
+            case WARNING:
+                return "ATENÇÃO";
+            case BLOCK:
+                return "BLOQUEIO";
+            default:
+                return level.name();
+        }
     }
 
     private void executePreparedInline(
