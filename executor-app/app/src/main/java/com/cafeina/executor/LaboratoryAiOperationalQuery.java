@@ -16,7 +16,8 @@ public final class LaboratoryAiOperationalQuery {
         STATUS,
         ETA,
         DIAGNOSTIC,
-        TIMELINE
+        TIMELINE,
+        READINESS
     }
 
     private LaboratoryAiOperationalQuery() {}
@@ -24,6 +25,24 @@ public final class LaboratoryAiOperationalQuery {
     public static Kind classify(String message) {
         String value = normalize(message);
         if (value.isEmpty()) return Kind.NONE;
+
+        if (containsAny(
+                value,
+                "esta pronto",
+                "ta pronto",
+                "esta pronta",
+                "ta pronta",
+                "pronto para executar",
+                "pronta para executar",
+                "pode executar",
+                "pode comecar",
+                "pode iniciar",
+                "ja pode executar",
+                "ja da para executar",
+                "ja da pra executar",
+                "esta tudo pronto")) {
+            return Kind.READINESS;
+        }
 
         if (containsAny(
                 value,
