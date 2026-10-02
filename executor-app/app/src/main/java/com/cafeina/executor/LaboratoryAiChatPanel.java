@@ -1387,6 +1387,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         addAssistantConversationMessage(clean);
                     }
                     setBusy(false);
+                    if (!clean.isEmpty()
+                            && kind
+                                == LaboratoryAiChatRouter.Kind.ANALYSIS) {
+                        addActionButton(
+                            "TRANSFORMAR ANÁLISE EM AÇÃO",
+                            () -> showAnalysisActionDialog(message));
+                    }
                 });
             } catch (Exception error) {
                 final String reason = String.valueOf(error.getMessage());
@@ -1411,6 +1418,65 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void handleAction(
             String message,
             LaboratoryAiChatRouter.Route route) {
+        beginControlledAction(message, route.modeHint);
+    }
+
+    private void showAnalysisActionDialog(String sourceMessage) {
+        if (closed || busy || sourceMessage == null
+                || sourceMessage.trim().isEmpty()) {
+            return;
+        }
+
+        EditText goal = new EditText(activity);
+        goal.setText(sourceMessage.trim());
+        goal.setTextColor(FG);
+        goal.setHintTextColor(MUTED);
+        goal.setSelectAllOnFocus(false);
+        goal.setSelection(goal.getText().length());
+        goal.setMinLines(3);
+        goal.setMaxLines(8);
+        goal.setPadding(dp(14), dp(8), dp(14), dp(8));
+
+        AlertDialog dialog = new AlertDialog.Builder(activity)
+            .setTitle("Transformar análise em ação")
+            .setMessage(
+                "Revise o objetivo abaixo. Ele só poderá virar Goal Lock "
+                    + "depois que você confirmar as permissões da tarefa. "
+                    + "Nada será executado nesta etapa.")
+            .setView(goal)
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton(
+                "CONTINUAR PARA PERMISSÕES",
+                null)
+            .create();
+
+        dialog.setOnShowListener(ignored ->
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
+                    String objective =
+                        goal.getText().toString().trim();
+                    if (objective.isEmpty()) {
+                        goal.setError("Defina o objetivo da ação");
+                        return;
+                    }
+                    if (objective.length()
+                            > LaboratoryAiChatSessionStore.MAX_ENTRY_CHARS) {
+                        goal.setError("Objetivo muito longo");
+                        return;
+                    }
+
+                    dialog.dismiss();
+                    addUserMessage(objective, false);
+                    beginControlledAction(
+                        objective,
+                        LaboratoryAiChatRouter.ModeHint.LEARNING);
+                }));
+        dialog.show();
+    }
+
+    private void beginControlledAction(
+            String message,
+            LaboratoryAiChatRouter.ModeHint modeHint) {
         updateWorkflow(
             LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW,
             "",
@@ -1418,9 +1484,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             "",
             "Aguardando seleção de permissões da tarefa");
         addAssistantMessage(
-            "Entendi isso como um pedido de ação. Não executei nada. "
-                + "Vou manter esse pedido fora da conversa livre e preparar "
-                + "Goal Lock + permissões da tarefa primeiro.");
+            "Objetivo de ação confirmado. Não executei nada. "
+                + "Agora vou preparar somente as permissões necessárias "
+                + "antes de criar o Goal Lock.");
 
         worker.execute(() -> {
             try {
@@ -1428,7 +1494,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     LaboratoryAiToolController.listAvailable(
                         activity, projectId);
                 runOnUi(() -> renderActionPreparation(
-                    message, route.modeHint, available));
+                    message, modeHint, available));
             } catch (Exception error) {
                 runOnUi(() -> addAssistantMessage(
                     "Não consegui ler as permissões atuais: "
