@@ -104,12 +104,33 @@ public final class LaboratoryReportStore {
     public synchronized void saveSandboxResult(LaboratorySandboxClient.Result result,
             String caseName, String expectedFirstReturn, long seed,
             String snapshotId, boolean snapshotVerified) throws IOException {
+        saveSandboxResult(
+            result,
+            caseName,
+            expectedFirstReturn,
+            seed,
+            snapshotId,
+            snapshotVerified,
+            "");
+    }
+
+    public synchronized void saveSandboxResult(
+            LaboratorySandboxClient.Result result,
+            String caseName,
+            String expectedFirstReturn,
+            long seed,
+            String snapshotId,
+            boolean snapshotVerified,
+            String environmentSha256) throws IOException {
         if (snapshotId != null && !LaboratorySnapshotStore.validId(snapshotId)) {
             throw new IOException("invalid candidate snapshot id");
         }
         if (result == null || !isValidRunId(result.runId) || caseName == null
                 || !caseName.matches("[a-zA-Z0-9_-]{1,64}")
-                || expectedFirstReturn == null || expectedFirstReturn.length() > 256) {
+                || expectedFirstReturn == null || expectedFirstReturn.length() > 256
+                || environmentSha256 == null
+                || (!environmentSha256.isEmpty()
+                    && !environmentSha256.matches("[0-9a-f]{64}"))) {
             throw new IOException("invalid isolated test report");
         }
         boolean matched = snapshotVerified && "EXECUTED".equals(result.status)
@@ -129,6 +150,9 @@ public final class LaboratoryReportStore {
             report.put("durationMs", result.durationMs);
             report.put("candidateBatchSha256", result.sourceSha256);
             report.put("toolInputSha256", result.inputSha256);
+            if (!environmentSha256.isEmpty()) {
+                report.put("environmentSha256", environmentSha256);
+            }
             if (snapshotId != null) report.put("candidateSnapshotId", snapshotId);
             report.put("snapshotVerified", snapshotVerified);
             report.put("status", outcome);
