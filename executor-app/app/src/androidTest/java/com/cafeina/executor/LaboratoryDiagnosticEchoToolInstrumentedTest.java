@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @RunWith(AndroidJUnit4.class)
 public final class LaboratoryDiagnosticEchoToolInstrumentedTest {
     @Test
-    public void bootstrapSuiteQualifiesCandidateButNeverStableAutomatically()
+    public void bootstrapLifecycleSeparatesCandidateStableAndAiPermission()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation()
             .getTargetContext();
@@ -101,6 +101,8 @@ public final class LaboratoryDiagnosticEchoToolInstrumentedTest {
         assertEquals(
             LaboratoryToolRegistry.Stage.CANDIDATE,
             candidate.stage);
+        assertFalse(candidate.activeStable);
+        assertFalse(candidate.aiGranted);
 
         assertNull(
             registry.activeStable(
@@ -113,6 +115,55 @@ public final class LaboratoryDiagnosticEchoToolInstrumentedTest {
                     LaboratoryDiagnosticEchoTool.TOOL_ID));
 
         assertFalse(
+            LaboratoryAiToolController.listAvailable(
+                app,
+                project).stream().anyMatch(tool ->
+                    LaboratoryDiagnosticEchoTool.TOOL_ID
+                        .equals(tool.toolId)));
+
+        LaboratoryHumanApprovalStore approvals =
+            new LaboratoryHumanApprovalStore(
+                app.getFilesDir(),
+                project);
+        LaboratoryHumanApprovalStore.Approval approval =
+            approvals.recordDeviceCredentialApproval(
+                LaboratoryHumanApprovalStore.ACTIVATE_STABLE,
+                LaboratoryDiagnosticEchoTool.TOOL_ID,
+                LaboratoryDiagnosticEchoTool.VERSION,
+                System.currentTimeMillis());
+        approvals.applyApprovedTransition(
+            approval.receiptId);
+
+        LaboratoryDiagnosticEchoTool.State stable =
+            LaboratoryDiagnosticEchoTool.inspect(
+                app.getFilesDir(),
+                project);
+        assertEquals(
+            LaboratoryToolRegistry.Stage.STABLE,
+            stable.stage);
+        assertTrue(stable.activeStable);
+        assertFalse(stable.aiGranted);
+        assertFalse(
+            LaboratoryAiToolController.listAvailable(
+                app,
+                project).stream().anyMatch(tool ->
+                    LaboratoryDiagnosticEchoTool.TOOL_ID
+                        .equals(tool.toolId)));
+
+        new LaboratoryAiPermissionStore(
+            app.getFilesDir(),
+            project)
+            .grantAfterDeviceCredential(
+                LaboratoryDiagnosticEchoTool.TOOL_ID,
+                System.currentTimeMillis());
+
+        LaboratoryDiagnosticEchoTool.State granted =
+            LaboratoryDiagnosticEchoTool.inspect(
+                app.getFilesDir(),
+                project);
+        assertTrue(granted.activeStable);
+        assertTrue(granted.aiGranted);
+        assertTrue(
             LaboratoryAiToolController.listAvailable(
                 app,
                 project).stream().anyMatch(tool ->
