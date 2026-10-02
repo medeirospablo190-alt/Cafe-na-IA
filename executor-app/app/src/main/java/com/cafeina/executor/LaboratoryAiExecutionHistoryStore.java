@@ -40,6 +40,15 @@ public final class LaboratoryAiExecutionHistoryStore {
         public final int attempt;
         public final int maxAttempts;
         public final String terminalReason;
+        public final int promptTokens;
+        public final int promptTokensProcessed;
+        public final int generatedTokens;
+        public final int maxGeneratedTokens;
+        public final long contextSetupMs;
+        public final long promptEvalMs;
+        public final long tokenGenerationMs;
+        public final long generationTimeLimitMs;
+        public final long estimatedRemainingMs;
 
         private Event(
                 int sequence,
@@ -53,7 +62,16 @@ public final class LaboratoryAiExecutionHistoryStore {
                 String detail,
                 int attempt,
                 int maxAttempts,
-                String terminalReason) {
+                String terminalReason,
+                int promptTokens,
+                int promptTokensProcessed,
+                int generatedTokens,
+                int maxGeneratedTokens,
+                long contextSetupMs,
+                long promptEvalMs,
+                long tokenGenerationMs,
+                long generationTimeLimitMs,
+                long estimatedRemainingMs) {
             this.sequence = sequence;
             this.executionId = executionId;
             this.contractId = contractId;
@@ -66,6 +84,15 @@ public final class LaboratoryAiExecutionHistoryStore {
             this.attempt = attempt;
             this.maxAttempts = maxAttempts;
             this.terminalReason = terminalReason;
+            this.promptTokens = promptTokens;
+            this.promptTokensProcessed = promptTokensProcessed;
+            this.generatedTokens = generatedTokens;
+            this.maxGeneratedTokens = maxGeneratedTokens;
+            this.contextSetupMs = contextSetupMs;
+            this.promptEvalMs = promptEvalMs;
+            this.tokenGenerationMs = tokenGenerationMs;
+            this.generationTimeLimitMs = generationTimeLimitMs;
+            this.estimatedRemainingMs = estimatedRemainingMs;
         }
 
         public boolean terminal() {
@@ -85,6 +112,14 @@ public final class LaboratoryAiExecutionHistoryStore {
         public final int maxAttempts;
         public final int eventCount;
         public final String terminalReason;
+        public final int promptTokens;
+        public final int promptTokensProcessed;
+        public final int generatedTokens;
+        public final int maxGeneratedTokens;
+        public final long contextSetupMs;
+        public final long promptEvalMs;
+        public final long tokenGenerationMs;
+        public final long generationTimeLimitMs;
 
         private Summary(Event last, int eventCount) {
             executionId = last.executionId;
@@ -98,6 +133,14 @@ public final class LaboratoryAiExecutionHistoryStore {
             maxAttempts = last.maxAttempts;
             this.eventCount = eventCount;
             terminalReason = last.terminalReason;
+            promptTokens = last.promptTokens;
+            promptTokensProcessed = last.promptTokensProcessed;
+            generatedTokens = last.generatedTokens;
+            maxGeneratedTokens = last.maxGeneratedTokens;
+            contextSetupMs = last.contextSetupMs;
+            promptEvalMs = last.promptEvalMs;
+            tokenGenerationMs = last.tokenGenerationMs;
+            generationTimeLimitMs = last.generationTimeLimitMs;
         }
     }
 
@@ -377,6 +420,15 @@ public final class LaboratoryAiExecutionHistoryStore {
             json.put("attempt", snapshot.attempt);
             json.put("maxAttempts", snapshot.maxAttempts);
             json.put("terminalReason", snapshot.terminalReason);
+            json.put("promptTokens", snapshot.promptTokens);
+            json.put("promptTokensProcessed", snapshot.promptTokensProcessed);
+            json.put("generatedTokens", snapshot.generatedTokens);
+            json.put("maxGeneratedTokens", snapshot.maxGeneratedTokens);
+            json.put("contextSetupMs", snapshot.contextSetupMs);
+            json.put("promptEvalMs", snapshot.promptEvalMs);
+            json.put("tokenGenerationMs", snapshot.tokenGenerationMs);
+            json.put("generationTimeLimitMs", snapshot.generationTimeLimitMs);
+            json.put("estimatedRemainingMs", snapshot.estimatedRemainingMs);
             return json;
         } catch (JSONException error) {
             throw new IOException(
@@ -401,6 +453,23 @@ public final class LaboratoryAiExecutionHistoryStore {
             String detail = json.optString("detail");
             String terminalReason =
                 json.optString("terminalReason");
+            int promptTokens = json.optInt("promptTokens", 0);
+            int promptTokensProcessed =
+                json.optInt("promptTokensProcessed", 0);
+            int generatedTokens =
+                json.optInt("generatedTokens", 0);
+            int maxGeneratedTokens =
+                json.optInt("maxGeneratedTokens", 0);
+            long contextSetupMs =
+                json.optLong("contextSetupMs", 0L);
+            long promptEvalMs =
+                json.optLong("promptEvalMs", 0L);
+            long tokenGenerationMs =
+                json.optLong("tokenGenerationMs", 0L);
+            long generationTimeLimitMs =
+                json.optLong("generationTimeLimitMs", 0L);
+            long estimatedRemainingMs =
+                json.optLong("estimatedRemainingMs", 0L);
 
             if (json.getInt("schemaVersion") != 1
                     || sequence != expectedSequence
@@ -415,7 +484,18 @@ public final class LaboratoryAiExecutionHistoryStore {
                     || attempt > maxAttempts
                     || (attempt > 0 && maxAttempts == 0)
                     || detail.length() > 240
-                    || terminalReason.length() > 240) {
+                    || terminalReason.length() > 240
+                    || promptTokens < 0
+                    || promptTokensProcessed < 0
+                    || promptTokensProcessed > promptTokens
+                    || generatedTokens < 0
+                    || maxGeneratedTokens < 0
+                    || generatedTokens > maxGeneratedTokens
+                    || contextSetupMs < 0L
+                    || promptEvalMs < 0L
+                    || tokenGenerationMs < 0L
+                    || generationTimeLimitMs < 0L
+                    || estimatedRemainingMs < 0L) {
                 throw new IOException(
                     "execution history event failed validation");
             }
@@ -454,7 +534,16 @@ public final class LaboratoryAiExecutionHistoryStore {
                 detail,
                 attempt,
                 maxAttempts,
-                terminalReason);
+                terminalReason,
+                promptTokens,
+                promptTokensProcessed,
+                generatedTokens,
+                maxGeneratedTokens,
+                contextSetupMs,
+                promptEvalMs,
+                tokenGenerationMs,
+                generationTimeLimitMs,
+                estimatedRemainingMs);
         } catch (JSONException
                 | IllegalArgumentException error) {
             throw new IOException(
@@ -475,7 +564,16 @@ public final class LaboratoryAiExecutionHistoryStore {
             && event.detail.equals(snapshot.detail)
             && event.attempt == snapshot.attempt
             && event.maxAttempts == snapshot.maxAttempts
-            && event.terminalReason.equals(snapshot.terminalReason);
+            && event.terminalReason.equals(snapshot.terminalReason)
+            && event.promptTokens == snapshot.promptTokens
+            && event.promptTokensProcessed == snapshot.promptTokensProcessed
+            && event.generatedTokens == snapshot.generatedTokens
+            && event.maxGeneratedTokens == snapshot.maxGeneratedTokens
+            && event.contextSetupMs == snapshot.contextSetupMs
+            && event.promptEvalMs == snapshot.promptEvalMs
+            && event.tokenGenerationMs == snapshot.tokenGenerationMs
+            && event.generationTimeLimitMs == snapshot.generationTimeLimitMs
+            && event.estimatedRemainingMs == snapshot.estimatedRemainingMs;
     }
 
     private void validateSnapshot(
@@ -501,7 +599,18 @@ public final class LaboratoryAiExecutionHistoryStore {
                 || snapshot.maxAttempts < 0
                 || snapshot.attempt > snapshot.maxAttempts
                 || (snapshot.attempt > 0
-                    && snapshot.maxAttempts == 0)) {
+                    && snapshot.maxAttempts == 0)
+                || snapshot.promptTokens < 0
+                || snapshot.promptTokensProcessed < 0
+                || snapshot.promptTokensProcessed > snapshot.promptTokens
+                || snapshot.generatedTokens < 0
+                || snapshot.maxGeneratedTokens < 0
+                || snapshot.generatedTokens > snapshot.maxGeneratedTokens
+                || snapshot.contextSetupMs < 0L
+                || snapshot.promptEvalMs < 0L
+                || snapshot.tokenGenerationMs < 0L
+                || snapshot.generationTimeLimitMs < 0L
+                || snapshot.estimatedRemainingMs < 0L) {
             throw new IOException(
                 "invalid execution status snapshot");
         }
