@@ -111,6 +111,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private volatile int currentTestCompletedSteps;
     private volatile int currentTestTotalSteps;
     private volatile long currentTestObservedDurationMs;
+    private final Object plannerCheckpointLock = new Object();
+    private LaboratoryAiExecutionStatus.Phase lastPlannerCheckpointPhase;
+    private long lastPlannerCheckpointAtEpochMs;
     private volatile boolean busy;
     private volatile boolean closed;
 
@@ -1203,13 +1206,22 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             .append("\nGoal Lock consumido: ")
             .append(snapshot.goalLockClaimed ? "SIM" : "NÃO")
             .append("\nResultado terminal registrado: ")
-            .append(snapshot.resultRecorded ? "SIM" : "NÃO")
-            .append("\n\nDiagnóstico: ")
-            .append(snapshot.explanation)
-            .append("\nO que fazer agora: ")
-            .append(snapshot.nextStep)
-            .append("\nCódigo técnico: ")
-            .append(snapshot.nextCheck);
+            .append(snapshot.resultRecorded ? "SIM" : "NÃO");
+
+        if (operationRunning) {
+            out.append("\n\nDiagnóstico: a ação está ativa; não existe "
+                    + "falha terminal confirmada neste momento.")
+                .append("\nO que fazer agora: acompanhe o andamento, "
+                    + "pause/cancele se necessário ou aguarde o resultado.")
+                .append("\nCódigo técnico: LIVE_OPERATION");
+        } else {
+            out.append("\n\nDiagnóstico: ")
+                .append(snapshot.explanation)
+                .append("\nO que fazer agora: ")
+                .append(snapshot.nextStep)
+                .append("\nCódigo técnico: ")
+                .append(snapshot.nextCheck);
+        }
 
         if (operationRunning) {
             out.append("\n\nSTATUS AO VIVO")
@@ -1257,6 +1269,38 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             if (snapshot.plannerDiagnostic != null) {
                 out.append("\nClassificação: ")
                     .append(snapshot.plannerDiagnostic.code.name());
+            }
+        } else if (snapshot.plannerCheckpoint != null) {
+            out.append("\n\nPLANEJADOR • ÚLTIMO CHECKPOINT")
+                .append("\nEstado: não terminal")
+                .append("\nFase: ")
+                .append(phaseLabel(snapshot.plannerCheckpoint.phase))
+                .append("\nTempo até o checkpoint: ")
+                .append(formatElapsed(
+                    snapshot.plannerCheckpoint.elapsedMs))
+                .append("\nTentativa: ")
+                .append(snapshot.plannerCheckpoint.attempt)
+                .append("/")
+                .append(snapshot.plannerCheckpoint.maxAttempts);
+            if (snapshot.plannerCheckpoint.promptTokens > 0) {
+                out.append("\nPrompt: ")
+                    .append(
+                        snapshot.plannerCheckpoint.promptTokensProcessed)
+                    .append("/")
+                    .append(snapshot.plannerCheckpoint.promptTokens)
+                    .append(" tokens • ")
+                    .append(snapshot.plannerCheckpoint.promptEvalMs)
+                    .append(" ms");
+            }
+            if (snapshot.plannerCheckpoint.maxGeneratedTokens > 0) {
+                out.append("\nGeração: ")
+                    .append(snapshot.plannerCheckpoint.generatedTokens)
+                    .append("/")
+                    .append(
+                        snapshot.plannerCheckpoint.maxGeneratedTokens)
+                    .append(" tokens • ")
+                    .append(snapshot.plannerCheckpoint.tokenGenerationMs)
+                    .append(" ms");
             }
         } else {
             out.append("\n\nPLANEJADOR")
@@ -1331,6 +1375,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 return "planejamento concluído";
             case PLANNER_FAILED:
                 return "planejamento com falha";
+            case PLANNER_RUNNING_OR_INTERRUPTED:
+                return "planejamento sem estado terminal; checkpoint disponível";
             case TEST_AGENT_RUNNING_OR_INTERRUPTED:
                 return "Testadora consumiu o Goal Lock sem resultado terminal";
             case TEST_AGENT_COMPLETED:
@@ -2213,11 +2259,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         activePlannerCancellation = cancellation;
 
         latestPlannerSnapshot = null;
+        resetPlannerCheckpointThrottle();
         final LaboratoryAiExecutionStatus.Tracker status =
             new LaboratoryAiExecutionStatus.Tracker(
                 contractId,
                 snapshot -> {
                     latestPlannerSnapshot = snapshot;
+                    schedulePlannerCheckpoint(snapshot);
                     runOnUi(() ->
                         renderPlannerStatus(snapshot));
                 });
@@ -2312,8 +2360,57 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             new LaboratoryAiExecutionHistoryStore(
                 activity.getFilesDir(), projectId)
                 .saveExecution(status.history());
+            LaboratoryAiExecutionStatus.Snapshot terminal =
+                status.snapshot();
+            new LaboratoryAiPlannerCheckpointStore(
+                activity.getFilesDir(), projectId)
+                .clear(terminal.contractId);
         } catch (Exception ignored) {
-            // Diagnostic persistence cannot control the planner result.
+            // If terminal persistence fails, keep the latest checkpoint so
+            // diagnostics still have a last-known execution position.
+        }
+    }
+
+    private void resetPlannerCheckpointThrottle() {
+        synchronized (plannerCheckpointLock) {
+            lastPlannerCheckpointPhase = null;
+            lastPlannerCheckpointAtEpochMs = 0L;
+        }
+    }
+
+    private void schedulePlannerCheckpoint(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot == null || snapshot.terminal() || closed) return;
+
+        boolean shouldWrite;
+        synchronized (plannerCheckpointLock) {
+            boolean phaseChanged =
+                lastPlannerCheckpointPhase != snapshot.phase;
+            boolean intervalElapsed =
+                lastPlannerCheckpointAtEpochMs <= 0L
+                    || snapshot.updatedAtEpochMs
+                        - lastPlannerCheckpointAtEpochMs >= 2_000L;
+            shouldWrite = phaseChanged || intervalElapsed;
+            if (shouldWrite) {
+                lastPlannerCheckpointPhase = snapshot.phase;
+                lastPlannerCheckpointAtEpochMs =
+                    snapshot.updatedAtEpochMs;
+            }
+        }
+        if (!shouldWrite) return;
+
+        try {
+            persistenceWorker.execute(() -> {
+                try {
+                    new LaboratoryAiPlannerCheckpointStore(
+                        activity.getFilesDir(), projectId)
+                        .write(snapshot);
+                } catch (Exception ignored) {
+                    // Checkpoint failure cannot control planner execution.
+                }
+            });
+        } catch (java.util.concurrent.RejectedExecutionException ignored) {
+            // Panel is closing; terminal history/checkpoint recovery owns state.
         }
     }
 
