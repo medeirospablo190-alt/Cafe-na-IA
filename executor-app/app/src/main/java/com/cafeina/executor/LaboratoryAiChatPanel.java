@@ -1662,7 +1662,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 return "Ainda não tenho dados suficientes para estimar o "
                     + "tempo do planejamento. A execução está começando.";
             }
-            if (snapshot.estimatedRemainingMs > 0L) {
+            if (snapshot.phase
+                    == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                    && snapshot.estimatedRemainingMs > 0L) {
                 return "Estimativa atual: cerca de "
                     + formatElapsed(snapshot.estimatedRemainingMs)
                     + " restantes nesta fase. É uma estimativa baseada no "
