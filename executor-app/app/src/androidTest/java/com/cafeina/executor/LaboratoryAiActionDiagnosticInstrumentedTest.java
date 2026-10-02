@@ -96,6 +96,86 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
     }
 
     @Test
+    public void liveCheckpointExplainsInterruptedPlannerWithoutConsumingGoalLock()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation()
+            .getTargetContext();
+        String project =
+            "actioncheckpoint"
+                + UUID.randomUUID().toString().substring(0, 8);
+
+        LaboratoryAiTaskContractStore store =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), project);
+        LaboratoryAiTaskContractStore.Contract contract =
+            store.create(
+                LaboratoryAiTaskContractStore.Mode.LEARNING,
+                "Investigar o planejador sem executar ferramentas.",
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList("diagnostic.tool"),
+                    1,
+                    256,
+                    30_000L));
+
+        LaboratoryAiExecutionStatus.Tracker tracker =
+            new LaboratoryAiExecutionStatus.Tracker(
+                contract.contractId,
+                null);
+        tracker.update(
+            LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT,
+            "Processando prompt",
+            1,
+            2);
+        tracker.updateNativeTelemetry(
+            2,
+            150,
+            63,
+            0,
+            128,
+            90L,
+            3_000L,
+            0L,
+            30_000L,
+            1,
+            2);
+
+        new LaboratoryAiPlannerCheckpointStore(
+            app.getFilesDir(), project)
+            .write(tracker.snapshot());
+
+        LaboratoryAiActionDiagnostic.Snapshot diagnosis =
+            LaboratoryAiActionDiagnostic.inspect(
+                app.getFilesDir(),
+                project,
+                contract.contractId);
+
+        assertEquals(
+            LaboratoryAiActionDiagnostic.Stage.PLANNER_RUNNING_OR_INTERRUPTED,
+            diagnosis.stage);
+        assertNull(diagnosis.planner);
+        assertNull(diagnosis.plannerDiagnostic);
+        assertTrue(diagnosis.plannerCheckpoint != null);
+        assertEquals(
+            LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT,
+            diagnosis.plannerCheckpoint.phase);
+        assertEquals(
+            63,
+            diagnosis.plannerCheckpoint.promptTokensProcessed);
+        assertEquals(
+            "REVIEW_PLANNER_CHECKPOINT",
+            diagnosis.nextCheck);
+        assertTrue(diagnosis.explanation.contains("63/150"));
+        assertTrue(diagnosis.nextStep.contains("checkpoint"));
+        assertFalse(diagnosis.goalLockClaimed);
+        assertFalse(diagnosis.resultRecorded);
+
+        LaboratoryAiTaskContractStore.Contract after =
+            store.read(contract.contractId);
+        assertFalse(after.claimed);
+        assertFalse(after.resultRecorded);
+    }
+
+    @Test
     public void freshGoalLockReportsReadyWithoutInventingExecution()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation()
