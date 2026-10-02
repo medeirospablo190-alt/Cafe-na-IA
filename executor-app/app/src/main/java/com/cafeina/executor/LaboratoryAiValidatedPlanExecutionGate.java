@@ -121,6 +121,18 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
             Context context,
             String projectId,
             Prepared prepared) throws IOException {
+        return executePrepared(
+            context,
+            projectId,
+            prepared,
+            null);
+    }
+
+    public static Execution executePrepared(
+            Context context,
+            String projectId,
+            Prepared prepared,
+            LaboratoryAiTestAgent.Observer observer) throws IOException {
         if (context == null || prepared == null) {
             throw new IllegalArgumentException(
                 "prepared execution gate input missing");
@@ -168,7 +180,8 @@ public final class LaboratoryAiValidatedPlanExecutionGate {
                 app,
                 safeProjectId,
                 scenario.scenarioId,
-                contract.contractId);
+                contract.contractId,
+                observer);
 
         if (!scenario.scenarioId.equals(result.scenarioId)
                 || !scenario.scenarioSha256.equals(
