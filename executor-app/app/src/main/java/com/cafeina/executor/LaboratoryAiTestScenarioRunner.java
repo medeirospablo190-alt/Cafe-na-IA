@@ -30,6 +30,20 @@ public final class LaboratoryAiTestScenarioRunner {
 
     public static Result runBlocking(Context context, String projectId,
             String scenarioId, String contractId) throws IOException {
+        return runBlocking(
+            context,
+            projectId,
+            scenarioId,
+            contractId,
+            null);
+    }
+
+    public static Result runBlocking(
+            Context context,
+            String projectId,
+            String scenarioId,
+            String contractId,
+            LaboratoryAiTestAgent.Observer observer) throws IOException {
         if (context == null) {
             throw new IllegalArgumentException("test-scenario context missing");
         }
@@ -47,7 +61,11 @@ public final class LaboratoryAiTestScenarioRunner {
         // validation before claiming the contract.
         LaboratoryAiTestAgent.Report report =
             LaboratoryAiTestAgent.runBlocking(
-                app, projectId, contractId, scenario.plan);
+                app,
+                projectId,
+                contractId,
+                scenario.plan,
+                observer);
         return new Result(scenario, report);
     }
 }
