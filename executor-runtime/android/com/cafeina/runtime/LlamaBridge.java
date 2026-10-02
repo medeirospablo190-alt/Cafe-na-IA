@@ -19,6 +19,11 @@ public final class LlamaBridge {
     public static final int MAX_CONTEXT_TOKENS = 8192;
     public static final int MAX_THREADS = 8;
 
+    public static final int GENERATION_PHASE_NONE = 0;
+    public static final int GENERATION_PHASE_CONTEXT = 1;
+    public static final int GENERATION_PHASE_PROMPT = 2;
+    public static final int GENERATION_PHASE_TOKENS = 3;
+
     private static final boolean NATIVE_AVAILABLE;
     private static final String NATIVE_LOAD_ERROR;
 
@@ -222,6 +227,17 @@ public final class LlamaBridge {
             return output;
         }
 
+        public int generationPhase() {
+            long current = handle;
+            if (current == 0L) return GENERATION_PHASE_NONE;
+            return nativeGenerationPhase(current);
+        }
+
+        public boolean generationTimedOut() {
+            long current = handle;
+            return current != 0L && nativeGenerationTimedOut(current);
+        }
+
         public void cancelGeneration() {
             long current = handle;
             if (current != 0L) {
@@ -273,6 +289,8 @@ public final class LlamaBridge {
         float temperature,
         long seed,
         long maxGenerationMs) throws IOException;
+    private static native int nativeGenerationPhase(long handle);
+    private static native boolean nativeGenerationTimedOut(long handle);
     private static native void nativeCancelGeneration(long handle);
     private static native void nativeClose(long handle);
 }
