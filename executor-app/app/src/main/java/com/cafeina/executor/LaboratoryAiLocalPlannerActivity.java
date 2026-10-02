@@ -237,9 +237,13 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             new LaboratoryAiLocalPlannerProbe.Cancellation();
         activePlanningCancellation = cancellation;
 
+        final LaboratoryAiExecutionStatus.Tracker executionStatus =
+            new LaboratoryAiExecutionStatus.Tracker(
+                contractId,
+                snapshot -> runOnUiThread(() ->
+                    renderExecutionStatus(snapshot)));
+
         busy = true;
-        feedback.setText(
-            "Carregando modelo e pedindo um plano JSON…");
         cancelPlannerButton.setEnabled(true);
         cancelPlannerButton.setVisibility(View.VISIBLE);
         refreshBusyState();
@@ -256,7 +260,8 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                         projectId,
                         contractId,
                         model.modelFile,
-                        cancellation);
+                        cancellation,
+                        executionStatus);
 
                 LaboratoryAiTaskContractStore.Contract after =
                     contracts.read(contractId);
@@ -275,12 +280,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                     boolean cancelled = cancellation.isCancelled();
                     clearPlanningCancellation(cancellation);
                     busy = false;
-                    feedback.setText(
-                        cancelled
-                            ? "Planejamento local cancelado pelo usuário"
-                            : "Planejamento local falhou: "
-                                + String.valueOf(error.getMessage()));
-                    refresh();
+                    LaboratoryAiExecutionStatus.Snapshot snapshot =
+                        executionStatus.snapshot();
+                    feedback.setText(statusLine(snapshot));
                     new AlertDialog.Builder(this)
                         .setTitle(
                             cancelled
@@ -288,12 +290,12 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                                 : "Plano não produzido")
                         .setMessage(
                             "Nenhuma ferramenta foi executada e o Goal Lock "
-                                + "não foi consumido."
-                                + (cancelled
-                                    ? ""
-                                    : "\n\n"
-                                        + String.valueOf(error.getMessage())))
-                        .setPositiveButton("OK", null)
+                                + "não foi consumido.\n\n"
+                                + diagnosticSummary(snapshot))
+                        .setPositiveButton(
+                            "OK",
+                            (dialog, which) -> refresh())
+                        .setOnCancelListener(dialog -> refresh())
                         .show();
                 });
             }
@@ -550,6 +552,101 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             cancelPlannerButton.setText("CANCELAR PLANEJAMENTO");
             cancelPlannerButton.setVisibility(View.GONE);
         }
+    }
+
+    private void renderExecutionStatus(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (!alive() || snapshot == null) return;
+        feedback.setText(statusLine(snapshot));
+    }
+
+    private static String statusLine(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot == null) return "Planejador • status indisponível";
+        StringBuilder out = new StringBuilder()
+            .append("Planejador • ")
+            .append(phaseLabel(snapshot.phase));
+        if (snapshot.attempt > 0 && snapshot.maxAttempts > 0) {
+            out.append(" • tentativa ")
+                .append(snapshot.attempt)
+                .append("/")
+                .append(snapshot.maxAttempts);
+        }
+        out.append(" • ").append(formatElapsed(snapshot.elapsedMs));
+        if (snapshot.state == LaboratoryAiExecutionStatus.State.FAILED) {
+            out.append(" • FALHOU");
+        } else if (snapshot.state
+                == LaboratoryAiExecutionStatus.State.CANCELLED) {
+            out.append(" • CANCELADO");
+        } else if (snapshot.state
+                == LaboratoryAiExecutionStatus.State.COMPLETED) {
+            out.append(" • CONCLUÍDO");
+        }
+        return out.toString();
+    }
+
+    private static String diagnosticSummary(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot == null) return "Diagnóstico de execução indisponível.";
+        StringBuilder out = new StringBuilder()
+            .append("Execução: ").append(snapshot.executionId)
+            .append("\nContrato: ").append(snapshot.contractId)
+            .append("\nEstado: ").append(snapshot.state.name())
+            .append("\nFase: ").append(snapshot.phase.name())
+            .append("\nTempo decorrido: ")
+            .append(snapshot.elapsedMs).append(" ms");
+        if (snapshot.attempt > 0 && snapshot.maxAttempts > 0) {
+            out.append("\nTentativa: ")
+                .append(snapshot.attempt)
+                .append("/")
+                .append(snapshot.maxAttempts);
+        }
+        if (!snapshot.detail.isEmpty()) {
+            out.append("\nÚltimo status: ").append(snapshot.detail);
+        }
+        if (!snapshot.terminalReason.isEmpty()) {
+            out.append("\nMotivo: ").append(snapshot.terminalReason);
+        }
+        return out.toString();
+    }
+
+    private static String phaseLabel(
+            LaboratoryAiExecutionStatus.Phase phase) {
+        if (phase == null) return "status desconhecido";
+        switch (phase) {
+            case PREPARING:
+                return "preparando";
+            case MODEL_ADMISSION:
+                return "validando modelo";
+            case PREFLIGHT:
+                return "pré-verificação";
+            case MODEL_OPEN:
+                return "abrindo modelo";
+            case RUNTIME_METADATA:
+                return "lendo runtime";
+            case PLANNING:
+                return "gerando proposta";
+            case MODEL_CONTEXT:
+                return "preparando contexto";
+            case MODEL_PROMPT:
+                return "processando prompt";
+            case MODEL_TOKENS:
+                return "gerando tokens";
+            case VALIDATING:
+                return "validando plano";
+            case COMPLETED:
+                return "concluído";
+            default:
+                return phase.name().toLowerCase();
+        }
+    }
+
+    private static String formatElapsed(long elapsedMs) {
+        long seconds = Math.max(0L, elapsedMs) / 1000L;
+        long minutes = seconds / 60L;
+        long remainder = seconds % 60L;
+        if (minutes == 0L) return remainder + " s";
+        return minutes + " min " + remainder + " s";
     }
 
     private void refreshBusyState() {
