@@ -89,8 +89,6 @@ public final class LaboratoryCandidateRunner {
         }
         LaboratoryReportStore reports =
             new LaboratoryReportStore(context.getFilesDir(), projectId);
-        String environmentSha256 =
-            LaboratorySandboxEnvironment.fingerprint(context);
         LaboratorySnapshotStore snapshots =
             new LaboratorySnapshotStore(context.getFilesDir(), projectId);
         reports.ensureWritable();
@@ -164,6 +162,8 @@ public final class LaboratoryCandidateRunner {
             new LaboratoryReportStore(context.getFilesDir(), projectId);
         LaboratorySnapshotStore snapshots =
             new LaboratorySnapshotStore(context.getFilesDir(), projectId);
+        String environmentSha256 =
+            LaboratorySandboxEnvironment.fingerprint(context);
         reports.ensureWritable();
 
         return LaboratorySandboxClient.execute(
