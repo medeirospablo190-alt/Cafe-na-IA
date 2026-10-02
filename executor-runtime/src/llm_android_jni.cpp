@@ -35,6 +35,9 @@ struct ModelSession
     std::atomic<int64_t> contextSetupNanos{0};
     std::atomic<int64_t> promptEvalNanos{0};
     std::atomic<int64_t> tokenGenerationNanos{0};
+    std::atomic<int64_t> contextStartedNanos{0};
+    std::atomic<int64_t> promptStartedNanos{0};
+    std::atomic<int64_t> tokenStartedNanos{0};
     std::atomic<int64_t> generationTimeLimitMs{0};
 };
 
@@ -370,12 +373,43 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerationMetrics(
             values[4] = static_cast<jlong>(session->generatedTokens.load());
             values[5] = static_cast<jlong>(
                 session->maxGeneratedTokens.load());
+            int64_t contextNanos =
+                session->contextSetupNanos.load();
+            int64_t promptNanos =
+                session->promptEvalNanos.load();
+            int64_t tokenNanos =
+                session->tokenGenerationNanos.load();
+            const int phase = session->phase.load();
+            const int64_t now = monotonicNanos();
+
+            if (phase == PHASE_CONTEXT
+                    && session->contextStartedNanos.load() > 0)
+            {
+                contextNanos = std::max<int64_t>(
+                    contextNanos,
+                    now - session->contextStartedNanos.load());
+            }
+            if (phase == PHASE_PROMPT
+                    && session->promptStartedNanos.load() > 0)
+            {
+                promptNanos = std::max<int64_t>(
+                    promptNanos,
+                    now - session->promptStartedNanos.load());
+            }
+            if (phase == PHASE_TOKENS
+                    && session->tokenStartedNanos.load() > 0)
+            {
+                tokenNanos = std::max<int64_t>(
+                    tokenNanos,
+                    now - session->tokenStartedNanos.load());
+            }
+
             values[6] = static_cast<jlong>(
-                session->contextSetupNanos.load() / 1'000'000LL);
+                std::max<int64_t>(0, contextNanos) / 1'000'000LL);
             values[7] = static_cast<jlong>(
-                session->promptEvalNanos.load() / 1'000'000LL);
+                std::max<int64_t>(0, promptNanos) / 1'000'000LL);
             values[8] = static_cast<jlong>(
-                session->tokenGenerationNanos.load() / 1'000'000LL);
+                std::max<int64_t>(0, tokenNanos) / 1'000'000LL);
             values[9] = static_cast<jlong>(
                 session->generationTimeLimitMs.load());
         }
@@ -467,6 +501,9 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                 session->contextSetupNanos.store(0);
                 session->promptEvalNanos.store(0);
                 session->tokenGenerationNanos.store(0);
+                session->contextStartedNanos.store(0);
+                session->promptStartedNanos.store(0);
+                session->tokenStartedNanos.store(0);
                 session->generationTimeLimitMs.store(maxGenerationMs);
             }
         }
@@ -562,6 +599,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     params.no_perf = true;
     session->phase.store(PHASE_CONTEXT);
     const int64_t contextStartedNanos = monotonicNanos();
+    session->contextStartedNanos.store(contextStartedNanos);
     session->deadlineNanos.store(
         monotonicNanos()
             + static_cast<int64_t>(maxGenerationMs) * 1'000'000LL);
@@ -574,6 +612,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
         llama_init_from_model(session->model, params);
     session->contextSetupNanos.store(
         std::max<int64_t>(0, monotonicNanos() - contextStartedNanos));
+    session->contextStartedNanos.store(0);
     if (!context)
     {
         session->deadlineNanos.store(0);
@@ -651,6 +690,7 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
     bool ok = true;
     session->phase.store(PHASE_PROMPT);
     const int64_t promptStartedNanos = monotonicNanos();
+    session->promptStartedNanos.store(promptStartedNanos);
     const int32_t batchSize =
         static_cast<int32_t>(params.n_batch);
     for (int32_t offset = 0;
@@ -680,11 +720,16 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
             ok = false;
     }
 
+    session->promptEvalNanos.store(
+        std::max<int64_t>(0, monotonicNanos() - promptStartedNanos));
+    session->promptStartedNanos.store(0);
+
     int64_t tokenStartedNanos = 0;
     if (ok)
     {
         session->phase.store(PHASE_TOKENS);
         tokenStartedNanos = monotonicNanos();
+        session->tokenStartedNanos.store(tokenStartedNanos);
     }
 
     std::string output;
@@ -751,6 +796,14 @@ Java_com_cafeina_runtime_LlamaBridge_nativeGenerateBytes(
                     0, monotonicNanos() - tokenStartedNanos));
         }
         ++position;
+    }
+
+    if (tokenStartedNanos > 0)
+    {
+        session->tokenGenerationNanos.store(
+            std::max<int64_t>(
+                0, monotonicNanos() - tokenStartedNanos));
+        session->tokenStartedNanos.store(0);
     }
 
     llama_sampler_free(sampler);
