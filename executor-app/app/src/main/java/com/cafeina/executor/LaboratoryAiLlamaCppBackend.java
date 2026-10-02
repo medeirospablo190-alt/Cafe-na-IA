@@ -17,6 +17,10 @@ public final class LaboratoryAiLlamaCppBackend
 
     public interface GenerationObserver {
         void onNativePhase(int phase);
+
+        default void onNativeMetrics(
+                LlamaBridge.GenerationMetrics metrics) {
+        }
     }
 
     public static final class RuntimeConfig {
@@ -183,17 +187,24 @@ public final class LaboratoryAiLlamaCppBackend
             phaseMonitor = new Thread(() -> {
                 int lastPhase = Integer.MIN_VALUE;
                 while (monitoring.get()) {
-                    int phase = session.generationPhase();
-                    if (phase != lastPhase) {
-                        lastPhase = phase;
+                    LlamaBridge.GenerationMetrics metrics =
+                        session.generationMetrics();
+                    if (metrics.phase != lastPhase) {
+                        lastPhase = metrics.phase;
                         try {
-                            generationObserver.onNativePhase(phase);
+                            generationObserver.onNativePhase(
+                                metrics.phase);
                         } catch (RuntimeException ignored) {
                             // Observability must never control generation.
                         }
                     }
                     try {
-                        Thread.sleep(100L);
+                        generationObserver.onNativeMetrics(metrics);
+                    } catch (RuntimeException ignored) {
+                        // Telemetry must never control generation.
+                    }
+                    try {
+                        Thread.sleep(250L);
                     } catch (InterruptedException interrupted) {
                         Thread.currentThread().interrupt();
                         return;
@@ -206,20 +217,14 @@ public final class LaboratoryAiLlamaCppBackend
 
         try {
             String output = session.generate(request.prompt, generation);
+            publishFinalTelemetry();
             if (output.length() > request.maxOutputChars) {
                 throw new IOException(
                     "llama backend output exceeds planner limit");
             }
             return output;
         } catch (IOException failure) {
-            if (generationObserver != null) {
-                try {
-                    generationObserver.onNativePhase(
-                        session.generationPhase());
-                } catch (RuntimeException ignored) {
-                    // Preserve the generation failure as the authoritative one.
-                }
-            }
+            publishFinalTelemetry();
             throw failure;
         } finally {
             monitoring.set(false);
@@ -231,6 +236,18 @@ public final class LaboratoryAiLlamaCppBackend
                     Thread.currentThread().interrupt();
                 }
             }
+        }
+    }
+
+    private void publishFinalTelemetry() {
+        if (generationObserver == null) return;
+        try {
+            LlamaBridge.GenerationMetrics metrics =
+                session.generationMetrics();
+            generationObserver.onNativePhase(metrics.phase);
+            generationObserver.onNativeMetrics(metrics);
+        } catch (RuntimeException ignored) {
+            // Preserve generation result/failure as authoritative.
         }
     }
 
