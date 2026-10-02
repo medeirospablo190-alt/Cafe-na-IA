@@ -265,7 +265,7 @@ public final class LaboratoryAiExecutionPreflightInstrumentedTest {
                 app.getFilesDir(), project);
         LaboratorySnapshotStore.Snapshot snapshot =
             snapshots.create(
-                toolId,
+                "tool-" + toolId.replace('.', '-'),
                 source.getBytes(StandardCharsets.UTF_8));
         new LaboratoryToolArtifactStore(
             app.getFilesDir(), project)
