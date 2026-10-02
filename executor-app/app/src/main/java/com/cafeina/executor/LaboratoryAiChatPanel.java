@@ -1636,8 +1636,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     == LaboratoryAiOperationalQuery.Kind.NONE) {
                 addAssistantMessage(
                     "A ação atual ainda está em execução. Enquanto ela roda, "
-                        + "você pode me perguntar “status”, “quanto falta?” "
-                        + "ou “onde travou?”. Para iniciar outro pedido, "
+                        + "você pode me perguntar “status”, “quanto falta?”, "
+                        + "“onde travou?” ou “linha do tempo”. "
+                        + "Para iniciar outro pedido, "
                         + "conclua ou cancele a ação atual primeiro.");
                 return;
             }
@@ -1695,6 +1696,46 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
         if (kind == LaboratoryAiOperationalQuery.Kind.ETA) {
             addAssistantMessage(operationalEtaAnswer());
+            return;
+        }
+
+        if (kind == LaboratoryAiOperationalQuery.Kind.TIMELINE) {
+            final String timelineContractId;
+            final String timelineScenarioId;
+            synchronized (persistedEntries) {
+                timelineContractId = workflowContractId;
+                timelineScenarioId = workflowScenarioId;
+            }
+            if (timelineContractId == null
+                    || timelineContractId.isEmpty()) {
+                addAssistantMessage(
+                    "Ainda não existe uma ação com Goal Lock para montar "
+                        + "uma linha do tempo.");
+                return;
+            }
+            diagnosticWorker.execute(() -> {
+                try {
+                    LaboratoryAiActionTimeline.Snapshot timeline =
+                        LaboratoryAiActionTimeline.inspect(
+                            activity.getFilesDir(),
+                            projectId,
+                            timelineContractId,
+                            timelineScenarioId);
+                    String answer = renderActionTimeline(timeline);
+                    runOnUi(() -> {
+                        if (!closed) addAssistantMessage(answer);
+                    });
+                } catch (Exception error) {
+                    String reason = String.valueOf(error.getMessage());
+                    runOnUi(() -> {
+                        if (!closed) {
+                            addAssistantMessage(
+                                "Não consegui montar a linha do tempo desta "
+                                    + "ação. Nada foi alterado.\n" + reason);
+                        }
+                    });
+                }
+            });
             return;
         }
 
@@ -3344,7 +3385,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         input.setEnabled(!value || operationalChat);
         input.setHint(
             operationalChat
-                ? "Pergunte: status, quanto falta, diagnóstico"
+                ? "Pergunte: status, quanto falta, diagnóstico, linha do tempo"
                 : "Mensagem para a CAFEÍNA");
         cancelButton.setVisibility(value ? VISIBLE : GONE);
         cancelButton.setEnabled(value);
