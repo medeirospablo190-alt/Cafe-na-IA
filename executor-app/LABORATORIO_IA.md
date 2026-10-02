@@ -395,3 +395,17 @@ host/usuário.
 - Testes Android verificam Activity privada, proposta PENDING ausente, ROUTED presente no papel correto, REOPEN removendo, novo ROUTE recolocando, DISMISS removendo e ausência de qualquer sessão/execução criada pelo roteamento.
 
 **Próxima fronteira:** uma futura IA Revisora poderá receber somente itens desta caixa. Antes disso, ainda será necessário definir um contrato de revisão separado e de uso único, para que analisar uma proposta não dê poder para aplicá-la.
+
+
+## Status real de execução do planejador local
+
+- `LaboratoryAiExecutionStatus` introduz um contrato imutável de status para acompanhar uma execução do planejador sem conceder nenhuma permissão nova e sem consumir o Goal Lock.
+- Cada execução recebe `executionId`, `contractId`, estado, fase, tempo decorrido, tentativa atual e motivo terminal limitado.
+- O fluxo do planejador agora publica etapas reais: admissão do modelo, preflight, abertura do modelo, leitura do runtime, planejamento, validação e conclusão.
+- A bridge `LlamaBridge` expõe a fase nativa corrente da geração. O JNI diferencia `CONTEXT`, `PROMPT` e `TOKENS`; esses valores vêm dos mesmos atomics usados pelo timeout e não são inferidos por texto de UI.
+- `LaboratoryAiLlamaCppBackend` observa a fase nativa durante a geração e também publica a última fase uma vez na saída por erro, preservando o ponto exato do timeout.
+- A tela atual do planejador mostra status curto com fase, tentativa e tempo. Quando há falha, o diálogo inclui ID da execução, contrato, estado, fase, tempo, último status e motivo; nenhuma ferramenta é executada e o Goal Lock permanece não consumido.
+- O listener de status é somente observabilidade: exceções da UI/observador são ignoradas e nunca controlam a geração.
+- Teste Android cobre transições, terminalidade e preservação da fase de trabalho quando a execução falha.
+
+**Próxima extensão prevista:** persistir um histórico limitado dessas execuções e reutilizar o mesmo contrato de eventos no futuro chat da aba IA, para que o status curto e o diagnóstico detalhado consumam a mesma fonte.
