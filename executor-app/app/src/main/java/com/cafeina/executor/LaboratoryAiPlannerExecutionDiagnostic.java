@@ -5,8 +5,8 @@ import java.util.Locale;
 /**
  * Deterministic, read-only classification of a local planner execution.
  *
- * It consumes only the bounded execution-status contract and never changes
- * model limits, retries, Goal Locks, permissions, or tool state.
+ * It consumes only bounded execution-status metadata and never changes model
+ * limits, retries, Goal Locks, permissions, or tool state.
  */
 public final class LaboratoryAiPlannerExecutionDiagnostic {
     public enum Code {
@@ -52,37 +52,85 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "Não existe snapshot suficiente para localizar a falha.",
                 "CHECK_EXECUTION_STATUS_SOURCE");
         }
+
         Result base = analyze(
             snapshot.state,
             snapshot.phase,
             snapshot.terminalReason);
+        return refineWithTelemetry(
+            base,
+            snapshot.contextSetupMs,
+            snapshot.promptTokens,
+            snapshot.promptTokensProcessed,
+            snapshot.promptEvalMs,
+            snapshot.generatedTokens,
+            snapshot.tokenGenerationMs);
+    }
+
+    public static Result analyze(
+            LaboratoryAiExecutionHistoryStore.Summary summary) {
+        if (summary == null) {
+            return result(
+                Code.UNKNOWN_FAILURE,
+                "Não existe histórico suficiente para localizar a falha.",
+                "CHECK_EXECUTION_HISTORY_SOURCE");
+        }
+
+        Result base = analyze(
+            summary.state,
+            summary.phase,
+            summary.terminalReason);
+        return refineWithTelemetry(
+            base,
+            summary.contextSetupMs,
+            summary.promptTokens,
+            summary.promptTokensProcessed,
+            summary.promptEvalMs,
+            summary.generatedTokens,
+            summary.tokenGenerationMs);
+    }
+
+    private static Result refineWithTelemetry(
+            Result base,
+            long contextSetupMs,
+            int promptTokens,
+            int promptTokensProcessed,
+            long promptEvalMs,
+            int generatedTokens,
+            long tokenGenerationMs) {
+        if (base == null) {
+            return result(
+                Code.UNKNOWN_FAILURE,
+                "O diagnóstico base não foi produzido.",
+                "CHECK_DIAGNOSTIC_PIPELINE");
+        }
 
         if (base.code == Code.PROMPT_TIMEOUT
-                && snapshot.promptTokens > 0) {
-            if (snapshot.promptTokensProcessed == 0
-                    && snapshot.promptEvalMs > 0L) {
+                && promptTokens > 0) {
+            if (promptTokensProcessed == 0
+                    && promptEvalMs > 0L) {
                 return result(
                     Code.PROMPT_TIMEOUT,
                     "O timeout ocorreu no prompt com "
-                        + snapshot.promptTokens
+                        + promptTokens
                         + " tokens totais e nenhum batch completo após "
-                        + snapshot.promptEvalMs
+                        + promptEvalMs
                         + " ms. O gargalo está dentro do primeiro processamento nativo do prompt.",
                     "MEASURE_FIRST_PROMPT_BATCH_LATENCY");
             }
-            if (snapshot.promptTokensProcessed > 0
-                    && snapshot.promptTokensProcessed
-                        < snapshot.promptTokens
-                    && snapshot.promptEvalMs > 0L) {
-                double rate = snapshot.promptTokensPerSecond();
+            if (promptTokensProcessed > 0
+                    && promptTokensProcessed < promptTokens
+                    && promptEvalMs > 0L) {
+                double rate =
+                    promptTokensProcessed * 1000.0 / promptEvalMs;
                 return result(
                     Code.PROMPT_TIMEOUT,
                     "O timeout ocorreu após "
-                        + snapshot.promptTokensProcessed
+                        + promptTokensProcessed
                         + "/"
-                        + snapshot.promptTokens
+                        + promptTokens
                         + " tokens do prompt, em "
-                        + snapshot.promptEvalMs
+                        + promptEvalMs
                         + " ms, com ritmo aproximado de "
                         + formatRate(rate)
                         + " tok/s.",
@@ -91,26 +139,28 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
         }
 
         if (base.code == Code.TOKEN_TIMEOUT
-                && snapshot.generatedTokens > 0
-                && snapshot.tokenGenerationMs > 0L) {
+                && generatedTokens > 0
+                && tokenGenerationMs > 0L) {
+            double rate =
+                generatedTokens * 1000.0 / tokenGenerationMs;
             return result(
                 Code.TOKEN_TIMEOUT,
                 "O timeout ocorreu durante a geração após "
-                    + snapshot.generatedTokens
+                    + generatedTokens
                     + " tokens em "
-                    + snapshot.tokenGenerationMs
+                    + tokenGenerationMs
                     + " ms, com ritmo aproximado de "
-                    + formatRate(snapshot.generatedTokensPerSecond())
+                    + formatRate(rate)
                     + " tok/s.",
                 "PROFILE_TOKEN_GENERATION_THROUGHPUT");
         }
 
         if (base.code == Code.CONTEXT_TIMEOUT
-                && snapshot.contextSetupMs > 0L) {
+                && contextSetupMs > 0L) {
             return result(
                 Code.CONTEXT_TIMEOUT,
                 "O timeout ocorreu durante a preparação do contexto após "
-                    + snapshot.contextSetupMs
+                    + contextSetupMs
                     + " ms.",
                 "PROFILE_CONTEXT_SETUP");
         }
