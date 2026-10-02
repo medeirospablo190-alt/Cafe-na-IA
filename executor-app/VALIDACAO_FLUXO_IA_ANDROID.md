@@ -6,6 +6,7 @@ Esta lista é o gate manual da fundação atual do Laboratório da CAFEÍNA ante
 
 - Um GGUF válido foi importado e selecionado como modelo ativo.
 - O botão `TESTAR PLANEJADOR LOCAL` habilita imediatamente após a seleção do GGUF e volta ao estado bloqueado quando não existe modelo ativo.
+- O planejador oferece `CRIAR GOAL LOCK` diretamente quando ainda não existe um contrato disponível, sem exigir voltar para outra tela.
 - `diagnostic-roundtrip @ 1.0.0` foi preparado como CANDIDATE.
 - A promoção CANDIDATE -> STABLE foi aprovada pelo usuário.
 - O acesso da IA à STABLE foi concedido em uma segunda autorização explícita.
