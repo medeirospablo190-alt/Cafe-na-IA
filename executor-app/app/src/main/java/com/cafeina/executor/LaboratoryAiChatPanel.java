@@ -14,6 +14,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -88,6 +89,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button currentDiagnosticButton;
     private final Button currentActionPrimaryButton;
     private final TextView currentActionStatus;
+    private final ProgressBar currentActionProgress;
     private final TextView liveStatus;
 
     private volatile LaboratoryAiLlamaCppBackend activeBackend;
@@ -136,6 +138,17 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams actionStatusParams = matchWrap();
         actionStatusParams.setMargins(0, 0, 0, dp(8));
         addView(currentActionStatus, actionStatusParams);
+
+        currentActionProgress = new ProgressBar(
+            activity,
+            null,
+            android.R.attr.progressBarStyleHorizontal);
+        currentActionProgress.setMax(1000);
+        currentActionProgress.setIndeterminate(true);
+        currentActionProgress.setVisibility(GONE);
+        LayoutParams currentProgressParams = matchWrap();
+        currentProgressParams.setMargins(0, 0, 0, dp(8));
+        addView(currentActionProgress, currentProgressParams);
 
         currentActionPrimaryButton =
             button("CONTINUAR AÇÃO", ACCENT);
@@ -679,6 +692,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     == LaboratoryAiChatSessionStore.WorkflowState.IDLE) {
             currentActionStatus.setText("");
             currentActionStatus.setVisibility(GONE);
+            currentActionProgress.setVisibility(GONE);
             refreshCurrentActionPrimaryButton(
                 LaboratoryAiChatSessionStore.WorkflowState.IDLE);
             return;
@@ -695,9 +709,87 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             value.append("\n")
                 .append(detail);
         }
+        if ((state == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+                    || state == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING)
+                && liveStatus != null
+                && liveStatus.getVisibility() == VISIBLE
+                && liveStatus.getText() != null
+                && liveStatus.getText().length() > 0) {
+            value.append("\nAndamento: ")
+                .append(liveStatus.getText());
+        }
         currentActionStatus.setText(value.toString());
         currentActionStatus.setVisibility(VISIBLE);
+        refreshCurrentActionProgressForState(state);
         refreshCurrentActionPrimaryButton(state);
+    }
+
+    private void refreshCurrentActionProgressForState(
+            LaboratoryAiChatSessionStore.WorkflowState state) {
+        if (currentActionProgress == null) return;
+
+        if (state
+                == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
+                || state
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING) {
+            currentActionProgress.setVisibility(VISIBLE);
+            if (currentActionProgress.getProgress() <= 0) {
+                currentActionProgress.setIndeterminate(true);
+            }
+        } else {
+            currentActionProgress.setVisibility(GONE);
+            currentActionProgress.setIndeterminate(true);
+            currentActionProgress.setProgress(0);
+        }
+    }
+
+    private void renderPlannerProgress(
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        if (snapshot == null || currentActionProgress == null) return;
+        currentActionProgress.setVisibility(VISIBLE);
+
+        if (snapshot.state
+                == LaboratoryAiExecutionStatus.State.COMPLETED) {
+            currentActionProgress.setIndeterminate(false);
+            currentActionProgress.setProgress(1000);
+            return;
+        }
+
+        if (snapshot.phase
+                == LaboratoryAiExecutionStatus.Phase.MODEL_PROMPT
+                && snapshot.promptTokens > 0) {
+            currentActionProgress.setIndeterminate(false);
+            currentActionProgress.setProgress(
+                progressFraction(
+                    snapshot.promptTokensProcessed,
+                    snapshot.promptTokens));
+        } else {
+            currentActionProgress.setIndeterminate(true);
+        }
+    }
+
+    private void renderTestProgress(
+            int completedSteps,
+            int totalSteps) {
+        if (currentActionProgress == null) return;
+        currentActionProgress.setVisibility(VISIBLE);
+        if (totalSteps <= 0) {
+            currentActionProgress.setIndeterminate(true);
+            return;
+        }
+        currentActionProgress.setIndeterminate(false);
+        currentActionProgress.setProgress(
+            progressFraction(completedSteps, totalSteps));
+    }
+
+    private static int progressFraction(int completed, int total) {
+        if (completed <= 0 || total <= 0) return 0;
+        if (completed >= total) return 1000;
+        return (int) Math.max(
+            0L,
+            Math.min(
+                1000L,
+                Math.round(completed * 1000.0 / total)));
     }
 
     private void refreshCurrentActionPrimaryButton(
@@ -1716,6 +1808,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         }
 
         setLiveStatus(out.toString());
+        renderPlannerProgress(snapshot);
     }
 
     private void renderPlannerResult(
@@ -1895,6 +1988,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                             "Testadora admitida • "
                                                 + plannedSteps
                                                 + " passo(s)");
+                                        renderTestProgress(
+                                            0,
+                                            plannedSteps);
                                     }
                                 });
                             }
@@ -1913,6 +2009,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                                 + totalSteps
                                                 + " • " + toolId
                                                 + " • executando");
+                                        renderTestProgress(
+                                            Math.max(0, stepIndex - 1),
+                                            totalSteps);
                                     }
                                 });
                             }
@@ -1936,6 +2035,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                                 + " • "
                                                 + evidence.durationMs
                                                 + " ms");
+                                        renderTestProgress(
+                                            stepIndex,
+                                            totalSteps);
                                     }
                                 });
                             }
@@ -1951,6 +2053,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                                                 + "/"
                                                 + report.plannedSteps
                                                 + " passo(s)");
+                                        renderTestProgress(
+                                            report.executedSteps,
+                                            report.plannedSteps);
                                     }
                                 });
                             }
@@ -2283,11 +2388,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void setLiveStatus(String value) {
         liveStatus.setText(value == null ? "" : value);
         liveStatus.setVisibility(VISIBLE);
+        refreshCurrentActionStatus();
     }
 
     private void hideLiveStatus() {
         liveStatus.setText("");
         liveStatus.setVisibility(GONE);
+        refreshCurrentActionStatus();
     }
 
     private void addUserMessage(
