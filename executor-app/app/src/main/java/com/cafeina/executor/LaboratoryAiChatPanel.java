@@ -419,7 +419,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 LaboratoryAiChatSessionStore.Entry entry =
                     persistedEntries.get(i);
                 if (entry.role
-                        == LaboratoryAiChatSessionStore.Role.USER) {
+                        == LaboratoryAiChatSessionStore.Role.USER
+                        && !entry.modelContext) {
                     return entry.text;
                 }
             }
