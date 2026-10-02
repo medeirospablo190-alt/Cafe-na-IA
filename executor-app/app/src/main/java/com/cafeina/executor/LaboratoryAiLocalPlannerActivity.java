@@ -37,9 +37,12 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private static final String ACTIVE_MODEL = "active_model_filename";
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final ExecutorService historyWorker =
+        Executors.newSingleThreadExecutor();
 
     private String projectId;
     private LaboratoryAiTaskContractStore contracts;
+    private LaboratoryAiExecutionHistoryStore executionHistory;
     private TextView feedback;
     private TextView modelStatus;
     private LinearLayout entries;
@@ -58,6 +61,8 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             "cafeina_workspace", MODE_PRIVATE)
             .getString("project_id", "");
         contracts = new LaboratoryAiTaskContractStore(
+            getFilesDir(), projectId);
+        executionHistory = new LaboratoryAiExecutionHistoryStore(
             getFilesDir(), projectId);
 
         LinearLayout root = new LinearLayout(this);
@@ -93,6 +98,15 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         feedback = text("Carregando contratos…", 13, MUTED, false);
         feedback.setPadding(0, dp(4), 0, dp(8));
         root.addView(feedback, matchWrap());
+
+        Button historyButton = button(
+            "HISTÓRICO DO PLANEJADOR",
+            PANEL);
+        historyButton.setOnClickListener(v ->
+            showExecutionHistory());
+        LinearLayout.LayoutParams historyParams = matchWrap();
+        historyParams.setMargins(0, 0, 0, dp(8));
+        root.addView(historyButton, historyParams);
 
         cancelPlannerButton = button(
             "CANCELAR PLANEJAMENTO",
@@ -139,6 +153,18 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                 }
                 runOnUiThread(() -> render(unused, selected));
             } catch (Exception error) {
+                LaboratoryAiExecutionStatus.Snapshot terminal =
+                    executionStatus.snapshot();
+                if (!terminal.terminal()) {
+                    if (cancellation.isCancelled()) {
+                        executionStatus.cancel(
+                            "Planejamento cancelado pelo usuário");
+                    } else {
+                        executionStatus.fail(
+                            String.valueOf(error.getMessage()));
+                    }
+                }
+                persistExecutionHistory(executionStatus);
                 runOnUiThread(() -> {
                     if (!alive()) return;
                     feedback.setText(
@@ -270,6 +296,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
                         "Goal Lock foi alterado durante o planejamento");
                 }
 
+                persistExecutionHistory(executionStatus);
                 runOnUiThread(() -> {
                     clearPlanningCancellation(cancellation);
                     showPlannerResult(contractId, result);
@@ -554,6 +581,95 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         }
     }
 
+    private void persistExecutionHistory(
+            LaboratoryAiExecutionStatus.Tracker tracker) {
+        if (tracker == null || executionHistory == null) return;
+        try {
+            executionHistory.saveExecution(tracker.history());
+        } catch (Exception ignored) {
+            // History is diagnostic only and never controls planner execution.
+        }
+    }
+
+    private void showExecutionHistory() {
+        if (executionHistory == null) return;
+        historyWorker.execute(() -> {
+            try {
+                List<LaboratoryAiExecutionHistoryStore.Summary> summaries =
+                    executionHistory.list();
+                String body = executionHistoryText(summaries);
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    ScrollView scroll = new ScrollView(this);
+                    TextView details = text(body, 13, FG, false);
+                    details.setTypeface(Typeface.MONOSPACE);
+                    details.setTextIsSelectable(true);
+                    details.setPadding(
+                        dp(14), dp(12), dp(14), dp(12));
+                    scroll.addView(details);
+
+                    new AlertDialog.Builder(this)
+                        .setTitle("Histórico do planejador")
+                        .setView(scroll)
+                        .setPositiveButton("FECHAR", null)
+                        .show();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (!alive()) return;
+                    new AlertDialog.Builder(this)
+                        .setTitle("Histórico indisponível")
+                        .setMessage(String.valueOf(error.getMessage()))
+                        .setPositiveButton("OK", null)
+                        .show();
+                });
+            }
+        });
+    }
+
+    private static String executionHistoryText(
+            List<LaboratoryAiExecutionHistoryStore.Summary> summaries) {
+        if (summaries == null || summaries.isEmpty()) {
+            return "Nenhuma execução do planejador foi persistida ainda.";
+        }
+
+        StringBuilder out = new StringBuilder();
+        int limit = Math.min(20, summaries.size());
+        for (int i = 0; i < limit; i++) {
+            LaboratoryAiExecutionHistoryStore.Summary summary =
+                summaries.get(i);
+            if (i > 0) out.append("\n\n");
+            out.append(summary.state.name())
+                .append(" • ")
+                .append(summary.phase.name())
+                .append("\nExecução: ")
+                .append(summary.executionId)
+                .append("\nContrato: ")
+                .append(summary.contractId)
+                .append("\nTempo: ")
+                .append(summary.elapsedMs)
+                .append(" ms")
+                .append("\nEventos: ")
+                .append(summary.eventCount);
+            if (summary.attempt > 0 && summary.maxAttempts > 0) {
+                out.append("\nTentativa: ")
+                    .append(summary.attempt)
+                    .append("/")
+                    .append(summary.maxAttempts);
+            }
+            if (!summary.terminalReason.isEmpty()) {
+                out.append("\nMotivo: ")
+                    .append(summary.terminalReason);
+            }
+        }
+        if (summaries.size() > limit) {
+            out.append("\n\n… ")
+                .append(summaries.size() - limit)
+                .append(" execução(ões) anterior(es) omitida(s).");
+        }
+        return out.toString();
+    }
+
     private void renderExecutionStatus(
             LaboratoryAiExecutionStatus.Snapshot snapshot) {
         if (!alive() || snapshot == null) return;
@@ -718,6 +834,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
             cancellation.cancel();
         }
         worker.shutdownNow();
+        historyWorker.shutdownNow();
         super.onDestroy();
     }
 }
