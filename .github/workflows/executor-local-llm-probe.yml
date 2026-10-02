@@ -81,6 +81,10 @@ jobs:
           "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
             | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeCancelGeneration"
           "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeGenerationPhase"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
+            | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeGenerationTimedOut"
+          "$READELF" -Ws "$TMP/lib/arm64-v8a/libcafeina_llama_jni.so" \
             | grep -F "Java_com_cafeina_runtime_LlamaBridge_nativeClose"
 
           if unzip -Z1 "$APK" | grep -E '^lib/(x86|x86_64|armeabi-v7a)/'; then
