@@ -81,6 +81,16 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private String workflowReportId = "";
     private String workflowDetail = "";
 
+    private boolean pendingPermissionsLoaded;
+    private String pendingActionMessage = "";
+    private LaboratoryAiChatRouter.ModeHint pendingActionModeHint =
+        LaboratoryAiChatRouter.ModeHint.CREATION;
+    private List<LaboratoryAiToolController.Tool> pendingActionTools =
+        Collections.emptyList();
+    private List<String> pendingSuggestedToolIds =
+        Collections.emptyList();
+    private boolean pendingPermissionSuggestionConfident;
+
     private final ScrollView messageScroll;
     private final LinearLayout messages;
     private final EditText input;
@@ -673,6 +683,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 != LaboratoryAiChatSessionStore.WorkflowState.PLAN_READY) {
             latestValidatedPlan = null;
         }
+        if (state
+                != LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW) {
+            pendingPermissionsLoaded = false;
+            pendingActionMessage = "";
+            pendingActionTools = Collections.emptyList();
+            pendingSuggestedToolIds = Collections.emptyList();
+            pendingPermissionSuggestionConfident = false;
+        }
         refreshActionDiagnosticButton();
         schedulePersist();
     }
@@ -858,15 +876,40 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
         switch (state) {
             case ACTION_REVIEW:
-                currentActionPrimaryButton.setText(
-                    "CONTINUAR PERMISSÕES");
-                currentActionPrimaryButton.setEnabled(!busy);
-                currentActionPrimaryButton.setOnClickListener(v -> {
-                    String pending = lastPersistedUserMessage();
-                    if (!pending.isEmpty()) {
-                        resumeActionReview(pending);
-                    }
-                });
+                if (!pendingPermissionsLoaded) {
+                    currentActionPrimaryButton.setText(
+                        "CARREGANDO PERMISSÕES…");
+                    currentActionPrimaryButton.setEnabled(false);
+                } else if (pendingActionTools.isEmpty()) {
+                    currentActionPrimaryButton.setText(
+                        "ABRIR PERMISSÕES GLOBAIS");
+                    currentActionPrimaryButton.setEnabled(!busy);
+                    currentActionPrimaryButton.setOnClickListener(v ->
+                        activity.startActivity(
+                            new Intent(
+                                activity,
+                                LaboratoryAiPermissionsActivity.class)));
+                } else if (pendingPermissionSuggestionConfident) {
+                    currentActionPrimaryButton.setText(
+                        "PERMITIR SUGESTÃO E GERAR PLANO");
+                    currentActionPrimaryButton.setEnabled(!busy);
+                    currentActionPrimaryButton.setOnClickListener(v ->
+                        createGoalLock(
+                            pendingActionMessage,
+                            pendingActionModeHint,
+                            pendingSuggestedToolIds,
+                            true));
+                } else {
+                    currentActionPrimaryButton.setText(
+                        "ESCOLHER PERMISSÕES DA TAREFA");
+                    currentActionPrimaryButton.setEnabled(!busy);
+                    currentActionPrimaryButton.setOnClickListener(v ->
+                        showTaskPermissionDialog(
+                            pendingActionMessage,
+                            pendingActionModeHint,
+                            pendingActionTools,
+                            pendingSuggestedToolIds));
+                }
                 break;
             case GOAL_LOCK_CREATED:
                 currentActionPrimaryButton.setText(
@@ -1536,6 +1579,15 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void beginControlledAction(
             String message,
             LaboratoryAiChatRouter.ModeHint modeHint) {
+        pendingPermissionsLoaded = false;
+        pendingActionMessage = message == null ? "" : message;
+        pendingActionModeHint = modeHint == null
+            ? LaboratoryAiChatRouter.ModeHint.CREATION
+            : modeHint;
+        pendingActionTools = Collections.emptyList();
+        pendingSuggestedToolIds = Collections.emptyList();
+        pendingPermissionSuggestionConfident = false;
+
         updateWorkflow(
             LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW,
             "",
@@ -1572,21 +1624,32 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 ? Collections.emptyList()
                 : available;
 
+        pendingPermissionsLoaded = true;
+        pendingActionMessage = message == null ? "" : message;
+        pendingActionModeHint = modeHint == null
+            ? LaboratoryAiChatRouter.ModeHint.CREATION
+            : modeHint;
+        pendingActionTools = Collections.unmodifiableList(
+            new ArrayList<>(safe));
+        pendingSuggestedToolIds = Collections.emptyList();
+        pendingPermissionSuggestionConfident = false;
+
         if (safe.isEmpty()) {
+            refreshCurrentActionStatus();
             addAssistantMessage(
                 "Nenhuma ferramenta STABLE está liberada para a IA neste "
-                    + "projeto. O pedido continua intacto e nada foi executado.");
-            addActionButton(
-                "REVISAR PERMISSÕES DA IA",
-                () -> activity.startActivity(
-                    new Intent(
-                        activity,
-                        LaboratoryAiPermissionsActivity.class)));
+                    + "projeto. O pedido continua intacto e nada foi executado. "
+                    + "Use o botão principal da AÇÃO ATUAL para abrir as "
+                    + "permissões globais.");
             return;
         }
 
         LaboratoryAiPermissionSuggestion.Result suggestion =
             LaboratoryAiPermissionSuggestion.suggest(message, safe);
+        pendingSuggestedToolIds = Collections.unmodifiableList(
+            new ArrayList<>(suggestion.suggestedToolIds));
+        pendingPermissionSuggestionConfident = suggestion.confident;
+        refreshCurrentActionStatus();
 
         StringBuilder names = new StringBuilder();
         for (LaboratoryAiToolController.Tool tool : safe) {
@@ -1617,22 +1680,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
         if (suggestion.confident) {
             addActionButton(
-                "PERMITIR SUGESTÃO E GERAR PLANO",
-                () -> createGoalLock(
-                    message,
-                    modeHint,
-                    suggestion.suggestedToolIds,
-                    true));
-            addActionButton(
                 "REVISAR PERMISSÕES DESTA TAREFA",
-                () -> showTaskPermissionDialog(
-                    message,
-                    modeHint,
-                    safe,
-                    suggestion.suggestedToolIds));
-        } else {
-            addActionButton(
-                "ESCOLHER PERMISSÕES DA TAREFA",
                 () -> showTaskPermissionDialog(
                     message,
                     modeHint,
