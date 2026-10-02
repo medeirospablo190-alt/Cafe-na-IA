@@ -223,6 +223,57 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 }
             }
 
+            if (contract != null && contract.resultRecorded) {
+                try {
+                    LaboratoryAiTestAgentReportStore.Entry recoveredReport =
+                        null;
+                    for (LaboratoryAiTestAgentReportStore.Entry entry :
+                            new LaboratoryAiTestAgentReportStore(
+                                activity.getFilesDir(), projectId).list()) {
+                        if (contract.contractId.equals(entry.contractId)) {
+                            recoveredReport = entry;
+                            break;
+                        }
+                    }
+
+                    if (recoveredReport != null) {
+                        LaboratoryAiChatSessionStore.WorkflowState terminal;
+                        if ("PASS".equals(recoveredReport.status)) {
+                            terminal =
+                                LaboratoryAiChatSessionStore.WorkflowState.COMPLETED;
+                        } else if ("CANCELLED".equals(recoveredReport.status)) {
+                            terminal =
+                                LaboratoryAiChatSessionStore.WorkflowState.CANCELLED;
+                        } else if ("PAUSED".equals(recoveredReport.status)) {
+                            terminal =
+                                LaboratoryAiChatSessionStore.WorkflowState.INTERRUPTED;
+                        } else {
+                            terminal =
+                                LaboratoryAiChatSessionStore.WorkflowState.FAILED;
+                        }
+
+                        loaded = new LaboratoryAiChatSessionStore.Snapshot(
+                            System.currentTimeMillis(),
+                            loaded.entries,
+                            terminal,
+                            contract.contractId,
+                            loaded.scenarioId,
+                            recoveredReport.reportId,
+                            "Relatório recuperado • "
+                                + recoveredReport.status);
+                        try {
+                            sessionStore.save(loaded);
+                        } catch (Exception ignored) {
+                            // Reconciliation can still be shown in memory.
+                        }
+                    }
+                } catch (Exception failure) {
+                    if (error.isEmpty()) {
+                        error = String.valueOf(failure.getMessage());
+                    }
+                }
+            }
+
             if (loaded.workflowState
                     == LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED
                     && !loaded.contractId.isEmpty()
