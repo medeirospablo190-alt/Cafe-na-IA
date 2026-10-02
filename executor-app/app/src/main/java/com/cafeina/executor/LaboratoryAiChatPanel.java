@@ -1334,9 +1334,24 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     .append("\nEstado da sessão: ")
                     .append(snapshot.testSession.state);
             }
+        } else if (snapshot.testSession != null) {
+            out.append("\n\nTESTADORA • SESSÃO SEM RELATÓRIO")
+                .append("\nEstado da sessão: ")
+                .append(snapshot.testSession.state)
+                .append("\nChamadas usadas: ")
+                .append(snapshot.testSession.invocationsUsed)
+                .append("/")
+                .append(snapshot.testSession.maxInvocations)
+                .append("\nEntrada usada: ")
+                .append(formatBytes(snapshot.testSession.inputBytesUsed))
+                .append("/")
+                .append(formatBytes(
+                    snapshot.testSession.maxTotalInputBytes))
+                .append("\nÚltimo evento: ")
+                .append(snapshot.testSession.lastEventAtEpochMs);
         } else {
             out.append("\n\nTESTADORA")
-                .append("\nNenhum relatório terminal registrado.");
+                .append("\nNenhum relatório terminal ou sessão atribuída registrada.");
         }
 
         out.append(
@@ -1803,6 +1818,19 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 .append("/")
                 .append(diagnosis.testReport.plannedSteps)
                 .append(" passo(s)");
+        } else if (diagnosis.testSession != null) {
+            out.append("\nSessão da Testadora: ")
+                .append(diagnosis.testSession.state)
+                .append(" • ")
+                .append(diagnosis.testSession.invocationsUsed)
+                .append("/")
+                .append(diagnosis.testSession.maxInvocations)
+                .append(" chamada(s) usada(s) • ")
+                .append(formatBytes(
+                    diagnosis.testSession.inputBytesUsed))
+                .append("/")
+                .append(formatBytes(
+                    diagnosis.testSession.maxTotalInputBytes));
         }
         return out.toString();
     }
