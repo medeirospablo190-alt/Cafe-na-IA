@@ -1708,6 +1708,16 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         List<String> suggestions = suggestedToolIds == null
             ? Collections.emptyList()
             : suggestedToolIds;
+        pendingActionMessage = message == null ? "" : message;
+        pendingActionModeHint = modeHint == null
+            ? LaboratoryAiChatRouter.ModeHint.CREATION
+            : modeHint;
+        pendingActionTools = Collections.unmodifiableList(
+            new ArrayList<>(tools));
+        pendingSuggestedToolIds = Collections.unmodifiableList(
+            new ArrayList<>(suggestions));
+        pendingPermissionsLoaded = true;
+        refreshCurrentActionStatus();
         String[] labels = new String[tools.size()];
         boolean[] checked = new boolean[tools.size()];
         for (int i = 0; i < tools.size(); i++) {
