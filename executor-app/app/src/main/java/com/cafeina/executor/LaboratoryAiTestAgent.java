@@ -407,6 +407,20 @@ public final class LaboratoryAiTestAgent {
                 failed++;
             }
 
+            LaboratoryAiSessionController.Snapshot afterStep =
+                admitted.host.snapshot();
+            if (control.isCancellationRequested()
+                    || afterStep.state
+                        == LaboratoryAiSessionController.State.CANCELLED) {
+                terminalReason = "HOST_CANCELLED";
+                break;
+            }
+            if (afterStep.state
+                    == LaboratoryAiSessionController.State.PAUSED) {
+                terminalReason = "HOST_PAUSED";
+                break;
+            }
+
             if (outcome.callbackTimedOut) {
                 forcedInfrastructureCancel = true;
                 terminalReason = "STEP_CALLBACK_TIMEOUT";
@@ -427,10 +441,10 @@ public final class LaboratoryAiTestAgent {
             status = "FAIL";
         } else if (end.state == LaboratoryAiSessionController.State.PAUSED) {
             status = "PAUSED";
-            if (terminalReason.isEmpty()) terminalReason = "HOST_PAUSED";
+            terminalReason = "HOST_PAUSED";
         } else if (end.state == LaboratoryAiSessionController.State.CANCELLED) {
             status = "CANCELLED";
-            if (terminalReason.isEmpty()) terminalReason = "HOST_CANCELLED";
+            terminalReason = "HOST_CANCELLED";
         } else {
             boolean completePlan = evidence.size() == plan.steps.size();
             status = failed == 0 && completePlan ? "PASS" : "FAIL";
