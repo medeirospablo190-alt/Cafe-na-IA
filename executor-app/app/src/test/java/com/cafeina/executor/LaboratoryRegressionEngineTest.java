@@ -66,6 +66,31 @@ public final class LaboratoryRegressionEngineTest {
     }
 
     @Test
+    public void requiredEnvironmentCannotPassWithMissingIdentity() {
+        LaboratoryRegressionEngine.RunEvidence baseline =
+            run("base", "PASS", 77, 10, sha('a'), "",
+                "caseA", true, "ok", sha('1'));
+        LaboratoryRegressionEngine.RunEvidence candidate =
+            run("candidate", "PASS", 77, 10, sha('b'), "",
+                "caseA", true, "ok", sha('2'));
+
+        LaboratoryRegressionEngine.Result result =
+            LaboratoryRegressionEngine.evaluate(
+                baseline,
+                candidate,
+                new LaboratoryRegressionEngine.Policy(
+                    100,
+                    100,
+                    true));
+
+        assertEquals(
+            LaboratoryRegressionEngine.Verdict.FAIL,
+            result.verdict);
+        assertTrue(
+            result.reasons.contains("test environment missing"));
+    }
+
+    @Test
     public void behavioralOrReproducibilityDifferencesFailComparison() {
         LaboratoryRegressionEngine.RunEvidence baseline =
             run("base", "PASS", 7, 10, sha('a'), sha('e'),
