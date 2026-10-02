@@ -66,8 +66,9 @@ public final class LaboratoryAiExecutionStatusInstrumentedTest {
         assertEquals(120_000L, snapshot.generationTimeLimitMs);
         assertEquals(0L, snapshot.estimatedRemainingMs);
         assertEquals(50.0, snapshot.promptTokensPerSecond(), 0.001);
-        assertTrue(events.stream().anyMatch(
-            event -> event.estimatedRemainingMs == 10_000L));
+        assertEquals(
+            10_000L,
+            events.get(events.size() - 2).estimatedRemainingMs);
         assertTrue(snapshot.elapsedMs >= 0L);
         assertTrue(events.size() >= 4);
 
