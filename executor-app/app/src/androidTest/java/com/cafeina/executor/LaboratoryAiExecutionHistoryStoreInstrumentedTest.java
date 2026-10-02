@@ -31,13 +31,7 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
         LaboratoryAiExecutionStatus.Tracker tracker =
             new LaboratoryAiExecutionStatus.Tracker(
                 contractId,
-                snapshot -> {
-                    try {
-                        store.append(snapshot);
-                    } catch (Exception error) {
-                        throw new RuntimeException(error);
-                    }
-                });
+                null);
 
         tracker.update(
             LaboratoryAiExecutionStatus.Phase.MODEL_ADMISSION,
@@ -50,6 +44,8 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
         tracker.updateNativePhase(2, 1, 2);
         tracker.fail(
             "local model timed out while processing prompt");
+        store.saveExecution(tracker.history());
+        store.saveExecution(tracker.history());
 
         List<LaboratoryAiExecutionHistoryStore.Summary> summaries =
             store.list();
@@ -106,13 +102,7 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
         LaboratoryAiExecutionStatus.Tracker tracker =
             new LaboratoryAiExecutionStatus.Tracker(
                 contractId,
-                snapshot -> {
-                    try {
-                        store.append(snapshot);
-                    } catch (Exception error) {
-                        throw new RuntimeException(error);
-                    }
-                });
+                null);
 
         tracker.update(
             LaboratoryAiExecutionStatus.Phase.VALIDATING,
@@ -123,6 +113,7 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
             "Plano produzido e validado",
             1,
             2);
+        store.saveExecution(tracker.history());
 
         LaboratoryAiExecutionHistoryStore.Summary summary =
             store.list().get(0);
