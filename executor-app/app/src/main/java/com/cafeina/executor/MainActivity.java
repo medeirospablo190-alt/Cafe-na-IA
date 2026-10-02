@@ -25,6 +25,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.cafeina.runtime.LuauBridge;
 
 import org.json.JSONArray;
@@ -228,6 +230,10 @@ public final class MainActivity extends Activity {
                     ViewGroup.LayoutParams.MATCH_PARENT));
             return;
         }
+        if ("IA".equals(name)) {
+            showAiSection();
+            return;
+        }
 
         LinearLayout section = new LinearLayout(this);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -245,109 +251,10 @@ public final class MainActivity extends Activity {
         detail.setPadding(0, dp(15), 0, dp(22));
         if ("3D".equals(name)) {
             detail.setText("O módulo de criação e edição 3D ainda está em desenvolvimento. Nenhuma alteração será feita nos seus scripts ao entrar nesta área.");
-        } else if ("IA".equals(name)) {
-            detail.setText(
-                "Converse com a CAFEÍNA normalmente. Mensagens comuns usam o "
-                    + "modelo local sem ferramentas; pedidos de ação entram no "
-                    + "Goal Lock e nas permissões antes de qualquer execução.");
         } else {
             detail.setText("A execução Luau, o editor e o armazenamento privado já estão disponíveis na aba CÓDIGO.");
         }
         section.addView(detail, matchWrap());
-
-        if ("IA".equals(name)) {
-            if (aiChatPanel == null) {
-                aiChatPanel = new LaboratoryAiChatPanel(
-                    this, workspace.id());
-            }
-            section.addView(
-                aiChatPanel,
-                new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    0,
-                    1f));
-
-            TextView modelConfigTitle = new TextView(this);
-            modelConfigTitle.setText("MODELO LOCAL • CONFIGURAÇÃO");
-            modelConfigTitle.setTextColor(TEXT);
-            modelConfigTitle.setTextSize(13);
-            modelConfigTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            LinearLayout.LayoutParams configTitleParams = matchWrap();
-            configTitleParams.setMargins(0, dp(10), 0, dp(4));
-            section.addView(modelConfigTitle, configTitleParams);
-
-            localModelStatus = new TextView(this);
-            localModelStatus.setText(localModelImportInProgress
-                ? "Importando modelo para o armazenamento privado…"
-                : localModelMessage);
-            localModelStatus.setTextColor(MUTED);
-            localModelStatus.setTextSize(13);
-            LinearLayout.LayoutParams modelStatusParams = matchWrap();
-            modelStatusParams.setMargins(0, 0, 0, dp(10));
-            section.addView(localModelStatus, modelStatusParams);
-
-            localModelImportButton = makeButton(
-                localModelImportInProgress
-                    ? "IMPORTANDO MODELO…"
-                    : "IMPORTAR MODELO GGUF",
-                PANEL_2);
-            localModelImportButton.setEnabled(!localModelImportInProgress);
-            localModelImportButton.setOnClickListener(
-                v -> requestImportLocalModel());
-            LinearLayout.LayoutParams modelButtonParams = matchWrap();
-            modelButtonParams.setMargins(0, 0, 0, dp(10));
-            section.addView(localModelImportButton, modelButtonParams);
-
-            localModelSelectButton = makeButton(
-                "SELECIONAR MODELO ATIVO",
-                PANEL_2);
-            localModelSelectButton.setEnabled(
-                !localModelImportInProgress && !localModelRuntimeInProgress);
-            localModelSelectButton.setOnClickListener(
-                v -> requestSelectLocalModel());
-            LinearLayout.LayoutParams selectModelParams = matchWrap();
-            selectModelParams.setMargins(0, 0, 0, dp(10));
-            section.addView(localModelSelectButton, selectModelParams);
-
-            localModelTestButton = makeButton(
-                localModelRuntimeInProgress
-                    ? "TESTANDO MODELO…"
-                    : "TESTAR MODELO LOCAL",
-                ACCENT);
-            localModelTestButton.setEnabled(
-                !localModelImportInProgress
-                    && !localModelRuntimeInProgress
-                    && !selectedLocalModelFileName().isEmpty());
-            localModelTestButton.setOnClickListener(
-                v -> testSelectedLocalModel());
-            LinearLayout.LayoutParams testModelParams = matchWrap();
-            testModelParams.setMargins(0, 0, 0, dp(10));
-            section.addView(localModelTestButton, testModelParams);
-
-            localPlannerButton = makeButton(
-                "TESTAR PLANEJADOR LOCAL",
-                PANEL_2);
-            localPlannerButton.setEnabled(
-                !localModelImportInProgress
-                    && !localModelRuntimeInProgress
-                    && !selectedLocalModelFileName().isEmpty());
-            localPlannerButton.setOnClickListener(v ->
-                startActivity(new Intent(
-                    this, LaboratoryAiLocalPlannerActivity.class)));
-            LinearLayout.LayoutParams plannerParams = matchWrap();
-            plannerParams.setMargins(0, 0, 0, dp(10));
-            section.addView(localPlannerButton, plannerParams);
-
-            Button aiDiagnosticsButton = makeButton(
-                "ABRIR DIAGNÓSTICO DAS IAS",
-                PANEL_2);
-            aiDiagnosticsButton.setOnClickListener(v ->
-                startActivity(new Intent(
-                    this, LaboratoryAiDiagnosticsActivity.class)));
-            LinearLayout.LayoutParams diagnosticsParams = matchWrap();
-            diagnosticsParams.setMargins(0, 0, 0, dp(10));
-            section.addView(aiDiagnosticsButton, diagnosticsParams);
-        }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
         back.setOnClickListener(v -> showSection("CÓDIGO"));
@@ -356,6 +263,245 @@ public final class MainActivity extends Activity {
             new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
     }
+
+    private void showAiSection() {
+        if (aiChatPanel == null) {
+            aiChatPanel = new LaboratoryAiChatPanel(this, workspace.id());
+        }
+
+        DrawerLayout drawer = new DrawerLayout(this);
+        drawer.setBackgroundColor(BG);
+
+        LinearLayout chatSurface = new LinearLayout(this);
+        chatSurface.setOrientation(LinearLayout.VERTICAL);
+        chatSurface.setBackgroundColor(BG);
+        chatSurface.setPadding(dp(10), dp(4), dp(10), dp(8));
+
+        LinearLayout compactHeader = new LinearLayout(this);
+        compactHeader.setOrientation(LinearLayout.HORIZONTAL);
+        compactHeader.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView menu = new TextView(this);
+        menu.setText("☰");
+        menu.setTextColor(TEXT);
+        menu.setTextSize(24);
+        menu.setGravity(Gravity.CENTER);
+        menu.setContentDescription("Abrir opções da IA");
+        menu.setOnClickListener(v -> drawer.openDrawer(Gravity.START));
+        compactHeader.addView(menu,
+            new LinearLayout.LayoutParams(dp(46), dp(42)));
+
+        TextView chatTitle = new TextView(this);
+        chatTitle.setText("CAFEÍNA");
+        chatTitle.setTextColor(TEXT);
+        chatTitle.setTextSize(16);
+        chatTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        chatTitle.setGravity(Gravity.CENTER_VERTICAL);
+        compactHeader.addView(chatTitle,
+            new LinearLayout.LayoutParams(0, dp(42), 1f));
+
+        chatSurface.addView(compactHeader, matchWrap());
+        chatSurface.addView(
+            aiChatPanel,
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f));
+
+        DrawerLayout.LayoutParams contentParams =
+            new DrawerLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        drawer.addView(chatSurface, contentParams);
+
+        LinearLayout drawerPanel = buildAiDrawer(drawer);
+        DrawerLayout.LayoutParams drawerParams =
+            new DrawerLayout.LayoutParams(
+                dp(304),
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        drawerParams.gravity = Gravity.START;
+        drawer.addView(drawerPanel, drawerParams);
+
+        screenHost.addView(
+            drawer,
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    private LinearLayout buildAiDrawer(DrawerLayout drawer) {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(PANEL);
+        root.setPadding(dp(16), dp(18), dp(16), dp(16));
+
+        TextView title = new TextView(this);
+        title.setText("OPÇÕES DA IA");
+        title.setTextColor(TEXT);
+        title.setTextSize(17);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        root.addView(title, matchWrap());
+
+        TextView hint = new TextView(this);
+        hint.setText("Deslize para a esquerda ou toque fora para fechar.");
+        hint.setTextColor(MUTED);
+        hint.setTextSize(12);
+        LinearLayout.LayoutParams hintParams = matchWrap();
+        hintParams.setMargins(0, dp(4), 0, dp(14));
+        root.addView(hint, hintParams);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        scroll.addView(body,
+            new ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(scroll,
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f));
+
+        TextView modelTitle = new TextView(this);
+        modelTitle.setText("Modelo local");
+        modelTitle.setTextColor(TEXT);
+        modelTitle.setTextSize(14);
+        modelTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        body.addView(modelTitle, matchWrap());
+
+        localModelStatus = new TextView(this);
+        localModelStatus.setText(localModelImportInProgress
+            ? "Importando modelo para o armazenamento privado…"
+            : localModelMessage);
+        localModelStatus.setTextColor(MUTED);
+        localModelStatus.setTextSize(12);
+        LinearLayout.LayoutParams modelStatusParams = matchWrap();
+        modelStatusParams.setMargins(0, dp(4), 0, dp(10));
+        body.addView(localModelStatus, modelStatusParams);
+
+        localModelImportButton = makeButton(
+            localModelImportInProgress ? "Importando modelo…" : "Importar modelo GGUF",
+            PANEL_2);
+        localModelImportButton.setEnabled(!localModelImportInProgress);
+        localModelImportButton.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            requestImportLocalModel();
+        });
+        addAiDrawerButton(body, localModelImportButton);
+
+        localModelSelectButton = makeButton("Selecionar modelo ativo", PANEL_2);
+        localModelSelectButton.setEnabled(
+            !localModelImportInProgress && !localModelRuntimeInProgress);
+        localModelSelectButton.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            requestSelectLocalModel();
+        });
+        addAiDrawerButton(body, localModelSelectButton);
+
+        localModelTestButton = makeButton(
+            localModelRuntimeInProgress ? "Testando modelo…" : "Testar modelo local",
+            ACCENT);
+        localModelTestButton.setEnabled(
+            !localModelImportInProgress
+                && !localModelRuntimeInProgress
+                && !selectedLocalModelFileName().isEmpty());
+        localModelTestButton.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            testSelectedLocalModel();
+        });
+        addAiDrawerButton(body, localModelTestButton);
+
+        localPlannerButton = makeButton("Testar planejador local", PANEL_2);
+        localPlannerButton.setEnabled(
+            !localModelImportInProgress
+                && !localModelRuntimeInProgress
+                && !selectedLocalModelFileName().isEmpty());
+        localPlannerButton.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            startActivity(new Intent(this, LaboratoryAiLocalPlannerActivity.class));
+        });
+        addAiDrawerButton(body, localPlannerButton);
+
+        TextView advancedTitle = new TextView(this);
+        advancedTitle.setText("Laboratório e diagnóstico");
+        advancedTitle.setTextColor(TEXT);
+        advancedTitle.setTextSize(14);
+        advancedTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        LinearLayout.LayoutParams advancedParams = matchWrap();
+        advancedParams.setMargins(0, dp(16), 0, dp(6));
+        body.addView(advancedTitle, advancedParams);
+
+        Button permissions = makeButton("Permissões da IA", PANEL_2);
+        permissions.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            startActivity(new Intent(this, LaboratoryAiPermissionsActivity.class));
+        });
+        addAiDrawerButton(body, permissions);
+
+        Button goalLocks = makeButton("Goal Locks", PANEL_2);
+        goalLocks.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            startActivity(new Intent(this, LaboratoryAiTaskContractsActivity.class));
+        });
+        addAiDrawerButton(body, goalLocks);
+
+        Button diagnostics = makeButton("Diagnóstico das IAs", PANEL_2);
+        diagnostics.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            startActivity(new Intent(this, LaboratoryAiDiagnosticsActivity.class));
+        });
+        addAiDrawerButton(body, diagnostics);
+
+        TextView conversationTitle = new TextView(this);
+        conversationTitle.setText("Conversa e ação atual");
+        conversationTitle.setTextColor(TEXT);
+        conversationTitle.setTextSize(14);
+        conversationTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        LinearLayout.LayoutParams conversationParams = matchWrap();
+        conversationParams.setMargins(0, dp(16), 0, dp(6));
+        body.addView(conversationTitle, conversationParams);
+
+        Button clearChat = makeButton("Limpar conversa", PANEL_2);
+        clearChat.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            aiChatPanel.requestClearConversation();
+        });
+        addAiDrawerButton(body, clearChat);
+
+        Button actionDiagnostic = makeButton("Diagnóstico da ação", PANEL_2);
+        actionDiagnostic.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            aiChatPanel.requestCurrentActionDiagnostic();
+        });
+        addAiDrawerButton(body, actionDiagnostic);
+
+        Button timeline = makeButton("Linha do tempo da ação", PANEL_2);
+        timeline.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            aiChatPanel.requestCurrentActionTimeline();
+        });
+        addAiDrawerButton(body, timeline);
+
+        Button report = makeButton("Copiar relatório técnico", PANEL_2);
+        report.setOnClickListener(v -> {
+            drawer.closeDrawer(Gravity.START);
+            aiChatPanel.requestCurrentActionSupportReport();
+        });
+        addAiDrawerButton(body, report);
+
+        return root;
+    }
+
+    private void addAiDrawerButton(LinearLayout parent, Button button) {
+        button.setAllCaps(false);
+        button.setTextSize(13);
+        LinearLayout.LayoutParams params = matchWrap();
+        params.setMargins(0, 0, 0, dp(8));
+        parent.addView(button, params);
+    }
+
 
 
 
