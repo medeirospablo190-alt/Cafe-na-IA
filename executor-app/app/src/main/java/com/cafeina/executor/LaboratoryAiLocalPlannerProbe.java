@@ -6,6 +6,7 @@ import android.os.Looper;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -100,6 +101,22 @@ public final class LaboratoryAiLocalPlannerProbe {
             String contractId,
             File modelFile,
             Cancellation cancellation) throws IOException {
+        return plan(
+            context,
+            projectId,
+            contractId,
+            modelFile,
+            cancellation,
+            null);
+    }
+
+    public static Result plan(
+            Context context,
+            String projectId,
+            String contractId,
+            File modelFile,
+            Cancellation cancellation,
+            LaboratoryAiExecutionStatus.Tracker status) throws IOException {
         if (context == null
                 || contractId == null
                 || contractId.isEmpty()
@@ -113,57 +130,128 @@ public final class LaboratoryAiLocalPlannerProbe {
                 "local planner probe must run off the UI thread");
         }
 
-        cancellation.throwIfCancelled();
+        final AtomicInteger activeAttempt = new AtomicInteger(0);
 
-        Context app = context.getApplicationContext();
-        String safeProjectId = projectId == null ? "" : projectId;
+        try {
+            cancellation.throwIfCancelled();
+            update(
+                status,
+                LaboratoryAiExecutionStatus.Phase.MODEL_ADMISSION,
+                "Validando modelo local admitido");
 
-        LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
-            LaboratoryAiLocalModelAdmission.admit(
-                app.getFilesDir(), modelFile);
-        LaboratoryAiLocalModelPreflight.Report preflight =
-            LaboratoryAiLocalModelPreflight.inspect(app, admitted);
-        if (!preflight.canAttemptLoad) {
-            throw new IOException(
-                "local planner preflight blocked load: "
-                    + preflight.signalCodes);
-        }
+            Context app = context.getApplicationContext();
+            String safeProjectId = projectId == null ? "" : projectId;
 
-        try (LaboratoryAiLlamaCppBackend backend =
-                LaboratoryAiLocalModelPreflight.open(
-                    app,
-                    modelFile,
-                    LaboratoryAiLlamaCppBackend.RuntimeConfig
-                        .plannerDefaults())) {
-            cancellation.attach(backend);
-            try {
-                cancellation.throwIfCancelled();
+            LaboratoryAiLocalModelAdmission.AdmittedModel admitted =
+                LaboratoryAiLocalModelAdmission.admit(
+                    app.getFilesDir(), modelFile);
 
-                String runtimeVersion = backend.runtimeVersion();
-                String modelDescription = backend.modelDescription();
-                LaboratoryAiLocalModelTestPlannerGateway gateway =
-                    new LaboratoryAiLocalModelTestPlannerGateway(backend);
-
-                LaboratoryAiLlmTestPlanner.Result planner =
-                    LaboratoryAiLlmTestPlanner.plan(
-                        app,
-                        safeProjectId,
-                        contractId,
-                        request -> {
-                            cancellation.throwIfCancelled();
-                            return gateway.propose(request);
-                        });
-
-                cancellation.throwIfCancelled();
-                return new Result(
-                    admitted.fileName,
-                    preflight,
-                    runtimeVersion,
-                    modelDescription,
-                    planner);
-            } finally {
-                cancellation.detach(backend);
+            update(
+                status,
+                LaboratoryAiExecutionStatus.Phase.PREFLIGHT,
+                "Verificando runtime, memória e modelo");
+            LaboratoryAiLocalModelPreflight.Report preflight =
+                LaboratoryAiLocalModelPreflight.inspect(app, admitted);
+            if (!preflight.canAttemptLoad) {
+                throw new IOException(
+                    "local planner preflight blocked load: "
+                        + preflight.signalCodes);
             }
+
+            update(
+                status,
+                LaboratoryAiExecutionStatus.Phase.MODEL_OPEN,
+                "Abrindo modelo local");
+            try (LaboratoryAiLlamaCppBackend backend =
+                    LaboratoryAiLocalModelPreflight.open(
+                        app,
+                        modelFile,
+                        LaboratoryAiLlamaCppBackend.RuntimeConfig
+                            .plannerDefaults(),
+                        phase -> {
+                            if (status != null) {
+                                status.updateNativePhase(
+                                    phase,
+                                    activeAttempt.get(),
+                                    LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
+                            }
+                        })) {
+                cancellation.attach(backend);
+                try {
+                    cancellation.throwIfCancelled();
+
+                    update(
+                        status,
+                        LaboratoryAiExecutionStatus.Phase.RUNTIME_METADATA,
+                        "Lendo versão do runtime e descrição do modelo");
+                    String runtimeVersion = backend.runtimeVersion();
+                    String modelDescription = backend.modelDescription();
+                    LaboratoryAiLocalModelTestPlannerGateway gateway =
+                        new LaboratoryAiLocalModelTestPlannerGateway(backend);
+
+                    LaboratoryAiLlmTestPlanner.Result planner =
+                        LaboratoryAiLlmTestPlanner.plan(
+                            app,
+                            safeProjectId,
+                            contractId,
+                            request -> {
+                                cancellation.throwIfCancelled();
+                                activeAttempt.set(request.attempt);
+                                if (status != null) {
+                                    status.update(
+                                        LaboratoryAiExecutionStatus.Phase.PLANNING,
+                                        "Gerando proposta de plano JSON",
+                                        request.attempt,
+                                        LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
+                                }
+                                String draft = gateway.propose(request);
+                                if (status != null) {
+                                    status.update(
+                                        LaboratoryAiExecutionStatus.Phase.VALIDATING,
+                                        "Validando proposta determinística",
+                                        request.attempt,
+                                        LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
+                                }
+                                return draft;
+                            });
+
+                    cancellation.throwIfCancelled();
+                    if (status != null) {
+                        int attempt = Math.max(
+                            activeAttempt.get(), planner.attempts);
+                        status.complete(
+                            planner.accepted
+                                ? "Plano produzido e validado"
+                                : "Planejamento concluído com plano rejeitado",
+                            attempt,
+                            LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
+                    }
+                    return new Result(
+                        admitted.fileName,
+                        preflight,
+                        runtimeVersion,
+                        modelDescription,
+                        planner);
+                } finally {
+                    cancellation.detach(backend);
+                }
+            }
+        } catch (IOException | RuntimeException error) {
+            if (status != null) {
+                if (cancellation.isCancelled()) {
+                    status.cancel("Planejamento cancelado pelo usuário");
+                } else {
+                    status.fail(String.valueOf(error.getMessage()));
+                }
+            }
+            throw error;
         }
+    }
+
+    private static void update(
+            LaboratoryAiExecutionStatus.Tracker status,
+            LaboratoryAiExecutionStatus.Phase phase,
+            String detail) {
+        if (status != null) status.update(phase, detail);
     }
 }
