@@ -2099,8 +2099,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         final String selected = selectedModelFileName();
         if (selected.isEmpty()) {
             addAssistantMessage(
-                "Ainda não há modelo local ativo. Selecione um GGUF nos "
-                    + "controles logo abaixo do chat e envie a mensagem novamente.");
+                "Ainda não há modelo local ativo. Abra o menu lateral da IA, "
+                    + "selecione um GGUF e envie a mensagem novamente.");
             return;
         }
 
@@ -2529,7 +2529,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (selected.isEmpty()) {
             addAssistantMessage(
                 "Não há modelo local ativo para gerar o plano. "
-                    + "Selecione um GGUF nos controles da aba IA.");
+                    + "Abra o menu lateral da IA e selecione um GGUF.");
             return;
         }
 

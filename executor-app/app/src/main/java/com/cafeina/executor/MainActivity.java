@@ -268,6 +268,11 @@ public final class MainActivity extends Activity {
         if (aiChatPanel == null) {
             aiChatPanel = new LaboratoryAiChatPanel(this, workspace.id());
         }
+        // The chat panel survives section changes. Detach it from the old
+        // drawer before attaching it to the newly rendered IA surface.
+        if (aiChatPanel.getParent() instanceof ViewGroup) {
+            ((ViewGroup) aiChatPanel.getParent()).removeView(aiChatPanel);
+        }
 
         DrawerLayout drawer = new DrawerLayout(this);
         drawer.setBackgroundColor(BG);
