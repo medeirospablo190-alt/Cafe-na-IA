@@ -346,6 +346,16 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams diagnosticsParams = matchWrap();
             diagnosticsParams.setMargins(0, 0, 0, dp(10));
             section.addView(aiDiagnosticsButton, diagnosticsParams);
+
+            Button toolWorkshopButton = makeButton(
+                "ABRIR WORKSHOP DE FERRAMENTAS",
+                PANEL_2);
+            toolWorkshopButton.setOnClickListener(v ->
+                startActivity(new Intent(
+                    this, LaboratoryToolWorkshopActivity.class)));
+            LinearLayout.LayoutParams workshopParams = matchWrap();
+            workshopParams.setMargins(0, 0, 0, dp(10));
+            section.addView(toolWorkshopButton, workshopParams);
         }
 
         Button back = makeButton("VOLTAR AO CÓDIGO", ACCENT);
