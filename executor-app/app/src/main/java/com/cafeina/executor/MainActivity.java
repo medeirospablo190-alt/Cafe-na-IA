@@ -85,6 +85,7 @@ public final class MainActivity extends Activity {
     private Button localModelImportButton;
     private Button localModelSelectButton;
     private Button localModelTestButton;
+    private Button localPlannerButton;
     private TextView localModelStatus;
     private volatile boolean localModelImportInProgress;
     private volatile boolean localModelRuntimeInProgress;
@@ -323,7 +324,7 @@ public final class MainActivity extends Activity {
             testModelParams.setMargins(0, 0, 0, dp(10));
             section.addView(localModelTestButton, testModelParams);
 
-            Button localPlannerButton = makeButton(
+            localPlannerButton = makeButton(
                 "TESTAR PLANEJADOR LOCAL",
                 PANEL_2);
             localPlannerButton.setEnabled(
@@ -1079,6 +1080,14 @@ public final class MainActivity extends Activity {
                     : "TESTAR MODELO LOCAL");
             localModelTestButton.setEnabled(
                 idle && !selectedLocalModelFileName().isEmpty());
+        }
+        if (localPlannerButton != null) {
+            boolean hasModel = !selectedLocalModelFileName().isEmpty();
+            localPlannerButton.setText(
+                hasModel
+                    ? "TESTAR PLANEJADOR LOCAL"
+                    : "TESTAR PLANEJADOR LOCAL • SELECIONE UM MODELO");
+            localPlannerButton.setEnabled(idle && hasModel);
         }
     }
 

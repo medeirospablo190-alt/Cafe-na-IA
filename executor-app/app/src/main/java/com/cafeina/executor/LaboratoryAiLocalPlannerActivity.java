@@ -2,6 +2,7 @@ package com.cafeina.executor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -53,6 +54,7 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     private TextView modelStatus;
     private ProgressBar executionProgress;
     private LinearLayout entries;
+    private Button createGoalLockButton;
     private Button cancelPlannerButton;
     private volatile LaboratoryAiLocalPlannerProbe.Cancellation
         activePlanningCancellation;
@@ -116,6 +118,16 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         feedback.setPadding(0, dp(4), 0, dp(8));
         root.addView(feedback, matchWrap());
 
+        createGoalLockButton = button(
+            "CRIAR GOAL LOCK",
+            PANEL);
+        createGoalLockButton.setOnClickListener(v ->
+            startActivity(new Intent(
+                this, LaboratoryAiGoalLockCreateActivity.class)));
+        LinearLayout.LayoutParams createGoalParams = matchWrap();
+        createGoalParams.setMargins(0, 0, 0, dp(8));
+        root.addView(createGoalLockButton, createGoalParams);
+
         executionProgress = new ProgressBar(
             this,
             null,
@@ -163,6 +175,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     }
 
     private void refresh() {
+        if (createGoalLockButton != null) {
+            createGoalLockButton.setEnabled(!busy);
+        }
         if (!busy && executionProgress != null) {
             executionProgress.setVisibility(View.GONE);
         }
@@ -207,8 +222,8 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
         if (unused.isEmpty()) {
             entries.addView(text(
                 "Ainda não existe um Goal Lock não consumido neste projeto. "
-                    + "O planejador só trabalha em cima de contratos já "
-                    + "criados pelo fluxo do laboratório.",
+                    + "Use CRIAR GOAL LOCK acima, defina o objetivo e as "
+                    + "ferramentas permitidas; ao voltar, ele aparecerá aqui.",
                 14,
                 MUTED,
                 false), matchWrap());
@@ -1031,6 +1046,9 @@ public final class LaboratoryAiLocalPlannerActivity extends Activity {
     }
 
     private void refreshBusyState() {
+        if (createGoalLockButton != null) {
+            createGoalLockButton.setEnabled(!busy);
+        }
         for (int i = 0; i < entries.getChildCount(); i++) {
             entries.getChildAt(i).setEnabled(!busy);
         }
