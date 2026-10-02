@@ -53,9 +53,9 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "CHECK_EXECUTION_STATUS_SOURCE");
         }
         return analyze(
-            state,
-            phase,
-            terminalReason);
+            snapshot.state,
+            snapshot.phase,
+            snapshot.terminalReason);
     }
 
     public static Result analyze(
