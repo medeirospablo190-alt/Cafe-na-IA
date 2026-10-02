@@ -96,6 +96,74 @@ public final class LaboratoryCandidateRunner {
         // Never scan or snapshot the user's editor/scripts/project directories.
         LaboratorySnapshotStore.Snapshot baseline = snapshots.create(
             "candidate-luau", candidate.getBytes(StandardCharsets.UTF_8));
+        return runPreparedInternal(
+            context,
+            projectId,
+            candidate,
+            toolInput,
+            caseName,
+            expectedFirstReturn,
+            seed,
+            timeoutMs,
+            baseline,
+            completion);
+    }
+
+    /**
+     * Executes a case against an already-created immutable candidate snapshot.
+     * Package-private so suite orchestration can reuse one exact artifact.
+     */
+    static LaboratorySandboxClient.Session runPreparedInternal(
+            Context context,
+            String projectId,
+            String candidate,
+            String toolInput,
+            String caseName,
+            String expectedFirstReturn,
+            long seed,
+            int timeoutMs,
+            LaboratorySnapshotStore.Snapshot baseline,
+            Completion completion) throws IOException {
+        Objects.requireNonNull(context, "context");
+        Objects.requireNonNull(completion, "completion");
+        Objects.requireNonNull(baseline, "candidate snapshot");
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException(
+                "laboratory prepared candidate test must run off the UI thread");
+        }
+        if (candidate == null || candidate.isEmpty()
+                || toolInput == null
+                || caseName == null
+                || !caseName.matches("[a-zA-Z0-9_-]{1,64}")
+                || expectedFirstReturn == null
+                || expectedFirstReturn.length() > 256
+                || candidate.length()
+                    > LaboratorySandboxService.MAX_SOURCE_CHARS
+                || toolInput.length()
+                    > LaboratorySandboxService.MAX_INPUT_CHARS
+                || timeoutMs < 1
+                || timeoutMs
+                    > LaboratorySandboxService.MAX_TIMEOUT_MS) {
+            throw new IllegalArgumentException(
+                "invalid prepared laboratory candidate case");
+        }
+
+        String candidateSha =
+            LaboratoryEngine.fingerprint(candidate).substring(7, 71);
+        int candidateBytes =
+            candidate.getBytes(StandardCharsets.UTF_8).length;
+        if (!candidateSha.equals(baseline.sha256)
+                || candidateBytes != baseline.sizeBytes) {
+            throw new IOException(
+                "prepared candidate snapshot does not match candidate source");
+        }
+
+        LaboratoryReportStore reports =
+            new LaboratoryReportStore(context.getFilesDir(), projectId);
+        LaboratorySnapshotStore snapshots =
+            new LaboratorySnapshotStore(context.getFilesDir(), projectId);
+        reports.ensureWritable();
+
         return LaboratorySandboxClient.execute(
             context, candidate, toolInput, timeoutMs, result ->
             REPORT_IO.execute(() -> {
@@ -104,7 +172,10 @@ public final class LaboratoryCandidateRunner {
                 try {
                     LaboratorySnapshotStore.Snapshot recovered =
                         snapshots.readCopy(baseline.id);
-                    snapshotVerified = recovered.sha256.equals(result.sourceSha256);
+                    snapshotVerified =
+                        recovered.sha256.equals(result.sourceSha256)
+                            && recovered.sha256.equals(candidateSha)
+                            && recovered.sizeBytes == baseline.sizeBytes;
                     if (!snapshotVerified) {
                         recordingError = new IOException(
                             "candidate snapshot does not match executed source");
@@ -121,14 +192,18 @@ public final class LaboratoryCandidateRunner {
                         baseline.id,
                         snapshotVerified);
                 } catch (IOException error) {
-                    if (recordingError != null) error.addSuppressed(recordingError);
+                    if (recordingError != null) {
+                        error.addSuppressed(recordingError);
+                    }
                     recordingError = error;
                 }
                 final IOException failure = recordingError;
-                boolean passed = failure == null && snapshotVerified
+                boolean passed = failure == null
+                    && snapshotVerified
                     && "EXECUTED".equals(result.status)
                     && expectedFirstReturn.equals(result.firstReturn);
-                MAIN.post(() -> completion.onFinished(result, passed, failure));
+                MAIN.post(() ->
+                    completion.onFinished(result, passed, failure));
             }));
     }
 }
