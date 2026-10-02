@@ -46,7 +46,7 @@ public final class LaboratoryTestWorldTest {
     }
 
     @Test
-    public void worldProbeUsesSameBoundedHarnessAndRecordsFixtureHash() {
+    public void worldProbeUsesBoundedHarnessAndRecordsCompositeEnvironmentHash() {
         LaboratoryEngine.Request request = new LaboratoryEngine.Request(
             LaboratoryEngine.WORLD_CONTACT_TOOL, LaboratoryEngine.WORLD_CONTACT_VERSION,
             1234, 1000,
@@ -61,7 +61,20 @@ public final class LaboratoryTestWorldTest {
         assertEquals(LaboratoryEngine.Status.FAIL, report.status);
         assertEquals(1, report.passed);
         assertEquals(1, report.failed);
-        assertEquals(LaboratoryTestWorld.fixtureSha256(), report.environmentSha256);
+        String expectedEnvironmentIdentity =
+            "CAFEINA_HOST_LAB_V1|"
+                + LaboratoryEngine.WORLD_CONTACT_TOOL
+                + "|"
+                + LaboratoryEngine.WORLD_CONTACT_VERSION
+                + "|fixture="
+                + LaboratoryTestWorld.fixtureSha256();
+        String expectedEnvironmentSha256 =
+            LaboratoryEngine.fingerprint(expectedEnvironmentIdentity)
+                .substring(7, 71);
+        assertEquals(expectedEnvironmentSha256, report.environmentSha256);
+        assertFalse(
+            LaboratoryTestWorld.fixtureSha256()
+                .equals(report.environmentSha256));
         assertTrue(report.checks.get(0).passed);
         assertFalse(report.checks.get(1).passed);
         assertEquals("solids=PortaEvento;zones=-", report.checks.get(1).actualOutput);
