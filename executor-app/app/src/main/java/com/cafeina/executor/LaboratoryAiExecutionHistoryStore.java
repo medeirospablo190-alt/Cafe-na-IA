@@ -146,7 +146,7 @@ public final class LaboratoryAiExecutionHistoryStore {
         List<Event> existing = readEventsInternal(
             snapshot.executionId,
             executionRoot,
-            false);
+            true);
         if (existing.size() >= MAX_EVENTS_PER_EXECUTION) {
             throw new IOException(
                 "execution event limit reached; history preserved");
@@ -187,6 +187,60 @@ public final class LaboratoryAiExecutionHistoryStore {
             encoded,
             StandardOpenOption.CREATE_NEW,
             StandardOpenOption.WRITE);
+    }
+
+    public synchronized void saveExecution(
+            List<LaboratoryAiExecutionStatus.Snapshot> snapshots)
+            throws IOException {
+        if (snapshots == null
+                || snapshots.isEmpty()
+                || snapshots.size() > MAX_EVENTS_PER_EXECUTION) {
+            throw new IOException("invalid execution history snapshot list");
+        }
+
+        LaboratoryAiExecutionStatus.Snapshot first = snapshots.get(0);
+        validateSnapshot(first);
+        for (LaboratoryAiExecutionStatus.Snapshot snapshot : snapshots) {
+            validateSnapshot(snapshot);
+            if (!first.executionId.equals(snapshot.executionId)
+                    || !first.contractId.equals(snapshot.contractId)
+                    || first.startedAtEpochMs != snapshot.startedAtEpochMs) {
+                throw new IOException(
+                    "execution history snapshot identity mismatch");
+            }
+        }
+        if (!snapshots.get(snapshots.size() - 1).terminal()) {
+            throw new IOException(
+                "only terminal executions may be persisted");
+        }
+
+        prepareRoot();
+        Path executionRoot = resolveExecutionRoot(first.executionId);
+        List<Event> existing = Files.exists(
+                executionRoot, LinkOption.NOFOLLOW_LINKS)
+            ? readEventsInternal(first.executionId, executionRoot, true)
+            : Collections.emptyList();
+
+        if (existing.size() > snapshots.size()) {
+            throw new IOException(
+                "persisted execution history is longer than source history");
+        }
+        for (int i = 0; i < existing.size(); i++) {
+            if (!same(existing.get(i), snapshots.get(i))) {
+                throw new IOException(
+                    "persisted execution history prefix mismatch");
+            }
+        }
+        if (!existing.isEmpty()
+                && existing.get(existing.size() - 1).terminal()) {
+            if (existing.size() == snapshots.size()) return;
+            throw new IOException(
+                "terminal execution history cannot be extended");
+        }
+
+        for (int i = existing.size(); i < snapshots.size(); i++) {
+            append(snapshots.get(i));
+        }
     }
 
     public synchronized List<Summary> list() throws IOException {
@@ -406,6 +460,22 @@ public final class LaboratoryAiExecutionHistoryStore {
             throw new IOException(
                 "invalid execution history event", error);
         }
+    }
+
+    private static boolean same(
+            Event event,
+            LaboratoryAiExecutionStatus.Snapshot snapshot) {
+        return event.executionId.equals(snapshot.executionId)
+            && event.contractId.equals(snapshot.contractId)
+            && event.startedAtEpochMs == snapshot.startedAtEpochMs
+            && event.updatedAtEpochMs == snapshot.updatedAtEpochMs
+            && event.elapsedMs == snapshot.elapsedMs
+            && event.state == snapshot.state
+            && event.phase == snapshot.phase
+            && event.detail.equals(snapshot.detail)
+            && event.attempt == snapshot.attempt
+            && event.maxAttempts == snapshot.maxAttempts
+            && event.terminalReason.equals(snapshot.terminalReason);
     }
 
     private void validateSnapshot(
