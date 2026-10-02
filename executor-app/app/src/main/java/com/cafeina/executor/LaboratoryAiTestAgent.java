@@ -158,15 +158,22 @@ public final class LaboratoryAiTestAgent {
     public static final class Control {
         private final AtomicBoolean cancelRequested =
             new AtomicBoolean(false);
+        private final AtomicBoolean pauseRequested =
+            new AtomicBoolean(false);
         private final AtomicReference<
             LaboratoryAiSessionController.HostHandle> host =
                 new AtomicReference<>();
         private final AtomicReference<
             LaboratorySandboxClient.Session> invocation =
                 new AtomicReference<>();
+        private final Object pauseMonitor = new Object();
 
         public void cancel() {
             cancelRequested.set(true);
+            pauseRequested.set(false);
+            synchronized (pauseMonitor) {
+                pauseMonitor.notifyAll();
+            }
 
             LaboratorySandboxClient.Session active =
                 invocation.get();
@@ -181,8 +188,90 @@ public final class LaboratoryAiTestAgent {
             }
         }
 
+        /**
+         * Requests a pause at the next safe boundary between tool steps.
+         * The currently running invocation is never cancelled just to pause,
+         * avoiding partial-effect retries.
+         */
+        public void pause() {
+            if (cancelRequested.get()) return;
+            pauseRequested.set(true);
+        }
+
+        public void resume() {
+            pauseRequested.set(false);
+            synchronized (pauseMonitor) {
+                pauseMonitor.notifyAll();
+            }
+        }
+
         public boolean isCancellationRequested() {
             return cancelRequested.get();
+        }
+
+        public boolean isPauseRequested() {
+            return pauseRequested.get();
+        }
+
+        private boolean awaitIfPaused(
+                LaboratoryAiSessionController.HostHandle currentHost,
+                Observer observer,
+                int completedSteps,
+                int totalSteps) throws IOException {
+            if (!pauseRequested.get()) return true;
+
+            LaboratoryAiSessionController.Snapshot snapshot =
+                currentHost.snapshot();
+            if (snapshot.state
+                    == LaboratoryAiSessionController.State.ACTIVE) {
+                currentHost.pause();
+            }
+
+            notifyPaused(observer, completedSteps, totalSteps);
+
+            synchronized (pauseMonitor) {
+                while (pauseRequested.get()
+                        && !cancelRequested.get()) {
+                    LaboratoryAiSessionController.Snapshot waiting =
+                        currentHost.snapshot();
+                    if (waiting.state
+                            == LaboratoryAiSessionController.State.CANCELLED
+                            || waiting.state
+                                == LaboratoryAiSessionController.State.FINISHED) {
+                        return false;
+                    }
+                    try {
+                        pauseMonitor.wait(250L);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        cancelRequested.set(true);
+                        currentHost.cancel();
+                        throw new IOException(
+                            "test agent pause wait interrupted",
+                            interrupted);
+                    }
+                }
+            }
+
+            if (cancelRequested.get()) {
+                return false;
+            }
+
+            LaboratoryAiSessionController.Snapshot beforeResume =
+                currentHost.snapshot();
+            if (beforeResume.state
+                    == LaboratoryAiSessionController.State.FINISHED
+                    || beforeResume.state
+                        == LaboratoryAiSessionController.State.CANCELLED) {
+                return false;
+            }
+            if (beforeResume.state
+                    == LaboratoryAiSessionController.State.PAUSED) {
+                currentHost.resume();
+            }
+
+            notifyResumed(observer, completedSteps, totalSteps);
+            return true;
         }
 
         private void attachHost(
@@ -227,6 +316,16 @@ public final class LaboratoryAiTestAgent {
                 int stepIndex,
                 int totalSteps,
                 StepEvidence evidence) {
+        }
+
+        default void onPaused(
+                int completedSteps,
+                int totalSteps) {
+        }
+
+        default void onResumed(
+                int completedSteps,
+                int totalSteps) {
         }
 
         default void onFinished(Report report) {
@@ -365,6 +464,23 @@ public final class LaboratoryAiTestAgent {
                 stepIndex < plan.steps.size();
                 stepIndex++) {
             Step step = plan.steps.get(stepIndex);
+
+            if (!control.awaitIfPaused(
+                    admitted.host,
+                    observer,
+                    stepIndex,
+                    plan.steps.size())) {
+                LaboratoryAiSessionController.Snapshot pausedEnd =
+                    admitted.host.snapshot();
+                terminalReason =
+                    pausedEnd.state
+                            == LaboratoryAiSessionController.State.CANCELLED
+                        || control.isCancellationRequested()
+                        ? "HOST_CANCELLED"
+                        : "SESSION_FINISHED_EARLY";
+                break;
+            }
+
             if (control.isCancellationRequested()) {
                 terminalReason = "HOST_CANCELLED";
                 admitted.host.cancel();
@@ -542,6 +658,30 @@ public final class LaboratoryAiTestAgent {
                 stepIndex,
                 totalSteps,
                 evidence);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
+    }
+
+    private static void notifyPaused(
+            Observer observer,
+            int completedSteps,
+            int totalSteps) {
+        if (observer == null) return;
+        try {
+            observer.onPaused(completedSteps, totalSteps);
+        } catch (RuntimeException ignored) {
+            // Observability must never control deterministic execution.
+        }
+    }
+
+    private static void notifyResumed(
+            Observer observer,
+            int completedSteps,
+            int totalSteps) {
+        if (observer == null) return;
+        try {
+            observer.onResumed(completedSteps, totalSteps);
         } catch (RuntimeException ignored) {
             // Observability must never control deterministic execution.
         }
