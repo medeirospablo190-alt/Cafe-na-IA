@@ -166,10 +166,59 @@ public final class LaboratoryCandidateTestSuiteRunnerInstrumentedTest {
                 .listVerified()
                 .size());
 
+        LaboratoryCandidateEvidenceRecovery.Result recovered =
+            LaboratoryCandidateEvidenceRecovery.inspect(
+                app,
+                project,
+                toolId,
+                version,
+                Arrays.asList(
+                    new LaboratoryCandidateTestSuiteRunner.TestCase(
+                        "echo-a",
+                        "alpha",
+                        "alpha",
+                        11L,
+                        1000),
+                    new LaboratoryCandidateTestSuiteRunner.TestCase(
+                        "echo-b",
+                        "beta",
+                        "beta",
+                        12L,
+                        1000)));
+        assertTrue(recovered.ready);
+        assertEquals(2, recovered.runIds.size());
+        assertEquals(
+            new HashSet<>(result.runIds),
+            new HashSet<>(recovered.runIds));
+        assertEquals(snapshot.id, recovered.snapshotId);
+
+        LaboratoryCandidateEvidenceRecovery.Result changedSeed =
+            LaboratoryCandidateEvidenceRecovery.inspect(
+                app,
+                project,
+                toolId,
+                version,
+                Arrays.asList(
+                    new LaboratoryCandidateTestSuiteRunner.TestCase(
+                        "echo-a",
+                        "alpha",
+                        "alpha",
+                        999L,
+                        1000),
+                    new LaboratoryCandidateTestSuiteRunner.TestCase(
+                        "echo-b",
+                        "beta",
+                        "beta",
+                        12L,
+                        1000)));
+        assertFalse(changedSeed.ready);
+        assertTrue(
+            changedSeed.missingCaseNames.contains("echo-a"));
+
         registry.qualifyCandidate(
             toolId,
             version,
-            result.runIds);
+            recovered.runIds);
 
         assertEquals(
             LaboratoryToolRegistry.Stage.CANDIDATE,
