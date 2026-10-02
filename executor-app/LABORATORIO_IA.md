@@ -409,3 +409,17 @@ host/usuário.
 - Teste Android cobre transições, terminalidade e preservação da fase de trabalho quando a execução falha.
 
 **Próxima extensão prevista:** persistir um histórico limitado dessas execuções e reutilizar o mesmo contrato de eventos no futuro chat da aba IA, para que o status curto e o diagnóstico detalhado consumam a mesma fonte.
+
+
+## Histórico persistente das execuções do planejador
+
+- `LaboratoryAiExecutionStatus.Tracker` mantém uma sequência imutável em memória de todos os snapshots reais produzidos durante uma execução, além do snapshot atual usado pela UI.
+- Ao chegar a um estado terminal (`COMPLETED`, `FAILED` ou `CANCELLED`), `LaboratoryAiExecutionHistoryStore` persiste a sequência completa em `files/laboratory/<escopo>/ai-execution-history/<executionId>/`.
+- O armazenamento é create-only, limitado a 128 execuções por projeto, 64 eventos por execução e 8 KiB por evento. Quota atingida não apaga histórico antigo.
+- Cada evento registra somente metadados de observabilidade: execução, contrato, horários, estado, fase, tentativa, detalhe curto e motivo terminal. Não são persistidos Goal Lock bruto, prompt, resposta do modelo, plano JSON bruto, `tool_input`, stdout ou fonte executável.
+- Leituras revalidam UUIDs, sequência contígua, identidade da execução, monotonicidade de tempo, transições terminais e limites de tamanho antes de aceitar o histórico.
+- A tela do planejador ganhou `HISTÓRICO DO PLANEJADOR`, com as execuções mais recentes e seus estados finais. A leitura ocorre fora da thread da interface.
+- Falha ao gravar histórico não altera o resultado do planejador: observabilidade continua separada do controle de execução e não ganha permissão sobre Goal Lock, ferramentas ou TestAgent.
+- O mesmo contrato de `Snapshot` usado na UI ao vivo é o que alimenta o histórico. Isso deixa a fonte pronta para um futuro chat da aba IA consumir status ao vivo e execuções passadas sem criar um segundo sistema de progresso.
+
+**Limite atual:** o histórico é persistido quando a execução chega a um estado terminal. Uma morte abrupta do processo antes desse ponto ainda pode perder a sequência em memória daquela execução; persistência incremental/crash-safe poderá ser adicionada depois se os testes no aparelho mostrarem necessidade.
