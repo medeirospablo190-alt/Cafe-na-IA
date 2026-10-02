@@ -176,6 +176,83 @@ public final class LaboratoryAiActionDiagnosticInstrumentedTest {
     }
 
     @Test
+    public void claimedGoalLockFindsOrphanedTesterSessionWithoutReport()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation()
+            .getTargetContext();
+        String project =
+            "actiontester"
+                + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "diagnostic.tool";
+
+        LaboratoryAiTaskContractStore store =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), project);
+        LaboratoryAiTaskContractStore.Contract contract =
+            store.create(
+                LaboratoryAiTaskContractStore.Mode.LEARNING,
+                "Testar diagnóstico de sessão interrompida.",
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    3,
+                    1024,
+                    30_000L));
+
+        store.claim(contract.contractId);
+
+        String sessionId = UUID.randomUUID().toString();
+        LaboratoryAiSessionStore sessions =
+            new LaboratoryAiSessionStore(
+                app.getFilesDir(), project);
+        sessions.begin(
+            sessionId,
+            System.currentTimeMillis(),
+            Collections.singletonList(toolId),
+            3,
+            1024,
+            30_000L);
+
+        LaboratoryAiTeamRegistry team =
+            new LaboratoryAiTeamRegistry(
+                app.getFilesDir(), project);
+        team.registerMember(
+            "test-agent",
+            "IA de Teste",
+            LaboratoryAiTeamRegistry.ROLE_TESTER);
+        team.bindSession(
+            sessionId,
+            "test-agent",
+            contract.contractId);
+
+        LaboratoryAiActionDiagnostic.Snapshot diagnosis =
+            LaboratoryAiActionDiagnostic.inspect(
+                app.getFilesDir(),
+                project,
+                contract.contractId);
+
+        assertEquals(
+            LaboratoryAiActionDiagnostic.Stage.TEST_AGENT_RUNNING_OR_INTERRUPTED,
+            diagnosis.stage);
+        assertTrue(diagnosis.goalLockClaimed);
+        assertFalse(diagnosis.resultRecorded);
+        assertNull(diagnosis.testReport);
+        assertTrue(diagnosis.testSession != null);
+        assertEquals(sessionId, diagnosis.testSession.sessionId);
+        assertEquals("ACTIVE", diagnosis.testSession.state);
+        assertEquals(
+            "OPEN_AI_SESSION_RECOVERY",
+            diagnosis.nextCheck);
+        assertTrue(
+            diagnosis.explanation.contains(
+                "não está viva no processo atual"));
+
+        LaboratoryAiTaskContractStore.Contract after =
+            store.read(contract.contractId);
+        assertTrue(after.claimed);
+        assertFalse(after.resultRecorded);
+    }
+
+    @Test
     public void freshGoalLockReportsReadyWithoutInventingExecution()
             throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation()
