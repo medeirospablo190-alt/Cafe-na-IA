@@ -114,12 +114,15 @@ public final class LaboratoryAiActionDiagnostic {
                 projectId,
                 contractId);
         LaboratoryAiSessionStore.Summary testSession =
-            report == null || report.sessionId.isEmpty()
-                ? null
-                : sessionSummary(
+            report != null && !report.sessionId.isEmpty()
+                ? sessionSummary(
                     filesDir,
                     projectId,
-                    report.sessionId);
+                    report.sessionId)
+                : latestTestSessionForContract(
+                    filesDir,
+                    projectId,
+                    contractId);
 
         Stage stage;
         String explanation;
@@ -135,10 +138,44 @@ public final class LaboratoryAiActionDiagnostic {
                 : "NO_FAILURE_TO_DIAGNOSE";
         } else if (contract.claimed && !contract.resultRecorded) {
             stage = Stage.TEST_AGENT_RUNNING_OR_INTERRUPTED;
-            explanation =
-                "O Goal Lock já foi consumido, mas ainda não existe resultado "
-                    + "terminal registrado para esta ação.";
-            nextCheck = "OPEN_AI_SESSION_RECOVERY";
+            if (testSession == null) {
+                explanation =
+                    "O Goal Lock já foi consumido, mas ainda não existe "
+                        + "resultado terminal nem sessão atribuída encontrada "
+                        + "para esta ação.";
+                nextCheck = "CHECK_TEST_AGENT_SESSION_ATTRIBUTION";
+            } else {
+                boolean processLost =
+                    ("ACTIVE".equals(testSession.state)
+                        || "PAUSED".equals(testSession.state))
+                        && !LaboratoryAiSessionController.isLiveSession(
+                            testSession.sessionId);
+                explanation =
+                    "A Testadora possui sessão atribuída em estado "
+                        + testSession.state
+                        + ", com " + testSession.invocationsUsed
+                        + "/" + testSession.maxInvocations
+                        + " chamada(s) usada(s) e "
+                        + testSession.inputBytesUsed
+                        + "/" + testSession.maxTotalInputBytes
+                        + " bytes de entrada."
+                        + (processLost
+                            ? " A sessão ainda aparece ativa no audit, mas não "
+                                + "está viva no processo atual; isso é compatível "
+                                + "com interrupção do processo."
+                            : "");
+                if (processLost
+                        || "INTERRUPTED".equals(testSession.state)
+                        || "RECOVERY_PENDING".equals(testSession.state)) {
+                    nextCheck = "OPEN_AI_SESSION_RECOVERY";
+                } else if ("ACTIVE".equals(testSession.state)
+                        || "PAUSED".equals(testSession.state)) {
+                    nextCheck = "WAIT_FOR_ACTIVE_TEST_AGENT";
+                } else {
+                    nextCheck =
+                        "CHECK_TEST_AGENT_REPORT_PERSISTENCE";
+                }
+            }
         } else if (planner != null
                 && planner.state
                     == LaboratoryAiExecutionStatus.State.COMPLETED) {
@@ -219,6 +256,12 @@ public final class LaboratoryAiActionDiagnostic {
                 return "Abra o relatório da Testadora e veja qual passo ou ferramenta falhou.";
             case "OPEN_AI_SESSION_RECOVERY":
                 return "Abra a recuperação da sessão antes de tentar qualquer nova execução.";
+            case "WAIT_FOR_ACTIVE_TEST_AGENT":
+                return "A sessão da Testadora ainda está ativa neste processo. Acompanhe, pause ou cancele; não inicie outra execução em paralelo.";
+            case "CHECK_TEST_AGENT_SESSION_ATTRIBUTION":
+                return "Revise a auditoria da admissão: o Goal Lock foi consumido, mas nenhuma sessão atribuída foi encontrada.";
+            case "CHECK_TEST_AGENT_REPORT_PERSISTENCE":
+                return "A sessão já não está ativa, mas falta o relatório terminal. Revise a persistência do relatório e do marcador de resultado antes de repetir.";
             case "NO_FAILURE_TO_DIAGNOSE":
                 return "Nenhuma falha foi detectada nesta ação. Você pode revisar o relatório final.";
             case "MEASURE_FIRST_PROMPT_BATCH_LATENCY":
@@ -262,6 +305,34 @@ public final class LaboratoryAiActionDiagnostic {
             }
         }
         return null;
+    }
+
+    private static LaboratoryAiSessionStore.Summary
+            latestTestSessionForContract(
+                File filesDir,
+                String projectId,
+                String contractId) throws IOException {
+        LaboratoryAiTeamRegistry.Binding latest = null;
+        for (LaboratoryAiTeamRegistry.Binding binding :
+                new LaboratoryAiTeamRegistry(
+                    filesDir,
+                    projectId == null ? "" : projectId)
+                    .listBindings()) {
+            if (!contractId.equals(binding.contractId)
+                    || !"test-agent".equals(binding.agentId)) {
+                continue;
+            }
+            if (latest == null
+                    || binding.boundAtEpochMs > latest.boundAtEpochMs) {
+                latest = binding;
+            }
+        }
+        return latest == null
+            ? null
+            : sessionSummary(
+                filesDir,
+                projectId,
+                latest.sessionId);
     }
 
     private static LaboratoryAiSessionStore.Summary sessionSummary(
