@@ -3,6 +3,8 @@ package com.cafeina.executor;
 import android.content.Context;
 import android.os.Looper;
 
+import com.cafeina.runtime.LlamaBridge;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -168,10 +170,31 @@ public final class LaboratoryAiLocalPlannerProbe {
                         modelFile,
                         LaboratoryAiLlamaCppBackend.RuntimeConfig
                             .plannerDefaults(),
-                        phase -> {
-                            if (status != null) {
-                                status.updateNativePhase(
-                                    phase,
+                        new LaboratoryAiLlamaCppBackend.GenerationObserver() {
+                            @Override
+                            public void onNativePhase(int phase) {
+                                if (status != null) {
+                                    status.updateNativePhase(
+                                        phase,
+                                        activeAttempt.get(),
+                                        LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
+                                }
+                            }
+
+                            @Override
+                            public void onNativeMetrics(
+                                    LlamaBridge.GenerationMetrics metrics) {
+                                if (status == null || metrics == null) return;
+                                status.updateNativeTelemetry(
+                                    metrics.phase,
+                                    metrics.promptTokens,
+                                    metrics.promptTokensProcessed,
+                                    metrics.generatedTokens,
+                                    metrics.maxGeneratedTokens,
+                                    metrics.contextSetupMs,
+                                    metrics.promptEvalMs,
+                                    metrics.tokenGenerationMs,
+                                    metrics.generationTimeLimitMs,
                                     activeAttempt.get(),
                                     LaboratoryAiLlmTestPlanner.MAX_ATTEMPTS);
                             }
