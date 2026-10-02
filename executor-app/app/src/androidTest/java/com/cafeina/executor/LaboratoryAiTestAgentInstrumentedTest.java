@@ -279,6 +279,80 @@ public final class LaboratoryAiTestAgentInstrumentedTest {
     }
 
     @Test
+    public void hostCancellationAfterAdmissionStopsBeforeFirstStep()
+            throws Exception {
+        Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String project = "agentlivecancel"
+            + UUID.randomUUID().toString().substring(0, 8);
+        String toolId = "test-agent-live-cancel";
+        prepareGrantedStable(app, project, toolId);
+
+        LaboratoryAiTaskContractStore.Contract contract =
+            LaboratoryAiTaskAdmission.createContract(
+                app,
+                project,
+                LaboratoryAiTaskContractStore.Mode.LEARNING,
+                "Cancelar a Testadora pelo host após a admissão.",
+                new LaboratoryAiSessionController.Policy(
+                    Collections.singletonList(toolId),
+                    1,
+                    128,
+                    30_000L));
+
+        LaboratoryAiTestAgent.Plan plan =
+            new LaboratoryAiTestAgent.Plan(
+                Collections.singletonList(
+                    new LaboratoryAiTestAgent.Step(
+                        "must_not_run",
+                        toolId,
+                        "private-cancel-input",
+                        "private-cancel-input")),
+                true);
+
+        LaboratoryAiTestAgent.Control control =
+            new LaboratoryAiTestAgent.Control();
+        LaboratoryAiTestAgent.Report report =
+            LaboratoryAiTestAgent.runBlocking(
+                app,
+                project,
+                contract.contractId,
+                plan,
+                control,
+                new LaboratoryAiTestAgent.Observer() {
+                    @Override
+                    public void onAdmitted(
+                            String sessionId,
+                            int plannedSteps) {
+                        control.cancel();
+                    }
+                });
+
+        assertEquals("CANCELLED", report.status);
+        assertEquals("HOST_CANCELLED", report.terminalReason);
+        assertEquals(0, report.executedSteps);
+        assertEquals(0, report.passed);
+        assertEquals(0, report.failed);
+
+        LaboratoryAiTaskContractStore.Contract after =
+            new LaboratoryAiTaskContractStore(
+                app.getFilesDir(), project)
+                .read(contract.contractId);
+        assertTrue(after.claimed);
+        assertTrue(after.resultRecorded);
+
+        LaboratoryAiSessionStore.Summary summary =
+            new LaboratoryAiSessionStore(
+                app.getFilesDir(), project)
+                .list().stream()
+                .filter(item ->
+                    report.sessionId.equals(item.sessionId))
+                .findFirst()
+                .orElseThrow(() ->
+                    new AssertionError("cancelled session missing"));
+        assertEquals("CANCELLED", summary.state);
+    }
+
+    @Test
     public void invalidPlanDoesNotConsumeGoalLock() throws Exception {
         Context app = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String project = "agentbudget"
