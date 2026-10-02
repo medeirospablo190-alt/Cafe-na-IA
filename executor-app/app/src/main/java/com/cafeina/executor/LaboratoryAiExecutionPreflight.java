@@ -48,6 +48,9 @@ public final class LaboratoryAiExecutionPreflight {
         public final boolean ready;
         public final LaboratoryAiValidatedPlanExecutionGate.Prepared prepared;
         public final List<Check> checks;
+        public final int passedChecks;
+        public final int warningChecks;
+        public final int blockedChecks;
         public final int stepCount;
         public final int totalInputBytes;
         public final long worstCaseToolRuntimeMs;
@@ -61,17 +64,36 @@ public final class LaboratoryAiExecutionPreflight {
             this.prepared = prepared;
             this.checks = Collections.unmodifiableList(
                 new ArrayList<>(checks));
-            boolean blocked = false;
+            int passed = 0;
+            int warnings = 0;
+            int blocked = 0;
             for (Check check : checks) {
-                if (check.level == Level.BLOCK) {
-                    blocked = true;
-                    break;
+                if (check.level == Level.PASS) {
+                    passed++;
+                } else if (check.level == Level.WARNING) {
+                    warnings++;
+                } else if (check.level == Level.BLOCK) {
+                    blocked++;
                 }
             }
-            this.ready = !blocked;
+            this.passedChecks = passed;
+            this.warningChecks = warnings;
+            this.blockedChecks = blocked;
+            this.ready = blocked == 0;
             this.stepCount = stepCount;
             this.totalInputBytes = totalInputBytes;
             this.worstCaseToolRuntimeMs = worstCaseToolRuntimeMs;
+        }
+
+        public boolean hasBlockCode(String code) {
+            if (code == null) return false;
+            for (Check check : checks) {
+                if (check.level == Level.BLOCK
+                        && code.equals(check.code)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
