@@ -3303,6 +3303,29 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         dialog.show();
     }
 
+    private void confirmAndExecutePrepared(
+            LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
+        if (prepared == null || closed || busy) return;
+
+        new AlertDialog.Builder(activity)
+            .setTitle("Executar teste controlado?")
+            .setMessage(
+                "Esta é a confirmação final. Ao continuar, a Testadora "
+                    + "determinística consumirá o Goal Lock de uso único e "
+                    + "poderá executar somente as ferramentas já aprovadas "
+                    + "para esta tarefa.\n\n"
+                    + "Cenário: " + prepared.scenarioId
+                    + "\nPassos: " + prepared.stepCount
+                    + "\nStop on failure: "
+                    + (prepared.stopOnFailure ? "SIM" : "NÃO"))
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton(
+                "EXECUTAR TESTE",
+                (dialog, which) ->
+                    executePreparedInline(prepared))
+            .show();
+    }
+
     private String renderExecutionPreflight(
             LaboratoryAiExecutionPreflight.Result result) {
         StringBuilder out = new StringBuilder();
