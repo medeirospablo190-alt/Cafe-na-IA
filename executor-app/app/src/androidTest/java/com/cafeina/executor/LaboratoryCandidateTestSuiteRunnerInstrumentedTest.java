@@ -128,6 +128,7 @@ public final class LaboratoryCandidateTestSuiteRunnerInstrumentedTest {
         assertEquals(2, reports.list().size());
 
         Set<String> snapshotIds = new HashSet<>();
+        Set<String> environmentIds = new HashSet<>();
         Set<String> caseNames = new HashSet<>();
         for (LaboratoryReportStore.Entry entry : reports.list()) {
             assertEquals("PASS", entry.status);
@@ -139,6 +140,8 @@ public final class LaboratoryCandidateTestSuiteRunnerInstrumentedTest {
             JSONObject report = new JSONObject(entry.reportText);
             snapshotIds.add(
                 report.getString("candidateSnapshotId"));
+            environmentIds.add(
+                report.getString("environmentSha256"));
             caseNames.add(
                 report.getJSONArray("checks")
                     .getJSONObject(0)
@@ -149,6 +152,10 @@ public final class LaboratoryCandidateTestSuiteRunnerInstrumentedTest {
             caseNames);
         assertEquals(1, snapshotIds.size());
         assertTrue(snapshotIds.contains(snapshot.id));
+        assertEquals(1, environmentIds.size());
+        assertTrue(
+            environmentIds.contains(
+                LaboratorySandboxEnvironment.fingerprint(app)));
         assertEquals(
             snapshot.id,
             result.snapshotId);
