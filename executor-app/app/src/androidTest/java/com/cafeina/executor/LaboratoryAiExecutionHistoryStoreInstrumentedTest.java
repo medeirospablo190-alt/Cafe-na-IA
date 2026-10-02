@@ -42,6 +42,18 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
             1,
             2);
         tracker.updateNativePhase(2, 1, 2);
+        tracker.updateNativeTelemetry(
+            2,
+            900,
+            450,
+            0,
+            1024,
+            800L,
+            9_000L,
+            0L,
+            120_000L,
+            1,
+            2);
         tracker.fail(
             "local model timed out while processing prompt");
         store.saveExecution(tracker.history());
@@ -69,6 +81,11 @@ public final class LaboratoryAiExecutionHistoryStoreInstrumentedTest {
         assertEquals(
             "local model timed out while processing prompt",
             summary.terminalReason);
+        assertEquals(900, summary.promptTokens);
+        assertEquals(450, summary.promptTokensProcessed);
+        assertEquals(800L, summary.contextSetupMs);
+        assertEquals(9_000L, summary.promptEvalMs);
+        assertEquals(120_000L, summary.generationTimeLimitMs);
 
         List<LaboratoryAiExecutionHistoryStore.Event> events =
             store.readEvents(summary.executionId);
