@@ -580,9 +580,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 && workflowContractId.isEmpty()) {
             String pendingAction = lastPersistedUserMessage();
             if (!pendingAction.isEmpty()) {
-                addActionButton(
-                    "RETOMAR PERMISSÕES DA TAREFA",
-                    () -> resumeActionReview(pendingAction));
+                resumeActionReview(pendingAction);
+            } else {
+                addAssistantMessage(
+                    "Não encontrei o texto da ação que aguardava permissões. "
+                        + "Envie o objetivo novamente para continuar.");
             }
             return;
         }
