@@ -52,8 +52,24 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "Não existe snapshot suficiente para localizar a falha.",
                 "CHECK_EXECUTION_STATUS_SOURCE");
         }
+        return analyze(
+            state,
+            phase,
+            terminalReason);
+    }
 
-        if (snapshot.state
+    public static Result analyze(
+            LaboratoryAiExecutionStatus.State state,
+            LaboratoryAiExecutionStatus.Phase phase,
+            String terminalReason) {
+        if (state == null || phase == null) {
+            return result(
+                Code.UNKNOWN_FAILURE,
+                "O estado da execução está incompleto.",
+                "CHECK_EXECUTION_STATUS_SOURCE");
+        }
+
+        if (state
                 == LaboratoryAiExecutionStatus.State.RUNNING) {
             return result(
                 Code.RUNNING,
@@ -61,7 +77,7 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "WAIT_FOR_TERMINAL_STATE");
         }
 
-        if (snapshot.state
+        if (state
                 == LaboratoryAiExecutionStatus.State.COMPLETED) {
             return result(
                 Code.COMPLETED,
@@ -69,7 +85,7 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "NO_FAILURE_TO_DIAGNOSE");
         }
 
-        if (snapshot.state
+        if (state
                 == LaboratoryAiExecutionStatus.State.CANCELLED) {
             return result(
                 Code.USER_CANCELLED,
@@ -77,14 +93,14 @@ public final class LaboratoryAiPlannerExecutionDiagnostic {
                 "RETRY_ONLY_IF_USER_REQUESTS");
         }
 
-        String reason = snapshot.terminalReason == null
+        String reason = terminalReason == null
             ? ""
-            : snapshot.terminalReason.toLowerCase(Locale.ROOT);
+            : terminalReason.toLowerCase(Locale.ROOT);
         boolean timeout =
             reason.contains("timed out")
                 || reason.contains("timeout");
 
-        switch (snapshot.phase) {
+        switch (phase) {
             case MODEL_ADMISSION:
                 return result(
                     Code.MODEL_ADMISSION_FAILED,
