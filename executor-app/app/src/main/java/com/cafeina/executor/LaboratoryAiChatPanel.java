@@ -770,6 +770,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         new AlertDialog.Builder(activity)
             .setTitle("Diagnóstico da ação atual")
             .setView(scroll)
+            .setNeutralButton(
+                "VER HISTÓRICO COMPLETO",
+                (dialog, which) -> activity.startActivity(
+                    new Intent(
+                        activity,
+                        LaboratoryAiDiagnosticsActivity.class)))
             .setPositiveButton("FECHAR", null)
             .show();
     }
