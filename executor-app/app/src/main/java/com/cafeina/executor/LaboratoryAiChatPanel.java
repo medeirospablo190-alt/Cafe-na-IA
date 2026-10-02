@@ -1561,11 +1561,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
 
         if (suggestion.confident) {
             addActionButton(
-                "PERMITIR SUGESTÃO • CRIAR GOAL LOCK",
+                "PERMITIR SUGESTÃO E GERAR PLANO",
                 () -> createGoalLock(
                     message,
                     modeHint,
-                    suggestion.suggestedToolIds));
+                    suggestion.suggestedToolIds,
+                    true));
             addActionButton(
                 "REVISAR PERMISSÕES DESTA TAREFA",
                 () -> showTaskPermissionDialog(
@@ -1671,7 +1672,11 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         return;
                     }
                     dialog.dismiss();
-                    createGoalLock(message, modeHint, selected);
+                    createGoalLock(
+                        message,
+                        modeHint,
+                        selected,
+                        false);
                 });
         });
         dialog.show();
@@ -1680,7 +1685,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void createGoalLock(
             String message,
             LaboratoryAiChatRouter.ModeHint modeHint,
-            List<String> selectedToolIds) {
+            List<String> selectedToolIds,
+            boolean generatePlanAfterCreation) {
         setLiveStatus("Criando Goal Lock…");
         worker.execute(() -> {
             try {
@@ -1716,6 +1722,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             + ", com " + contract.allowedToolIds.size()
                             + " ferramenta(s). Nada foi executado.\n"
                             + "Contrato: " + contract.contractId);
+                    if (generatePlanAfterCreation) {
+                        addAssistantMessage(
+                            "Permissões confirmadas. Vou gerar o plano agora; "
+                                + "essa etapa ainda não executa ferramentas "
+                                + "nem consome o Goal Lock.");
+                        runPlannerInline(contract.contractId);
+                    }
                 });
             } catch (Exception error) {
                 runOnUi(() -> {
