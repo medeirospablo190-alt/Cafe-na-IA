@@ -615,6 +615,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void handleAction(
             String message,
             LaboratoryAiChatRouter.Route route) {
+        updateWorkflow(
+            LaboratoryAiChatSessionStore.WorkflowState.ACTION_REVIEW,
+            "",
+            "",
+            "",
+            "Aguardando seleção de permissões da tarefa");
         addAssistantMessage(
             "Entendi isso como um pedido de ação. Não executei nada. "
                 + "Vou manter esse pedido fora da conversa livre e preparar "
@@ -780,6 +786,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 runOnUi(() -> {
                     if (closed) return;
                     hideLiveStatus();
+                    updateWorkflow(
+                        LaboratoryAiChatSessionStore.WorkflowState
+                            .GOAL_LOCK_CREATED,
+                        contract.contractId,
+                        "",
+                        "",
+                        "Goal Lock criado e ainda não consumido");
                     addAssistantMessage(
                         "Goal Lock criado. Objetivo travado em "
                             + contract.mode.name()
@@ -811,6 +824,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     + "Selecione um GGUF nos controles da aba IA.");
             return;
         }
+
+        updateWorkflow(
+            LaboratoryAiChatSessionStore.WorkflowState.PLANNING,
+            contractId,
+            "",
+            "",
+            "Planejador local em execução");
 
         final LaboratoryAiLocalPlannerProbe.Cancellation cancellation =
             new LaboratoryAiLocalPlannerProbe.Cancellation();
@@ -879,6 +899,15 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     LaboratoryAiPlannerExecutionDiagnostic.Result diagnosis =
                         LaboratoryAiPlannerExecutionDiagnostic.analyze(
                             terminal);
+                    updateWorkflow(
+                        terminal.state
+                                == LaboratoryAiExecutionStatus.State.CANCELLED
+                            ? LaboratoryAiChatSessionStore.WorkflowState.CANCELLED
+                            : LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                        contractId,
+                        "",
+                        "",
+                        diagnosis.code.name());
                     addAssistantMessage(
                         (terminal.state
                             == LaboratoryAiExecutionStatus.State.CANCELLED
@@ -983,6 +1012,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             rejected.append(
                 "\nNenhuma ferramenta foi executada e o Goal Lock "
                     + "continua não consumido.");
+            updateWorkflow(
+                LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                contractId,
+                "",
+                "",
+                "Plano rejeitado pela validação determinística");
             addAssistantMessage(rejected.toString());
             return;
         }
@@ -1011,6 +1046,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         accepted.append(
             "\n\nO Goal Lock permanece não consumido. "
                 + "Preparar a Testadora também não executa o plano.");
+        updateWorkflow(
+            LaboratoryAiChatSessionStore.WorkflowState.PLAN_READY,
+            contractId,
+            "",
+            "",
+            "Plano validado; Testadora ainda não preparada");
         addAssistantMessage(accepted.toString());
 
         addActionButton(
@@ -1039,6 +1080,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 runOnUi(() -> {
                     if (closed) return;
                     setBusy(false);
+                    updateWorkflow(
+                        LaboratoryAiChatSessionStore.WorkflowState.TEST_PREPARED,
+                        contractId,
+                        prepared.scenarioId,
+                        "",
+                        "Cenário imutável preparado; execução aguarda confirmação");
                     addAssistantMessage(
                         "Testadora preparada, mas ainda não executada."
                             + "\nCenário: " + prepared.scenarioId
@@ -1056,6 +1103,12 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 runOnUi(() -> {
                     if (closed) return;
                     setBusy(false);
+                    updateWorkflow(
+                        LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                        contractId,
+                        "",
+                        "",
+                        "Falha ao preparar cenário da Testadora");
                     addAssistantMessage(
                         "Não consegui preparar a Testadora. "
                             + "Nada foi executado e o Goal Lock não foi consumido."
@@ -1085,6 +1138,13 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private void executePreparedInline(
             LaboratoryAiValidatedPlanExecutionGate.Prepared prepared) {
         if (closed || busy) return;
+
+        updateWorkflow(
+            LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING,
+            prepared.contractId,
+            prepared.scenarioId,
+            "",
+            "Testadora determinística em execução");
 
         final LaboratoryAiTestAgent.Control control =
             new LaboratoryAiTestAgent.Control();
@@ -1178,6 +1238,26 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     if (closed) return;
                     activeTestControl = null;
                     setBusy(false);
+                    LaboratoryAiChatSessionStore.WorkflowState terminalState;
+                    if ("CANCELLED".equals(execution.status)) {
+                        terminalState =
+                            LaboratoryAiChatSessionStore.WorkflowState.CANCELLED;
+                    } else if ("PASS".equals(execution.status)) {
+                        terminalState =
+                            LaboratoryAiChatSessionStore.WorkflowState.COMPLETED;
+                    } else {
+                        terminalState =
+                            LaboratoryAiChatSessionStore.WorkflowState.FAILED;
+                    }
+                    updateWorkflow(
+                        terminalState,
+                        execution.contractId,
+                        execution.scenarioId,
+                        execution.reportId,
+                        execution.status
+                            + (execution.terminalReason.isEmpty()
+                                ? ""
+                                : " • " + execution.terminalReason));
                     addAssistantMessage(
                         "Teste concluído."
                             + "\nStatus: " + execution.status
@@ -1209,6 +1289,14 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     if (closed) return;
                     activeTestControl = null;
                     setBusy(false);
+                    updateWorkflow(
+                        control.isCancellationRequested()
+                            ? LaboratoryAiChatSessionStore.WorkflowState.CANCELLED
+                            : LaboratoryAiChatSessionStore.WorkflowState.FAILED,
+                        prepared.contractId,
+                        prepared.scenarioId,
+                        "",
+                        String.valueOf(error.getMessage()));
                     addAssistantMessage(
                         "A Testadora não concluiu o cenário."
                             + "\n" + String.valueOf(error.getMessage())
