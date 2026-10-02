@@ -31,6 +31,7 @@ Esta lista é o gate manual da fundação atual do Laboratório da CAFEÍNA ante
 - Fechar e reabrir o app e confirmar restauração do chat e do estado operacional.
 - Revisar sessão órfã/interrompida sem retomada automática.
 - Girar a tela do planejador durante processamento e confirmar preservação do estado.
+- Voltar da criação de Goal Lock e confirmar que o novo contrato aparece sem reiniciar o app.
 
 ## Critério para avançar
 
