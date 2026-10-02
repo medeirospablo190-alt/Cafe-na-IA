@@ -588,8 +588,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                         addAssistantMessage(
                             "O modelo terminou sem produzir texto.");
                     } else {
-                        addAssistantMessage(clean);
-                        remember(false, clean);
+                        addAssistantConversationMessage(clean);
                     }
                     setBusy(false);
                 });
@@ -1456,13 +1455,38 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         liveStatus.setVisibility(GONE);
     }
 
-    private void addUserMessage(String value, boolean remember) {
-        addBubble(value, true);
-        if (remember) remember(true, value);
+    private void addUserMessage(
+            String value,
+            boolean modelContext) {
+        String clean = boundedChatText(value);
+        if (clean.isEmpty()) return;
+        addBubble(clean, true);
+        if (modelContext) remember(true, clean);
+        persistVisibleEntry(
+            LaboratoryAiChatSessionStore.Role.USER,
+            clean,
+            modelContext);
     }
 
     private void addAssistantMessage(String value) {
-        addBubble(value, false);
+        String clean = boundedChatText(value);
+        if (clean.isEmpty()) return;
+        addBubble(clean, false);
+        persistVisibleEntry(
+            LaboratoryAiChatSessionStore.Role.ASSISTANT,
+            clean,
+            false);
+    }
+
+    private void addAssistantConversationMessage(String value) {
+        String clean = boundedChatText(value);
+        if (clean.isEmpty()) return;
+        addBubble(clean, false);
+        remember(false, clean);
+        persistVisibleEntry(
+            LaboratoryAiChatSessionStore.Role.ASSISTANT,
+            clean,
+            true);
     }
 
     private void addBubble(String value, boolean user) {
