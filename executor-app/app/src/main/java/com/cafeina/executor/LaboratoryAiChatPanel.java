@@ -98,6 +98,7 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
     private final Button cancelButton;
     private final Button currentDiagnosticButton;
     private final Button currentTimelineButton;
+    private final Button currentSupportReportButton;
     private final Button currentActionPrimaryButton;
     private final TextView currentActionStatus;
     private final ProgressBar currentActionProgress;
@@ -209,6 +210,16 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         LayoutParams timelineParams = matchWrap();
         timelineParams.setMargins(0, 0, 0, dp(8));
         addView(currentTimelineButton, timelineParams);
+
+        currentSupportReportButton =
+            button("COPIAR RELATÓRIO TÉCNICO", PANEL);
+        currentSupportReportButton.setAllCaps(false);
+        currentSupportReportButton.setEnabled(false);
+        currentSupportReportButton.setOnClickListener(
+            v -> copyCurrentActionSupportReport());
+        LayoutParams supportParams = matchWrap();
+        supportParams.setMargins(0, 0, 0, dp(8));
+        addView(currentSupportReportButton, supportParams);
 
         messageScroll = new ScrollView(activity);
         messageScroll.setFillViewport(true);
@@ -726,6 +737,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (currentTimelineButton != null) {
             currentTimelineButton.setEnabled(enabled);
         }
+        if (currentSupportReportButton != null) {
+            currentSupportReportButton.setEnabled(enabled);
+        }
         refreshCurrentActionStatus();
     }
 
@@ -1125,6 +1139,62 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             default:
                 return "Aguardando próxima ação.";
         }
+    }
+
+    private void copyCurrentActionSupportReport() {
+        if (closed) return;
+
+        final String contractId;
+        final String scenarioId;
+        synchronized (persistedEntries) {
+            contractId = workflowContractId;
+            scenarioId = workflowScenarioId;
+        }
+        if (contractId == null || contractId.isEmpty()) return;
+
+        currentSupportReportButton.setEnabled(false);
+        diagnosticWorker.execute(() -> {
+            try {
+                String report =
+                    LaboratoryAiActionSupportReport.build(
+                        activity.getFilesDir(),
+                        projectId,
+                        contractId,
+                        scenarioId);
+                runOnUi(() -> {
+                    if (closed) return;
+                    refreshActionDiagnosticButton();
+                    android.content.ClipboardManager clipboard =
+                        (android.content.ClipboardManager)
+                            activity.getSystemService(
+                                android.content.Context.CLIPBOARD_SERVICE);
+                    if (clipboard == null) {
+                        addAssistantMessage(
+                            "O relatório técnico foi gerado, mas não consegui "
+                                + "acessar a área de transferência.");
+                        return;
+                    }
+                    clipboard.setPrimaryClip(
+                        android.content.ClipData.newPlainText(
+                            "CAFEÍNA • relatório técnico da ação",
+                            report));
+                    android.widget.Toast.makeText(
+                        activity,
+                        "Relatório técnico copiado",
+                        android.widget.Toast.LENGTH_SHORT)
+                        .show();
+                });
+            } catch (Exception error) {
+                String reason = String.valueOf(error.getMessage());
+                runOnUi(() -> {
+                    if (closed) return;
+                    refreshActionDiagnosticButton();
+                    addAssistantMessage(
+                        "Não consegui gerar o relatório técnico desta ação. "
+                            + "Nada foi alterado.\n" + reason);
+                });
+            }
+        });
     }
 
     private void showCurrentActionTimeline() {
