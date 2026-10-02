@@ -486,7 +486,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (state
                 == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
                 || state
-                == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING) {
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                || state
+                == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
             updateWorkflow(
                 LaboratoryAiChatSessionStore.WorkflowState.INTERRUPTED,
                 snapshot.contractId,
@@ -534,6 +536,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 return "Testadora preparada";
             case TEST_RUNNING:
                 return "Testadora em execução";
+            case TEST_PAUSED:
+                return "Testadora pausada";
             case COMPLETED:
                 return "concluída";
             case FAILED:
@@ -731,7 +735,9 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
         if (state
                 == LaboratoryAiChatSessionStore.WorkflowState.PLANNING
                 || state
-                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING) {
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_RUNNING
+                || state
+                    == LaboratoryAiChatSessionStore.WorkflowState.TEST_PAUSED) {
             currentActionProgress.setVisibility(VISIBLE);
             if (currentActionProgress.getProgress() <= 0) {
                 currentActionProgress.setIndeterminate(true);
@@ -882,11 +888,18 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                     v -> restoreAndConfirmPreparedTest());
                 break;
             case TEST_RUNNING:
-                currentActionPrimaryButton.setText("CANCELAR TESTE");
+                currentActionPrimaryButton.setText("PAUSAR TESTE");
                 currentActionPrimaryButton.setEnabled(
                     activeTestControl != null);
                 currentActionPrimaryButton.setOnClickListener(
-                    v -> cancelActiveResponse());
+                    v -> pauseActiveTest());
+                break;
+            case TEST_PAUSED:
+                currentActionPrimaryButton.setText("CONTINUAR TESTE");
+                currentActionPrimaryButton.setEnabled(
+                    activeTestControl != null);
+                currentActionPrimaryButton.setOnClickListener(
+                    v -> resumeActiveTest());
                 break;
             case COMPLETED:
                 currentActionPrimaryButton.setText(
@@ -981,6 +994,8 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                 return "Próximo: confirmar ou cancelar a execução do teste.";
             case TEST_RUNNING:
                 return "Agora: a Testadora está executando o cenário aprovado.";
+            case TEST_PAUSED:
+                return "Pausada em ponto seguro: continue ou cancele quando quiser.";
             case COMPLETED:
                 return "Concluído: revise o resultado ou o relatório se quiser.";
             case FAILED:
@@ -2043,6 +2058,59 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
                             }
 
                             @Override
+                            public void onPaused(
+                                    int completedSteps,
+                                    int totalSteps) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        updateWorkflow(
+                                            LaboratoryAiChatSessionStore
+                                                .WorkflowState.TEST_PAUSED,
+                                            prepared.contractId,
+                                            prepared.scenarioId,
+                                            "",
+                                            "Pausada após "
+                                                + completedSteps
+                                                + "/" + totalSteps
+                                                + " passo(s)");
+                                        setLiveStatus(
+                                            "Testadora pausada • "
+                                                + completedSteps + "/"
+                                                + totalSteps
+                                                + " passo(s) concluído(s)");
+                                        renderTestProgress(
+                                            completedSteps,
+                                            totalSteps);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onResumed(
+                                    int completedSteps,
+                                    int totalSteps) {
+                                runOnUi(() -> {
+                                    if (!closed && busy) {
+                                        updateWorkflow(
+                                            LaboratoryAiChatSessionStore
+                                                .WorkflowState.TEST_RUNNING,
+                                            prepared.contractId,
+                                            prepared.scenarioId,
+                                            "",
+                                            "Testadora retomada");
+                                        setLiveStatus(
+                                            "Testadora retomada • "
+                                                + completedSteps + "/"
+                                                + totalSteps
+                                                + " passo(s) concluído(s)");
+                                        renderTestProgress(
+                                            completedSteps,
+                                            totalSteps);
+                                    }
+                                });
+                            }
+
+                            @Override
                             public void onFinished(
                                     LaboratoryAiTestAgent.Report report) {
                                 runOnUi(() -> {
@@ -2268,6 +2336,23 @@ public final class LaboratoryAiChatPanel extends LinearLayout {
             }
         }
         return instruction + body;
+    }
+
+    private void pauseActiveTest() {
+        LaboratoryAiTestAgent.Control control = activeTestControl;
+        if (control == null || closed) return;
+        control.pause();
+        setLiveStatus(
+            "Pausa solicitada • aguardando o próximo ponto seguro entre passos…");
+        refreshCurrentActionStatus();
+    }
+
+    private void resumeActiveTest() {
+        LaboratoryAiTestAgent.Control control = activeTestControl;
+        if (control == null || closed) return;
+        control.resume();
+        setLiveStatus("Retomada solicitada à Testadora…");
+        refreshCurrentActionStatus();
     }
 
     private void cancelActiveResponse() {
