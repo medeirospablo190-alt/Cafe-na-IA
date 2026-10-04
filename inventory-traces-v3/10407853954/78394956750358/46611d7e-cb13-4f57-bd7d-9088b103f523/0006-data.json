@@ -1,0 +1,3580 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-04T20:20:01.000Z",
+  "gameId": 10407853954,
+  "placeId": 78394956750358,
+  "placeVersion": 481,
+  "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+  "batchIndex": 6,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 63219,
+  "records": [
+    {
+      "corr": 125,
+      "investigating": true,
+      "clock": 62.58077856999989,
+      "newSemantic": true,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 99,
+      "semanticHash": "13f631b9ff16",
+      "sig": "c6e7cc3c3542",
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+        "name": "StateUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "fabdf075f2cb",
+        "0b65e16d37d9",
+        "ec8e2578539d",
+        "fb00f7763c1a"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 8.625604629516602,
+          "type": "Vector3",
+          "x": -301.3027038574219,
+          "z": 129.69192504882812
+        },
+        "userId": 765329164
+      },
+      "unix": 1791145264,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "type": "Queue",
+            "count": 0,
+            "boards": {
+              "1": {
+                "count": 0,
+                "board": {
+                  "path": "Workspace.DartBoards.DartBoard",
+                  "type": "Instance",
+                  "name": "DartBoard",
+                  "className": "Model"
+                },
+                "prompt": {
+                  "path": "Workspace.DartBoards.DartBoard.PromixtyPrompt.ProximityPrompt",
+                  "type": "Instance",
+                  "name": "ProximityPrompt",
+                  "className": "ProximityPrompt"
+                },
+                "active": true,
+                "size": 2
+              },
+              "2": {
+                "count": 0,
+                "board": {
+                  "path": "Workspace.DartBoards.DartBoard",
+                  "type": "Instance",
+                  "name": "DartBoard",
+                  "className": "Model"
+                },
+                "prompt": {
+                  "path": "Workspace.DartBoards.DartBoard.PromixtyPrompt.ProximityPrompt",
+                  "type": "Instance",
+                  "name": "ProximityPrompt",
+                  "className": "ProximityPrompt"
+                },
+                "active": false,
+                "size": 2
+              },
+              "3": {
+                "count": 1,
+                "board": {
+                  "path": "Workspace.DartBoards.DartBoard",
+                  "type": "Instance",
+                  "name": "DartBoard",
+                  "className": "Model"
+                },
+                "prompt": {
+                  "path": "Workspace.DartBoards.DartBoard.PromixtyPrompt.ProximityPrompt",
+                  "type": "Instance",
+                  "name": "ProximityPrompt",
+                  "className": "ProximityPrompt"
+                },
+                "active": false,
+                "size": 2
+              },
+              "4": {
+                "count": 0,
+                "board": {
+                  "path": "Workspace.DartBoards.DartBoard",
+                  "type": "Instance",
+                  "name": "DartBoard",
+                  "className": "Model"
+                },
+                "prompt": {
+                  "path": "Workspace.DartBoards.DartBoard.PromixtyPrompt.ProximityPrompt",
+                  "type": "Instance",
+                  "name": "ProximityPrompt",
+                  "className": "ProximityPrompt"
+                },
+                "active": false,
+                "size": 2
+              }
+            },
+            "queued": false,
+            "size": 2
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 5,
+            "type": "table",
+            "fields": {
+              "type": {
+                "type": "string"
+              },
+              "count": {
+                "type": "number"
+              },
+              "boards": {
+                "fieldCountAtLeast": 4,
+                "type": "table",
+                "fields": {
+                  "1": {
+                    "fieldCountAtLeast": 5,
+                    "type": "table",
+                    "fields": {
+                      "count": {
+                        "type": "number"
+                      },
+                      "board": {
+                        "className": "Model",
+                        "type": "Instance"
+                      },
+                      "prompt": {
+                        "className": "ProximityPrompt",
+                        "type": "Instance"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "2": {
+                    "fieldCountAtLeast": 5,
+                    "type": "table",
+                    "fields": {
+                      "count": {
+                        "type": "number"
+                      },
+                      "board": {
+                        "className": "Model",
+                        "type": "Instance"
+                      },
+                      "prompt": {
+                        "className": "ProximityPrompt",
+                        "type": "Instance"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "3": {
+                    "fieldCountAtLeast": 5,
+                    "type": "table",
+                    "fields": {
+                      "count": {
+                        "type": "number"
+                      },
+                      "board": {
+                        "className": "Model",
+                        "type": "Instance"
+                      },
+                      "prompt": {
+                        "className": "ProximityPrompt",
+                        "type": "Instance"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "4": {
+                    "fieldCountAtLeast": 5,
+                    "type": "table",
+                    "fields": {
+                      "count": {
+                        "type": "number"
+                      },
+                      "board": {
+                        "className": "Model",
+                        "type": "Instance"
+                      },
+                      "prompt": {
+                        "className": "ProximityPrompt",
+                        "type": "Instance"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              },
+              "queued": {
+                "type": "boolean"
+              },
+              "size": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "13f631b9ff16",
+      "triggerShape": "13f631b9ff16",
+      "parent": {
+        "path": "ReplicatedStorage.DartGameRemotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.QueueRequest",
+            "name": "QueueRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.LeaveQueue",
+            "name": "LeaveQueue",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.SubmitThrow",
+            "name": "SubmitThrow",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+            "name": "StateUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+            "name": "ThrowReplication",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 125,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+        "name": "StateUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "0b65e16d37d9",
+        "ec8e2578539d",
+        "fb00f7763c1a",
+        "c6e7cc3c3542"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": -22.69468879699707,
+          "type": "Vector3",
+          "x": -2.831888252785575e-7,
+          "z": 2.0556501567625673e-7
+        },
+        "angularVelocity": {
+          "y": -0.0000012376865470287157,
+          "type": "Vector3",
+          "x": 2.0860801441813237e-7,
+          "z": -5.426609845926578e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 8.625604629516602,
+          "type": "Vector3",
+          "x": -301.3027038574219,
+          "z": 129.69192504882812
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "4d44253ad35f",
+      "unix": 1791145264,
+      "clock": 62.58119643399914,
+      "kind": "investigation_context",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 100
+    },
+    {
+      "semanticHash": "13f631b9ff16",
+      "contextRefs": [
+        "ec8e2578539d",
+        "fb00f7763c1a",
+        "c6e7cc3c3542",
+        "4d44253ad35f"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 125,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+        "name": "StateUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145264,
+      "triggerHash": "13f631b9ff16",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 6,
+            "clock": 58.464455654999256,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 7,
+            "clock": 58.464573726998424,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 5,
+            "clock": 58.46469700899979,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 8,
+            "clock": 58.464804612998705,
+            "eventValue": 3
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.0019504533847793937,
+            "type": "Vector3",
+            "x": 0.0000025432202619413147,
+            "z": -9.198025168188906e-7
+          },
+          "angularVelocity": {
+            "y": -6.298802625315236e-14,
+            "type": "Vector3",
+            "x": 0.000001235413833455823,
+            "z": 0.0000035969296732218936
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.804994106292725,
+            "type": "Vector3",
+            "x": -301.3027038574219,
+            "z": 129.69192504882812
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "ec8e2578539d",
+          "fb00f7763c1a",
+          "c6e7cc3c3542",
+          "4d44253ad35f"
+        ],
+        "recentGui": []
+      },
+      "sig": "fb440076856b",
+      "probeId": 19,
+      "clock": 62.783024506999936,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "semanticHash": "e9d9cb1be483",
+      "contextRefs": [
+        "fb00f7763c1a",
+        "c6e7cc3c3542",
+        "4d44253ad35f",
+        "fb440076856b"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 126,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145264,
+      "triggerHash": "e9d9cb1be483",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 6,
+            "clock": 58.464455654999256,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 7,
+            "clock": 58.464573726998424,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 5,
+            "clock": 58.46469700899979,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 8,
+            "clock": 58.464804612998705,
+            "eventValue": 3
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.00534285930916667,
+            "type": "Vector3",
+            "x": 6.552208423614502,
+            "z": -3.6112496852874756
+          },
+          "angularVelocity": {
+            "y": -5.582339763641357,
+            "type": "Vector3",
+            "x": -0.00000870338590175379,
+            "z": -0.00025157147319987416
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.867495059967041,
+            "z": -0.4974459111690521
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.804902076721191,
+            "type": "Vector3",
+            "x": -300.47845458984375,
+            "z": 129.2374725341797
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "fb00f7763c1a",
+          "c6e7cc3c3542",
+          "4d44253ad35f",
+          "fb440076856b"
+        ],
+        "recentGui": []
+      },
+      "sig": "fb00f8763c1b",
+      "probeId": 18,
+      "clock": 63.05565148599999,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "corr": 126,
+      "investigating": true,
+      "clock": 63.43266935099928,
+      "newSemantic": true,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 99,
+      "semanticHash": "98334feb2098",
+      "sig": "695d4d1a7164",
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "c6e7cc3c3542",
+        "4d44253ad35f",
+        "fb440076856b",
+        "fb00f8763c1b"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -299.7705078125,
+          "z": 128.8046875
+        },
+        "userId": 765329164
+      },
+      "unix": 1791145265,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "matchId": 25,
+            "duration": 0.6,
+            "action": "FadeTurnDarts",
+            "throwerUserId": 144818463
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 4,
+            "type": "table",
+            "fields": {
+              "matchId": {
+                "type": "number"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "action": {
+                "type": "string"
+              },
+              "throwerUserId": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "98334feb2098",
+      "triggerShape": "98334feb2098",
+      "parent": {
+        "path": "ReplicatedStorage.DartGameRemotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.QueueRequest",
+            "name": "QueueRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.LeaveQueue",
+            "name": "LeaveQueue",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.SubmitThrow",
+            "name": "SubmitThrow",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+            "name": "StateUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+            "name": "ThrowReplication",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 126,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "4d44253ad35f",
+        "fb440076856b",
+        "fb00f8763c1b",
+        "695d4d1a7164"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": 0.000013031343769398518,
+          "type": "Vector3",
+          "x": -8.660322237119544e-7,
+          "z": 1.4399620340554975e-7
+        },
+        "angularVelocity": {
+          "y": -4.6350161257919034e-14,
+          "type": "Vector3",
+          "x": -1.7073514868570783e-7,
+          "z": -0.00000102684725789004
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -299.7705078125,
+          "z": 128.8046875
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "1834bd57d634",
+      "unix": 1791145265,
+      "clock": 63.43298325699834,
+      "kind": "investigation_context",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 100
+    },
+    {
+      "sig": "084f4e7ca775",
+      "eventValue": false,
+      "unix": 1791145265,
+      "observedAfterValue": false,
+      "corr": 126,
+      "object": {
+        "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+        "name": "Rainbow",
+        "className": "BoolValue",
+        "value": false,
+        "attributes": []
+      },
+      "clock": 63.493734611000036,
+      "value": false,
+      "kind": "value_changed",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 72
+    },
+    {
+      "semanticHash": "98334feb2098",
+      "contextRefs": [
+        "fb00f8763c1b",
+        "695d4d1a7164",
+        "1834bd57d634",
+        "084f4e7ca775"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 127,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145265,
+      "triggerHash": "98334feb2098",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.0005943817086517811,
+            "type": "Vector3",
+            "x": -0.000005119072739034891,
+            "z": -0.00000763222124078311
+          },
+          "angularVelocity": {
+            "y": -0.000020645409676944837,
+            "type": "Vector3",
+            "x": 0.0000034665199564187787,
+            "z": -8.5347885203646e-8
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805023193359375,
+            "type": "Vector3",
+            "x": -299.1102600097656,
+            "z": 129.52999877929688
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "fb00f8763c1b",
+          "695d4d1a7164",
+          "1834bd57d634",
+          "084f4e7ca775"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b364d9b2deb",
+      "probeId": 20,
+      "clock": 63.65964112099937,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "sig": "dea20b620580",
+      "corr": 127,
+      "unix": 1791145265,
+      "contextRefs": [
+        "695d4d1a7164",
+        "1834bd57d634",
+        "084f4e7ca775",
+        "1b364d9b2deb"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805023193359375,
+          "type": "Vector3",
+          "x": -299.1102600097656,
+          "z": 129.52999877929688
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 63.67072049599847,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Cash_Tool",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Cash_Tool"
+      },
+      "container": "Backpack"
+    },
+    {
+      "semanticHash": "13f631b9ff16",
+      "contextRefs": [
+        "1834bd57d634",
+        "084f4e7ca775",
+        "1b364d9b2deb",
+        "dea20b620580"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 127,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+        "name": "StateUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145265,
+      "triggerHash": "13f631b9ff16",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000013076740287942812,
+            "type": "Vector3",
+            "x": 6.573348514393729e-7,
+            "z": 6.094560944802652e-7
+          },
+          "angularVelocity": {
+            "y": -4.940073347679645e-14,
+            "type": "Vector3",
+            "x": -7.226271918625571e-7,
+            "z": 7.793966574354272e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037975311279,
+            "type": "Vector3",
+            "x": -299.1102600097656,
+            "z": 129.52999877929688
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "1834bd57d634",
+          "084f4e7ca775",
+          "1b364d9b2deb",
+          "dea20b620580"
+        ],
+        "recentGui": []
+      },
+      "sig": "fb440176856c",
+      "probeId": 19,
+      "clock": 63.834833464999974,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "sig": "c806de5f12c5",
+      "corr": 129,
+      "unix": 1791145266,
+      "contextRefs": [
+        "084f4e7ca775",
+        "1b364d9b2deb",
+        "dea20b620580",
+        "fb440176856c"
+      ],
+      "object": {
+        "value": 0,
+        "path": "Workspace.flaviaxhh.Animate.pose.RthroIdlePose.Weight",
+        "source": "Workspace",
+        "className": "NumberValue",
+        "parent": "Workspace.flaviaxhh.Animate.pose.RthroIdlePose",
+        "attributes": [],
+        "name": "Weight"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 64.70284309999988,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "4d37789ba5cb",
+        "count": 2,
+        "newPattern": false
+      },
+      "quality": 82
+    },
+    {
+      "sig": "0846db8e0046",
+      "corr": 129,
+      "unix": 1791145266,
+      "contextRefs": [
+        "1b364d9b2deb",
+        "dea20b620580",
+        "fb440176856c",
+        "c806de5f12c5"
+      ],
+      "object": {
+        "value": {
+          "y": 0.9809412956237793,
+          "type": "Vector3",
+          "x": 0.6451617479324341,
+          "z": 0.7025622129440308
+        },
+        "path": "Workspace.flaviaxhh.Hair-Female-004-Black.Handle.OriginalSize",
+        "source": "Workspace",
+        "className": "Vector3Value",
+        "parent": "Workspace.flaviaxhh.Hair-Female-004-Black.Handle",
+        "attributes": [],
+        "name": "OriginalSize"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 64.70671335999941,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "af709f2f04a5",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "semanticHash": "98334feb2098",
+      "contextRefs": [
+        "dea20b620580",
+        "fb440176856c",
+        "c806de5f12c5",
+        "0846db8e0046"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 129,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145266,
+      "triggerHash": "98334feb2098",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.4848906695842743,
+            "type": "Vector3",
+            "x": 5.356348037719727,
+            "z": 5.7480878829956055
+          },
+          "angularVelocity": {
+            "y": -1.5204664468765259,
+            "type": "Vector3",
+            "x": 0.00008223608165280893,
+            "z": 0.000005819219495606376
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.6795954704284668,
+            "z": 0.7335870862007141
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.868994235992432,
+            "type": "Vector3",
+            "x": -298.3609619140625,
+            "z": 130.3565673828125
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "dea20b620580",
+          "fb440176856c",
+          "c806de5f12c5",
+          "0846db8e0046"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b364e9b2dec",
+      "probeId": 20,
+      "clock": 64.71754388099907,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "e9d9cb1be483",
+      "contextRefs": [
+        "fb440176856c",
+        "c806de5f12c5",
+        "0846db8e0046",
+        "1b364e9b2dec"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 129,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145266,
+      "triggerHash": "e9d9cb1be483",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 1.2046302556991577,
+            "type": "Vector3",
+            "x": 5.667778968811035,
+            "z": 5.609989643096924
+          },
+          "angularVelocity": {
+            "y": -0.2700901925563812,
+            "type": "Vector3",
+            "x": 0.0000022573431124328636,
+            "z": -2.7761129217651614e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.7101526260375977,
+            "z": 0.7040477991104126
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.998322486877441,
+            "type": "Vector3",
+            "x": -297.9142761230469,
+            "z": 130.8041229248047
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "fb440176856c",
+          "c806de5f12c5",
+          "0846db8e0046",
+          "1b364e9b2dec"
+        ],
+        "recentGui": []
+      },
+      "sig": "fb00f9763c1c",
+      "probeId": 18,
+      "clock": 64.79728612099825,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "sig": "a1bbbd2cc503",
+      "corr": 129,
+      "unix": 1791145266,
+      "contextRefs": [
+        "c806de5f12c5",
+        "0846db8e0046",
+        "1b364e9b2dec",
+        "fb00f9763c1c"
+      ],
+      "object": {
+        "value": {
+          "y": 0.10065340995788574,
+          "type": "Vector3",
+          "x": 0.5060944557189941,
+          "z": 0.06631380319595337
+        },
+        "path": "Workspace.flaviaxhh.Lashes.Handle.OriginalSize",
+        "source": "Workspace",
+        "className": "Vector3Value",
+        "parent": "Workspace.flaviaxhh.Lashes.Handle",
+        "attributes": [],
+        "name": "OriginalSize"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 64.84855117299958,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "9f5338d3b9f5",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "5fe990376601",
+      "corr": 129,
+      "unix": 1791145266,
+      "contextRefs": [
+        "0846db8e0046",
+        "1b364e9b2dec",
+        "fb00f9763c1c",
+        "a1bbbd2cc503"
+      ],
+      "object": {
+        "value": {
+          "y": 2.464277982711792,
+          "type": "Vector3",
+          "x": 1.6914682388305664,
+          "z": 1.1876089572906494
+        },
+        "path": "Workspace.flaviaxhh.Summer Dress - Green.Handle.OriginalSize",
+        "source": "Workspace",
+        "className": "Vector3Value",
+        "parent": "Workspace.flaviaxhh.Summer Dress - Green.Handle",
+        "attributes": [],
+        "name": "OriginalSize"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 64.85019653699965,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "f73edf27987c",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "semanticHash": "13f631b9ff16",
+      "contextRefs": [
+        "1b364e9b2dec",
+        "fb00f9763c1c",
+        "a1bbbd2cc503",
+        "5fe990376601"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 131,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+        "name": "StateUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145267,
+      "triggerHash": "13f631b9ff16",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.00004621950938599184,
+            "type": "Vector3",
+            "x": 9.427155873709125e-7,
+            "z": -2.116466077950463e-7
+          },
+          "angularVelocity": {
+            "y": -7.960008384854875e-14,
+            "type": "Vector3",
+            "x": 2.502155780348403e-7,
+            "z": 0.0000011192299780304893
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037498474121,
+            "type": "Vector3",
+            "x": -298.4273681640625,
+            "z": 130.6211700439453
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "1b364e9b2dec",
+          "fb00f9763c1c",
+          "a1bbbd2cc503",
+          "5fe990376601"
+        ],
+        "recentGui": []
+      },
+      "sig": "fb440276856d",
+      "probeId": 19,
+      "clock": 65.60046648499883,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "corr": 132,
+      "investigating": true,
+      "clock": 66.12627976599833,
+      "newSemantic": true,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 99,
+      "semanticHash": "4e91f08d2e8b",
+      "sig": "30ab60a7425e",
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "fb00f9763c1c",
+        "a1bbbd2cc503",
+        "5fe990376601",
+        "fb440276856d"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.956557750701904,
+          "type": "Vector3",
+          "x": -297.3158874511719,
+          "z": 131.08053588867188
+        },
+        "userId": 765329164
+      },
+      "unix": 1791145267,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "arcHeight": 5,
+            "hitName": "Workspace.DartBoards.DartBoard.ScoreGroups.Score_54.Treble_18_01",
+            "board": {
+              "path": "Workspace.DartBoards.DartBoard",
+              "type": "Instance",
+              "name": "DartBoard",
+              "className": "Model"
+            },
+            "endCFrame": {
+              "y": 9.716943740844727,
+              "type": "CFrame",
+              "rx": 0,
+              "z": 151.6412353515625,
+              "rz": 0,
+              "ry": -1.5707963705062866,
+              "x": -287.8070983886719
+            },
+            "duration": 0.55,
+            "startCFrame": {
+              "y": 6.338521957397461,
+              "type": "CFrame",
+              "rx": 0.37562236189842224,
+              "z": 159.91859436035156,
+              "rz": -0.000032934887713054195,
+              "ry": 0.08445917069911957,
+              "x": -287.0841369628906
+            },
+            "throwNumber": 1,
+            "targetPosition": {
+              "y": 9.716943740844727,
+              "type": "Vector3",
+              "x": -287.8070983886719,
+              "z": 151.4312286376953
+            },
+            "dartsPerTurn": 3,
+            "score": 54,
+            "throwId": 4,
+            "clientThrowId": "4561507425_4339.022",
+            "matchId": 25,
+            "throwerUserId": 4561507425
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 14,
+            "type": "table",
+            "fields": {
+              "arcHeight": {
+                "type": "number"
+              },
+              "hitName": {
+                "type": "string"
+              },
+              "board": {
+                "className": "Model",
+                "type": "Instance"
+              },
+              "endCFrame": {
+                "type": "CFrame"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "startCFrame": {
+                "type": "CFrame"
+              },
+              "throwNumber": {
+                "type": "number"
+              },
+              "targetPosition": {
+                "type": "Vector3"
+              },
+              "dartsPerTurn": {
+                "type": "number"
+              },
+              "score": {
+                "type": "number"
+              },
+              "throwId": {
+                "type": "number"
+              },
+              "clientThrowId": {
+                "type": "string"
+              },
+              "matchId": {
+                "type": "number"
+              },
+              "throwerUserId": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "4e91f08d2e8b",
+      "triggerShape": "4e91f08d2e8b",
+      "parent": {
+        "path": "ReplicatedStorage.DartGameRemotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.QueueRequest",
+            "name": "QueueRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.LeaveQueue",
+            "name": "LeaveQueue",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.SubmitThrow",
+            "name": "SubmitThrow",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+            "name": "StateUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+            "name": "ThrowReplication",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 132,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "a1bbbd2cc503",
+        "5fe990376601",
+        "fb440276856d",
+        "30ab60a7425e"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": 0.014599552378058434,
+          "type": "Vector3",
+          "x": -0.0000012757006970787188,
+          "z": 5.384261498875276e-7
+        },
+        "angularVelocity": {
+          "y": 1.3422204699683332e-13,
+          "type": "Vector3",
+          "x": -6.384074140441953e-7,
+          "z": -0.0000015125880281630089
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.956557750701904,
+          "type": "Vector3",
+          "x": -297.3158874511719,
+          "z": 131.08053588867188
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "6a17c153b925",
+      "unix": 1791145267,
+      "clock": 66.12674315199911,
+      "kind": "investigation_context",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 100
+    },
+    {
+      "semanticHash": "4e91f08d2e8b",
+      "contextRefs": [
+        "5fe990376601",
+        "fb440276856d",
+        "30ab60a7425e",
+        "6a17c153b925"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 132,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145268,
+      "triggerHash": "4e91f08d2e8b",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 1.1912977695465088,
+            "type": "Vector3",
+            "x": 5.728560447692871,
+            "z": 5.686020374298096
+          },
+          "angularVelocity": {
+            "y": 0.8005038499832153,
+            "type": "Vector3",
+            "x": 0.000020305900761741214,
+            "z": 0.0000045529354792961385
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.7120521664619446,
+            "z": 0.7021266222000122
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 8.006428718566895,
+            "type": "Vector3",
+            "x": -296.795166015625,
+            "z": 131.64480590820312
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "5fe990376601",
+          "fb440276856d",
+          "30ab60a7425e",
+          "6a17c153b925"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b79569b773c",
+      "probeId": 21,
+      "clock": 66.34407257899875,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "semanticHash": "98334feb2098",
+      "contextRefs": [
+        "fb440276856d",
+        "30ab60a7425e",
+        "6a17c153b925",
+        "1b79569b773c"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 132,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145268,
+      "triggerHash": "98334feb2098",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.04835725948214531,
+            "type": "Vector3",
+            "x": 5.538474082946777,
+            "z": 5.791973114013672
+          },
+          "angularVelocity": {
+            "y": 0.15099139511585236,
+            "type": "Vector3",
+            "x": 6.504098450932361e-7,
+            "z": 1.5659253449484822e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.6914864182472229,
+            "z": 0.7223894596099854
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 8.080243110656738,
+            "type": "Vector3",
+            "x": -296.26129150390625,
+            "z": 132.1955108642578
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "fb440276856d",
+          "30ab60a7425e",
+          "6a17c153b925",
+          "1b79569b773c"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b364f9b2ded",
+      "probeId": 20,
+      "clock": 66.43568601599873,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "4e91f08d2e8b",
+      "contextRefs": [
+        "30ab60a7425e",
+        "6a17c153b925",
+        "1b79569b773c",
+        "1b364f9b2ded"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 134,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145269,
+      "triggerHash": "4e91f08d2e8b",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 8,
+            "clock": 63.49352711099891,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 6,
+            "clock": 63.49361841299833,
+            "eventValue": true
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 8,
+            "clock": 63.49370685099893,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.10948256403207779,
+            "type": "Vector3",
+            "x": -0.0000021457497041410534,
+            "z": -0.0000019156443613610463
+          },
+          "angularVelocity": {
+            "y": -4.792455321478428e-11,
+            "type": "Vector3",
+            "x": 0.0000022716446892445674,
+            "z": -0.000002544418293837225
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.802495956420898,
+            "type": "Vector3",
+            "x": -296.40875244140625,
+            "z": 132.34007263183594
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "30ab60a7425e",
+          "6a17c153b925",
+          "1b79569b773c",
+          "1b364f9b2ded"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b79579b773d",
+      "probeId": 21,
+      "clock": 67.41253346399935,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "sig": "dea312620693",
+      "corr": 137,
+      "unix": 1791145270,
+      "contextRefs": [
+        "6a17c153b925",
+        "1b79569b773c",
+        "1b364f9b2ded",
+        "1b79579b773d"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -297.3224182128906,
+          "z": 133.04348754882812
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 68.91203023399976,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Cash_Tool",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Cash_Tool"
+      },
+      "container": "Backpack"
+    },
+    {
+      "semanticHash": "4e91f08d2e8b",
+      "contextRefs": [
+        "1b79569b773c",
+        "1b364f9b2ded",
+        "1b79579b773d",
+        "dea312620693"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 138,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145270,
+      "triggerHash": "4e91f08d2e8b",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "activityCount": 14,
+            "clock": 68.49461690099997,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 8,
+            "clock": 68.4947609109986,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 9,
+            "clock": 68.49487283799863,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000012984132808924187,
+            "type": "Vector3",
+            "x": 3.649771258551482e-7,
+            "z": -0.0000011482204627100145
+          },
+          "angularVelocity": {
+            "y": 1.514993473283443e-14,
+            "type": "Vector3",
+            "x": 0.0000013616569276564405,
+            "z": 4.3281337980261014e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037975311279,
+            "type": "Vector3",
+            "x": -297.3224182128906,
+            "z": 133.04348754882812
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "1b79569b773c",
+          "1b364f9b2ded",
+          "1b79579b773d",
+          "dea312620693"
+        ],
+        "recentGui": []
+      },
+      "sig": "1b79589b773e",
+      "probeId": 21,
+      "clock": 69.13464434799971,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "corr": 138,
+      "investigating": true,
+      "clock": 69.33455221299846,
+      "newSemantic": true,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 99,
+      "semanticHash": "637c696159c1",
+      "sig": "7fc59e70e924",
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "1b364f9b2ded",
+        "1b79579b773d",
+        "dea312620693",
+        "1b79589b773e"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -297.3224182128906,
+          "z": 133.04348754882812
+        },
+        "userId": 765329164
+      },
+      "unix": 1791145271,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "arcHeight": 5,
+            "hitName": "Workspace.DartBoards.DartBoard.ScoreGroups.Score_09.InnerSingle_09_03",
+            "board": {
+              "path": "Workspace.DartBoards.DartBoard",
+              "type": "Instance",
+              "name": "DartBoard",
+              "className": "Model"
+            },
+            "endCFrame": {
+              "y": 9.13356876373291,
+              "type": "CFrame",
+              "rx": 0,
+              "z": 151.6412353515625,
+              "rz": 0,
+              "ry": -1.5707963705062866,
+              "x": -286.75006103515625
+            },
+            "duration": 0.55,
+            "startCFrame": {
+              "y": 6.338521957397461,
+              "type": "CFrame",
+              "rx": 0.31619155406951904,
+              "z": 159.91859436035156,
+              "rz": -0.000023640568542759866,
+              "ry": -0.03907947614789009,
+              "x": -287.0841369628906
+            },
+            "throwNumber": 2,
+            "targetPosition": {
+              "y": 9.13356876373291,
+              "type": "Vector3",
+              "x": -286.75006103515625,
+              "z": 151.4312286376953
+            },
+            "dartsPerTurn": 3,
+            "score": 9,
+            "throwId": 5,
+            "clientThrowId": "4561507425_4342.249",
+            "matchId": 25,
+            "throwerUserId": 4561507425
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 14,
+            "type": "table",
+            "fields": {
+              "arcHeight": {
+                "type": "number"
+              },
+              "hitName": {
+                "type": "string"
+              },
+              "board": {
+                "className": "Model",
+                "type": "Instance"
+              },
+              "endCFrame": {
+                "type": "CFrame"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "startCFrame": {
+                "type": "CFrame"
+              },
+              "throwNumber": {
+                "type": "number"
+              },
+              "targetPosition": {
+                "type": "Vector3"
+              },
+              "dartsPerTurn": {
+                "type": "number"
+              },
+              "score": {
+                "type": "number"
+              },
+              "throwId": {
+                "type": "number"
+              },
+              "clientThrowId": {
+                "type": "string"
+              },
+              "matchId": {
+                "type": "number"
+              },
+              "throwerUserId": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "637c696159c1",
+      "triggerShape": "637c696159c1",
+      "parent": {
+        "path": "ReplicatedStorage.DartGameRemotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.QueueRequest",
+            "name": "QueueRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.LeaveQueue",
+            "name": "LeaveQueue",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.SubmitThrow",
+            "name": "SubmitThrow",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+            "name": "StateUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+            "name": "ThrowReplication",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 138,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "1b79579b773d",
+        "dea312620693",
+        "1b79589b773e",
+        "7fc59e70e924"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": 0.000013198756278143264,
+          "type": "Vector3",
+          "x": -8.433610219071852e-7,
+          "z": 0.0000024420405679848045
+        },
+        "angularVelocity": {
+          "y": 1.7568859236351264e-14,
+          "type": "Vector3",
+          "x": -0.000002895742227337905,
+          "z": -0.0000010000453585234936
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -297.3224182128906,
+          "z": 133.04348754882812
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "8e4c3c212eb5",
+      "unix": 1791145271,
+      "clock": 69.33499575499991,
+      "kind": "investigation_context",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 100
+    },
+    {
+      "semanticHash": "637c696159c1",
+      "contextRefs": [
+        "dea312620693",
+        "1b79589b773e",
+        "7fc59e70e924",
+        "8e4c3c212eb5"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 139,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145271,
+      "triggerHash": "637c696159c1",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "activityCount": 14,
+            "clock": 68.49461690099997,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 8,
+            "clock": 68.4947609109986,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 9,
+            "clock": 68.49487283799863,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000013198756278143264,
+            "type": "Vector3",
+            "x": -7.839950058041723e-7,
+            "z": 0.0000021359933271014597
+          },
+          "angularVelocity": {
+            "y": 4.823903456590076e-15,
+            "type": "Vector3",
+            "x": -0.0000025326623926957836,
+            "z": -9.295885661231296e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037975311279,
+            "type": "Vector3",
+            "x": -297.3224182128906,
+            "z": 133.04348754882812
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "dea312620693",
+          "1b79589b773e",
+          "7fc59e70e924",
+          "8e4c3c212eb5"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bbc5f9bc08d",
+      "probeId": 22,
+      "clock": 69.54173877499852,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "sig": "d5f9a605d052",
+      "corr": 139,
+      "unix": 1791145271,
+      "contextRefs": [
+        "1b79589b773e",
+        "7fc59e70e924",
+        "8e4c3c212eb5",
+        "1bbc5f9bc08d"
+      ],
+      "object": {
+        "value": {
+          "y": 3.101180076599121,
+          "type": "Vector3",
+          "x": 1.7059799432754517,
+          "z": 1.9882500171661377
+        },
+        "path": "Workspace.Daniela16102012.RedBeanieWithHair.Handle.OriginalSize",
+        "source": "Workspace",
+        "className": "Vector3Value",
+        "parent": "Workspace.Daniela16102012.RedBeanieWithHair.Handle",
+        "attributes": [],
+        "name": "OriginalSize"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 69.97639564999918,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "b6a700577029",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "3e89df2b0020",
+      "corr": 139,
+      "unix": 1791145271,
+      "contextRefs": [
+        "7fc59e70e924",
+        "8e4c3c212eb5",
+        "1bbc5f9bc08d",
+        "d5f9a605d052"
+      ],
+      "object": {
+        "value": {
+          "y": 1,
+          "type": "Vector3",
+          "x": 8.657480066176504e-9,
+          "z": -0.20027224719524384
+        },
+        "path": "Workspace.Daniela16102012.RedBeanieWithHair.Handle.HatAttachment.OriginalPosition",
+        "source": "Workspace",
+        "className": "Vector3Value",
+        "parent": "Workspace.Daniela16102012.RedBeanieWithHair.Handle.HatAttachment",
+        "attributes": [],
+        "name": "OriginalPosition"
+      },
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 69.97766825399958,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "e751a0284597",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "semanticHash": "637c696159c1",
+      "contextRefs": [
+        "8e4c3c212eb5",
+        "1bbc5f9bc08d",
+        "d5f9a605d052",
+        "3e89df2b0020"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 141,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145272,
+      "triggerHash": "637c696159c1",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "activityCount": 14,
+            "clock": 68.49461690099997,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 8,
+            "clock": 68.4947609109986,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 9,
+            "clock": 68.49487283799863,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000013075765309622511,
+            "type": "Vector3",
+            "x": -4.6224428729146894e-7,
+            "z": 5.743321374040988e-9
+          },
+          "angularVelocity": {
+            "y": -5.269385527418603e-14,
+            "type": "Vector3",
+            "x": -6.809792285622507e-9,
+            "z": -5.480792424350511e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037975311279,
+            "type": "Vector3",
+            "x": -297.2998962402344,
+            "z": 133.76513671875
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "8e4c3c212eb5",
+          "1bbc5f9bc08d",
+          "d5f9a605d052",
+          "3e89df2b0020"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bbc609bc08e",
+      "probeId": 22,
+      "clock": 70.60637304599913,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "637c696159c1",
+      "contextRefs": [
+        "1bbc5f9bc08d",
+        "d5f9a605d052",
+        "3e89df2b0020",
+        "1bbc609bc08e"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 144,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145274,
+      "triggerHash": "637c696159c1",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "activityCount": 14,
+            "clock": 68.49461690099997,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 8,
+            "clock": 68.4947609109986,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 9,
+            "clock": 68.49487283799863,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.1308978945016861,
+            "type": "Vector3",
+            "x": 5.615429401397705,
+            "z": -0.005447745323181152
+          },
+          "angularVelocity": {
+            "y": 12.67383098602295,
+            "type": "Vector3",
+            "x": 0.004778000526130199,
+            "z": 0.0031824875622987747
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9771161675453186,
+            "z": -0.21270647644996643
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.794064521789551,
+            "type": "Vector3",
+            "x": -295.66448974609375,
+            "z": 135.8820037841797
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "1bbc5f9bc08d",
+          "d5f9a605d052",
+          "3e89df2b0020",
+          "1bbc609bc08e"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bbc619bc08f",
+      "probeId": 22,
+      "clock": 72.35559304499839,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "corr": 144,
+      "kind": "prompt_hidden",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "sig": "0f5352c8e455",
+      "clock": 72.42417945099987,
+      "prompt": {
+        "name": "ProximityPrompt",
+        "path": "Workspace.Tools For Sale.Alchohol.Whiskey.ProximityPrompt"
+      },
+      "unix": 1791145274,
+      "quality": 46
+    },
+    {
+      "corr": 145,
+      "investigating": true,
+      "clock": 72.6762503889986,
+      "newSemantic": true,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 99,
+      "semanticHash": "a7a986be0fc9",
+      "sig": "7245edcd34e5",
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "3e89df2b0020",
+        "1bbc609bc08e",
+        "1bbc619bc08f",
+        "0f5352c8e455"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.8044047355651855,
+          "type": "Vector3",
+          "x": -294.5782165527344,
+          "z": 135.74154663085938
+        },
+        "userId": 765329164
+      },
+      "unix": 1791145274,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "arcHeight": 5,
+            "hitName": "Workspace.DartBoards.DartBoard.ScoreGroups.Score_09.InnerSingle_09_04",
+            "board": {
+              "path": "Workspace.DartBoards.DartBoard",
+              "type": "Instance",
+              "name": "DartBoard",
+              "className": "Model"
+            },
+            "endCFrame": {
+              "y": 9.226480484008789,
+              "type": "CFrame",
+              "rx": 0,
+              "z": 151.6412353515625,
+              "rz": 0,
+              "ry": -1.5707963705062866,
+              "x": -286.6578369140625
+            },
+            "duration": 0.55,
+            "startCFrame": {
+              "y": 6.338521957397461,
+              "type": "CFrame",
+              "rx": 0.3258530795574188,
+              "z": 159.91859436035156,
+              "rz": 0.000027102765670861118,
+              "ry": -0.04986463114619255,
+              "x": -287.0841369628906
+            },
+            "throwNumber": 3,
+            "targetPosition": {
+              "y": 9.226480484008789,
+              "type": "Vector3",
+              "x": -286.6578369140625,
+              "z": 151.4312286376953
+            },
+            "dartsPerTurn": 3,
+            "score": 9,
+            "throwId": 6,
+            "clientThrowId": "4561507425_4345.566",
+            "matchId": 25,
+            "throwerUserId": 4561507425
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 14,
+            "type": "table",
+            "fields": {
+              "arcHeight": {
+                "type": "number"
+              },
+              "hitName": {
+                "type": "string"
+              },
+              "board": {
+                "className": "Model",
+                "type": "Instance"
+              },
+              "endCFrame": {
+                "type": "CFrame"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "startCFrame": {
+                "type": "CFrame"
+              },
+              "throwNumber": {
+                "type": "number"
+              },
+              "targetPosition": {
+                "type": "Vector3"
+              },
+              "dartsPerTurn": {
+                "type": "number"
+              },
+              "score": {
+                "type": "number"
+              },
+              "throwId": {
+                "type": "number"
+              },
+              "clientThrowId": {
+                "type": "string"
+              },
+              "matchId": {
+                "type": "number"
+              },
+              "throwerUserId": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "a7a986be0fc9",
+      "triggerShape": "a7a986be0fc9",
+      "parent": {
+        "path": "ReplicatedStorage.DartGameRemotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.QueueRequest",
+            "name": "QueueRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.LeaveQueue",
+            "name": "LeaveQueue",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.SubmitThrow",
+            "name": "SubmitThrow",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.StateUpdate",
+            "name": "StateUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+            "name": "ThrowReplication",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 145,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "1bbc609bc08e",
+        "1bbc619bc08f",
+        "0f5352c8e455",
+        "7245edcd34e5"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.WoodPlanks",
+        "velocity": {
+          "y": 0.027663063257932663,
+          "type": "Vector3",
+          "x": 3.957896694828378e-7,
+          "z": 0.0000012082940656910068
+        },
+        "angularVelocity": {
+          "y": 7.423697212516345e-10,
+          "type": "Vector3",
+          "x": -0.0000014334431170937023,
+          "z": 4.685743704158085e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.8044047355651855,
+          "type": "Vector3",
+          "x": -294.5782165527344,
+          "z": 135.74154663085938
+        },
+        "jumpPower": 35,
+        "walkSpeed": 8,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "718e14ffbade",
+      "unix": 1791145274,
+      "clock": 72.67664044099911,
+      "kind": "investigation_context",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 100
+    },
+    {
+      "semanticHash": "a7a986be0fc9",
+      "contextRefs": [
+        "1bbc619bc08f",
+        "0f5352c8e455",
+        "7245edcd34e5",
+        "718e14ffbade"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 145,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145274,
+      "triggerHash": "a7a986be0fc9",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 9,
+            "clock": 63.49391143399953,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.Preset",
+            "activityCount": 14,
+            "clock": 68.49461690099997,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": 1,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Mode",
+            "activityCount": 8,
+            "clock": 68.4947609109986,
+            "eventValue": 1
+          },
+          {
+            "observedAfterValue": true,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 9,
+            "clock": 68.49487283799863,
+            "eventValue": true
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": -0.00016329283243976533,
+            "type": "Vector3",
+            "x": 2.0938093662261963,
+            "z": 6.994556427001953
+          },
+          "angularVelocity": {
+            "y": -8.79478645324707,
+            "type": "Vector3",
+            "x": 0.0029175234958529472,
+            "z": -0.0007824955973774195
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.34443068504333496,
+            "z": 0.9388117790222168
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.80503511428833,
+            "type": "Vector3",
+            "x": -294.4632568359375,
+            "z": 136.0410919189453
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "1bbc619bc08f",
+          "0f5352c8e455",
+          "7245edcd34e5",
+          "718e14ffbade"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bff689c09de",
+      "probeId": 23,
+      "clock": 72.89641314899927,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "sig": "dea4176207a4",
+      "corr": 147,
+      "unix": 1791145275,
+      "contextRefs": [
+        "0f5352c8e455",
+        "7245edcd34e5",
+        "718e14ffbade",
+        "1bff689c09de"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.805037975311279,
+          "type": "Vector3",
+          "x": -294.1026916503906,
+          "z": 135.73019409179688
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "clock": 73.61197471099877,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": [],
+        "path": "Workspace.capuccino40.Cash_Tool",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Cash_Tool"
+      },
+      "container": "Backpack"
+    },
+    {
+      "semanticHash": "a7a986be0fc9",
+      "contextRefs": [
+        "7245edcd34e5",
+        "718e14ffbade",
+        "1bff689c09de",
+        "dea4176207a4"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 147,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145275,
+      "triggerHash": "a7a986be0fc9",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 9,
+            "clock": 73.52290189899941,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 7,
+            "clock": 73.52299851299904,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 10,
+            "clock": 73.5230991899989,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 10,
+            "clock": 73.52319981499932,
+            "eventValue": 3
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000012879161658929661,
+            "type": "Vector3",
+            "x": -6.015933990966005e-7,
+            "z": -0.0000021825590010848828
+          },
+          "angularVelocity": {
+            "y": -6.646531334206576e-14,
+            "type": "Vector3",
+            "x": -0.0000018824166545527987,
+            "z": 7.458709774255112e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.805037975311279,
+            "type": "Vector3",
+            "x": -294.1026916503906,
+            "z": 135.73019409179688
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "7245edcd34e5",
+          "718e14ffbade",
+          "1bff689c09de",
+          "dea4176207a4"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bff699c09df",
+      "probeId": 23,
+      "clock": 73.94231809699886,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "98334feb2098",
+      "contextRefs": [
+        "718e14ffbade",
+        "1bff689c09de",
+        "dea4176207a4",
+        "1bff699c09df"
+      ],
+      "unix": 1791145276,
+      "newSemantic": false,
+      "sig": "7ebac220beaa",
+      "corr": 148,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "matchId": 25,
+            "duration": 0.6,
+            "action": "FadeTurnDarts",
+            "throwerUserId": 4561507425
+          }
+        ]
+      },
+      "clock": 74.34092887799852,
+      "kind": "remote_inbound",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 88
+    },
+    {
+      "path": "Workspace.22Soleil_22.Beer",
+      "source": "Workspace",
+      "sig": "4b69be61220b",
+      "corr": 149,
+      "unix": 1791145276,
+      "contextRefs": [
+        "1bff689c09de",
+        "dea4176207a4",
+        "1bff699c09df",
+        "7ebac220beaa"
+      ],
+      "attributes": [],
+      "name": "Beer",
+      "className": "Tool",
+      "clock": 74.6445165339992,
+      "kind": "workspace_removing",
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "quality": 80
+    },
+    {
+      "semanticHash": "a7a986be0fc9",
+      "contextRefs": [
+        "dea4176207a4",
+        "1bff699c09df",
+        "7ebac220beaa",
+        "4b69be61220b"
+      ],
+      "runId": "46611d7e-cb13-4f57-bd7d-9088b103f523",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 151,
+      "remote": {
+        "path": "ReplicatedStorage.DartGameRemotes.ThrowReplication",
+        "name": "ThrowReplication",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.DartGameRemotes",
+        "attributes": []
+      },
+      "unix": 1791145277,
+      "triggerHash": "a7a986be0fc9",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 10,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Speed",
+            "activityCount": 9,
+            "clock": 73.52290189899941,
+            "eventValue": 10
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe",
+            "activityCount": 7,
+            "clock": 73.52299851299904,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": false,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Rainbow",
+            "activityCount": 10,
+            "clock": 73.5230991899989,
+            "eventValue": false
+          },
+          {
+            "observedAfterValue": 3,
+            "path": "Workspace.Stuff Needs Organizing.Party Lights/Lasers.PartyLights.PartyLight1.LightMachine.Strobe.StrobeHertz",
+            "activityCount": 10,
+            "clock": 73.52319981499932,
+            "eventValue": 3
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.WoodPlanks",
+          "velocity": {
+            "y": 0.000014546218153554946,
+            "type": "Vector3",
+            "x": 1.2133889448762147e-8,
+            "z": -1.9145869600833976e-7
+          },
+          "angularVelocity": {
+            "y": 1.924518487281257e-14,
+            "type": "Vector3",
+            "x": 2.270109291657718e-7,
+            "z": 1.4387048885566855e-8
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.960036754608154,
+            "type": "Vector3",
+            "x": -292.5107421875,
+            "z": 135.04074096679688
+          },
+          "jumpPower": 35,
+          "walkSpeed": 8,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Whiskey",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Cash_Tool",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": [],
+        "playerAttributes": [],
+        "recentRefs": [
+          "dea4176207a4",
+          "1bff699c09df",
+          "7ebac220beaa",
+          "4b69be61220b"
+        ],
+        "recentGui": []
+      },
+      "sig": "1bff6a9c09e0",
+      "probeId": 23,
+      "clock": 75.6784043459993,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-04T20:21:19.655Z",
+  "contentChecksum": "_PG-61byELFoTuwVFCJy",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 1157897,
+    "inboundListeners": 106,
+    "ackBytes": 1094678,
+    "queueBytes": 63219
+  }
+}
