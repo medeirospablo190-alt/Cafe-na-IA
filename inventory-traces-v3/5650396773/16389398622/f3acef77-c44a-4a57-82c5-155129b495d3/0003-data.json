@@ -1,0 +1,4107 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-06T06:06:41.000Z",
+  "gameId": 5650396773,
+  "placeId": 16389398622,
+  "placeVersion": 2122,
+  "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+  "batchIndex": 3,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 71896,
+  "records": [
+    {
+      "semanticHash": "d682018bf7ca",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266825,
+      "sig": "9e873b5d871d",
+      "corr": 46,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "e361b96d84e7",
+          "effectTotal": 11,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.399,
+          "trustedSupport": 2,
+          "baseline": 6,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+          "age": 2.1517978640004003,
+          "shape": "b5ec96d76f90",
+          "importance": 58
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "aab7acaa817a",
+          "effectTotal": 11,
+          "confidence": 1,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 6,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.weld",
+          "age": 2.0047301039994636,
+          "shape": "181b9b39c8cd",
+          "importance": 72
+        },
+        {
+          "distinctEffects": 4,
+          "semantic": "518b649bc258",
+          "effectTotal": 11,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.328,
+          "trustedSupport": 4,
+          "baseline": 6,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 6,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+          "age": 1.938339009997435,
+          "shape": "c737bafeea37",
+          "importance": 24
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 62.066891179950424
+          }
+        ]
+      },
+      "clock": 23.378972647999035,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 47,
+      "contextRefs": [
+        "d5c807cacc04",
+        "bd782a191a5e",
+        "f19aab79a9d5",
+        "9e873b5d871d"
+      ],
+      "unix": 1791266825,
+      "importance": 42,
+      "clock": 23.64635613700011,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "e7ffe7fcf606",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "cc6facf87ac5",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          0.0017600004794076085,
+          -0.012600356712937355
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "3d11e28eaa6e",
+      "corr": 47,
+      "unix": 1791266825,
+      "correlationModel": "evidence_v2",
+      "state": "visible",
+      "quality": 68,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "e361b96d84e7",
+          "effectTotal": 1,
+          "confidence": 16,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract:visible",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+          "age": 2.5427309360020445,
+          "shape": "b5ec96d76f90",
+          "importance": 58
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "aab7acaa817a",
+          "effectTotal": 1,
+          "confidence": 17,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract:visible",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.weld",
+          "age": 2.395663176001108,
+          "shape": "181b9b39c8cd",
+          "importance": 72
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "518b649bc258",
+          "effectTotal": 1,
+          "confidence": 18,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract:visible",
+          "id": 6,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+          "age": 2.329272081999079,
+          "shape": "c737bafeea37",
+          "importance": 24
+        }
+      ],
+      "clock": 23.769889887000318,
+      "value": true,
+      "kind": "gui_state",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+        "name": "CarInteract",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266826,
+      "sig": "fe958f84c609",
+      "corr": 48,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "e361b96d84e7",
+          "effectTotal": 7,
+          "confidence": 2,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.419,
+          "trustedSupport": 2,
+          "baseline": 2,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+          "age": 3.023134947001381,
+          "shape": "b5ec96d76f90",
+          "importance": 58
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "aab7acaa817a",
+          "effectTotal": 7,
+          "confidence": 2,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.419,
+          "trustedSupport": 2,
+          "baseline": 2,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.weld",
+          "age": 2.8760671870004444,
+          "shape": "181b9b39c8cd",
+          "importance": 72
+        },
+        {
+          "distinctEffects": 5,
+          "semantic": "518b649bc258",
+          "effectTotal": 7,
+          "confidence": 9,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.366,
+          "trustedSupport": 5,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 6,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+          "age": 2.8096760929984157,
+          "shape": "c737bafeea37",
+          "importance": 24
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.3792235851287842,
+            "3": -0.037911199033260345
+          }
+        ]
+      },
+      "clock": 24.25031566799953,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.018969019874930382,
+        "type": "Vector3",
+        "x": -9.305389404296875,
+        "z": -3.6604816913604736
+      },
+      "unix": 1791266826,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.057363510131836,
+          "type": "Vector3",
+          "x": 211.00987243652344,
+          "z": -3811.49169921875
+        },
+        "userId": 765329164
+      },
+      "corr": 48,
+      "clock": 24.291774417997658,
+      "kind": "trajectory",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 26
+    },
+    {
+      "semanticHash": "aab7acaa817a",
+      "contextRefs": [
+        "cc6facf87ac5",
+        "3d11e28eaa6e",
+        "fe958f84c609",
+        "0a93bcea998b"
+      ],
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 48,
+      "remote": {
+        "path": "ReplicatedStorage.weld",
+        "name": "weld",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791266826,
+      "triggerHash": "aab7acaa817a",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 6.075344083780205,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 46,
+            "clock": 22.2438962419983,
+            "eventValue": 6.075344083780205
+          },
+          {
+            "observedAfterValue": 6.075348409780647,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 47,
+            "clock": 22.474854887997935,
+            "eventValue": 6.075348409780647
+          },
+          {
+            "observedAfterValue": 6.075354713477127,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 48,
+            "clock": 22.687466397997923,
+            "eventValue": 6.075354713477127
+          },
+          {
+            "observedAfterValue": 6.075360443037689,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 49,
+            "clock": 22.90731488700112,
+            "eventValue": 6.075360443037689
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Sand",
+          "velocity": {
+            "y": 0.026754308491945267,
+            "type": "Vector3",
+            "x": -9.90482234954834,
+            "z": -1.3760040998458862
+          },
+          "angularVelocity": {
+            "y": -2.3426032774308443e-14,
+            "type": "Vector3",
+            "x": 9.79923470367794e-7,
+            "z": -0.000002355853894187021
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.9904929399490356,
+            "z": -0.13756410777568817
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.059362888336182,
+            "type": "Vector3",
+            "x": 210.19798278808594,
+            "z": -3811.671875
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -43.430365354222694,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.37922358102378456,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 12.414654399999971,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 3,
+          "ShowChoicePrompt": false,
+          "CameraLock_Behavior": "Default",
+          "DISTANCE_TRAVELLED_SERVER": 1928,
+          "__UG": true,
+          "ToolbeltActive": false,
+          "CameraLock_Free": true,
+          "CameraLock_Owners": "",
+          "ReadyToRevive": false,
+          "BACKPACK_SLOTS": 4,
+          "__UG_NEW": false,
+          "MedalDistanceTravelled": 90597,
+          "MostDistanceTraveled": 1947,
+          "ControlScheme": false,
+          "FullyLoadedInteract": true,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "cc6facf87ac5",
+          "3d11e28eaa6e",
+          "fe958f84c609",
+          "0a93bcea998b"
+        ],
+        "recentGui": [
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 21.372948324999015,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 21.3730748880007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 21.404802856999595,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 21.404961346001073,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Use",
+            "className": "ImageButton",
+            "clock": 21.40505801299878,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 21.59979577299964,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 21.645954054998583,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 21.9379085340006,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 22.063608272997953,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 22.35775811699932,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 22.89859004399841,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 23.769735146997846,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 23.804329990998667,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 23.878312335000373,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 24.29988467899966,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 24.300042021997797,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "bd782b191a5f",
+      "probeId": 1,
+      "clock": 24.37791785599984,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266827,
+      "sig": "4a2d4d29a3f1",
+      "corr": 50,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "e361b96d84e7",
+          "effectTotal": 8,
+          "confidence": 3,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.352,
+          "trustedSupport": 3,
+          "baseline": 2,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+          "age": 4.160978175001219,
+          "shape": "b5ec96d76f90",
+          "importance": 58
+        },
+        {
+          "distinctEffects": 3,
+          "semantic": "aab7acaa817a",
+          "effectTotal": 8,
+          "confidence": 3,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.352,
+          "trustedSupport": 3,
+          "baseline": 2,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.weld",
+          "age": 4.013910415000282,
+          "shape": "181b9b39c8cd",
+          "importance": 72
+        },
+        {
+          "distinctEffects": 6,
+          "semantic": "518b649bc258",
+          "effectTotal": 8,
+          "confidence": 9,
+          "relationStage": "repeated",
+          "support": 6,
+          "timingConsistency": 0.335,
+          "trustedSupport": 6,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 6,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+          "age": 3.9475193209982535,
+          "shape": "c737bafeea37",
+          "importance": 24
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.3463146388530731,
+            "3": 9.5050080517467e-7
+          }
+        ]
+      },
+      "clock": 25.38815743899977,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 51,
+      "contextRefs": [
+        "fe958f84c609",
+        "0a93bcea998b",
+        "bd782b191a5f",
+        "4a2d4d29a3f1"
+      ],
+      "unix": 1791266827,
+      "importance": 42,
+      "clock": 25.523750719999953,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "cba24cc0774f",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "bff17a898a92",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.RemoteEvent",
+        "name": "RemoteEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.Sedan.Sedan.Misc.fuel.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": -1.5707963705062866,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "unix": 1791266828,
+      "newSemantic": false,
+      "sig": "7093622e5ae0",
+      "corr": 53,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 61.72358442325049
+          }
+        ]
+      },
+      "clock": 26.826067437999882,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": -22.4046630859375,
+        "type": "Vector3",
+        "x": -5.377253532409668,
+        "z": -8.430947303771973
+      },
+      "unix": 1791266829,
+      "state": "Enum.HumanoidStateType.Freefall",
+      "player": {
+        "state": "Enum.HumanoidStateType.Freefall",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 8.626749992370605,
+          "type": "Vector3",
+          "x": 197.6576690673828,
+          "z": -3817.379638671875
+        },
+        "userId": 765329164
+      },
+      "corr": 56,
+      "clock": 28.01548389600066,
+      "kind": "trajectory",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 63
+    },
+    {
+      "corr": 56,
+      "contextRefs": [
+        "4a2d4d29a3f1",
+        "bff17a898a92",
+        "7093622e5ae0",
+        "ed1570c152e8"
+      ],
+      "unix": 1791266829,
+      "importance": 42,
+      "clock": 28.058208426999045,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "9597cf54eae3",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5294719934463501,
+          -0.45590904355049133
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "unix": 1791266829,
+      "newSemantic": false,
+      "sig": "664c2d1fea15",
+      "corr": 56,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 61.59040989335052
+          }
+        ]
+      },
+      "clock": 28.15748222899856,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "sig": "d9d27d1da07f",
+      "corr": 56,
+      "unix": 1791266830,
+      "contextRefs": [
+        "7093622e5ae0",
+        "ed1570c152e8",
+        "9597cf54eae3",
+        "664c2d1fea15"
+      ],
+      "name": "DISTANCE_TRAVELLED_SERVER",
+      "value": 1929,
+      "clock": 28.33380733299782,
+      "kind": "player_attribute_changed",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "unix": 1791266830,
+      "newSemantic": false,
+      "sig": "cc05dc42d549",
+      "corr": 57,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 61.5137616179505
+          }
+        ]
+      },
+      "clock": 28.89741608300028,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "sig": "8b72923ea09a",
+      "corr": 58,
+      "unix": 1791266830,
+      "state": "visible",
+      "quality": 68,
+      "clock": 29.12024821799787,
+      "value": false,
+      "kind": "gui_state",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.TouchGui.TouchControlFrame.JumpButton",
+        "name": "JumpButton",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "corr": 58,
+      "contextRefs": [
+        "664c2d1fea15",
+        "d9d27d1da07f",
+        "cc05dc42d549",
+        "8b72923ea09a"
+      ],
+      "unix": 1791266830,
+      "importance": 56,
+      "clock": 29.126199624999572,
+      "newSemantic": true,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 87,
+      "semanticHash": "61369a373865",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "d027b0dc1643",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.playsound",
+        "name": "playsound",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.097487449645996,
+          "type": "Vector3",
+          "x": 196.6322021484375,
+          "z": -3822.243896484375
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.Sedan.Sedan.Misc.details.doors.FL.Part.close",
+            "type": "Instance",
+            "name": "close",
+            "className": "Sound"
+          },
+          9.636787414550781
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 2,
+        "args": [
+          {
+            "className": "Sound",
+            "type": "Instance"
+          },
+          {
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "semanticHash": "61369a373865",
+      "triggerShape": "61369a373865",
+      "parent": {
+        "path": "ReplicatedStorage",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.RotatedRegion3",
+            "name": "RotatedRegion3",
+            "className": "ModuleScript"
+          },
+          {
+            "path": "ReplicatedStorage.LocalScript",
+            "name": "LocalScript",
+            "className": "LocalScript"
+          },
+          {
+            "path": "ReplicatedStorage.sbuilding",
+            "name": "sbuilding",
+            "className": "Script"
+          },
+          {
+            "path": "ReplicatedStorage.A-Chassis Tune",
+            "name": "A-Chassis Tune",
+            "className": "ModuleScript"
+          },
+          {
+            "path": "ReplicatedStorage.UserGenerated",
+            "name": "UserGenerated",
+            "className": "ModuleScript"
+          },
+          {
+            "path": "ReplicatedStorage.UGApp",
+            "name": "UGApp",
+            "className": "ModuleScript"
+          },
+          {
+            "path": "ReplicatedStorage.TutorialClient",
+            "name": "TutorialClient",
+            "className": "ModuleScript"
+          },
+          {
+            "path": "ReplicatedStorage.movebuilding",
+            "name": "movebuilding",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Timers",
+            "name": "Timers",
+            "className": "Folder"
+          },
+          {
+            "path": "ReplicatedStorage.ItemCache",
+            "name": "ItemCache",
+            "className": "Folder"
+          },
+          {
+            "path": "ReplicatedStorage.RemoteEvent",
+            "name": "RemoteEvent",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.drag",
+            "name": "drag",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.InteractMobile",
+            "name": "InteractMobile",
+            "className": "BillboardGui"
+          },
+          {
+            "path": "ReplicatedStorage.playsound",
+            "name": "playsound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.RoadModel",
+            "name": "RoadModel",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.standup",
+            "name": "standup",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.network",
+            "name": "network",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.SaveableItems",
+            "name": "SaveableItems",
+            "className": "Folder"
+          },
+          {
+            "path": "ReplicatedStorage.breaksomething",
+            "name": "breaksomething",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.deleteobject",
+            "name": "deleteobject",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.mr",
+            "name": "mr",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.send",
+            "name": "send",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.loaded",
+            "name": "loaded",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.sendroad",
+            "name": "sendroad",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 58,
+      "remote": {
+        "path": "ReplicatedStorage.playsound",
+        "name": "playsound",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "contextRefs": [
+        "d9d27d1da07f",
+        "cc05dc42d549",
+        "8b72923ea09a",
+        "d027b0dc1643"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Sand",
+        "velocity": {
+          "y": 0.000026028188585769385,
+          "type": "Vector3",
+          "x": 2.708708848331298e-7,
+          "z": -3.0700011421913587e-8
+        },
+        "angularVelocity": {
+          "y": -3.656189240253127e-11,
+          "type": "Vector3",
+          "x": 2.176310260892933e-7,
+          "z": 0.000001540439143354888
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.097487449645996,
+          "type": "Vector3",
+          "x": 196.6322021484375,
+          "z": -3822.243896484375
+        },
+        "jumpPower": 30,
+        "walkSpeed": 10,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "74f8bab79e17",
+      "unix": 1791266830,
+      "clock": 29.126696708000964,
+      "kind": "investigation_context",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 100
+    },
+    {
+      "semanticHash": "61369a373865",
+      "contextRefs": [
+        "cc05dc42d549",
+        "8b72923ea09a",
+        "d027b0dc1643",
+        "74f8bab79e17"
+      ],
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 58,
+      "remote": {
+        "path": "ReplicatedStorage.playsound",
+        "name": "playsound",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791266831,
+      "triggerHash": "61369a373865",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 6.075366049493429,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 51,
+            "clock": 26.75969597999938,
+            "eventValue": 6.075366049493429
+          },
+          {
+            "observedAfterValue": 6.075367190633924,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 52,
+            "clock": 27.030356135997863,
+            "eventValue": 6.075367190633924
+          },
+          {
+            "observedAfterValue": 6.075368620630596,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 53,
+            "clock": 27.862063115000637,
+            "eventValue": 6.075368620630596
+          },
+          {
+            "observedAfterValue": 6.075369426175875,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 54,
+            "clock": 28.092293270998198,
+            "eventValue": 6.075369426175875
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Sand",
+          "velocity": {
+            "y": 0.00002598766513983719,
+            "type": "Vector3",
+            "x": -7.817840810275811e-7,
+            "z": 7.918933420114627e-8
+          },
+          "angularVelocity": {
+            "y": 1.1140689777221647e-14,
+            "type": "Vector3",
+            "x": -2.820420093030407e-7,
+            "z": -0.0000027844148462463636
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.097487449645996,
+            "type": "Vector3",
+            "x": 196.6322021484375,
+            "z": -3822.243896484375
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 6.128833770751953,
+            "type": "Vector3",
+            "x": 201.00469970703125,
+            "z": -3823.041259765625
+          },
+          "CamAngleX": -45.39895483176175,
+          "FreezeCameraInputs": true,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.3181023652034721,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 12.414654399999971,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 3,
+          "ShowChoicePrompt": false,
+          "CameraLock_Behavior": "Default",
+          "DISTANCE_TRAVELLED_SERVER": 1929,
+          "__UG": true,
+          "ToolbeltActive": false,
+          "CameraLock_Free": true,
+          "CameraLock_Owners": "",
+          "ReadyToRevive": false,
+          "BACKPACK_SLOTS": 4,
+          "__UG_NEW": false,
+          "MedalDistanceTravelled": 90597,
+          "MostDistanceTraveled": 1947,
+          "ControlScheme": false,
+          "FullyLoadedInteract": true,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "cc05dc42d549",
+          "8b72923ea09a",
+          "d027b0dc1643",
+          "74f8bab79e17"
+        ],
+        "recentGui": [
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 25.011327542997606,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 25.011485979997815,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TouchGui",
+            "className": "ScreenGui",
+            "clock": 25.404478583997843,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TouchGui.TouchControlFrame.JumpButton",
+            "className": "ImageButton",
+            "clock": 25.40464561599947,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.TouchGui",
+            "className": "ScreenGui",
+            "clock": 26.332174364997627,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.TouchGui.TouchControlFrame.JumpButton",
+            "className": "ImageButton",
+            "clock": 26.33230327199999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 26.679320770999766,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 26.75014889600061,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 27.445909156998823,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 28.056820093999704,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 28.189665666999645,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 28.30257905200051,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 28.326058114998887,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 28.817280613999174,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TouchGui",
+            "className": "ScreenGui",
+            "clock": 29.120001915998728,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TouchGui.TouchControlFrame.JumpButton",
+            "className": "ImageButton",
+            "clock": 29.120164259999,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "bdbb321963ae",
+      "probeId": 2,
+      "clock": 29.335219988999597,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "corr": 58,
+      "contextRefs": [
+        "8b72923ea09a",
+        "d027b0dc1643",
+        "74f8bab79e17",
+        "bdbb321963ae"
+      ],
+      "unix": 1791266831,
+      "importance": 42,
+      "clock": 29.45061603100112,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "cba24cc0774f",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "cd30f94bb501",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.RemoteEvent",
+        "name": "RemoteEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.Sedan.Sedan.Misc.details.doors.FL.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": 0,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "448a0fe48682",
+      "corr": 59,
+      "unix": 1791266831,
+      "correlationModel": "evidence_v2",
+      "state": "visible",
+      "quality": 68,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "61369a373865",
+          "effectTotal": 1,
+          "confidence": 28,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate:visible",
+          "id": 7,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.playsound",
+          "age": 0.8654066140006762,
+          "shape": "546c53fd45c9",
+          "importance": 56
+        }
+      ],
+      "clock": 29.99168451999867,
+      "value": true,
+      "kind": "gui_state",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+        "name": "Activate",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266831,
+      "sig": "40f853b6601b",
+      "corr": 60,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "61369a373865",
+          "effectTotal": 15,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 7,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.playsound",
+          "age": 0.945009895000112,
+          "shape": "546c53fd45c9",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 61.400363102150436
+          }
+        ]
+      },
+      "clock": 30.071298635000858,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "semanticHash": "61369a373865",
+      "contextRefs": [
+        "bdbb321963ae",
+        "cd30f94bb501",
+        "448a0fe48682",
+        "40f853b6601b"
+      ],
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 60,
+      "remote": {
+        "path": "ReplicatedStorage.playsound",
+        "name": "playsound",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791266832,
+      "triggerHash": "61369a373865",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 6.075411986849669,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 55,
+            "clock": 29.6080564469994,
+            "eventValue": 6.075411986849669
+          },
+          {
+            "observedAfterValue": 6.07543870111176,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 56,
+            "clock": 29.783323269999528,
+            "eventValue": 6.07543870111176
+          },
+          {
+            "observedAfterValue": 6.075440927015174,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 57,
+            "clock": 30.00092879099975,
+            "eventValue": 6.075440927015174
+          },
+          {
+            "observedAfterValue": 6.0754417902950415,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 58,
+            "clock": 30.2266317600006,
+            "eventValue": 6.0754417902950415
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Sand",
+          "velocity": {
+            "y": -0.03695371001958847,
+            "type": "Vector3",
+            "x": 9.87586784362793,
+            "z": -1.5703059434890747
+          },
+          "angularVelocity": {
+            "y": -2.9094436920217443e-17,
+            "type": "Vector3",
+            "x": 7.548931080236798e-8,
+            "z": 0.0000016582563375777681
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9875965714454651,
+            "z": -0.15701279044151306
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.089053630828857,
+            "type": "Vector3",
+            "x": 199.27076721191406,
+            "z": -3822.63134765625
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -45.44128942648831,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.42960047311362837,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 12.414654399999971,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 3,
+          "ShowChoicePrompt": false,
+          "CameraLock_Behavior": "Default",
+          "DISTANCE_TRAVELLED_SERVER": 1930,
+          "__UG": true,
+          "ToolbeltActive": false,
+          "CameraLock_Free": true,
+          "CameraLock_Owners": "",
+          "ReadyToRevive": false,
+          "BACKPACK_SLOTS": 4,
+          "__UG_NEW": false,
+          "MedalDistanceTravelled": 90597,
+          "MostDistanceTraveled": 1947,
+          "ControlScheme": false,
+          "FullyLoadedInteract": true,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "bdbb321963ae",
+          "cd30f94bb501",
+          "448a0fe48682",
+          "40f853b6601b"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.148143374000938,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.148324936999416,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.191444154999772,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.191583217998414,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.22115389499959,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.221281864000048,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.250530874000106,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.2507046239989,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.280297279998194,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.2804488949987,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.313556446999428,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.31369415500012,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.342159885,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.342294154997944,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.37197426000057,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 30.37210337400029,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "bdbb331963af",
+      "probeId": 2,
+      "clock": 30.39276597799835,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266832,
+      "sig": "9b9ef30fafb3",
+      "corr": 62,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "61369a373865",
+          "effectTotal": 9,
+          "confidence": 1,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 7,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.playsound",
+          "age": 1.943764009000006,
+          "shape": "546c53fd45c9",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.7412365078926086,
+            "3": -0.004696081392467022
+          }
+        ]
+      },
+      "clock": 31.070049779998953,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 6,
+            "type": "table",
+            "fields": {
+              "config": {
+                "fieldCountAtLeast": 17,
+                "type": "table",
+                "fields": {
+                  "CLIENT_TERRAIN_INFLIGHT": {
+                    "type": "number"
+                  },
+                  "BACKWARD_CHUNKS_PER_FRAME": {
+                    "type": "number"
+                  },
+                  "ROAD_TERRAIN_GAP": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_SPAN_REFRESH_SECONDS": {
+                    "type": "number"
+                  },
+                  "FALL_RECOVERY_BELOW_GROUND_STUDS": {
+                    "type": "number"
+                  },
+                  "BuildingReplacements": {
+                    "fieldCountAtLeast": 0,
+                    "type": "table",
+                    "fields": []
+                  },
+                  "PREFAB_BUILDING_PAD_STUD": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_RESPECT_LIMITS": {
+                    "type": "boolean"
+                  },
+                  "SPAN_FRONT_KEEPOUT_STUDS": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_MESH_CHUNK_STUDS": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_SPEED_THRESHOLD": {
+                    "type": "number"
+                  },
+                  "BIOME_BLEND_DISTANCE": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_CLEAR_MARGIN": {
+                    "type": "number"
+                  },
+                  "BuildingOverwrites": {
+                    "fieldCountAtLeast": 0,
+                    "type": "table",
+                    "fields": []
+                  },
+                  "TERRAIN_SHELL_ENABLED": {
+                    "type": "boolean"
+                  },
+                  "SPAWN_NEXT_CHUNK_AT_RADIUS": {
+                    "type": "number"
+                  }
+                }
+              },
+              "alignment": {
+                "type": "CFrame"
+              },
+              "seed": {
+                "type": "number"
+              },
+              "spans": {
+                "fieldCountAtLeast": 11,
+                "type": "table",
+                "fields": {
+                  "1": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "2": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "3": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "4": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "5": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "6": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "7": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "8": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "9": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "10": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "11": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              },
+              "serverTerrainEnabled": {
+                "type": "boolean"
+              },
+              "version": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "corr": 62,
+      "contextRefs": [
+        "448a0fe48682",
+        "40f853b6601b",
+        "bdbb331963af",
+        "9b9ef30fafb3"
+      ],
+      "quality": 82,
+      "unix": 1791266833,
+      "responseSemanticHash": "7636499a6418",
+      "importance": 58,
+      "clock": 31.48599462399943,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "invokeLatencyMs": 241.45,
+      "semanticHash": "e361b96d84e7",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "51e5b54c690a",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+        "name": "TerrainSyncData",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.TerrainSync",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          {
+            "config": {
+              "BaseGeneratableModels": {
+                "LargeDeadTrees": 0,
+                "Misc": 0.5,
+                "SpeedBumps": 0,
+                "Bushes": 0,
+                "Mountains": 2,
+                "Buildings": 1,
+                "PlainsTrees": 0,
+                "Boulders": 2,
+                "Rocks": 28,
+                "PlainsBuildings": 0,
+                "PlainsRocks": 0,
+                "Bones": 0,
+                "None": 310,
+                "Cactus": 31,
+                "Animals": 8,
+                "WaterPools": 0,
+                "SmallDeadTrees": 0,
+                "PlainsMountains": 0,
+                "PlainsBoulders": 0
+              },
+              "CLIENT_TERRAIN_SPAN_REFRESH_SECONDS": 5,
+              "FALL_RECOVERY_BELOW_GROUND_STUDS": 100,
+              "PREFAB_BUILDING_PAD_STUD": 50,
+              "CLIENT_TERRAIN_SPEED_THRESHOLD": 8,
+              "BIOME_BLEND_DISTANCE": 600,
+              "CLIENT_TERRAIN_CLEAR_MARGIN": 192,
+              "BuildingOverwrites": [],
+              "TERRAIN_SHELL_ENABLED": true,
+              "ROAD_SEGMENT_SIZE": 200,
+              "CLIENT_TERRAIN_MESH_CHUNK_STUDS": 256,
+              "CLIENT_TERRAIN_RESPECT_LIMITS": true,
+              "CLIENT_TERRAIN_MESH_RETAIN_CHUNKS": 80,
+              "BuildingReplacements": [],
+              "CLIENT_TERRAIN_MESH_RES": 8,
+              "CLIENT_TERRAIN_INFLIGHT": 24,
+              "DEBUG_SPAN_KEEPOUT": false,
+              "BaseTerrain": {
+                "RoadFlattenRadius": 80,
+                "NoiseWidth": 800,
+                "Octaves": 3,
+                "Chance": 50,
+                "FillDepth": 4,
+                "MinLength": 2000,
+                "Frequency": 0.005,
+                "TerrainThickness": 8,
+                "RoadBlendRadius": 300,
+                "VoxelResolution": 4,
+                "Mode": "perlin",
+                "MaxLength": 4000,
+                "Lacunarity": 2,
+                "Persistence": 0.6,
+                "Name": "Default",
+                "Amplitude": 8,
+                "BuildingBlendRadius": 50,
+                "Seed": 9,
+                "Material": "Enum.Material.Sand",
+                "GroundColor": {
+                  "b": 0.501960813999176,
+                  "type": "Color3",
+                  "g": 0.6980392336845398,
+                  "r": 0.7607843279838562
+                }
+              },
+              "BIOME_BLEND_DITHER_FREQ": 0.02,
+              "HEIGHTMAP_WORKER_COUNT": 1,
+              "CLIENT_TERRAIN_ENABLED": false,
+              "CLIENT_TERRAIN_WORKER_COUNT": 4,
+              "CLIENT_TERRAIN_RING_STUDS": 512,
+              "SPAN_BACK_KEEPOUT_STUDS": 400,
+              "CLIENT_TERRAIN_MESH_RETIRED_RES": 32,
+              "GEN_TELEMETRY_HITCH_MS": 50,
+              "TERRAIN_BLEND_RADIUS": 100,
+              "TERRAIN_PART_WRITES_ENABLED": true,
+              "CHUNK_LIFECYCLE_TICK_HZ": 10,
+              "MeterTableOverrides": [],
+              "CHUNK_RESTORE_HYSTERESIS": 500,
+              "FALL_RECOVERY_MIN_FALL_SPEED": 50,
+              "CLIENT_TERRAIN_WIDTH_STUDS": 0,
+              "CLIENT_TERRAIN_LOOKAHEAD_TIME": 1.5,
+              "MAX_ANGLE": 3,
+              "SERVER_GROUND_COLLISION": "voxel",
+              "BIOME_BLEND_DITHER_AMP": 0.35,
+              "GeneratableDatas": {
+                "LargeDeadTrees": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "Misc": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 250,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "SpeedBumps": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 0,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 0,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "Bushes": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "Mountains": {
+                  "MaxDisFromRoad": 1600,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 1400,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Buildings": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 300,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "PlainsTrees": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 400
+                },
+                "Boulders": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0.5,
+                  "MinDisFromRoad": 250,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "Rocks": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": -0.1,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "PlainsBuildings": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 300,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "PlainsRocks": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": -0.1,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 200
+                },
+                "Bones": {
+                  "MaxDisFromRoad": 200,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0.95,
+                  "HeightOffsetMax": 0.02,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Cactus": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Animals": {
+                  "MaxDisFromRoad": 300,
+                  "HeightOffsetMin": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 10,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "WaterPools": {
+                  "SettleToGround": true,
+                  "HeightOffsetMin": 0,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 140,
+                  "FlattenArea": true,
+                  "ClearRoadBounds": true,
+                  "MaxDisFromRoad": 500,
+                  "IsWeighted": true,
+                  "StampTerrainParts": true,
+                  "HeightOffsetMax": 0,
+                  "FlattenBlendRadius": 50,
+                  "Keepout": true,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "SmallDeadTrees": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "PlainsMountains": {
+                  "MinDisFromRoad": 1200,
+                  "MaxDisFromRoad": 1800
+                },
+                "RedDesertBiome": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 500,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 100,
+                  "MinMagnitudeFromStart": 2400
+                }
+              },
+              "POWERLINE_OFFSET": 10,
+              "SPAN_POST_PREFAB_KEEPOUT_CHUNKS": 2,
+              "NPCServiceGeneratableMutantChances": {
+                "LeatherArmouredMutant": 35,
+                "ChainmailArmouredMutant": 25,
+                "Stalker": 0,
+                "MutantChicken": 2,
+                "BuffMutant": 30,
+                "BabyMutant": 25,
+                "NormalMutant": 200,
+                "SandMutant": 0,
+                "FireMutant": 20
+              },
+              "CLIENT_TERRAIN_FORWARD_MAX_STUDS": 1280,
+              "CLIENT_TERRAIN_WRITES_PER_STEP": 12,
+              "CLIENT_TERRAIN_WRITE_BUDGET_MS": 2,
+              "AnimalSpawnChances": {
+                "Chicken": {
+                  "Weight": 30,
+                  "SpawnCount": "1 2 "
+                },
+                "Rabbit": {
+                  "Weight": 20,
+                  "SpawnCount": "1 2 "
+                },
+                "Wolf": {
+                  "MinSpawnDistance": 300,
+                  "Weight": 30,
+                  "SpawnCount": "1 3 "
+                },
+                "Vulture": {
+                  "MinSpawnDistance": 5000,
+                  "Weight": 30,
+                  "SpawnCount": "1 2 "
+                },
+                "Scorpion": {
+                  "MinSpawnDistance": 1000,
+                  "Weight": 0,
+                  "SpawnCount": "1 1 "
+                },
+                "Horse": {
+                  "MinSpawnDistance": 1000,
+                  "Weight": 10,
+                  "SpawnCount": "1 3 "
+                },
+                "Snake": {
+                  "MinSpawnDistance": 100,
+                  "Weight": 40,
+                  "SpawnCount": "1 2 "
+                }
+              },
+              "CHUNK_LIFECYCLE_BUDGET_PER_TICK": 2,
+              "CLIENT_TERRAIN_SURFACE_BAND_STUDS": 8,
+              "CLIENT_TERRAIN_TILE_STUDS": 64,
+              "SERVER_COLLISION_MESH_RES": 32,
+              "HEIGHTMAP_LOOKAHEAD": 10,
+              "CLIENT_TERRAIN_BACK_SCALE": 0.5,
+              "ROAD_WIDTH": 24.89,
+              "ROAD_SEGMENT_OVERLAP": 0,
+              "BUILDING_UNIQUE_HISTORY": 10,
+              "<truncated>": true,
+              "BACKWARD_CHUNKS_PER_FRAME": 1,
+              "ROAD_TERRAIN_GAP": 0.2,
+              "SPAWN_NEXT_CHUNK_AT_RADIUS": 3000,
+              "CLIENT_TERRAIN_FORWARD_SECONDS": 4,
+              "CLIENT_TERRAIN_WORKER_TIMEOUT": 3,
+              "SPAN_FRONT_KEEPOUT_STUDS": 400,
+              "FALL_RECOVERY_LIFT_STUDS": 35,
+              "TerrainConfigs": {
+                "1": {
+                  "RoadBlendRadius": 200,
+                  "MinLength": 2000,
+                  "Amplitude": 24,
+                  "MaxLength": 4000,
+                  "Seed": 529,
+                  "Persistence": 0.6,
+                  "Name": "Dunes",
+                  "Octaves": 3,
+                  "Lacunarity": 2,
+                  "Chance": 30,
+                  "Frequency": 0.006,
+                  "GroundColor": {
+                    "b": 0.43921568989753723,
+                    "type": "Color3",
+                    "g": 0.6784313917160034,
+                    "r": 0.8117647171020508
+                  }
+                },
+                "2": {
+                  "MinLength": 2000,
+                  "Name": "Flat",
+                  "Seed": 119,
+                  "Chance": 50,
+                  "Mode": "flat",
+                  "MaxLength": 6000,
+                  "GroundColor": {
+                    "b": 0.6549019813537598,
+                    "type": "Color3",
+                    "g": 0.7960784435272217,
+                    "r": 0.8117647171020508
+                  }
+                },
+                "3": {
+                  "Octaves": 2,
+                  "Chance": 5,
+                  "Mode": "perlin",
+                  "MinLength": 4000,
+                  "GroundColor": {
+                    "b": 0.25882354378700256,
+                    "type": "Color3",
+                    "g": 0.42352941632270813,
+                    "r": 0.7803921699523926
+                  },
+                  "Material": "Enum.Material.Salt",
+                  "RoadBlendRadius": 300,
+                  "MaxLength": 7000,
+                  "BuildingBlendRadius": 100,
+                  "TerrainOverrides": {
+                    "Sand": "Enum.Material.Salt"
+                  },
+                  "Amplitude": 80,
+                  "Persistence": 0.002,
+                  "Name": "RedDesert",
+                  "Seed": 972,
+                  "Lacunarity": 0.001,
+                  "Overrides": {
+                    "NPCServiceGeneratableMutantChances": {
+                      "LeatherArmouredMutant": "<max_depth>",
+                      "ChainmailArmouredMutant": "<max_depth>",
+                      "BabyMutant": "<max_depth>",
+                      "Buff": "<max_depth>",
+                      "NormalMutant": "<max_depth>",
+                      "SandMutant": "<max_depth>",
+                      "FireMutant": "<max_depth>"
+                    },
+                    "BaseGeneratableModels": {
+                      "LargeDeadTrees": "<max_depth>",
+                      "Misc": "<max_depth>",
+                      "Rocks": "<max_depth>",
+                      "Buildings": "<max_depth>",
+                      "SmallDeadTrees": "<max_depth>",
+                      "Bushes": "<max_depth>",
+                      "Mountains": "<max_depth>",
+                      "Cactus": "<max_depth>",
+                      "Animals": "<max_depth>",
+                      "RedDesertBiome": "<max_depth>",
+                      "Bones": "<max_depth>",
+                      "Boulders": "<max_depth>",
+                      "None": "<max_depth>"
+                    },
+                    "AnimalSpawnChances": {
+                      "Rabbit": "<max_depth>",
+                      "Wolf": "<max_depth>",
+                      "Vulture": "<max_depth>",
+                      "Horse": "<max_depth>",
+                      "Scorpion": "<max_depth>"
+                    },
+                    "GeneratableMutantChances": []
+                  },
+                  "FillDepth": 4,
+                  "Frequency": 0.001
+                },
+                "4": {
+                  "Octaves": 2,
+                  "Chance": 8,
+                  "Material": "Enum.Material.Sand",
+                  "MinLength": 2500,
+                  "Frequency": 0.001,
+                  "RoadBlendRadius": 300,
+                  "Mode": "perlin",
+                  "FillDepth": 4,
+                  "MaxLength": 4800,
+                  "Lacunarity": 0.001,
+                  "Persistence": 0.002,
+                  "Name": "WaterDesert",
+                  "Amplitude": 40,
+                  "BuildingBlendRadius": 100,
+                  "Seed": 989,
+                  "Overrides": {
+                    "BaseGeneratableModels": {
+                      "LargeDeadTrees": "<max_depth>",
+                      "Misc": "<max_depth>",
+                      "Rocks": "<max_depth>",
+                      "Buildings": "<max_depth>",
+                      "SmallDeadTrees": "<max_depth>",
+                      "Bushes": "<max_depth>",
+                      "WaterPools": "<max_depth>",
+                      "Cactus": "<max_depth>",
+                      "Animals": "<max_depth>",
+                      "Mountains": "<max_depth>",
+                      "Bones": "<max_depth>",
+                      "Boulders": "<max_depth>",
+                      "None": "<max_depth>"
+                    }
+                  },
+                  "GroundColor": {
+                    "b": 1,
+                    "type": "Color3",
+                    "g": 1,
+                    "r": 1
+                  }
+                }
+              },
+              "ROAD_THICKNESS": 1,
+              "GeneratableMutantChances": {
+                "Sprinter": 30,
+                "DebrisThrowingMutant": 7,
+                "GasMutant": 9,
+                "ExplodingMutant": 8,
+                "FireworkMutant": 15,
+                "DuplicationMutant": 8,
+                "PinataMutant": 15,
+                "ElectricMutant": 6,
+                "AcidSpitterMutant": 7,
+                "ConfettiBombMutant": 15
+              }
+            },
+            "alignment": {
+              "y": 3.3489999771118164,
+              "type": "CFrame",
+              "rx": 0,
+              "z": 8086.70654296875,
+              "rz": 0,
+              "ry": -0.006387840956449509,
+              "x": 91.84486389160156
+            },
+            "seed": 633870415,
+            "spans": {
+              "1": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21678.59375,
+                  "rz": 0,
+                  "ry": 3.136068105697632,
+                  "x": 77.30387878417969
+                },
+                "length": 478.6009826660156,
+                "name": "TruckStop",
+                "connectorEndMeter": 21800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21200,
+                  "rz": 0,
+                  "ry": -0.005524615757167339,
+                  "x": 74.67488861083984
+                },
+                "endMeter": 21678.600982666016,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21800,
+                  "rz": 0,
+                  "ry": -0.0063015189953148365,
+                  "x": 80.83627319335938
+                },
+                "startMeter": 21200
+              },
+              "2": {
+                "exitCFrame": {
+                  "y": 0.011780399829149246,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -31610.359375,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 4.891658306121826
+                },
+                "length": 1410.375732421875,
+                "name": "Bridge",
+                "connectorEndMeter": 31800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -30200,
+                  "rz": 0,
+                  "ry": -0.004834037274122238,
+                  "x": -1.8949037790298462
+                },
+                "endMeter": 31610.37573242188,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -31800,
+                  "rz": 0,
+                  "ry": -0.022098883986473083,
+                  "x": 19.6380672454834
+                },
+                "startMeter": 30200.000000000004
+              },
+              "3": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38282.7734375,
+                  "rz": 0,
+                  "ry": -3.1164722442626953,
+                  "x": -59.427059173583984
+                },
+                "length": 282.8625793457031,
+                "name": "Motel",
+                "connectorEndMeter": 38400,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38000,
+                  "rz": 0,
+                  "ry": 0.025120370090007782,
+                  "x": -52.326045989990234
+                },
+                "endMeter": 38282.86257934571,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38400,
+                  "rz": 0,
+                  "ry": 0.017523594200611115,
+                  "x": -64.03807830810547
+                },
+                "startMeter": 38000
+              },
+              "4": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42723.328125,
+                  "rz": 0,
+                  "ry": 3.1294212341308594,
+                  "x": -53.04194259643555
+                },
+                "length": 523.3668823242188,
+                "name": "RustyDepot",
+                "connectorEndMeter": 42800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42200,
+                  "rz": 0,
+                  "ry": -0.012171481736004353,
+                  "x": -59.414268493652344
+                },
+                "endMeter": 42723.36688232422,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42800,
+                  "rz": 0,
+                  "ry": -0.01122191920876503,
+                  "x": -59.859619140625
+                },
+                "startMeter": 42200
+              },
+              "5": {
+                "exitCFrame": {
+                  "y": 0.068756103515625,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -43832.109375,
+                  "rz": 0,
+                  "ry": -3.140556812286377,
+                  "x": -45.95722579956055
+                },
+                "length": 432.1094055175781,
+                "name": "SmallDesertBunker",
+                "connectorEndMeter": 44000,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -43400,
+                  "rz": 0,
+                  "ry": 0.0010358643485233188,
+                  "x": -45.781394958496094
+                },
+                "endMeter": 43832.10940551758,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -44000,
+                  "rz": 0,
+                  "ry": -0.02002703957259655,
+                  "x": -40.3520622253418
+                },
+                "startMeter": 43400
+              },
+              "6": {
+                "exitCFrame": {
+                  "y": 0.0006938716396689415,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -46063.328125,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -9.554412841796875
+                },
+                "length": 863.4747924804688,
+                "name": "CheckPoint",
+                "connectorEndMeter": 46200.00000000001,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -45200,
+                  "rz": 0,
+                  "ry": -0.018473178148269653,
+                  "x": -25.47110939025879
+                },
+                "endMeter": 46063.47479248047,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -46200,
+                  "rz": 0,
+                  "ry": 0.0010358643485233188,
+                  "x": -0.6358307003974915
+                },
+                "startMeter": 45200
+              },
+              "7": {
+                "exitCFrame": {
+                  "y": 0.00011498179082991555,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -62830.3671875,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 28.781024932861328
+                },
+                "length": 2630.476806640625,
+                "name": "Canyon",
+                "connectorEndMeter": 63000,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -60200,
+                  "rz": 0,
+                  "ry": -0.009150166995823383,
+                  "x": 4.765540599822998
+                },
+                "endMeter": 62830.47680664063,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -63000,
+                  "rz": 0,
+                  "ry": 0.0010358643485233188,
+                  "x": 16.276500701904297
+                },
+                "startMeter": 60200
+              },
+              "8": {
+                "exitCFrame": {
+                  "y": -0.0004267361364327371,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -70607.5703125,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -104.91059112548828
+                },
+                "length": 1407.9906005859375,
+                "name": "SuspensionBridge",
+                "connectorEndMeter": 71000,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -69200,
+                  "rz": 0,
+                  "ry": 0.02399810217320919,
+                  "x": -70.50841522216797
+                },
+                "endMeter": 70607.99060058594,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -71000,
+                  "rz": 0,
+                  "ry": -0.022616853937506676,
+                  "x": -63.86695861816406
+                },
+                "startMeter": 69200
+              },
+              "9": {
+                "exitCFrame": {
+                  "y": 0.000040651593735674396,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -91129.921875,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 15.099653244018555
+                },
+                "length": 930.000732421875,
+                "name": "Base",
+                "connectorEndMeter": 91200.00000000001,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -90200,
+                  "rz": 0,
+                  "ry": 0.013034719042479992,
+                  "x": 27.21036720275879
+                },
+                "endMeter": 91130.00073242188,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -91200,
+                  "rz": 0,
+                  "ry": -0.0036255272570997477,
+                  "x": 24.740995407104492
+                },
+                "startMeter": 90200
+              },
+              "10": {
+                "exitCFrame": {
+                  "y": 0.006019593216478825,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -151101.421875,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 28.563148498535156
+                },
+                "length": 901.593017578125,
+                "name": "GhostTown",
+                "connectorEndMeter": 151200,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -150200,
+                  "rz": 0,
+                  "ry": 0.0195090863853693,
+                  "x": 46.131004333496094
+                },
+                "endMeter": 151101.59301757812,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -151200,
+                  "rz": 0,
+                  "ry": -0.010531336069107056,
+                  "x": 37.65337371826172
+                },
+                "startMeter": 150200
+              },
+              "11": {
+                "exitCFrame": {
+                  "y": -0.0000473136969958432,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -211282.40625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 49.06432342529297
+                },
+                "length": 1082.4178466796875,
+                "name": "FortIronpass",
+                "connectorEndMeter": 211600.00000000003,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -210200,
+                  "rz": 0,
+                  "ry": -0.004661393817514181,
+                  "x": 44.05581283569336
+                },
+                "endMeter": 211282.41784667972,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -211600,
+                  "rz": 0,
+                  "ry": 0.007682677824050188,
+                  "x": 11.770511627197266
+                },
+                "startMeter": 210200
+              }
+            },
+            "serverTerrainEnabled": true,
+            "version": 1
+          }
+        ]
+      },
+      "newShape": false,
+      "payload": {
+        "count": 0,
+        "values": []
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "responseShapeHash": "ce02cc2c7db9"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266833,
+      "sig": "7edc0d1716dc",
+      "corr": 64,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "61369a373865",
+          "effectTotal": 10,
+          "confidence": 2,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.579,
+          "trustedSupport": 2,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 7,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.playsound",
+          "age": 2.914322863001871,
+          "shape": "546c53fd45c9",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.6472292542457581,
+            "3": 0.00940065085887909
+          }
+        ]
+      },
+      "clock": 32.04061363399887,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "semanticHash": "61369a373865",
+      "contextRefs": [
+        "bdbb331963af",
+        "9b9ef30fafb3",
+        "51e5b54c690a",
+        "7edc0d1716dc"
+      ],
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 64,
+      "remote": {
+        "path": "ReplicatedStorage.playsound",
+        "name": "playsound",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791266833,
+      "triggerHash": "61369a373865",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 6.07543870111176,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 56,
+            "clock": 29.783323269999528,
+            "eventValue": 6.07543870111176
+          },
+          {
+            "observedAfterValue": 6.075440927015174,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 57,
+            "clock": 30.00092879099975,
+            "eventValue": 6.075440927015174
+          },
+          {
+            "observedAfterValue": 6.0754417902950415,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 58,
+            "clock": 30.2266317600006,
+            "eventValue": 6.0754417902950415
+          },
+          {
+            "observedAfterValue": 6.0754442818526915,
+            "path": "Workspace.Sedan.Sedan.values.mileage",
+            "activityCount": 59,
+            "clock": 30.468193477998284,
+            "eventValue": 6.0754442818526915
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Sand",
+          "velocity": {
+            "y": 0.000026054229238070548,
+            "type": "Vector3",
+            "x": 5.697918936675705e-7,
+            "z": -5.6316661556365943e-8
+          },
+          "angularVelocity": {
+            "y": 1.6092662497854205e-16,
+            "type": "Vector3",
+            "x": 1.9526059702457133e-7,
+            "z": 0.000001975577333723777
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.0875244140625,
+            "type": "Vector3",
+            "x": 199.5936279296875,
+            "z": -3822.67822265625
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -45.441289426488325,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.6049178559261283,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 12.414654399999971,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 3,
+          "ShowChoicePrompt": false,
+          "CameraLock_Behavior": "Default",
+          "DISTANCE_TRAVELLED_SERVER": 1930,
+          "__UG": true,
+          "ToolbeltActive": false,
+          "CameraLock_Free": true,
+          "CameraLock_Owners": "",
+          "ReadyToRevive": false,
+          "BACKPACK_SLOTS": 4,
+          "__UG_NEW": false,
+          "MedalDistanceTravelled": 90597,
+          "MostDistanceTraveled": 1947,
+          "ControlScheme": false,
+          "FullyLoadedInteract": true,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "bdbb331963af",
+          "9b9ef30fafb3",
+          "51e5b54c690a",
+          "7edc0d1716dc"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.914406134001183,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.9145953010011,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.945021393999923,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.94516660299996,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.97905696700036,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 31.979197227999975,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.006533633997606,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.00667712399809,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.03441326900065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.03462056100034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.059579831999145,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.0597449880006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.088154570999905,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.088304102999246,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.11769446700055,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+            "className": "ImageButton",
+            "clock": 32.117847591998725,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "bdbb341963b0",
+      "probeId": 2,
+      "clock": 32.14371035300064,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266835,
+      "sig": "508f51ef7c1a",
+      "corr": 66,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "61369a373865",
+          "effectTotal": 16,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.285,
+          "trustedSupport": 2,
+          "baseline": 9,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 7,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.playsound",
+          "age": 4.283863019001728,
+          "shape": "546c53fd45c9",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 61.06726419925042
+          }
+        ]
+      },
+      "clock": 33.4101497269985,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 67,
+      "contextRefs": [
+        "51e5b54c690a",
+        "7edc0d1716dc",
+        "bdbb341963b0",
+        "508f51ef7c1a"
+      ],
+      "unix": 1791266835,
+      "importance": 42,
+      "clock": 33.75195967499894,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "6d8ea7e3de25",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.9667238593101501,
+          0.010426382534205914
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": -0.01216796599328518,
+        "type": "Vector3",
+        "x": 0.19541628658771515,
+        "z": -0.09895476698875427
+      },
+      "unix": 1791266835,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.894614219665527,
+          "type": "Vector3",
+          "x": 201.50827026367188,
+          "z": -3823.043701171875
+        },
+        "userId": 765329164
+      },
+      "corr": 67,
+      "clock": 33.78922826900089,
+      "kind": "trajectory",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 26
+    },
+    {
+      "semanticHash": "ef567e062853",
+      "unix": 1791266836,
+      "newSemantic": false,
+      "sig": "5d92ea9cad5c",
+      "corr": 68,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -1.121926188468933,
+            "3": -0.022976145148277283
+          }
+        ]
+      },
+      "clock": 34.268111028999556,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 69,
+      "unix": 1791266836,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.8830647468566895,
+          "type": "Vector3",
+          "x": 201.49282836914062,
+          "z": -3823.0625
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "508f51ef7c1a",
+        "6d8ea7e3de25",
+        "5c966e9bcefc",
+        "5d92ea9cad5c"
+      ],
+      "quality": 94,
+      "clock": 34.71862352899916,
+      "kind": "gui_activated",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "gui": {
+        "name": "Activate",
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Activate",
+        "source": "PlayerGui",
+        "className": "ImageButton",
+        "parent": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame",
+        "attributes": {
+          "ImageOffset": {
+            "y": 0,
+            "type": "Vector2",
+            "x": 0
+          }
+        },
+        "gui": {
+          "visible": true,
+          "size": {
+            "type": "UDim2",
+            "ys": 0.6000000238418579,
+            "xs": 0.6000000238418579,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": -0.05833333358168602,
+            "xs": 0.5833333134651184,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    },
+    {
+      "sig": "6e8860e36eae",
+      "eventValue": 6.075471873047977,
+      "unix": 1791266836,
+      "observedAfterValue": 6.075471873047977,
+      "corr": 69,
+      "object": {
+        "path": "Workspace.Sedan.Sedan.values.mileage",
+        "name": "mileage",
+        "className": "NumberValue",
+        "value": 6.075471873047977,
+        "attributes": []
+      },
+      "clock": 34.73408415399899,
+      "value": 6.075471873047977,
+      "kind": "value_changed",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 72
+    },
+    {
+      "semanticHash": "b8072602390b",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266837,
+      "sig": "fb786c8acca0",
+      "corr": 70,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "458db5ba35e3",
+          "effectTotal": 12,
+          "confidence": 1,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 3,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 8,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Network.HeadPitch",
+          "age": 0.32632067699887557,
+          "shape": "1cbfeba3cf52",
+          "importance": 42
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": 0,
+            "3": 0.0027138153091073036
+          }
+        ]
+      },
+      "clock": 35.403285298998526,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 71,
+      "contextRefs": [
+        "5d92ea9cad5c",
+        "e90aea4d0e0d",
+        "6e8860e36eae",
+        "fb786c8acca0"
+      ],
+      "unix": 1791266837,
+      "importance": 42,
+      "clock": 35.59379337199789,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "9b9ef0581f62",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "aa9266389559",
+      "investigating": false,
+      "remote": {
+        "path": "Workspace.Sedan.Sedan.connection",
+        "name": "connection",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Sedan.Sedan",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.Sedan.Sedan.values.rpm",
+            "type": "Instance",
+            "name": "rpm",
+            "className": "NumberValue"
+          },
+          0
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "d682018bf7ca",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266838,
+      "sig": "6b2929f0d764",
+      "corr": 72,
+      "remote": {
+        "path": "ReplicatedStorage.__TableReplicatorSync",
+        "name": "__TableReplicatorSync",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "458db5ba35e3",
+          "effectTotal": 17,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.__TableReplicatorSync",
+          "id": 8,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Network.HeadPitch",
+          "age": 1.1992938539988245,
+          "shape": "1cbfeba3cf52",
+          "importance": 42
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "PlayerState_765329164",
+          "Batch",
+          {
+            "1": 131,
+            "2": 60.77728136245036
+          }
+        ]
+      },
+      "clock": 36.276255924,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791266839,
+      "sig": "70d0be3664ea",
+      "corr": 74,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "458db5ba35e3",
+          "effectTotal": 13,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.414,
+          "trustedSupport": 2,
+          "baseline": 3,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 8,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Network.HeadPitch",
+          "age": 2.214141873999324,
+          "shape": "1cbfeba3cf52",
+          "importance": 42
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.5735846161842346,
+            "3": 0.766279935836792
+          }
+        ]
+      },
+      "clock": 37.29110363200016,
+      "kind": "remote_inbound",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 78
+    },
+    {
+      "corr": 74,
+      "contextRefs": [
+        "fb786c8acca0",
+        "aa9266389559",
+        "6b2929f0d764",
+        "70d0be3664ea"
+      ],
+      "unix": 1791266839,
+      "importance": 24,
+      "clock": 37.413057798999944,
+      "newSemantic": false,
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 82,
+      "semanticHash": "518b649bc258",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "74cedc3206ba",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          1723,
+          1791266839.535419
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "correlationModel": "evidence_v2",
+      "sig": "1f27938c58a6",
+      "eventValue": 6.075536714751296,
+      "unix": 1791266839,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "458db5ba35e3",
+          "effectTotal": 8,
+          "confidence": 1,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 4,
+          "method": "FireServer",
+          "effect": "value:Workspace.Sedan.Sedan.values.mileage",
+          "id": 8,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Network.HeadPitch",
+          "age": 2.4390995819994714,
+          "shape": "1cbfeba3cf52",
+          "importance": 42
+        }
+      ],
+      "observedAfterValue": 6.075536714751296,
+      "corr": 75,
+      "object": {
+        "path": "Workspace.Sedan.Sedan.values.mileage",
+        "name": "mileage",
+        "className": "NumberValue",
+        "value": 6.075536714751296,
+        "attributes": []
+      },
+      "clock": 37.51605837099851,
+      "value": 6.075536714751296,
+      "kind": "value_changed",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "quality": 72
+    },
+    {
+      "corr": 75,
+      "unix": 1791266839,
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.501011371612549,
+          "type": "Vector3",
+          "x": 203.3168182373047,
+          "z": -3822.838134765625
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "6b2929f0d764",
+        "70d0be3664ea",
+        "74cedc3206ba",
+        "1f27938c58a6"
+      ],
+      "quality": 94,
+      "clock": 37.67294232999848,
+      "kind": "gui_activated",
+      "runId": "f3acef77-c44a-4a57-82c5-155129b495d3",
+      "gui": {
+        "name": "CarInteract",
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+        "source": "PlayerGui",
+        "className": "ImageButton",
+        "parent": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame",
+        "attributes": {
+          "ImageOffset": {
+            "y": 0,
+            "type": "Vector2",
+            "x": 0
+          }
+        },
+        "gui": {
+          "visible": true,
+          "size": {
+            "type": "UDim2",
+            "ys": 0.6000000238418579,
+            "xs": 0.6000000238418579,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": -0.05833333358168602,
+            "xs": 0.5833333134651184,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-06T06:07:20.071Z",
+  "contentChecksum": "XqFtd9L9luuu2TSRU4E9",
+  "stats": {
+    "pressure": 1,
+    "valueWatchers": 850,
+    "totalBytes": 734654,
+    "inboundListeners": 244,
+    "ackBytes": 662758,
+    "queueBytes": 71896
+  }
+}
