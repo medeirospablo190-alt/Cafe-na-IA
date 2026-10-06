@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-06T17:29:49.000Z",
+  "gameId": 5650396773,
+  "placeId": 16389398622,
+  "placeVersion": 2122,
+  "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+  "batchIndex": 11,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 6990,
+  "records": [
+    {
+      "corr": 267,
+      "contextRefs": [
+        "ea7256b6019d",
+        "aff0d6708bb4",
+        "09e4def50ff1",
+        "1bbc619bc08f"
+      ],
+      "unix": 1791307923,
+      "importance": 42,
+      "clock": 133.75357198000074,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "e5c2e9628f1a",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "4485960e91a6",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.playsounddeb",
+        "name": "playsounddeb",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.capuccino40.Torso.Water Faucet Sound",
+            "type": "Instance",
+            "name": "Water Faucet Sound",
+            "className": "Sound"
+          },
+          true
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "5a949c52d9e0",
+      "corr": 268,
+      "unix": 1791307923,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "f05a9ac30797",
+          "effectTotal": 1,
+          "confidence": 7,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "runtime_added:NumberValue:gas",
+          "id": 47,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 3.951452758999949,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "aff0d6708bb4",
+        "09e4def50ff1",
+        "1bbc619bc08f",
+        "4485960e91a6"
+      ],
+      "object": {
+        "value": 1,
+        "path": "Workspace.Sedan.Sedan.Misc.tank.main.tank.gas",
+        "source": "Workspace",
+        "className": "NumberValue",
+        "parent": "Workspace.Sedan.Sedan.Misc.tank.main.tank",
+        "attributes": [],
+        "name": "gas"
+      },
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "clock": 134.03777119799997,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "54c624b32161",
+        "count": 1,
+        "newPattern": false
+      },
+      "quality": 82
+    },
+    {
+      "corr": 270,
+      "contextRefs": [
+        "09e4def50ff1",
+        "1bbc619bc08f",
+        "4485960e91a6",
+        "5a949c52d9e0"
+      ],
+      "unix": 1791307924,
+      "importance": 42,
+      "clock": 135.07980599000075,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "a79c58d80018",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "b746bded3905",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.fill",
+        "name": "fill",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.Sedan.Sedan.Misc.tank.main.tank",
+            "type": "Instance",
+            "name": "tank",
+            "className": "DoubleConstrainedValue"
+          },
+          {
+            "path": "Workspace.GasCan.main.tank",
+            "type": "Instance",
+            "name": "tank",
+            "className": "DoubleConstrainedValue"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "da932f79870e",
+      "corr": 271,
+      "unix": 1791307925,
+      "contextRefs": [
+        "1bbc619bc08f",
+        "4485960e91a6",
+        "5a949c52d9e0",
+        "b746bded3905"
+      ],
+      "name": "FillFuel",
+      "value": 1.5000000000000002,
+      "clock": 135.56768156199996,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "sig": "84c3fcf60492",
+      "corr": 274,
+      "unix": 1791307927,
+      "contextRefs": [
+        "4485960e91a6",
+        "5a949c52d9e0",
+        "b746bded3905",
+        "da932f79870e"
+      ],
+      "name": "FillFuel",
+      "value": 3.1000000000000014,
+      "clock": 137.2668340099999,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "sig": "a4043de95c95",
+      "corr": 277,
+      "unix": 1791307928,
+      "contextRefs": [
+        "5a949c52d9e0",
+        "b746bded3905",
+        "da932f79870e",
+        "84c3fcf60492"
+      ],
+      "name": "FillFuel",
+      "value": 4.699999999999999,
+      "clock": 138.98840203000054,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "sig": "b6e7467de40b",
+      "corr": 281,
+      "unix": 1791307930,
+      "contextRefs": [
+        "b746bded3905",
+        "da932f79870e",
+        "84c3fcf60492",
+        "a4043de95c95"
+      ],
+      "name": "FillFuel",
+      "value": 6.299999999999994,
+      "clock": 140.73102057100004,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "sig": "b1eff43e0783",
+      "corr": 284,
+      "unix": 1791307932,
+      "contextRefs": [
+        "da932f79870e",
+        "84c3fcf60492",
+        "a4043de95c95",
+        "b6e7467de40b"
+      ],
+      "name": "FillFuel",
+      "value": 7.899999999999988,
+      "clock": 142.49766473700038,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "velocity": {
+        "y": 0.00005201791282161139,
+        "type": "Vector3",
+        "x": 2.5202851361427747e-7,
+        "z": 3.249525946102949e-7
+      },
+      "unix": 1791307933,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 142.5707550048828,
+          "z": 7835.3427734375
+        },
+        "userId": 765329164
+      },
+      "corr": 286,
+      "clock": 143.16900702800012,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "corr": 289,
+      "contextRefs": [
+        "a4043de95c95",
+        "b6e7467de40b",
+        "b1eff43e0783",
+        "04a25f0083be"
+      ],
+      "unix": 1791307934,
+      "importance": 24,
+      "clock": 144.86731442400014,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "4680ef94159c",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          180,
+          1791307934.376393
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 289,
+      "unix": 1791307934,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 142.5707550048828,
+          "z": 7835.3427734375
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "b6e7467de40b",
+        "b1eff43e0783",
+        "04a25f0083be",
+        "4680ef94159c"
+      ],
+      "quality": 94,
+      "clock": 144.88377109000066,
+      "kind": "gui_activated",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "name": "FillUp",
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+        "source": "PlayerGui",
+        "className": "ImageButton",
+        "parent": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame",
+        "attributes": {
+          "ImageOffset": {
+            "y": 0,
+            "type": "Vector2",
+            "x": 0
+          }
+        },
+        "gui": {
+          "visible": true,
+          "size": {
+            "type": "UDim2",
+            "ys": 0.6000000238418579,
+            "xs": 0.6000000238418579,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": -0.05833333358168602,
+            "xs": 0.5833333134651184,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    },
+    {
+      "corr": 291,
+      "unix": 1791307935,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 146.4480438232422,
+          "z": 7830.86328125
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "b1eff43e0783",
+        "04a25f0083be",
+        "4680ef94159c",
+        "ac32a24ce152"
+      ],
+      "quality": 94,
+      "clock": 145.90943431899996,
+      "kind": "gui_activated",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "name": "Interact",
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+        "source": "PlayerGui",
+        "className": "ImageButton",
+        "parent": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame",
+        "attributes": {
+          "ImageOffset": {
+            "y": 0,
+            "type": "Vector2",
+            "x": 0
+          }
+        },
+        "gui": {
+          "visible": true,
+          "size": {
+            "type": "UDim2",
+            "ys": 0.6000000238418579,
+            "xs": 0.6000000238418579,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": -0.05833333358168602,
+            "xs": 0.5833333134651184,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-06T17:32:15.995Z",
+  "contentChecksum": "CR0SjVi9dueE2gJHXh45",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 712923,
+    "inboundListeners": 239,
+    "ackBytes": 705933,
+    "queueBytes": 6990
+  }
+}
