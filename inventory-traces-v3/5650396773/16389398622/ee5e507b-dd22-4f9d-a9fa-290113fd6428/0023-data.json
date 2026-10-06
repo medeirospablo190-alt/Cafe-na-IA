@@ -1,0 +1,2413 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-06T05:42:24.000Z",
+  "gameId": 5650396773,
+  "placeId": 16389398622,
+  "placeVersion": 2122,
+  "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+  "batchIndex": 23,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 43928,
+  "records": [
+    {
+      "corr": 558,
+      "contextRefs": [
+        "76d12a869bd7",
+        "7ffade529192",
+        "c4a287c1b117",
+        "4713987cf191"
+      ],
+      "unix": 1791265623,
+      "importance": 42,
+      "clock": 279.1860041639993,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "55a47fbf4529",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5649911761283875,
+          0.2936493754386902
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265623,
+      "sig": "5d16bfc451d9",
+      "corr": 558,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "218e60342a61",
+          "effectTotal": 1090,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.888,
+          "trustedSupport": 2,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 2.643544374001067,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 89,
+          "semantic": "309fc3661862",
+          "effectTotal": 1090,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 89,
+          "timingConsistency": 0.295,
+          "trustedSupport": 89,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 2.4822132810004405,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.19843795895576477,
+            "3": 0.6169701218605042
+          }
+        ]
+      },
+      "clock": 279.2362517170004,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": -0.015234329737722874,
+        "type": "Vector3",
+        "x": 0.057513341307640076,
+        "z": 6.602560997009277
+      },
+      "unix": 1791265624,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.597816467285156,
+          "type": "Vector3",
+          "x": 244.22706604003906,
+          "z": 7895.96240234375
+        },
+        "userId": 765329164
+      },
+      "corr": 558,
+      "clock": 279.37196671700076,
+      "kind": "trajectory",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 26
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265624,
+      "sig": "d7acdb5a6705",
+      "corr": 558,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "218e60342a61",
+          "effectTotal": 1091,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.836,
+          "trustedSupport": 3,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 2.7950105189993337,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 90,
+          "semantic": "309fc3661862",
+          "effectTotal": 1091,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 90,
+          "timingConsistency": 0.296,
+          "trustedSupport": 90,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 2.6336794259987073,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.47369080781936646,
+            "3": 0.3914151191711426
+          }
+        ]
+      },
+      "clock": 279.38769734200105,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265624,
+      "sig": "19b80bcc6bb9",
+      "corr": 559,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "218e60342a61",
+          "effectTotal": 1092,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.797,
+          "trustedSupport": 4,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 2.930621092000365,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 91,
+          "semantic": "309fc3661862",
+          "effectTotal": 1092,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 91,
+          "timingConsistency": 0.297,
+          "trustedSupport": 91,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 2.7692899989997386,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.6025692820549011,
+            "3": 0.26747438311576843
+          }
+        ]
+      },
+      "clock": 279.5233181229996,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 559,
+      "contextRefs": [
+        "5d16bfc451d9",
+        "26db3587de5b",
+        "d7acdb5a6705",
+        "19b80bcc6bb9"
+      ],
+      "unix": 1791265624,
+      "importance": 24,
+      "clock": 279.5438768210006,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "fae5b491a421",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          508,
+          1791265624.509353
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 559,
+      "contextRefs": [
+        "26db3587de5b",
+        "d7acdb5a6705",
+        "19b80bcc6bb9",
+        "fae5b491a421"
+      ],
+      "unix": 1791265624,
+      "importance": 42,
+      "clock": 279.78714801800015,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "61e7b740c356",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.6027715802192688,
+          0.2915723919868469
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 559,
+      "investigating": true,
+      "clock": 279.7952621330005,
+      "newSemantic": true,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 99,
+      "semanticHash": "9a1d674a2b05",
+      "sig": "6dcc2c287294",
+      "contextRefs": [
+        "d7acdb5a6705",
+        "19b80bcc6bb9",
+        "fae5b491a421",
+        "61e7b740c356"
+      ],
+      "remote": {
+        "path": "ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+        "name": "EVENT_STATE_CHANGED",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "unix": 1791265624,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.5966949462890625,
+          "type": "Vector3",
+          "x": 244.41415405273438,
+          "z": 7899.7919921875
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "218e60342a61",
+          "effectTotal": 2,
+          "confidence": 6,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 3.202571457000886,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "309fc3661862",
+          "effectTotal": 2,
+          "confidence": 7,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.0412403640002594,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "Clear",
+          false,
+          {
+            "Scope": "global"
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Scope": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "9a1d674a2b05",
+      "triggerShape": "9a1d674a2b05",
+      "parent": {
+        "path": "ReplicatedStorage.Network",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Network.REQUEST_BREAK_SINGLE",
+            "name": "REQUEST_BREAK_SINGLE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.REQUEST_BREAK_MULTIPLE",
+            "name": "REQUEST_BREAK_MULTIPLE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.UpdateDoorGlobal",
+            "name": "UpdateDoorGlobal",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.InteractDragRequest",
+            "name": "InteractDragRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.RETURN_TO_LOBBY",
+            "name": "RETURN_TO_LOBBY",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.USE_REVIVE",
+            "name": "USE_REVIVE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.ATTEMPT_REVIVE_GIFT",
+            "name": "ATTEMPT_REVIVE_GIFT",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_AdjustAmount",
+            "name": "GunFramework_AdjustAmount",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.RequestServer_GunFramework_Sound",
+            "name": "RequestServer_GunFramework_Sound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_CreateTracer",
+            "name": "GunFramework_CreateTracer",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_RequestDamage",
+            "name": "GunFramework_RequestDamage",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SET_RAINBOW_CAR_ENABLED",
+            "name": "SET_RAINBOW_CAR_ENABLED",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.ECLIPSE_DAMAGE",
+            "name": "ECLIPSE_DAMAGE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.REVIVE_GIFT_PROMPT",
+            "name": "REVIVE_GIFT_PROMPT",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.MARKER_REPLICATE",
+            "name": "MARKER_REPLICATE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SHOW_CAPTION",
+            "name": "SHOW_CAPTION",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.LightningCreate",
+            "name": "LightningCreate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.FillBlock",
+            "name": "FillBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.CreateBullet",
+            "name": "CreateBullet",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_SoundUpdate",
+            "name": "GunFramework_SoundUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SPAWN_CASING",
+            "name": "SPAWN_CASING",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.PlayerDataUpdate",
+            "name": "PlayerDataUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.TakeBottleCap",
+            "name": "TakeBottleCap",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.OutriggerToggle",
+            "name": "OutriggerToggle",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 559,
+      "remote": {
+        "path": "ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+        "name": "EVENT_STATE_CHANGED",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "contextRefs": [
+        "19b80bcc6bb9",
+        "fae5b491a421",
+        "61e7b740c356",
+        "6dcc2c287294"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Air",
+        "velocity": {
+          "y": 0.005112159997224808,
+          "type": "Vector3",
+          "x": 2.7665553092956543,
+          "z": 12.087252616882324
+        },
+        "angularVelocity": {
+          "y": 0.5134732723236084,
+          "type": "Vector3",
+          "x": -0.0014631710946559906,
+          "z": 0.005005196668207645
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.5966949462890625,
+          "type": "Vector3",
+          "x": 244.41415405273438,
+          "z": 7899.7919921875
+        },
+        "jumpPower": 0,
+        "walkSpeed": 10,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "fb83edb0e1ec",
+      "unix": 1791265624,
+      "clock": 279.7961443730019,
+      "kind": "investigation_context",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 100
+    },
+    {
+      "corr": 559,
+      "contextRefs": [
+        "fae5b491a421",
+        "61e7b740c356",
+        "6dcc2c287294",
+        "fb83edb0e1ec"
+      ],
+      "unix": 1791265624,
+      "importance": 42,
+      "clock": 279.97156130000076,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "13e71a905752",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5933688282966614,
+          0.3425096571445465
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265624,
+      "sig": "eba9c2e76a9f",
+      "corr": 560,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 5,
+          "semantic": "218e60342a61",
+          "effectTotal": 1093,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.667,
+          "trustedSupport": 5,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 3.451124998002342,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 92,
+          "semantic": "309fc3661862",
+          "effectTotal": 1093,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 92,
+          "timingConsistency": 0.298,
+          "trustedSupport": 92,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.2897939050017158,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.6027715802192688,
+            "3": 0.2915723919868469
+          }
+        ]
+      },
+      "clock": 280.04375072699986,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 560,
+      "contextRefs": [
+        "6dcc2c287294",
+        "fb83edb0e1ec",
+        "13e71a905752",
+        "eba9c2e76a9f"
+      ],
+      "unix": 1791265624,
+      "importance": 42,
+      "clock": 280.19198327900085,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "beb507066fe3",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5886630415916443,
+          0.37917184829711914
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265624,
+      "sig": "a1de17e2217a",
+      "corr": 560,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 6,
+          "semantic": "218e60342a61",
+          "effectTotal": 1094,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 6,
+          "timingConsistency": 0.616,
+          "trustedSupport": 6,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 3.6191923420010426,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 93,
+          "semantic": "309fc3661862",
+          "effectTotal": 1094,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 93,
+          "timingConsistency": 0.298,
+          "trustedSupport": 93,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.457861249000416,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.5933688282966614,
+            "3": 0.3425096571445465
+          }
+        ]
+      },
+      "clock": 280.2118949450014,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 560,
+      "contextRefs": [
+        "13e71a905752",
+        "eba9c2e76a9f",
+        "beb507066fe3",
+        "a1de17e2217a"
+      ],
+      "unix": 1791265625,
+      "importance": 42,
+      "clock": 280.3932552059996,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "45293ee703cc",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5745593309402466,
+          0.4041021764278412
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265625,
+      "sig": "e667c5ca32bf",
+      "corr": 560,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 7,
+          "semantic": "218e60342a61",
+          "effectTotal": 1095,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 7,
+          "timingConsistency": 0.577,
+          "trustedSupport": 7,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 3.8442303110023204,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 94,
+          "semantic": "309fc3661862",
+          "effectTotal": 1095,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 94,
+          "timingConsistency": 0.298,
+          "trustedSupport": 94,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.682899218001694,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.5886630415916443,
+            "3": 0.37917184829711914
+          }
+        ]
+      },
+      "clock": 280.436929841002,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 561,
+      "contextRefs": [
+        "beb507066fe3",
+        "a1de17e2217a",
+        "45293ee703cc",
+        "e667c5ca32bf"
+      ],
+      "unix": 1791265625,
+      "importance": 42,
+      "clock": 280.5026058309995,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "0e8f9291b81f",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5369488596916199,
+          0.40318185091018677
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 561,
+      "investigating": true,
+      "clock": 280.5245842160002,
+      "newSemantic": true,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 99,
+      "semanticHash": "9643f3c616e0",
+      "sig": "6a858f439fcb",
+      "contextRefs": [
+        "a1de17e2217a",
+        "45293ee703cc",
+        "e667c5ca32bf",
+        "0e8f9291b81f"
+      ],
+      "remote": {
+        "path": "ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+        "name": "EVENT_STATE_CHANGED",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "unix": 1791265625,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.609350204467773,
+          "type": "Vector3",
+          "x": 249.50877380371094,
+          "z": 7910.56982421875
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "218e60342a61",
+          "effectTotal": 3,
+          "confidence": 6,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.646,
+          "trustedSupport": 2,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 3.9318902060003893,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "309fc3661862",
+          "effectTotal": 3,
+          "confidence": 7,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.646,
+          "trustedSupport": 2,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.770559112999763,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 3,
+        "values": [
+          "Overcast",
+          true,
+          {
+            "Scope": "global"
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Scope": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "9643f3c616e0",
+      "triggerShape": "9643f3c616e0",
+      "parent": {
+        "path": "ReplicatedStorage.Network",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Network.REQUEST_BREAK_SINGLE",
+            "name": "REQUEST_BREAK_SINGLE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.REQUEST_BREAK_MULTIPLE",
+            "name": "REQUEST_BREAK_MULTIPLE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.UpdateDoorGlobal",
+            "name": "UpdateDoorGlobal",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.InteractDragRequest",
+            "name": "InteractDragRequest",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.RETURN_TO_LOBBY",
+            "name": "RETURN_TO_LOBBY",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.USE_REVIVE",
+            "name": "USE_REVIVE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.ATTEMPT_REVIVE_GIFT",
+            "name": "ATTEMPT_REVIVE_GIFT",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_AdjustAmount",
+            "name": "GunFramework_AdjustAmount",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.RequestServer_GunFramework_Sound",
+            "name": "RequestServer_GunFramework_Sound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_CreateTracer",
+            "name": "GunFramework_CreateTracer",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_RequestDamage",
+            "name": "GunFramework_RequestDamage",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SET_RAINBOW_CAR_ENABLED",
+            "name": "SET_RAINBOW_CAR_ENABLED",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.ECLIPSE_DAMAGE",
+            "name": "ECLIPSE_DAMAGE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.REVIVE_GIFT_PROMPT",
+            "name": "REVIVE_GIFT_PROMPT",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.MARKER_REPLICATE",
+            "name": "MARKER_REPLICATE",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SHOW_CAPTION",
+            "name": "SHOW_CAPTION",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.LightningCreate",
+            "name": "LightningCreate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.FillBlock",
+            "name": "FillBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.CreateBullet",
+            "name": "CreateBullet",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.GunFramework_SoundUpdate",
+            "name": "GunFramework_SoundUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.SPAWN_CASING",
+            "name": "SPAWN_CASING",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.PlayerDataUpdate",
+            "name": "PlayerDataUpdate",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.TakeBottleCap",
+            "name": "TakeBottleCap",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Network.OutriggerToggle",
+            "name": "OutriggerToggle",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 561,
+      "remote": {
+        "path": "ReplicatedStorage.Network.EVENT_STATE_CHANGED",
+        "name": "EVENT_STATE_CHANGED",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "contextRefs": [
+        "45293ee703cc",
+        "e667c5ca32bf",
+        "0e8f9291b81f",
+        "6a858f439fcb"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Air",
+        "velocity": {
+          "y": -0.09100300818681717,
+          "type": "Vector3",
+          "x": 13.210519790649414,
+          "z": 11.400299072265625
+        },
+        "angularVelocity": {
+          "y": 0.9323272705078125,
+          "type": "Vector3",
+          "x": -0.03711831197142601,
+          "z": 0.0006482340395450592
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.609350204467773,
+          "type": "Vector3",
+          "x": 249.50877380371094,
+          "z": 7910.56982421875
+        },
+        "jumpPower": 0,
+        "walkSpeed": 10,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "2d335709a00e",
+      "unix": 1791265625,
+      "clock": 280.5255080700008,
+      "kind": "investigation_context",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 100
+    },
+    {
+      "corr": 561,
+      "contextRefs": [
+        "e667c5ca32bf",
+        "0e8f9291b81f",
+        "6a858f439fcb",
+        "2d335709a00e"
+      ],
+      "unix": 1791265625,
+      "importance": 42,
+      "clock": 280.5570267160001,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "64b231602f55",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.4954049587249756,
+          0.3928547203540802
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 561,
+      "contextRefs": [
+        "0e8f9291b81f",
+        "6a858f439fcb",
+        "2d335709a00e",
+        "64b231602f55"
+      ],
+      "unix": 1791265625,
+      "importance": 42,
+      "clock": 280.66613989300095,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "b70d904e6cae",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.3350234925746918,
+          0.16321411728858948
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265625,
+      "sig": "d3d990fee6f2",
+      "corr": 561,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 8,
+          "semantic": "218e60342a61",
+          "effectTotal": 1096,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 8,
+          "timingConsistency": 0.542,
+          "trustedSupport": 8,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 4.1053949980014295,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 95,
+          "semantic": "309fc3661862",
+          "effectTotal": 1096,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 95,
+          "timingConsistency": 0.298,
+          "trustedSupport": 95,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 3.944063905000803,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.5510528683662415,
+            "3": 0.4046873152256012
+          }
+        ]
+      },
+      "clock": 280.69809234100103,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 561,
+      "contextRefs": [
+        "2d335709a00e",
+        "64b231602f55",
+        "b70d904e6cae",
+        "d3d990fee6f2"
+      ],
+      "unix": 1791265625,
+      "importance": 42,
+      "clock": 280.78319364300114,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "d33a7b7feefb",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.11385147273540497,
+          -0.3436783254146576
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265625,
+      "sig": "c89b2bd46598",
+      "corr": 561,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 9,
+          "semantic": "218e60342a61",
+          "effectTotal": 1097,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 9,
+          "timingConsistency": 0.518,
+          "trustedSupport": 9,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 4.250542445999599,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 96,
+          "semantic": "309fc3661862",
+          "effectTotal": 1097,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 96,
+          "timingConsistency": 0.298,
+          "trustedSupport": 96,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 4.089211352998973,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.4954049587249756,
+            "3": 0.3928547203540802
+          }
+        ]
+      },
+      "clock": 280.8432476010021,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265625,
+      "sig": "b84d157bdb5f",
+      "corr": 562,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 10,
+          "semantic": "218e60342a61",
+          "effectTotal": 1098,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 10,
+          "timingConsistency": 0.499,
+          "trustedSupport": 10,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 4.407408748000307,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 97,
+          "semantic": "309fc3661862",
+          "effectTotal": 1098,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 97,
+          "timingConsistency": 0.297,
+          "trustedSupport": 97,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 4.246077654999681,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.1803266853094101,
+            "3": -0.15575695037841797
+          }
+        ]
+      },
+      "clock": 281.0001151530014,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791265625,
+      "sig": "aeabe98c68ab",
+      "corr": 562,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 11,
+          "semantic": "218e60342a61",
+          "effectTotal": 1099,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 11,
+          "timingConsistency": 0.485,
+          "trustedSupport": 11,
+          "baseline": 369,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 163,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.toggle",
+          "age": 4.5225868730012735,
+          "shape": "e07283b4b9b5",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 98,
+          "semantic": "309fc3661862",
+          "effectTotal": 1099,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 98,
+          "timingConsistency": 0.296,
+          "trustedSupport": 98,
+          "baseline": 369,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 4.361255780000647,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.052688904106616974,
+            "3": -0.4811422526836395
+          }
+        ]
+      },
+      "clock": 281.1152520800024,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": -0.2961001396179199,
+        "type": "Vector3",
+        "x": 21.190685272216797,
+        "z": -4.222532272338867
+      },
+      "unix": 1791265626,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.609221458435059,
+          "type": "Vector3",
+          "x": 266.4271545410156,
+          "z": 7917.00048828125
+        },
+        "userId": 765329164
+      },
+      "corr": 562,
+      "clock": 281.41146442399986,
+      "kind": "trajectory",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 26
+    },
+    {
+      "corr": 563,
+      "contextRefs": [
+        "c89b2bd46598",
+        "b84d157bdb5f",
+        "aeabe98c68ab",
+        "e4dc7ba35ad4"
+      ],
+      "unix": 1791265626,
+      "importance": 24,
+      "clock": 281.55300296600035,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "9dde161b3b0c",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          510,
+          1791265626.518554
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "correlationModel": "evidence_v2",
+      "sig": "c7d5a3753036",
+      "eventValue": 0.0017161955231295963,
+      "unix": 1791265626,
+      "causeCandidates": [
+        {
+          "distinctEffects": 7,
+          "semantic": "309fc3661862",
+          "effectTotal": 47,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 7,
+          "timingConsistency": 0.297,
+          "trustedSupport": 7,
+          "baseline": 8,
+          "method": "InvokeServer",
+          "effect": "value:Workspace.Van.Van.values.mileage",
+          "id": 164,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.TutorialBridge",
+          "age": 4.999524634000409,
+          "shape": "b3a8d7676277",
+          "importance": 58
+        }
+      ],
+      "observedAfterValue": 0.0017161955231295963,
+      "corr": 563,
+      "object": {
+        "path": "Workspace.Van.Van.values.mileage",
+        "name": "mileage",
+        "className": "NumberValue",
+        "value": 0.0017161955231295963,
+        "attributes": []
+      },
+      "clock": 281.75355853899964,
+      "value": 0.0017161955231295963,
+      "kind": "value_changed",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 72
+    },
+    {
+      "corr": 565,
+      "contextRefs": [
+        "aeabe98c68ab",
+        "e4dc7ba35ad4",
+        "9dde161b3b0c",
+        "c7d5a3753036"
+      ],
+      "unix": 1791265627,
+      "importance": 24,
+      "clock": 282.5436979650003,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "d19bf7719e90",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          511,
+          1791265627.509167
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": -0.11998239159584045,
+        "type": "Vector3",
+        "x": -26.29242515563965,
+        "z": -12.80353832244873
+      },
+      "unix": 1791265628,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.580112457275391,
+          "type": "Vector3",
+          "x": 271.6618957519531,
+          "z": 7875.31201171875
+        },
+        "userId": 765329164
+      },
+      "corr": 566,
+      "clock": 283.4944096319996,
+      "kind": "trajectory",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 26
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "unix": 1791265628,
+      "newSemantic": false,
+      "sig": "c60e2493e9a6",
+      "corr": 567,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.vivis_5368",
+              "type": "Instance",
+              "name": "vivis_5368",
+              "className": "Player"
+            },
+            "2": -0.3989972472190857,
+            "3": 0.05869707092642784
+          }
+        ]
+      },
+      "clock": 283.66262556900256,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 568,
+      "contextRefs": [
+        "c7d5a3753036",
+        "d19bf7719e90",
+        "d1628c8880b4",
+        "c60e2493e9a6"
+      ],
+      "unix": 1791265629,
+      "importance": 42,
+      "clock": 284.35283827700187,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "2fec1e82ed40",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.052688904106616974,
+          -0.47223901748657227
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "e9fe8320c573",
+      "unix": 1791265629,
+      "newSemantic": false,
+      "sig": "97294d49169a",
+      "corr": 569,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncRequest",
+        "name": "CharacterSyncRequest",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          160
+        ]
+      },
+      "clock": 284.7696920790004,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 569,
+      "contextRefs": [
+        "d1628c8880b4",
+        "c60e2493e9a6",
+        "2fec1e82ed40",
+        "97294d49169a"
+      ],
+      "unix": 1791265629,
+      "importance": 49,
+      "clock": 284.7703661939995,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "69b4835b5dcb",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "fc5212ce8d1e",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncReport",
+        "name": "CharacterSyncReport",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          160,
+          {
+            "y": 6.633523941040039,
+            "type": "Vector3",
+            "x": 240.49668884277344,
+            "z": 7859.64453125
+          },
+          {
+            "y": -0.34267789125442505,
+            "type": "Vector3",
+            "x": -9.007827758789062,
+            "z": -5.860459327697754
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.03141293674707413,
+        "type": "Vector3",
+        "x": -0.12249590456485748,
+        "z": 0.0318496972322464
+      },
+      "unix": 1791265630,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.622258186340332,
+          "type": "Vector3",
+          "x": 237.7005615234375,
+          "z": 7857.513671875
+        },
+        "userId": 765329164
+      },
+      "corr": 571,
+      "clock": 285.5782166099998,
+      "kind": "trajectory",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 26
+    },
+    {
+      "sig": "3f296ee401ec",
+      "eventValue": 0.003364940068404726,
+      "unix": 1791265630,
+      "observedAfterValue": 0.003364940068404726,
+      "corr": 571,
+      "object": {
+        "path": "Workspace.Van.Van.values.mileage",
+        "name": "mileage",
+        "className": "NumberValue",
+        "value": 0.003364940068404726,
+        "attributes": []
+      },
+      "clock": 285.8230820790013,
+      "value": 0.003364940068404726,
+      "kind": "value_changed",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 72
+    },
+    {
+      "corr": 573,
+      "contextRefs": [
+        "97294d49169a",
+        "fc5212ce8d1e",
+        "420b907aef4f",
+        "3f296ee401ec"
+      ],
+      "unix": 1791265631,
+      "importance": 24,
+      "clock": 286.5622731200019,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "e0bc242bc92f",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          515,
+          1791265631.526691
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "747c8e904667",
+      "eventValue": 0.0033872320627379437,
+      "unix": 1791265632,
+      "observedAfterValue": 0.0033872320627379437,
+      "corr": 575,
+      "object": {
+        "path": "Workspace.Van.Van.values.mileage",
+        "name": "mileage",
+        "className": "NumberValue",
+        "value": 0.0033872320627379437,
+        "attributes": []
+      },
+      "clock": 287.55857942200237,
+      "value": 0.0033872320627379437,
+      "kind": "value_changed",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 72
+    },
+    {
+      "corr": 575,
+      "contextRefs": [
+        "420b907aef4f",
+        "3f296ee401ec",
+        "e0bc242bc92f",
+        "747c8e904667"
+      ],
+      "unix": 1791265632,
+      "importance": 49,
+      "clock": 287.9493778590004,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "69b4835b5dcb",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "4fa7b36899c1",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncReport",
+        "name": "CharacterSyncReport",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          161,
+          {
+            "y": 6.613016605377197,
+            "type": "Vector3",
+            "x": 237.63575744628906,
+            "z": 7857.50439453125
+          },
+          {
+            "y": 0.005596356000751257,
+            "type": "Vector3",
+            "x": -0.05641033500432968,
+            "z": 0.02524121105670929
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 579,
+      "contextRefs": [
+        "3f296ee401ec",
+        "e0bc242bc92f",
+        "747c8e904667",
+        "4fa7b36899c1"
+      ],
+      "unix": 1791265634,
+      "importance": 24,
+      "clock": 289.55372051499944,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "12a4ba1c4773",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          518,
+          1791265634.519227
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.050394412130117416,
+        "type": "Vector3",
+        "x": 5.651615142822266,
+        "z": 4.476905822753906
+      },
+      "unix": 1791265635,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.607073783874512,
+          "type": "Vector3",
+          "x": 247.5474090576172,
+          "z": 7865.39794921875
+        },
+        "userId": 765329164
+      },
+      "corr": 580,
+      "clock": 290.385385046,
+      "kind": "trajectory",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 26
+    },
+    {
+      "semanticHash": "e9fe8320c573",
+      "unix": 1791265635,
+      "newSemantic": false,
+      "sig": "97af5f49a93c",
+      "corr": 582,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncRequest",
+        "name": "CharacterSyncRequest",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          162
+        ]
+      },
+      "clock": 291.1439696810012,
+      "kind": "remote_inbound",
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 78
+    },
+    {
+      "corr": 582,
+      "contextRefs": [
+        "4fa7b36899c1",
+        "12a4ba1c4773",
+        "cc08737f02ad",
+        "97af5f49a93c"
+      ],
+      "unix": 1791265635,
+      "importance": 49,
+      "clock": 291.1443919199992,
+      "newSemantic": false,
+      "runId": "ee5e507b-dd22-4f9d-a9fa-290113fd6428",
+      "quality": 82,
+      "semanticHash": "69b4835b5dcb",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "4e601b9660fc",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncReport",
+        "name": "CharacterSyncReport",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          162,
+          {
+            "y": 6.612285137176514,
+            "type": "Vector3",
+            "x": 250.70701599121094,
+            "z": 7867.93115234375
+          },
+          {
+            "y": 0.10641906410455704,
+            "type": "Vector3",
+            "x": -0.015089591965079308,
+            "z": -0.06416084617376328
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-06T05:47:16.825Z",
+  "contentChecksum": "TKz8dD3VS1aQ0oQBpvsX",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 8663009,
+    "inboundListeners": 246,
+    "ackBytes": 8619081,
+    "queueBytes": 43928
+  }
+}
