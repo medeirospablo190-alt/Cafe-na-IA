@@ -1,0 +1,4482 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-06T17:29:49.000Z",
+  "gameId": 5650396773,
+  "placeId": 16389398622,
+  "placeVersion": 2122,
+  "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+  "batchIndex": 10,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 86158,
+  "records": [
+    {
+      "corr": 240,
+      "contextRefs": [
+        "c1f3213fdd7d",
+        "fb00f7763c1a",
+        "193c3240aa42",
+        "fb00f8763c1b"
+      ],
+      "unix": 1791307910,
+      "importance": 42,
+      "clock": 120.20322776600005,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "295f81d6c1dd",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5464472770690918,
+          -0.08622201532125473
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.000026004825485870242,
+        "type": "Vector3",
+        "x": 9.404154777526855,
+        "z": 3.4002270698547363
+      },
+      "unix": 1791307910,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.025717735290527,
+          "type": "Vector3",
+          "x": 169.52108764648438,
+          "z": 7849.9951171875
+        },
+        "userId": 765329164
+      },
+      "corr": 240,
+      "clock": 120.296011464,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307910,
+      "sig": "6127f6952910",
+      "corr": 241,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 9,
+          "semantic": "4151bdf38ca8",
+          "effectTotal": 42,
+          "confidence": 3,
+          "relationStage": "repeated",
+          "support": 12,
+          "timingConsistency": 0.315,
+          "trustedSupport": 12,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 43,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 2.776429530999849,
+          "shape": "0cb6c1ad96dd",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.665192723274231,
+            "3": -0.05200905725359917
+          }
+        ]
+      },
+      "clock": 120.51200693300052,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "semanticHash": "4151bdf38ca8",
+      "contextRefs": [
+        "fb00f8763c1b",
+        "295f81d6c1dd",
+        "db5aa915c3f8",
+        "6127f6952910"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 3,
+      "corr": 241,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307910,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Concrete",
+          "velocity": {
+            "y": 0.000026004425308201462,
+            "type": "Vector3",
+            "x": 9.999275207519531,
+            "z": -0.12039947509765625
+          },
+          "angularVelocity": {
+            "y": -8.83488432152496e-14,
+            "type": "Vector3",
+            "x": -0.000001490778799961845,
+            "z": -0.0000012900687806904898
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9999275803565979,
+            "z": -0.012039360590279102
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 7.025717735290527,
+            "type": "Vector3",
+            "x": 171.89044189453125,
+            "z": 7849.88623046875
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -1.9733103005117727,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.679627532958986,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "fb00f8763c1b",
+          "295f81d6c1dd",
+          "db5aa915c3f8",
+          "6127f6952910"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 115.9322851120005,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 115.93238396600009,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 116.06775881000067,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 116.11843698700068,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 117.57439709000028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 117.73449531900042,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 117.73461219399996,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 117.75178792299994,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 117.75193912100076,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 117.75202573600018,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 117.92485865300023,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 117.937719173,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 118.09133683000073,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.17003162000037,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.18938297500063,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.72154708900052,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "fb00f9763c1c",
+      "probeId": 18,
+      "clock": 120.75049146400033,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "corr": 243,
+      "contextRefs": [
+        "295f81d6c1dd",
+        "db5aa915c3f8",
+        "6127f6952910",
+        "fb00f9763c1c"
+      ],
+      "unix": 1791307911,
+      "importance": 24,
+      "clock": 121.86776552600077,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "beb3ea010e90",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          157,
+          1791307911.377099
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.00005202985994401388,
+        "type": "Vector3",
+        "x": -9.907148361206055,
+        "z": 1.359552264213562
+      },
+      "unix": 1791307912,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 153.11322021484375,
+          "z": 7847.9169921875
+        },
+        "userId": 765329164
+      },
+      "corr": 245,
+      "clock": 122.91577208800027,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "sig": "329627bfb83a",
+      "corr": 245,
+      "unix": 1791307912,
+      "contextRefs": [
+        "6127f6952910",
+        "fb00f9763c1c",
+        "beb3ea010e90",
+        "ca8c210beaf6"
+      ],
+      "object": {
+        "value": {
+          "path": "Workspace.Wheel",
+          "type": "Instance",
+          "name": "Wheel",
+          "className": "Model"
+        },
+        "path": "Workspace.Sedan.ExternalParts.Wheel",
+        "source": "Workspace",
+        "className": "ObjectValue",
+        "parent": "Workspace.Sedan.ExternalParts",
+        "attributes": [],
+        "name": "Wheel"
+      },
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "clock": 122.94893411900011,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "7af9b1c469d3",
+        "count": 1,
+        "newPattern": false
+      },
+      "quality": 82
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "corr": 245,
+      "contextRefs": [
+        "fb00f9763c1c",
+        "beb3ea010e90",
+        "ca8c210beaf6",
+        "329627bfb83a"
+      ],
+      "quality": 82,
+      "unix": 1791307912,
+      "responseSemanticHash": "171a1ab53fb5",
+      "importance": 76,
+      "clock": 122.95028531700063,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 181.31,
+      "semanticHash": "282503b846e8",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "ab1024a1a739",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          true
+        ]
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 152.9481201171875,
+          "z": 7847.9404296875
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "Workspace.Wheel.Meshes/bro5_Cylinder.042",
+            "type": "Instance",
+            "name": "Meshes/bro5_Cylinder.042",
+            "className": "MeshPart"
+          },
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.RL",
+            "type": "Instance",
+            "name": "RL",
+            "className": "Part"
+          },
+          true,
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.RL.CarPartSpace",
+            "type": "Instance",
+            "name": "CarPartSpace",
+            "className": "RayValue"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "className": "Part",
+            "type": "Instance"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "className": "RayValue",
+            "type": "Instance"
+          }
+        ]
+      },
+      "responseShapeHash": "48e191a95b7c"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307912,
+      "sig": "9e3a24ca0b09",
+      "corr": 245,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "282503b846e8",
+          "effectTotal": 43,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 44,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 0.041781979000006686,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.156208336353302,
+            "3": 0.0036353012546896935
+          }
+        ]
+      },
+      "clock": 122.99214734900033,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "semanticHash": "282503b846e8",
+      "contextRefs": [
+        "ca8c210beaf6",
+        "329627bfb83a",
+        "ab1024a1a739",
+        "9e3a24ca0b09"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 1,
+      "corr": 246,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307913,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00005202980537433177,
+            "type": "Vector3",
+            "x": -9.903671264648438,
+            "z": 1.3846606016159058
+          },
+          "angularVelocity": {
+            "y": -2.3555615262711195e-14,
+            "type": "Vector3",
+            "x": 0.000001389651288263849,
+            "z": 9.130860121331352e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.9903671741485596,
+            "z": 0.1384660005569458
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 150.7611846923828,
+            "z": 7848.2509765625
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -5.157947141332086,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.1562083435058611,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "ca8c210beaf6",
+          "329627bfb83a",
+          "ab1024a1a739",
+          "9e3a24ca0b09"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.17003162000037,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.18938297500063,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.72154708900052,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 121.04052729700015,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 121.05170927600011,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 121.05189146400062,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 121.07519865100039,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 121.0753440160006,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 121.08495193300041,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 122.78974016100074,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 122.9495844840003,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 122.94970958800059,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 122.96980865100068,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 122.96994276500027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 122.97002073400017,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 122.97009510899989,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "fb440076856b",
+      "probeId": 19,
+      "clock": 123.15831068199986,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "corr": 247,
+      "contextRefs": [
+        "329627bfb83a",
+        "ab1024a1a739",
+        "9e3a24ca0b09",
+        "fb440076856b"
+      ],
+      "unix": 1791307913,
+      "importance": 42,
+      "clock": 123.73286063000069,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "9b4ba1471c87",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.6778855919837952,
+          -0.231500044465065
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "282503b846e8",
+      "contextRefs": [
+        "ab1024a1a739",
+        "9e3a24ca0b09",
+        "fb440076856b",
+        "9b4ba1471c87"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 2,
+      "corr": 248,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307914,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000052020684961462393,
+            "type": "Vector3",
+            "x": -8.885772705078125,
+            "z": -4.58709192276001
+          },
+          "angularVelocity": {
+            "y": -1.43596733218369e-14,
+            "type": "Vector3",
+            "x": 7.6493307687997e-7,
+            "z": -5.990345357531623e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.8887419700622559,
+            "z": -0.4584078788757324
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 144.13119506835938,
+            "z": 7850.828125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -4.903935300511774,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.6874766540527361,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "ab1024a1a739",
+          "9e3a24ca0b09",
+          "fb440076856b",
+          "9b4ba1471c87"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 120.72154708900052,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 121.04052729700015,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 121.05170927600011,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 121.05189146400062,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 121.07519865100039,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 121.0753440160006,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 121.08495193300041,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 122.78974016100074,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 122.9495844840003,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 122.94970958800059,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 122.96980865100068,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 122.96994276500027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 122.97002073400017,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 122.97009510899989,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 123.20646307800052,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 123.44558094200056,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "fb440176856c",
+      "probeId": 19,
+      "clock": 124.20932068100046,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "velocity": {
+        "y": 0.00005206238347454928,
+        "type": "Vector3",
+        "x": -9.994112968444824,
+        "z": -0.3430587947368622
+      },
+      "unix": 1791307914,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 138.7000274658203,
+          "z": 7850.2451171875
+        },
+        "userId": 765329164
+      },
+      "corr": 249,
+      "clock": 124.97468016000039,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "corr": 250,
+      "contextRefs": [
+        "fb440076856b",
+        "9b4ba1471c87",
+        "fb440176856c",
+        "a48957963148"
+      ],
+      "quality": 82,
+      "unix": 1791307915,
+      "responseSemanticHash": "171a1ab53fb5",
+      "importance": 76,
+      "clock": 125.26744859800056,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 191.11,
+      "semanticHash": "414a12360adf",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "6c9cde293832",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          true
+        ]
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 136.58680725097656,
+          "z": 7848.81591796875
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "Workspace.Wheel.Meshes/bro5_Cylinder.042",
+            "type": "Instance",
+            "name": "Meshes/bro5_Cylinder.042",
+            "className": "MeshPart"
+          },
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.FL",
+            "type": "Instance",
+            "name": "FL",
+            "className": "Part"
+          },
+          true,
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.FL.CarPartSpace",
+            "type": "Instance",
+            "name": "CarPartSpace",
+            "className": "RayValue"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "className": "Part",
+            "type": "Instance"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "className": "RayValue",
+            "type": "Instance"
+          }
+        ]
+      },
+      "responseShapeHash": "48e191a95b7c"
+    },
+    {
+      "semanticHash": "414a12360adf",
+      "contextRefs": [
+        "9b4ba1471c87",
+        "fb440176856c",
+        "a48957963148",
+        "6c9cde293832"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 1,
+      "corr": 250,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307915,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000052042287279618904,
+            "type": "Vector3",
+            "x": -9.608001708984375,
+            "z": 2.7574868202209473
+          },
+          "angularVelocity": {
+            "y": -2.770069211581157e-15,
+            "type": "Vector3",
+            "x": -5.899490318483913e-8,
+            "z": 5.547454051679779e-8
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.9605192542076111,
+            "z": 0.2782137095928192
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 135.0740509033203,
+            "z": 7847.537109375
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -6.011706296605524,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.31370834350586113,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "9b4ba1471c87",
+          "fb440176856c",
+          "a48957963148",
+          "6c9cde293832"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 122.97009510899989,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 123.20646307800052,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 123.44558094200056,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 124.23143365000033,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 124.53208292100044,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 124.53219719200024,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 124.54651490000015,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 124.72132979600065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.09563318100027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 125.26682917100061,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 125.26694396200037,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 125.28901531600059,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.28914672300016,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.28922708700065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.38074864999999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.46074531600061,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b364d9b2deb",
+      "probeId": 20,
+      "clock": 125.47637047300032,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "corr": 251,
+      "contextRefs": [
+        "fb440176856c",
+        "a48957963148",
+        "6c9cde293832",
+        "1b364d9b2deb"
+      ],
+      "unix": 1791307915,
+      "importance": 42,
+      "clock": 125.77015479500005,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "a190abc61566",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.6376053094863892,
+          0.10454977303743362
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "282503b846e8",
+      "contextRefs": [
+        "a48957963148",
+        "6c9cde293832",
+        "1b364d9b2deb",
+        "a190abc61566"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 3,
+      "corr": 251,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307915,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00005204073750064708,
+            "type": "Vector3",
+            "x": -9.675079345703125,
+            "z": -2.5283689498901367
+          },
+          "angularVelocity": {
+            "y": -1.4288867720193546e-15,
+            "type": "Vector3",
+            "x": -5.755041954103035e-8,
+            "z": 5.4116075176580125e-8
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.967492401599884,
+            "z": -0.25289997458457947
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 130.94635009765625,
+            "z": 7849.20751953125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -5.597414304418022,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.6663232421875017,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "a48957963148",
+          "6c9cde293832",
+          "1b364d9b2deb",
+          "a190abc61566"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 124.53219719200024,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 124.54651490000015,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 124.72132979600065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.09563318100027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 125.26682917100061,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 125.26694396200037,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 125.28901531600059,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.28914672300016,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.28922708700065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.38074864999999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.46074531600061,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 125.49646479500007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.64264354500028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.68315682699995,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.74536474300021,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.76884458699988,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "fb440276856d",
+      "probeId": 19,
+      "clock": 125.95900036800049,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307915,
+      "sig": "5a10b9f57091",
+      "corr": 252,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "282503b846e8",
+          "effectTotal": 44,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.306,
+          "trustedSupport": 2,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 44,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 3.0678969259997757,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "414a12360adf",
+          "effectTotal": 44,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 45,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 0.7507395310003631,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.6663232445716858,
+            "3": 0.035206105560064316
+          }
+        ]
+      },
+      "clock": 126.01826125400021,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "semanticHash": "414a12360adf",
+      "contextRefs": [
+        "1b364d9b2deb",
+        "a190abc61566",
+        "fb440276856d",
+        "5a10b9f57091"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 2,
+      "corr": 253,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307916,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000052041748858755454,
+            "type": "Vector3",
+            "x": -7.376455783843994,
+            "z": -6.751875877380371
+          },
+          "angularVelocity": {
+            "y": -1.8550525529472794e-15,
+            "type": "Vector3",
+            "x": -5.5913787377903645e-8,
+            "z": 5.257735224972748e-8
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": -0.737563967704773,
+            "z": -0.6752772927284241
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 126.18850708007812,
+            "z": 7846.27001953125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -5.654206296605522,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.40303741455078307,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "1b364d9b2deb",
+          "a190abc61566",
+          "fb440276856d",
+          "5a10b9f57091"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 124.53219719200024,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 124.54651490000015,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 124.72132979600065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.09563318100027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 125.26682917100061,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 125.26694396200037,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 125.28901531600059,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 125.28914672300016,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.28922708700065,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.38074864999999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 125.46074531600061,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 125.49646479500007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.64264354500028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.68315682699995,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.74536474300021,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.76884458699988,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b364e9b2dec",
+      "probeId": 20,
+      "clock": 126.51940672199999,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "velocity": {
+        "y": 0.000052041734306840226,
+        "type": "Vector3",
+        "x": -7.107608795166016,
+        "z": -7.034337520599365
+      },
+      "unix": 1791307916,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 122.13188171386719,
+          "z": 7842.55224609375
+        },
+        "userId": 765329164
+      },
+      "corr": 254,
+      "clock": 127.06585047200042,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "responseSchema": {
+        "count": 0,
+        "args": []
+      },
+      "corr": 255,
+      "contextRefs": [
+        "fb440276856d",
+        "5a10b9f57091",
+        "1b364e9b2dec",
+        "64ac38704d4b"
+      ],
+      "quality": 82,
+      "unix": 1791307917,
+      "responseSemanticHash": "99c9d9adc554",
+      "importance": 58,
+      "clock": 127.71700260700072,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 184.26,
+      "semanticHash": "8d37dbe22993",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "1a3eb68cd5e0",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.BACKPACK_REMOVE",
+        "name": "BACKPACK_REMOVE",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "response": {
+        "count": 0,
+        "values": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "path": "Workspace.Wheel",
+            "type": "Instance",
+            "name": "Wheel",
+            "className": "Model"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "responseShapeHash": "2d0973631ab2"
+    },
+    {
+      "sig": "005206b78edf",
+      "corr": 256,
+      "unix": 1791307918,
+      "correlationModel": "evidence_v2",
+      "state": "visible",
+      "quality": 68,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "414a12360adf",
+          "effectTotal": 2,
+          "confidence": 7,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull:visible",
+          "id": 45,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 2.949009634000504,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "clock": 128.21651635700073,
+      "value": false,
+      "kind": "gui_state",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+        "name": "Pull",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "corr": 256,
+      "contextRefs": [
+        "1b364e9b2dec",
+        "64ac38704d4b",
+        "1a3eb68cd5e0",
+        "005206b78edf"
+      ],
+      "quality": 82,
+      "unix": 1791307918,
+      "responseSemanticHash": "171a1ab53fb5",
+      "importance": 76,
+      "clock": 128.21723682599986,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 161.81,
+      "semanticHash": "097fac40cb8e",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "a77a21844965",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          true
+        ]
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 123.32616424560547,
+          "z": 7839.7255859375
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "Workspace.Wheel.Meshes/bro5_Cylinder.042",
+            "type": "Instance",
+            "name": "Meshes/bro5_Cylinder.042",
+            "className": "MeshPart"
+          },
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.FR",
+            "type": "Instance",
+            "name": "FR",
+            "className": "Part"
+          },
+          true,
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.FR.CarPartSpace",
+            "type": "Instance",
+            "name": "CarPartSpace",
+            "className": "RayValue"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "className": "Part",
+            "type": "Instance"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "className": "RayValue",
+            "type": "Instance"
+          }
+        ]
+      },
+      "responseShapeHash": "48e191a95b7c"
+    },
+    {
+      "semanticHash": "414a12360adf",
+      "contextRefs": [
+        "64ac38704d4b",
+        "1a3eb68cd5e0",
+        "005206b78edf",
+        "a77a21844965"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 3,
+      "corr": 256,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307918,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.0000520321264048107,
+            "type": "Vector3",
+            "x": 9.518131256103516,
+            "z": 3.0662589073181152
+          },
+          "angularVelocity": {
+            "y": -0.0000019314636574563337,
+            "type": "Vector3",
+            "x": -5.96465156377235e-7,
+            "z": 4.545086085272487e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9520725607872009,
+            "z": 0.30587220191955566
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 124.05805206298828,
+            "z": 7840.0244140625
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -8.380732175511774,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.11954452514648624,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "Wheel"
+        },
+        "recentRefs": [
+          "64ac38704d4b",
+          "1a3eb68cd5e0",
+          "005206b78edf",
+          "a77a21844965"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 125.49646479500007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.64264354500028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.68315682699995,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.74536474300021,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.76884458699988,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 127.03818276400034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 127.5327439090006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 127.53287432600064,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 127.54234057600024,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 127.58207932599998,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.076784117,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 128.21633536700028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 128.21667271100068,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 128.23548245100028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.2356000030004,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.2356725030004,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b364f9b2ded",
+      "probeId": 20,
+      "clock": 128.28490630500073,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "097fac40cb8e",
+      "contextRefs": [
+        "1a3eb68cd5e0",
+        "005206b78edf",
+        "a77a21844965",
+        "1b364f9b2ded"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 1,
+      "corr": 256,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307918,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00005203213731874712,
+            "type": "Vector3",
+            "x": 9.996543884277344,
+            "z": -0.26083171367645264
+          },
+          "angularVelocity": {
+            "y": -1.6145660925847433e-14,
+            "type": "Vector3",
+            "x": -4.039596888105734e-7,
+            "z": 7.238499506456719e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9996552467346191,
+            "z": -0.026257554069161415
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 125.53941345214844,
+            "z": 7840.20703125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -8.380732175511774,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.11954452514648624,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "1a3eb68cd5e0",
+          "005206b78edf",
+          "a77a21844965",
+          "1b364f9b2ded"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.64264354500028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.68315682699995,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.74536474300021,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 125.76884458699988,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 127.03818276400034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 127.5327439090006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 127.53287432600064,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 127.54234057600024,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 127.58207932599998,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.076784117,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 128.21633536700028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 128.21667271100068,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 128.23548245100028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.2356000030004,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.2356725030004,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.35709396099992,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b79569b773c",
+      "probeId": 21,
+      "clock": 128.43276041900026,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307918,
+      "sig": "bb2047544676",
+      "corr": 257,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "414a12360adf",
+          "effectTotal": 45,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.329,
+          "trustedSupport": 2,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 45,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 3.469137290000617,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "097fac40cb8e",
+          "effectTotal": 45,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 46,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 0.5193357289999767,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.20374496281147003,
+            "3": 0.13297665119171143
+          }
+        ]
+      },
+      "clock": 128.7366494300004,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 258,
+      "contextRefs": [
+        "a77a21844965",
+        "1b364f9b2ded",
+        "1b79569b773c",
+        "bb2047544676"
+      ],
+      "unix": 1791307919,
+      "importance": 42,
+      "clock": 129.32371021100062,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "85e85c0cc2dd",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.5849995613098145,
+          0.0000063628826865169685
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "097fac40cb8e",
+      "contextRefs": [
+        "1b364f9b2ded",
+        "1b79569b773c",
+        "bb2047544676",
+        "85e85c0cc2dd"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 2,
+      "corr": 258,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307919,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000026077159418491647,
+            "type": "Vector3",
+            "x": 7.624125828442629e-7,
+            "z": -6.203329121490242e-7
+          },
+          "angularVelocity": {
+            "y": -6.626119873056821e-14,
+            "type": "Vector3",
+            "x": 0.0000021554471913987072,
+            "z": 0.0000026491479729884304
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232478141784668,
+            "type": "Vector3",
+            "x": 130.97207641601562,
+            "z": 7834.80859375
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -7.524615232152395,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.58499954223633,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "1b364f9b2ded",
+          "1b79569b773c",
+          "bb2047544676",
+          "85e85c0cc2dd"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.076784117,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 128.21633536700028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 128.21667271100068,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 128.23548245100028,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 128.2356000030004,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.2356725030004,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.35709396099992,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.43932224200034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 128.48247281500062,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 128.54851453399988,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.57671620100064,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.6119499510005,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 128.6295088050001,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.6635732320001,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.68612953400043,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 129.1957458880006,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b79579b773d",
+      "probeId": 21,
+      "clock": 129.470396617,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "sig": "ec7be83a330f",
+      "corr": 259,
+      "unix": 1791307919,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "414a12360adf",
+          "effectTotal": 2,
+          "confidence": 2,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "attribute:HoldingObject",
+          "id": 45,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 4.316014738000376,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "097fac40cb8e",
+          "effectTotal": 2,
+          "confidence": 12,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "attribute:HoldingObject",
+          "id": 46,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 1.3662131769997359,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "1b79569b773c",
+        "bb2047544676",
+        "85e85c0cc2dd",
+        "1b79579b773d"
+      ],
+      "name": "HoldingObject",
+      "value": "Wheel",
+      "clock": 129.58353052300026,
+      "kind": "player_attribute_changed",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82
+    },
+    {
+      "velocity": {
+        "y": 0.000025997302145697176,
+        "type": "Vector3",
+        "x": -1.6877891084732255e-7,
+        "z": 1.4495972777694988e-7
+      },
+      "unix": 1791307919,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232478141784668,
+          "type": "Vector3",
+          "x": 130.97207641601562,
+          "z": 7834.80859375
+        },
+        "userId": 765329164
+      },
+      "corr": 259,
+      "clock": 129.64743359600016,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "corr": 260,
+      "contextRefs": [
+        "85e85c0cc2dd",
+        "1b79579b773d",
+        "ec7be83a330f",
+        "8230b4f30e02"
+      ],
+      "quality": 82,
+      "unix": 1791307919,
+      "responseSemanticHash": "171a1ab53fb5",
+      "importance": 76,
+      "clock": 130.08623640800033,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 284.49,
+      "semanticHash": "f05a9ac30797",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "e5ed67fcb86c",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          true
+        ]
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232478141784668,
+          "type": "Vector3",
+          "x": 132.65115356445312,
+          "z": 7835.11376953125
+        },
+        "userId": 765329164
+      },
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "Workspace.Wheel.Meshes/bro5_Cylinder.042",
+            "type": "Instance",
+            "name": "Meshes/bro5_Cylinder.042",
+            "className": "MeshPart"
+          },
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.RR",
+            "type": "Instance",
+            "name": "RR",
+            "className": "Part"
+          },
+          true,
+          {
+            "path": "Workspace.Sedan.Sedan.Wheels.RR.CarPartSpace",
+            "type": "Instance",
+            "name": "CarPartSpace",
+            "className": "RayValue"
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "className": "Part",
+            "type": "Instance"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "className": "RayValue",
+            "type": "Instance"
+          }
+        ]
+      },
+      "responseShapeHash": "48e191a95b7c"
+    },
+    {
+      "semanticHash": "f05a9ac30797",
+      "contextRefs": [
+        "1b79579b773d",
+        "ec7be83a330f",
+        "8230b4f30e02",
+        "e5ed67fcb86c"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 1,
+      "corr": 260,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307920,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 1.5357404947280884,
+            "type": "Vector3",
+            "x": 0.025905242189764977,
+            "z": -0.01976528950035572
+          },
+          "angularVelocity": {
+            "y": 0.9762094616889954,
+            "type": "Vector3",
+            "x": 0.00033207263913936913,
+            "z": -0.00025102199288085103
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.417984962463379,
+            "type": "Vector3",
+            "x": 134.5697784423828,
+            "z": 7835.19970703125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -8.687455808324268,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -0.7081289672851583,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "1b79579b773d",
+          "ec7be83a330f",
+          "8230b4f30e02",
+          "e5ed67fcb86c"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 128.6295088050001,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.6635732320001,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.68612953400043,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 129.1957458880006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 129.58388963800007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 129.58400005400017,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 129.60026536700025,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 129.6639227630003,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 129.82270760600022,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 130.0853119809999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 130.08542812700034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 130.10399041900018,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 130.10411489800026,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 130.10418995000055,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.22613552300027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.26972062700042,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1bbc5f9bc08d",
+      "probeId": 22,
+      "clock": 130.30548364800052,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "corr": 261,
+      "contextRefs": [
+        "ec7be83a330f",
+        "8230b4f30e02",
+        "e5ed67fcb86c",
+        "1bbc5f9bc08d"
+      ],
+      "unix": 1791307920,
+      "importance": 24,
+      "clock": 130.87356916800036,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "af9b876b76f2",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "e4642e95500a",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          166,
+          1791307920.379754
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "06fb74976ec3",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307920,
+      "sig": "e648c6607088",
+      "corr": 262,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "097fac40cb8e",
+          "effectTotal": 46,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.361,
+          "trustedSupport": 2,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 46,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 2.880911405000006,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "f05a9ac30797",
+          "effectTotal": 46,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 47,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 1.0119058850004876,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -1.2790204286575317,
+            "3": 0.019217364490032196
+          }
+        ]
+      },
+      "clock": 131.09823036600028,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "semanticHash": "097fac40cb8e",
+      "contextRefs": [
+        "e5ed67fcb86c",
+        "1bbc5f9bc08d",
+        "e4642e95500a",
+        "e648c6607088"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 3,
+      "corr": 262,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307921,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00008194390829885378,
+            "type": "Vector3",
+            "x": -5.417520014816546e-7,
+            "z": -3.0520561722369166e-7
+          },
+          "angularVelocity": {
+            "y": 1.032111509701849e-14,
+            "type": "Vector3",
+            "x": 9.511502980785735e-7,
+            "z": -0.0000016883294620129163
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 134.15904235839844,
+            "z": 7834.22802734375
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "CamAngleX": -8.457786618871145,
+          "FreezeCameraInputs": false,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "ViewingPlacementSpot": false,
+          "camAngleY": -1.2790203857421893,
+          "FreezeMobileInputs": false
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "AAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "recentRefs": [
+          "e5ed67fcb86c",
+          "1bbc5f9bc08d",
+          "e4642e95500a",
+          "e648c6607088"
+        ],
+        "recentGui": [
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 128.68612953400043,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 129.1957458880006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 129.58388963800007,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 129.58400005400017,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 129.60026536700025,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 129.6639227630003,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 129.82270760600022,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 130.0853119809999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 130.08542812700034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 130.10399041900018,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 130.10411489800026,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 130.10418995000055,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.22613552300027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.26972062700042,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 130.4394080230004,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 130.80451104300028,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1b79589b773e",
+      "probeId": 21,
+      "clock": 131.23063349099994,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "f05a9ac30797",
+      "contextRefs": [
+        "1bbc5f9bc08d",
+        "e4642e95500a",
+        "e648c6607088",
+        "1b79589b773e"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 2,
+      "corr": 262,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307921,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00003903109609382227,
+            "type": "Vector3",
+            "x": 1.695464849472046,
+            "z": -1.3151944875717163
+          },
+          "angularVelocity": {
+            "y": -1.7440935238459236e-14,
+            "type": "Vector3",
+            "x": 8.294498456962174e-7,
+            "z": -0.000001602200768502371
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.7901421785354614,
+            "z": -0.6129236221313477
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.23247766494751,
+            "type": "Vector3",
+            "x": 134.19039916992188,
+            "z": 7834.20361328125
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "DraggingName": "GasCan",
+          "FreezeCameraInputs": false,
+          "CamAngleX": -8.416270505589894,
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 3.9111828804016113,
+            "type": "Vector3",
+            "x": 134.46324157714844,
+            "z": 7835.06396484375
+          },
+          "FreezeMobileInputs": false,
+          "camAngleY": -1.2239700317382831,
+          "ViewingPlacementSpot": false,
+          "IsDragging": true,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          }
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "GasCan"
+        },
+        "recentRefs": [
+          "1bbc5f9bc08d",
+          "e4642e95500a",
+          "e648c6607088",
+          "1b79589b773e"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 129.58400005400017,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 129.60026536700025,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 129.6639227630003,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 129.82270760600022,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 130.0853119809999,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 130.08542812700034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 130.10399041900018,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Attach",
+            "className": "ImageButton",
+            "clock": 130.10411489800026,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 130.10418995000055,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.22613552300027,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.CarInteract",
+            "className": "ImageButton",
+            "clock": 130.26972062700042,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame4.Emote",
+            "className": "ImageButton",
+            "clock": 130.4394080230004,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+            "className": "ImageButton",
+            "clock": 130.80451104300028,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Pull",
+            "className": "ImageButton",
+            "clock": 131.2453845330001,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame3.Rotate",
+            "className": "ImageButton",
+            "clock": 131.24548807500014,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame2.Backpack",
+            "className": "ImageButton",
+            "clock": 131.2589208870004,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1bbc609bc08e",
+      "probeId": 22,
+      "clock": 131.35181359500075,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "corr": 263,
+      "contextRefs": [
+        "e4642e95500a",
+        "e648c6607088",
+        "1b79589b773e",
+        "1bbc609bc08e"
+      ],
+      "unix": 1791307921,
+      "importance": 42,
+      "clock": 131.90886192800008,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "8e41c0337b65",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.416359543800354,
+          -0.04011400789022446
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "ea7256b6019d",
+      "corr": 264,
+      "unix": 1791307922,
+      "correlationModel": "evidence_v2",
+      "state": "visible",
+      "quality": 68,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "097fac40cb8e",
+          "effectTotal": 1,
+          "confidence": 5,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp:visible",
+          "id": 46,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 4.268421195999508,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "f05a9ac30797",
+          "effectTotal": 1,
+          "confidence": 17,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "InvokeServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp:visible",
+          "id": 47,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 2.3994156759999896,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "clock": 132.48573229300018,
+      "value": true,
+      "kind": "gui_state",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+        "name": "FillUp",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1791307922,
+      "sig": "aff0d6708bb4",
+      "corr": 265,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "097fac40cb8e",
+          "effectTotal": 47,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.297,
+          "trustedSupport": 3,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 46,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 4.341966039999534,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "f05a9ac30797",
+          "effectTotal": 47,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.477,
+          "trustedSupport": 2,
+          "baseline": 9,
+          "method": "InvokeServer",
+          "effect": "remote:ReplicatedStorage.Network.HeadPitch",
+          "id": 47,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.place",
+          "age": 2.472960520000015,
+          "shape": "d3317fa6d966",
+          "importance": 76
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.37368956208229065,
+            "3": -0.01893775165081024
+          }
+        ]
+      },
+      "clock": 132.55928953200055,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.00005197836071602069,
+        "type": "Vector3",
+        "x": -3.304237736756477e-7,
+        "z": -4.666104302941676e-7
+      },
+      "unix": 1791307922,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232477188110352,
+          "type": "Vector3",
+          "x": 142.5707550048828,
+          "z": 7835.3427734375
+        },
+        "userId": 765329164
+      },
+      "corr": 265,
+      "clock": 132.7857404180004,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "semanticHash": "f05a9ac30797",
+      "contextRefs": [
+        "8e41c0337b65",
+        "ea7256b6019d",
+        "aff0d6708bb4",
+        "09e4def50ff1"
+      ],
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "triggerKind": "focus",
+      "phase": 3,
+      "corr": 266,
+      "remote": {
+        "path": "ReplicatedStorage.place",
+        "name": "place",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "unix": 1791307922,
+      "triggerHash": "171a1ab53fb5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00005205822526477277,
+            "type": "Vector3",
+            "x": 4.14650259017435e-7,
+            "z": 5.163023502063879e-7
+          },
+          "angularVelocity": {
+            "y": -2.2744987791529885e-14,
+            "type": "Vector3",
+            "x": -0.0000018297645283382735,
+            "z": 0.0000014695092431793455
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 6.232477188110352,
+            "type": "Vector3",
+            "x": 142.5707550048828,
+            "z": 7835.3427734375
+          },
+          "jumpPower": 30,
+          "walkSpeed": 10,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [],
+        "characterAttributes": {
+          "DraggingName": "GasCan",
+          "FreezeCameraInputs": false,
+          "CamAngleX": -9.245696164769583,
+          "MaxHealthInitialized": true,
+          "RightHandTarget": {
+            "y": 6.044488430023193,
+            "type": "Vector3",
+            "x": 142.65625,
+            "z": 7838.38427734375
+          },
+          "FreezeMobileInputs": false,
+          "camAngleY": -0.3880783081054702,
+          "ViewingPlacementSpot": false,
+          "IsDragging": true,
+          "LeftHandTarget": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          }
+        },
+        "playerAttributes": {
+          "FillFuel": 0,
+          "IsInThirdPerson": false,
+          "InEmote": false,
+          "PingColour": 1,
+          "FullyLoadedInteract": true,
+          "__UG_NEW": false,
+          "CameraLock_Behavior": "Default",
+          "__UG": true,
+          "CameraLock_Owners": "",
+          "ToolbeltActive": false,
+          "ReadyToRevive": false,
+          "ShowChoicePrompt": false,
+          "CameraLock_Free": true,
+          "BACKPACK_SLOTS": 4,
+          "MedalDistanceTravelled": 115115,
+          "ControlScheme": false,
+          "MostDistanceTraveled": 0,
+          "HoldingObject": "GasCan"
+        },
+        "recentRefs": [
+          "8e41c0337b65",
+          "ea7256b6019d",
+          "aff0d6708bb4",
+          "09e4def50ff1"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.9574670840002,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.95764776099986,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.9745757820001,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.97469802200067,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.99182583400034,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 132.99195427199993,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.0096515109999,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.0097771360006,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.02633583400075,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.02646161600023,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.04364901100053,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.04377531299997,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.06377390700072,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.06390114700025,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.08101682400047,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.FillUp",
+            "className": "ImageButton",
+            "clock": 133.0811455740004,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "1bbc619bc08f",
+      "probeId": 22,
+      "clock": 133.09333573000004,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-06T17:32:03.073Z",
+  "contentChecksum": "eK5QDYjxaO-D9fY1WkSh",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 705933,
+    "inboundListeners": 239,
+    "ackBytes": 619775,
+    "queueBytes": 86158
+  }
+}
