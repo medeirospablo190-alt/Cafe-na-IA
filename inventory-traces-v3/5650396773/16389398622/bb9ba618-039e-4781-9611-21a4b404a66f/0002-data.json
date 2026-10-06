@@ -1,0 +1,2224 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-06T17:29:49.000Z",
+  "gameId": 5650396773,
+  "placeId": 16389398622,
+  "placeVersion": 2122,
+  "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+  "batchIndex": 2,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 34732,
+  "records": [
+    {
+      "semanticHash": "38009c0b5825",
+      "unix": 1791307804,
+      "newSemantic": false,
+      "sig": "3f72eac83646",
+      "corr": 29,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncRequest",
+        "name": "CharacterSyncRequest",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          15
+        ]
+      },
+      "clock": 14.580395046000376,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 29,
+      "contextRefs": [
+        "11d65793f2cf",
+        "c43eb221bbed",
+        "f4631f777659",
+        "3f72eac83646"
+      ],
+      "unix": 1791307804,
+      "importance": 42,
+      "clock": 14.598171661000379,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "9064a4dc570f",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "04ba8b8ac3b8",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.CharacterSyncReport",
+        "name": "CharacterSyncReport",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 3,
+        "values": [
+          16,
+          {
+            "y": 7.025716781616211,
+            "type": "Vector3",
+            "x": 200.9632568359375,
+            "z": 7854.173828125
+          },
+          {
+            "y": 0.000052012863307027146,
+            "type": "Vector3",
+            "x": 4.647496325560496e-7,
+            "z": -5.221092465035326e-7
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": -0.9665138125419617,
+        "type": "Vector3",
+        "x": -6.921530723571777,
+        "z": 0.021309465169906616
+      },
+      "unix": 1791307805,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.998621940612793,
+          "type": "Vector3",
+          "x": 195.0986328125,
+          "z": 7854.97119140625
+        },
+        "userId": 765329164
+      },
+      "corr": 31,
+      "clock": 15.785950983000475,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "unix": 1791307806,
+      "newSemantic": false,
+      "sig": "4cdf6c1f25ed",
+      "corr": 32,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.2660389840602875,
+            "3": 0.10359141230583191
+          }
+        ]
+      },
+      "clock": 16.137679993000347,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "responseSchema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 6,
+            "type": "table",
+            "fields": {
+              "config": {
+                "fieldCountAtLeast": 17,
+                "type": "table",
+                "fields": {
+                  "CLIENT_TERRAIN_INFLIGHT": {
+                    "type": "number"
+                  },
+                  "BACKWARD_CHUNKS_PER_FRAME": {
+                    "type": "number"
+                  },
+                  "ROAD_TERRAIN_GAP": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_SPAN_REFRESH_SECONDS": {
+                    "type": "number"
+                  },
+                  "FALL_RECOVERY_BELOW_GROUND_STUDS": {
+                    "type": "number"
+                  },
+                  "BuildingReplacements": {
+                    "fieldCountAtLeast": 0,
+                    "type": "table",
+                    "fields": []
+                  },
+                  "PREFAB_BUILDING_PAD_STUD": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_RESPECT_LIMITS": {
+                    "type": "boolean"
+                  },
+                  "SPAN_FRONT_KEEPOUT_STUDS": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_MESH_CHUNK_STUDS": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_SPEED_THRESHOLD": {
+                    "type": "number"
+                  },
+                  "BIOME_BLEND_DISTANCE": {
+                    "type": "number"
+                  },
+                  "CLIENT_TERRAIN_CLEAR_MARGIN": {
+                    "type": "number"
+                  },
+                  "BuildingOverwrites": {
+                    "fieldCountAtLeast": 0,
+                    "type": "table",
+                    "fields": []
+                  },
+                  "TERRAIN_SHELL_ENABLED": {
+                    "type": "boolean"
+                  },
+                  "SPAWN_NEXT_CHUNK_AT_RADIUS": {
+                    "type": "number"
+                  }
+                }
+              },
+              "alignment": {
+                "type": "CFrame"
+              },
+              "seed": {
+                "type": "number"
+              },
+              "spans": {
+                "fieldCountAtLeast": 11,
+                "type": "table",
+                "fields": {
+                  "1": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "2": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "3": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "4": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "5": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "6": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "7": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "8": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "9": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "10": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "11": {
+                    "fieldCountAtLeast": 8,
+                    "type": "table",
+                    "fields": {
+                      "exitCFrame": {
+                        "type": "CFrame"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "connectorEndMeter": {
+                        "type": "number"
+                      },
+                      "entryCFrame": {
+                        "type": "CFrame"
+                      },
+                      "endMeter": {
+                        "type": "number"
+                      },
+                      "connectorEndCFrame": {
+                        "type": "CFrame"
+                      },
+                      "startMeter": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              },
+              "serverTerrainEnabled": {
+                "type": "boolean"
+              },
+              "version": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "corr": 32,
+      "contextRefs": [
+        "3f72eac83646",
+        "04ba8b8ac3b8",
+        "202581031e6e",
+        "4cdf6c1f25ed"
+      ],
+      "quality": 82,
+      "unix": 1791307806,
+      "responseSemanticHash": "7636499a6418",
+      "importance": 58,
+      "clock": 16.488734524999927,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "invokeLatencyMs": 203.14,
+      "semanticHash": "e361b96d84e7",
+      "automatedInvestigation": false,
+      "method": "InvokeServer",
+      "newResponseSemantic": false,
+      "sig": "6c1218a60e78",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.TerrainSync.TerrainSyncData",
+        "name": "TerrainSyncData",
+        "className": "RemoteFunction",
+        "parent": "ReplicatedStorage.TerrainSync",
+        "attributes": []
+      },
+      "response": {
+        "count": 1,
+        "values": [
+          {
+            "config": {
+              "BaseGeneratableModels": {
+                "LargeDeadTrees": 0,
+                "Misc": 0.5,
+                "SpeedBumps": 0,
+                "Bushes": 0,
+                "Mountains": 2,
+                "Buildings": 1,
+                "PlainsTrees": 0,
+                "Boulders": 2,
+                "Rocks": 28,
+                "PlainsBuildings": 0,
+                "PlainsRocks": 0,
+                "Bones": 0,
+                "None": 310,
+                "Cactus": 31,
+                "Animals": 8,
+                "WaterPools": 0,
+                "SmallDeadTrees": 0,
+                "PlainsMountains": 0,
+                "PlainsBoulders": 0
+              },
+              "CLIENT_TERRAIN_SPAN_REFRESH_SECONDS": 5,
+              "FALL_RECOVERY_BELOW_GROUND_STUDS": 100,
+              "PREFAB_BUILDING_PAD_STUD": 50,
+              "CLIENT_TERRAIN_SPEED_THRESHOLD": 8,
+              "BIOME_BLEND_DISTANCE": 600,
+              "CLIENT_TERRAIN_CLEAR_MARGIN": 192,
+              "BuildingOverwrites": [],
+              "TERRAIN_SHELL_ENABLED": true,
+              "ROAD_SEGMENT_SIZE": 200,
+              "CLIENT_TERRAIN_MESH_CHUNK_STUDS": 256,
+              "CLIENT_TERRAIN_RESPECT_LIMITS": true,
+              "CLIENT_TERRAIN_MESH_RETAIN_CHUNKS": 80,
+              "BuildingReplacements": [],
+              "CLIENT_TERRAIN_MESH_RES": 8,
+              "CLIENT_TERRAIN_INFLIGHT": 24,
+              "DEBUG_SPAN_KEEPOUT": false,
+              "BaseTerrain": {
+                "RoadFlattenRadius": 80,
+                "NoiseWidth": 800,
+                "Octaves": 3,
+                "Chance": 50,
+                "FillDepth": 4,
+                "MinLength": 2000,
+                "Frequency": 0.005,
+                "TerrainThickness": 8,
+                "RoadBlendRadius": 300,
+                "VoxelResolution": 4,
+                "Mode": "perlin",
+                "MaxLength": 4000,
+                "Lacunarity": 2,
+                "Persistence": 0.6,
+                "Name": "Default",
+                "Amplitude": 8,
+                "BuildingBlendRadius": 50,
+                "Seed": 89,
+                "Material": "Enum.Material.Sand",
+                "GroundColor": {
+                  "b": 0.501960813999176,
+                  "type": "Color3",
+                  "g": 0.6980392336845398,
+                  "r": 0.7607843279838562
+                }
+              },
+              "BIOME_BLEND_DITHER_FREQ": 0.02,
+              "HEIGHTMAP_WORKER_COUNT": 1,
+              "CLIENT_TERRAIN_ENABLED": false,
+              "CLIENT_TERRAIN_WORKER_COUNT": 4,
+              "CLIENT_TERRAIN_RING_STUDS": 512,
+              "SPAN_BACK_KEEPOUT_STUDS": 400,
+              "CLIENT_TERRAIN_MESH_RETIRED_RES": 32,
+              "GEN_TELEMETRY_HITCH_MS": 50,
+              "TERRAIN_BLEND_RADIUS": 100,
+              "TERRAIN_PART_WRITES_ENABLED": true,
+              "CHUNK_LIFECYCLE_TICK_HZ": 10,
+              "MeterTableOverrides": [],
+              "CHUNK_RESTORE_HYSTERESIS": 500,
+              "FALL_RECOVERY_MIN_FALL_SPEED": 50,
+              "CLIENT_TERRAIN_WIDTH_STUDS": 0,
+              "CLIENT_TERRAIN_LOOKAHEAD_TIME": 1.5,
+              "MAX_ANGLE": 3,
+              "SERVER_GROUND_COLLISION": "voxel",
+              "BIOME_BLEND_DITHER_AMP": 0.35,
+              "GeneratableDatas": {
+                "LargeDeadTrees": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "Misc": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 250,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "SpeedBumps": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 0,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 0,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "Bushes": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "Mountains": {
+                  "MaxDisFromRoad": 1600,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 1400,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Buildings": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 300,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "PlainsTrees": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 400
+                },
+                "Boulders": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0.5,
+                  "MinDisFromRoad": 250,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "Rocks": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": -0.1,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "PlainsBuildings": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 300,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 2400
+                },
+                "PlainsRocks": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": -0.1,
+                  "ScaleRandomFactor": 0.9,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 200
+                },
+                "Bones": {
+                  "MaxDisFromRoad": 200,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0.95,
+                  "HeightOffsetMax": 0.02,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Cactus": {
+                  "MaxDisFromRoad": 800,
+                  "HeightOffsetMin": 0,
+                  "ScaleRandomFactor": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 20,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "Animals": {
+                  "MaxDisFromRoad": 300,
+                  "HeightOffsetMin": 0,
+                  "HeightOffsetMax": 0,
+                  "MinDisFromRoad": 10,
+                  "MinMagnitudeFromStart": 3600
+                },
+                "WaterPools": {
+                  "SettleToGround": true,
+                  "HeightOffsetMin": 0,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 140,
+                  "FlattenArea": true,
+                  "ClearRoadBounds": true,
+                  "MaxDisFromRoad": 500,
+                  "IsWeighted": true,
+                  "StampTerrainParts": true,
+                  "HeightOffsetMax": 0,
+                  "FlattenBlendRadius": 50,
+                  "Keepout": true,
+                  "MinMagnitudeFromStart": 1200
+                },
+                "SmallDeadTrees": {
+                  "MinMagnitudeFromStart": 3600,
+                  "MaxDisFromRoad": 800,
+                  "MinDisFromRoad": 250,
+                  "ScaleRandomFactor": 0.9
+                },
+                "PlainsMountains": {
+                  "MinDisFromRoad": 1200,
+                  "MaxDisFromRoad": 1800
+                },
+                "RedDesertBiome": {
+                  "IsWeighted": true,
+                  "MaxDisFromRoad": 500,
+                  "FlattenArea": true,
+                  "IsBuilding": true,
+                  "MinDisFromRoad": 100,
+                  "MinMagnitudeFromStart": 2400
+                }
+              },
+              "POWERLINE_OFFSET": 10,
+              "SPAN_POST_PREFAB_KEEPOUT_CHUNKS": 2,
+              "NPCServiceGeneratableMutantChances": {
+                "LeatherArmouredMutant": 35,
+                "ChainmailArmouredMutant": 25,
+                "Stalker": 0,
+                "MutantChicken": 2,
+                "BuffMutant": 30,
+                "BabyMutant": 25,
+                "NormalMutant": 200,
+                "SandMutant": 0,
+                "FireMutant": 20
+              },
+              "CLIENT_TERRAIN_FORWARD_MAX_STUDS": 1280,
+              "CLIENT_TERRAIN_WRITES_PER_STEP": 12,
+              "CLIENT_TERRAIN_WRITE_BUDGET_MS": 2,
+              "AnimalSpawnChances": {
+                "Chicken": {
+                  "Weight": 30,
+                  "SpawnCount": "1 2 "
+                },
+                "Rabbit": {
+                  "Weight": 20,
+                  "SpawnCount": "1 2 "
+                },
+                "Wolf": {
+                  "MinSpawnDistance": 300,
+                  "Weight": 30,
+                  "SpawnCount": "1 3 "
+                },
+                "Vulture": {
+                  "MinSpawnDistance": 5000,
+                  "Weight": 30,
+                  "SpawnCount": "1 2 "
+                },
+                "Scorpion": {
+                  "MinSpawnDistance": 1000,
+                  "Weight": 0,
+                  "SpawnCount": "1 1 "
+                },
+                "Horse": {
+                  "MinSpawnDistance": 1000,
+                  "Weight": 10,
+                  "SpawnCount": "1 3 "
+                },
+                "Snake": {
+                  "MinSpawnDistance": 100,
+                  "Weight": 40,
+                  "SpawnCount": "1 2 "
+                }
+              },
+              "CHUNK_LIFECYCLE_BUDGET_PER_TICK": 2,
+              "CLIENT_TERRAIN_SURFACE_BAND_STUDS": 8,
+              "CLIENT_TERRAIN_TILE_STUDS": 64,
+              "SERVER_COLLISION_MESH_RES": 32,
+              "HEIGHTMAP_LOOKAHEAD": 10,
+              "CLIENT_TERRAIN_BACK_SCALE": 0.5,
+              "ROAD_WIDTH": 24.89,
+              "ROAD_SEGMENT_OVERLAP": 0,
+              "BUILDING_UNIQUE_HISTORY": 10,
+              "<truncated>": true,
+              "BACKWARD_CHUNKS_PER_FRAME": 1,
+              "ROAD_TERRAIN_GAP": 0.2,
+              "SPAWN_NEXT_CHUNK_AT_RADIUS": 3000,
+              "CLIENT_TERRAIN_FORWARD_SECONDS": 4,
+              "CLIENT_TERRAIN_WORKER_TIMEOUT": 3,
+              "SPAN_FRONT_KEEPOUT_STUDS": 400,
+              "FALL_RECOVERY_LIFT_STUDS": 35,
+              "TerrainConfigs": {
+                "1": {
+                  "RoadBlendRadius": 200,
+                  "MinLength": 2000,
+                  "Amplitude": 24,
+                  "MaxLength": 4000,
+                  "Seed": 814,
+                  "Persistence": 0.6,
+                  "Name": "Dunes",
+                  "Octaves": 3,
+                  "Lacunarity": 2,
+                  "Chance": 30,
+                  "Frequency": 0.006,
+                  "GroundColor": {
+                    "b": 0.43921568989753723,
+                    "type": "Color3",
+                    "g": 0.6784313917160034,
+                    "r": 0.8117647171020508
+                  }
+                },
+                "2": {
+                  "MinLength": 2000,
+                  "Name": "Flat",
+                  "Seed": 26,
+                  "Chance": 50,
+                  "Mode": "flat",
+                  "MaxLength": 6000,
+                  "GroundColor": {
+                    "b": 0.6549019813537598,
+                    "type": "Color3",
+                    "g": 0.7960784435272217,
+                    "r": 0.8117647171020508
+                  }
+                },
+                "3": {
+                  "Octaves": 2,
+                  "Chance": 5,
+                  "Mode": "perlin",
+                  "MinLength": 4000,
+                  "GroundColor": {
+                    "b": 0.25882354378700256,
+                    "type": "Color3",
+                    "g": 0.42352941632270813,
+                    "r": 0.7803921699523926
+                  },
+                  "Material": "Enum.Material.Salt",
+                  "RoadBlendRadius": 300,
+                  "MaxLength": 7000,
+                  "BuildingBlendRadius": 100,
+                  "TerrainOverrides": {
+                    "Sand": "Enum.Material.Salt"
+                  },
+                  "Amplitude": 80,
+                  "Persistence": 0.002,
+                  "Name": "RedDesert",
+                  "Seed": 635,
+                  "Lacunarity": 0.001,
+                  "Overrides": {
+                    "NPCServiceGeneratableMutantChances": {
+                      "LeatherArmouredMutant": "<max_depth>",
+                      "ChainmailArmouredMutant": "<max_depth>",
+                      "BabyMutant": "<max_depth>",
+                      "Buff": "<max_depth>",
+                      "NormalMutant": "<max_depth>",
+                      "SandMutant": "<max_depth>",
+                      "FireMutant": "<max_depth>"
+                    },
+                    "BaseGeneratableModels": {
+                      "LargeDeadTrees": "<max_depth>",
+                      "Misc": "<max_depth>",
+                      "Rocks": "<max_depth>",
+                      "Buildings": "<max_depth>",
+                      "SmallDeadTrees": "<max_depth>",
+                      "Bushes": "<max_depth>",
+                      "Mountains": "<max_depth>",
+                      "Cactus": "<max_depth>",
+                      "Animals": "<max_depth>",
+                      "RedDesertBiome": "<max_depth>",
+                      "Bones": "<max_depth>",
+                      "Boulders": "<max_depth>",
+                      "None": "<max_depth>"
+                    },
+                    "AnimalSpawnChances": {
+                      "Rabbit": "<max_depth>",
+                      "Wolf": "<max_depth>",
+                      "Vulture": "<max_depth>",
+                      "Horse": "<max_depth>",
+                      "Scorpion": "<max_depth>"
+                    },
+                    "GeneratableMutantChances": []
+                  },
+                  "FillDepth": 4,
+                  "Frequency": 0.001
+                },
+                "4": {
+                  "Octaves": 2,
+                  "Chance": 8,
+                  "Material": "Enum.Material.Sand",
+                  "MinLength": 2500,
+                  "Frequency": 0.001,
+                  "RoadBlendRadius": 300,
+                  "Mode": "perlin",
+                  "FillDepth": 4,
+                  "MaxLength": 4800,
+                  "Lacunarity": 0.001,
+                  "Persistence": 0.002,
+                  "Name": "WaterDesert",
+                  "Amplitude": 40,
+                  "BuildingBlendRadius": 100,
+                  "Seed": 616,
+                  "Overrides": {
+                    "BaseGeneratableModels": {
+                      "LargeDeadTrees": "<max_depth>",
+                      "Misc": "<max_depth>",
+                      "Rocks": "<max_depth>",
+                      "Buildings": "<max_depth>",
+                      "SmallDeadTrees": "<max_depth>",
+                      "Bushes": "<max_depth>",
+                      "WaterPools": "<max_depth>",
+                      "Cactus": "<max_depth>",
+                      "Animals": "<max_depth>",
+                      "Mountains": "<max_depth>",
+                      "Bones": "<max_depth>",
+                      "Boulders": "<max_depth>",
+                      "None": "<max_depth>"
+                    }
+                  },
+                  "GroundColor": {
+                    "b": 1,
+                    "type": "Color3",
+                    "g": 1,
+                    "r": 1
+                  }
+                }
+              },
+              "ROAD_THICKNESS": 1,
+              "GeneratableMutantChances": {
+                "Sprinter": 30,
+                "DebrisThrowingMutant": 7,
+                "GasMutant": 9,
+                "ExplodingMutant": 8,
+                "FireworkMutant": 15,
+                "DuplicationMutant": 8,
+                "PinataMutant": 15,
+                "ElectricMutant": 6,
+                "AcidSpitterMutant": 7,
+                "ConfettiBombMutant": 15
+              }
+            },
+            "alignment": {
+              "y": 3.3489999771118164,
+              "type": "CFrame",
+              "rx": 0,
+              "z": 8085.76513671875,
+              "rz": 0,
+              "ry": 0.022703178226947784,
+              "x": 117.77371215820312
+            },
+            "seed": 1465051326,
+            "spans": {
+              "1": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21678.330078125,
+                  "rz": 0,
+                  "ry": -3.1079254150390625,
+                  "x": -12.302000999450684
+                },
+                "length": 478.60101318359375,
+                "name": "TruckStop",
+                "connectorEndMeter": 21800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21200,
+                  "rz": 0,
+                  "ry": 0.033667176961898804,
+                  "x": 3.80035138130188
+                },
+                "endMeter": 21678.601013183594,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -21800,
+                  "rz": 0,
+                  "ry": -0.0037118487525731325,
+                  "x": -4.710150241851807
+                },
+                "startMeter": 21200
+              },
+              "2": {
+                "exitCFrame": {
+                  "y": 0.011780401691794395,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -31610.103515625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -86.4744644165039
+                },
+                "length": 1410.375732421875,
+                "name": "Bridge",
+                "connectorEndMeter": 32000,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -30200,
+                  "rz": 0,
+                  "ry": 0.019681738689541817,
+                  "x": -58.7636833190918
+                },
+                "endMeter": 31610.37573242188,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -32000,
+                  "rz": 0,
+                  "ry": -0.005783583037555218,
+                  "x": -51.44148254394531
+                },
+                "startMeter": 30200.000000000004
+              },
+              "3": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38282.78515625,
+                  "rz": 0,
+                  "ry": 3.1180262565612793,
+                  "x": 88.9809341430664
+                },
+                "length": 282.8637390136719,
+                "name": "Motel",
+                "connectorEndMeter": 38400,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38000,
+                  "rz": 0,
+                  "ry": -0.023566460236907005,
+                  "x": 82.31432342529297
+                },
+                "endMeter": 38282.86373901367,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -38400,
+                  "rz": 0,
+                  "ry": 0.007682677824050188,
+                  "x": 85.02880859375
+                },
+                "startMeter": 38000
+              },
+              "4": {
+                "exitCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42723.33203125,
+                  "rz": 0,
+                  "ry": -3.1301116943359375,
+                  "x": 34.21773147583008
+                },
+                "length": 523.3662719726562,
+                "name": "RustyDepot",
+                "connectorEndMeter": 42800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42200,
+                  "rz": 0,
+                  "ry": 0.01148089300841093,
+                  "x": 40.206809997558594
+                },
+                "endMeter": 42723.366271972656,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -42800,
+                  "rz": 0,
+                  "ry": 0.04523659870028496,
+                  "x": 28.28558921813965
+                },
+                "startMeter": 42200
+              },
+              "5": {
+                "exitCFrame": {
+                  "y": 0.068756103515625,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -43831.921875,
+                  "rz": 0,
+                  "ry": -3.111551523208618,
+                  "x": -5.236572265625
+                },
+                "length": 432.1090087890625,
+                "name": "SmallDesertBunker",
+                "connectorEndMeter": 44000,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -43400,
+                  "rz": 0,
+                  "ry": 0.030041195452213287,
+                  "x": 7.479070663452148
+                },
+                "endMeter": 43832.10900878907,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -44000,
+                  "rz": 0,
+                  "ry": 0.01363898441195488,
+                  "x": -2.724733352661133
+                },
+                "startMeter": 43400
+              },
+              "6": {
+                "exitCFrame": {
+                  "y": 0.0006938716978766024,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -46063.27734375,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -28.05185317993164
+                },
+                "length": 863.4745483398438,
+                "name": "CheckPoint",
+                "connectorEndMeter": 46400,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -45200,
+                  "rz": 0,
+                  "ry": 0.021408269181847572,
+                  "x": -9.597899436950684
+                },
+                "endMeter": 46063.47454833985,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -46400,
+                  "rz": 0,
+                  "ry": -0.02745126746594906,
+                  "x": -2.995323419570923
+                },
+                "startMeter": 45200
+              },
+              "7": {
+                "exitCFrame": {
+                  "y": 0.00011498178355395794,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -62829.8359375,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -18.005569458007812
+                },
+                "length": 2630.47802734375,
+                "name": "Canyon",
+                "connectorEndMeter": 63200,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -60200,
+                  "rz": 0,
+                  "ry": 0.022098883986473083,
+                  "x": 40.10970687866211
+                },
+                "endMeter": 62830.47802734375,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -63200,
+                  "rz": 0,
+                  "ry": 0.005265648942440748,
+                  "x": 26.313539505004883
+                },
+                "startMeter": 60200
+              },
+              "8": {
+                "exitCFrame": {
+                  "y": -0.0004267361364327371,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -70607.9765625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 14.121114730834961
+                },
+                "length": 1407.986328125,
+                "name": "SuspensionBridge",
+                "connectorEndMeter": 70800,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -69200,
+                  "rz": 0,
+                  "ry": 0.0032802384812384844,
+                  "x": 19.373733520507812
+                },
+                "endMeter": 70607.986328125,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -70800,
+                  "rz": 0,
+                  "ry": 0.008114291355013847,
+                  "x": 27.132537841796875
+                },
+                "startMeter": 69200
+              },
+              "9": {
+                "exitCFrame": {
+                  "y": 0.000040651593735674396,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -91129.890625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 42.2899055480957
+                },
+                "length": 929.9971923828125,
+                "name": "Base",
+                "connectorEndMeter": 91200.00000000001,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -90200,
+                  "rz": 0,
+                  "ry": -0.015106499195098877,
+                  "x": 28.2108211517334
+                },
+                "endMeter": 91129.99719238281,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -91200,
+                  "rz": 0,
+                  "ry": 0.0037118487525731325,
+                  "x": 36.10353088378906
+                },
+                "startMeter": 90200
+              },
+              "10": {
+                "exitCFrame": {
+                  "y": 0.006019593216478825,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -151101.140625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": -16.963184356689453
+                },
+                "length": 901.5921630859375,
+                "name": "GhostTown",
+                "connectorEndMeter": 151400,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -150200,
+                  "rz": 0,
+                  "ry": 0.03168150410056114,
+                  "x": 11.565896034240723
+                },
+                "endMeter": 151101.59216308597,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -151400,
+                  "rz": 0,
+                  "ry": 0.006819453556090593,
+                  "x": -5.76929235458374
+                },
+                "startMeter": 150200
+              },
+              "11": {
+                "exitCFrame": {
+                  "y": -0.0000473136969958432,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -211282.40625,
+                  "rz": 0,
+                  "ry": 0,
+                  "x": 16.643537521362305
+                },
+                "length": 1082.4068603515625,
+                "name": "FortIronpass",
+                "connectorEndMeter": 211400,
+                "entryCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -210200,
+                  "rz": 0,
+                  "ry": -0.0010358643485233188,
+                  "x": 15.482237815856934
+                },
+                "endMeter": 211282.4068603516,
+                "connectorEndCFrame": {
+                  "y": 0,
+                  "type": "CFrame",
+                  "rx": 0,
+                  "z": -211400,
+                  "rz": 0,
+                  "ry": -0.006646809633821249,
+                  "x": 18.494882583618164
+                },
+                "startMeter": 210200
+              }
+            },
+            "serverTerrainEnabled": true,
+            "version": 1
+          }
+        ]
+      },
+      "newShape": false,
+      "payload": {
+        "count": 0,
+        "values": []
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "responseShapeHash": "ce02cc2c7db9"
+    },
+    {
+      "semanticHash": "ac63fd69785b",
+      "unix": 1791307806,
+      "newSemantic": false,
+      "sig": "21d069e407e5",
+      "corr": 34,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": 0.1051371768116951,
+            "3": -0.03407295420765877
+          }
+        ]
+      },
+      "clock": 17.102431711999998,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 34,
+      "contextRefs": [
+        "202581031e6e",
+        "4cdf6c1f25ed",
+        "6c1218a60e78",
+        "21d069e407e5"
+      ],
+      "unix": 1791307807,
+      "importance": 42,
+      "clock": 17.49538556600055,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "c96cd1e53d7a",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.0493663027882576,
+          0.000039595921407453716
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.028264120221138,
+        "type": "Vector3",
+        "x": -6.293914225352637e-7,
+        "z": 1.8941970836294786e-7
+      },
+      "unix": 1791307807,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.17620325088501,
+          "type": "Vector3",
+          "x": 175.859375,
+          "z": 7852.70263671875
+        },
+        "userId": 765329164
+      },
+      "corr": 35,
+      "clock": 17.85392363900064,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "corr": 36,
+      "contextRefs": [
+        "6c1218a60e78",
+        "21d069e407e5",
+        "c96cd1e53d7a",
+        "d67ab03e265e"
+      ],
+      "unix": 1791307807,
+      "importance": 42,
+      "clock": 18.04388014899996,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "a0ec53ab3c34",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.04231216385960579,
+          -0.08272835612297058
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "unix": 1791307808,
+      "newSemantic": false,
+      "sig": "a6496e607eca",
+      "corr": 37,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.0564158633351326,
+            "3": -0.014227818697690964
+          }
+        ]
+      },
+      "clock": 18.5190446280003,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 37,
+      "contextRefs": [
+        "c96cd1e53d7a",
+        "d67ab03e265e",
+        "a0ec53ab3c34",
+        "a6496e607eca"
+      ],
+      "unix": 1791307808,
+      "importance": 42,
+      "clock": 18.647068534000027,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "c2aa1f8a9067",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.23470626771450043,
+          0.3043155074119568
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "dd592b4d6915",
+      "corr": 37,
+      "unix": 1791307808,
+      "state": "visible",
+      "quality": 68,
+      "clock": 18.66034790899994,
+      "value": true,
+      "kind": "gui_state",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.MobileActionGui.ContextButtonFrame.Interact",
+        "name": "Interact",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "corr": 39,
+      "contextRefs": [
+        "a0ec53ab3c34",
+        "a6496e607eca",
+        "c2aa1f8a9067",
+        "dd592b4d6915"
+      ],
+      "unix": 1791307809,
+      "importance": 42,
+      "clock": 19.812611086000288,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "7942aa4b2d13",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "da330d9752f8",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.1366090327501297,
+          0.43257948756217957
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "unix": 1791307809,
+      "newSemantic": false,
+      "sig": "3786a63dc80b",
+      "corr": 40,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.11753738671541214,
+            "3": 0.22462548315525055
+          }
+        ]
+      },
+      "clock": 20.084457544000543,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 40,
+      "contextRefs": [
+        "c2aa1f8a9067",
+        "dd592b4d6915",
+        "da330d9752f8",
+        "3786a63dc80b"
+      ],
+      "unix": 1791307810,
+      "importance": 42,
+      "clock": 20.109705877000124,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "8106ced54d1a",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.05171462893486023,
+          -0.022809281945228577
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 41,
+      "contextRefs": [
+        "dd592b4d6915",
+        "da330d9752f8",
+        "3786a63dc80b",
+        "8106ced54d1a"
+      ],
+      "unix": 1791307810,
+      "importance": 42,
+      "clock": 20.823356502000024,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "cba24cc0774f",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "c852132c3b29",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.RemoteEvent",
+        "name": "RemoteEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.House.ABTestDoor.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": 0,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 42,
+      "contextRefs": [
+        "da330d9752f8",
+        "3786a63dc80b",
+        "8106ced54d1a",
+        "c852132c3b29"
+      ],
+      "unix": 1791307810,
+      "importance": 42,
+      "clock": 21.0423515020002,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "5e9115b52824",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "7dddf1fa5021",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.DoorUpdate",
+        "name": "DoorUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.House.ABTestDoor.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": 1.5707963705062866,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "b812deb8efe9",
+      "unix": 1791307811,
+      "newSemantic": false,
+      "sig": "fc6ae237ad68",
+      "corr": 43,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.02242233231663704,
+            "3": -0.08775857090950012
+          }
+        ]
+      },
+      "clock": 21.805861345000267,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 46,
+      "contextRefs": [
+        "8106ced54d1a",
+        "c852132c3b29",
+        "7dddf1fa5021",
+        "fc6ae237ad68"
+      ],
+      "unix": 1791307812,
+      "importance": 42,
+      "clock": 23.060115512000266,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "cba24cc0774f",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "2725dee0b6b7",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.RemoteEvent",
+        "name": "RemoteEvent",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.House.Door.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": -0.10621166229248047,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "corr": 46,
+      "contextRefs": [
+        "c852132c3b29",
+        "7dddf1fa5021",
+        "fc6ae237ad68",
+        "2725dee0b6b7"
+      ],
+      "unix": 1791307813,
+      "importance": 42,
+      "clock": 23.328915512000094,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "5e9115b52824",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "a01b6e2594c8",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.DoorUpdate",
+        "name": "DoorUpdate",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          {
+            "path": "Workspace.House.Door.Part.dragweld",
+            "type": "Instance",
+            "name": "dragweld",
+            "className": "ManualWeld"
+          },
+          {
+            "y": 0,
+            "type": "CFrame",
+            "rx": 0,
+            "z": 0,
+            "rz": 0,
+            "ry": -1.5707963705062866,
+            "x": 0
+          }
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "sig": "60e4769e7fc3",
+      "corr": 46,
+      "unix": 1791307813,
+      "state": "visible",
+      "quality": 68,
+      "clock": 23.389549105000697,
+      "value": true,
+      "kind": "gui_state",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.TouchGui.TouchControlFrame.JumpButton",
+        "name": "JumpButton",
+        "className": "ImageButton"
+      }
+    },
+    {
+      "velocity": {
+        "y": 0.00005203282489674166,
+        "type": "Vector3",
+        "x": -9.490073204040527,
+        "z": -3.152536153793335
+      },
+      "unix": 1791307814,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 7.025716781616211,
+          "type": "Vector3",
+          "x": 166.95106506347656,
+          "z": 7849.86083984375
+        },
+        "userId": 765329164
+      },
+      "corr": 48,
+      "clock": 24.18541915700007,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    },
+    {
+      "corr": 49,
+      "contextRefs": [
+        "2725dee0b6b7",
+        "a01b6e2594c8",
+        "60e4769e7fc3",
+        "19b955f99487"
+      ],
+      "unix": 1791307814,
+      "importance": 42,
+      "clock": 24.82611415700012,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "820f758b9d6e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "a90e4cf988e8",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          -0.328938752412796,
+          -0.08398377150297165
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "semanticHash": "cfb7d14a366a",
+      "unix": 1791307816,
+      "newSemantic": false,
+      "sig": "a04f1d377fc3",
+      "corr": 52,
+      "remote": {
+        "path": "ReplicatedStorage.Network.HeadPitch",
+        "name": "HeadPitch",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.Network",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "path": "Players.capuccino40",
+              "type": "Instance",
+              "name": "capuccino40",
+              "className": "Player"
+            },
+            "2": -0.40433380007743835,
+            "3": 0.0005554761737585068
+          }
+        ]
+      },
+      "clock": 26.38466811500075,
+      "kind": "remote_inbound",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 78
+    },
+    {
+      "corr": 53,
+      "contextRefs": [
+        "60e4769e7fc3",
+        "19b955f99487",
+        "a90e4cf988e8",
+        "a04f1d377fc3"
+      ],
+      "unix": 1791307816,
+      "importance": 24,
+      "clock": 26.854661448000115,
+      "newSemantic": false,
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 82,
+      "semanticHash": "1c7b993b271e",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "65be6b0e3e9a",
+      "investigating": false,
+      "remote": {
+        "path": "ReplicatedStorage.UserGenerated.Analytics.ClientKit.Ping",
+        "name": "Ping",
+        "className": "UnreliableRemoteEvent",
+        "parent": "ReplicatedStorage.UserGenerated.Analytics.ClientKit",
+        "attributes": []
+      },
+      "newShape": false,
+      "payload": {
+        "count": 2,
+        "values": [
+          64,
+          1791307816.361721
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound"
+    },
+    {
+      "velocity": {
+        "y": 0.000026011404770542867,
+        "type": "Vector3",
+        "x": 9.8523530960083,
+        "z": -1.7120522260665894
+      },
+      "unix": 1791307817,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 6.232478141784668,
+          "type": "Vector3",
+          "x": 165.4521484375,
+          "z": 7847.53466796875
+        },
+        "userId": 765329164
+      },
+      "corr": 55,
+      "clock": 27.634806760000174,
+      "kind": "trajectory",
+      "runId": "bb9ba618-039e-4781-9611-21a4b404a66f",
+      "quality": 26
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-06T17:30:17.653Z",
+  "contentChecksum": "ivngsdeVjTIpNjMqt44r",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 230103,
+    "inboundListeners": 239,
+    "ackBytes": 195371,
+    "queueBytes": 34732
+  }
+}
