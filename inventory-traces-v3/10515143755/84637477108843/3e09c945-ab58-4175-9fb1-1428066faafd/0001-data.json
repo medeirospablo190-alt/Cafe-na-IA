@@ -1,0 +1,3159 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-15T06:15:07.000Z",
+  "gameId": 10515143755,
+  "placeId": 84637477108843,
+  "placeVersion": 1452,
+  "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+  "batchIndex": 1,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 55673,
+  "records": [
+    {
+      "contextRefs": [],
+      "capabilities": {
+        "hookmetamethod": true,
+        "request": true,
+        "writefile": true,
+        "getnamecallmethod": true,
+        "outboundHook": true
+      },
+      "profileRevision": 1,
+      "corr": 0,
+      "purpose": "adaptive_bidirectional_game_mapping",
+      "placeId": 84637477108843,
+      "unix": 1792044907,
+      "profileSessions": 1,
+      "placeVersion": 1452,
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 0.000012899554349132814,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "angularVelocity": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -72,
+          "z": -26
+        },
+        "jumpPower": 50,
+        "walkSpeed": 17.5,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+      "gameId": 10515143755,
+      "clock": 0.002268281999931787,
+      "kind": "session_started",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 100
+    },
+    {
+      "corr": 0,
+      "investigating": true,
+      "clock": 0.07935692699993524,
+      "newSemantic": true,
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 99,
+      "semanticHash": "7bc35e6fb764",
+      "sig": "9f980613833d",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "30ba32806052"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -72,
+          "z": -26
+        },
+        "userId": 765329164
+      },
+      "unix": 1792044908,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 192500000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 651778761211334,
+            "autoSet": true,
+            "points": 17,
+            "level": 1618,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": true
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 11,
+            "type": "table",
+            "fields": {
+              "compute": {
+                "type": "number"
+              },
+              "levelCapped": {
+                "type": "boolean"
+              },
+              "auto": {
+                "type": "boolean"
+              },
+              "spent": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataStalled": {
+                "type": "boolean"
+              },
+              "xp": {
+                "type": "number"
+              },
+              "autoSet": {
+                "type": "boolean"
+              },
+              "points": {
+                "type": "number"
+              },
+              "level": {
+                "type": "number"
+              },
+              "manual": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataLimited": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "7bc35e6fb764",
+      "triggerShape": "7bc35e6fb764",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.RadarPing",
+            "name": "RadarPing",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenTokenExchange",
+            "name": "OpenTokenExchange",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.TokenSold",
+            "name": "TokenSold",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.Warp",
+            "name": "Warp",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SetAiName",
+            "name": "SetAiName",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.Rebirth",
+            "name": "Rebirth",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SubmitReport",
+            "name": "SubmitReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RedeemCode",
+            "name": "RedeemCode",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AddTokens",
+            "name": "AddTokens",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GrantCash",
+            "name": "GrantCash",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SubmitFeedback",
+            "name": "SubmitFeedback",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyCrateLuck",
+            "name": "BuyCrateLuck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SetTabletHeld",
+            "name": "SetTabletHeld",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackEvent",
+            "name": "HackEvent",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigame",
+            "name": "UsbMinigame",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BlackMarketBuy",
+            "name": "BlackMarketBuy",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenBlackMarket",
+            "name": "OpenBlackMarket",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.CrateLootCollected",
+            "name": "CrateLootCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.CrateRevealed",
+            "name": "CrateRevealed",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 0,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "30ba32806052",
+        "9f980613833d"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 0.000012899554349132814,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "angularVelocity": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -72,
+          "z": -26
+        },
+        "jumpPower": 50,
+        "walkSpeed": 17.5,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "8270bd36ee7b",
+      "unix": 1792044908,
+      "clock": 0.08006458399995608,
+      "kind": "investigation_context",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 100
+    },
+    {
+      "semanticHash": "7bc35e6fb764",
+      "contextRefs": [
+        "30ba32806052",
+        "9f980613833d",
+        "8270bd36ee7b"
+      ],
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "triggerKind": "semantic",
+      "phase": 1,
+      "corr": 0,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792044908,
+      "triggerHash": "7bc35e6fb764",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012899554349132814,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "angularVelocity": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -72,
+            "z": -26
+          },
+          "jumpPower": 50,
+          "walkSpeed": 17.5,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 2,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "CrateStock_woodCrate": 16,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 479192823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "HackPhaseBy": 8256567476,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 17,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 287711936820,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "HacksDefended": 28,
+          "MeleeVariant": "bat:gold",
+          "PrefCompanion": true,
+          "TaserVariant": "volt",
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 192500000,
+          "HackPhaseUntil": 1792044916.87394,
+          "TaserUnlocked": true,
+          "PendingTokens": 35578592280,
+          "CrateStock_ironCrate": 10,
+          "PlotReady": true,
+          "TutorialStep": 10,
+          "ShieldUntil": 1792044859,
+          "InfinityPity": 10,
+          "GroupRewardClaimed": false,
+          "SuperHackCredits": 0,
+          "GoldenClover": false,
+          "OfflineDouble": false
+        },
+        "recentRefs": [
+          "30ba32806052",
+          "9f980613833d",
+          "8270bd36ee7b"
+        ],
+        "recentGui": []
+      },
+      "sig": "bd7829191a5d",
+      "probeId": 1,
+      "clock": 0.2921586459997343,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "semanticHash": "7bc35e6fb764",
+      "contextRefs": [
+        "30ba32806052",
+        "9f980613833d",
+        "8270bd36ee7b",
+        "bd7829191a5d"
+      ],
+      "unix": 1792044909,
+      "newSemantic": false,
+      "sig": "1b2e2e026516",
+      "corr": 2,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 192500000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 652132450699777,
+            "autoSet": true,
+            "points": 17,
+            "level": 1618,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": true
+          }
+        ]
+      },
+      "clock": 1.0856805729999905,
+      "kind": "remote_inbound",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 88
+    },
+    {
+      "corr": 2,
+      "investigating": true,
+      "clock": 1.086600728999656,
+      "newSemantic": true,
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 99,
+      "semanticHash": "d56df9c71d90",
+      "sig": "40c14258af56",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "9f980613833d",
+        "8270bd36ee7b",
+        "bd7829191a5d",
+        "1b2e2e026516"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -72,
+          "z": -26
+        },
+        "userId": 765329164
+      },
+      "unix": 1792044909,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 192500000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 652132450699777,
+            "autoSet": true,
+            "points": 18,
+            "level": 1619,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": true
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 11,
+            "type": "table",
+            "fields": {
+              "compute": {
+                "type": "number"
+              },
+              "levelCapped": {
+                "type": "boolean"
+              },
+              "auto": {
+                "type": "boolean"
+              },
+              "spent": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataStalled": {
+                "type": "boolean"
+              },
+              "xp": {
+                "type": "number"
+              },
+              "autoSet": {
+                "type": "boolean"
+              },
+              "points": {
+                "type": "number"
+              },
+              "level": {
+                "type": "number"
+              },
+              "manual": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataLimited": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "d56df9c71d90",
+      "triggerShape": "d56df9c71d90",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.RadarPing",
+            "name": "RadarPing",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenTokenExchange",
+            "name": "OpenTokenExchange",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.TokenSold",
+            "name": "TokenSold",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.Warp",
+            "name": "Warp",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SetAiName",
+            "name": "SetAiName",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.Rebirth",
+            "name": "Rebirth",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SubmitReport",
+            "name": "SubmitReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RedeemCode",
+            "name": "RedeemCode",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AddTokens",
+            "name": "AddTokens",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GrantCash",
+            "name": "GrantCash",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SubmitFeedback",
+            "name": "SubmitFeedback",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyCrateLuck",
+            "name": "BuyCrateLuck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SetTabletHeld",
+            "name": "SetTabletHeld",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackEvent",
+            "name": "HackEvent",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigame",
+            "name": "UsbMinigame",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BlackMarketBuy",
+            "name": "BlackMarketBuy",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenBlackMarket",
+            "name": "OpenBlackMarket",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.CrateLootCollected",
+            "name": "CrateLootCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.CrateRevealed",
+            "name": "CrateRevealed",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 2,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "8270bd36ee7b",
+        "bd7829191a5d",
+        "1b2e2e026516",
+        "40c14258af56"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 0.000012899554349132814,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "angularVelocity": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -72,
+          "z": -26
+        },
+        "jumpPower": 50,
+        "walkSpeed": 17.5,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "3964ba444493",
+      "unix": 1792044909,
+      "clock": 1.0870249479994527,
+      "kind": "investigation_context",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 100
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units",
+      "source": "Workspace",
+      "sig": "b9998ffe6a25",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.1852752079994389,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "ae33e156b962",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 24,
+        "Footprint": 1,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 1.1854516149996925,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Old Laptop",
+      "source": "Workspace",
+      "sig": "b5be121a4dde",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Old Laptop",
+        "TileZ": 23,
+        "Footprint": 1,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 1.1859746350000933,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Old Laptop",
+      "source": "Workspace",
+      "sig": "c104c348b094",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Old Laptop",
+        "TileZ": 23,
+        "Footprint": 1,
+        "TileX": 32
+      },
+      "className": "Model",
+      "clock": 1.2031513020001512,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Old Laptop",
+      "source": "Workspace",
+      "sig": "13031f8a730b",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Old Laptop",
+        "TileZ": 24,
+        "Footprint": 1,
+        "TileX": 32
+      },
+      "className": "Model",
+      "clock": 1.216582500000186,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Office PC",
+      "source": "Workspace",
+      "sig": "c22d7622cf05",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Office PC",
+        "TileZ": 24,
+        "Footprint": 1,
+        "TileX": 34
+      },
+      "className": "Model",
+      "clock": 1.2323230209995018,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Office PC",
+      "source": "Workspace",
+      "sig": "142bd264917c",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Office PC",
+        "TileZ": 25,
+        "Footprint": 1,
+        "TileX": 34
+      },
+      "className": "Model",
+      "clock": 1.2331259900001896,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "16bf9ff54145",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 25,
+        "Footprint": 1,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 1.250166822999745,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "0b78eec6de8f",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 25,
+        "Footprint": 1,
+        "TileX": 32
+      },
+      "className": "Model",
+      "clock": 1.250749062000068,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "00323d987bd9",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 25,
+        "Footprint": 1,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 1.251293385000281,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Old Laptop",
+      "source": "Workspace",
+      "sig": "1e49d0b8d5c1",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Old Laptop",
+        "TileZ": 24,
+        "Footprint": 1,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 1.2671880210000381,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Old Laptop",
+      "source": "Workspace",
+      "sig": "cc4b7477134a",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Old Laptop",
+        "TileZ": 23,
+        "Footprint": 1,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 1.2689193750002232,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Office PC",
+      "source": "Workspace",
+      "sig": "702f1de10c7d",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Office PC",
+        "TileZ": 23,
+        "Footprint": 1,
+        "TileX": 34
+      },
+      "className": "Model",
+      "clock": 1.2880681770002411,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Office PC",
+      "source": "Workspace",
+      "sig": "662a2ba653f3",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Office PC",
+        "TileZ": 26,
+        "Footprint": 1,
+        "TileX": 34
+      },
+      "className": "Model",
+      "clock": 1.3024439579994578,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Units.Office PC",
+      "source": "Workspace",
+      "sig": "5ae37a77f13d",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Office PC",
+        "TileZ": 26,
+        "Footprint": 1,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 1.3033194270001331,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Unlocked",
+      "source": "Workspace",
+      "sig": "c5207451ec8e",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.3200491669995245,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.Expansion",
+      "source": "Workspace",
+      "sig": "f99476dcd12f",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.3203401559994745,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "corr": 2,
+      "sig": "ade97f7f5cf6",
+      "object": {
+        "path": "Workspace.Map.Generated.Plots.Plot6.Expansion.ExpansionPack.Attachment.ProximityPrompt",
+        "source": "Workspace",
+        "className": "ProximityPrompt",
+        "parent": "Workspace.Map.Generated.Plots.Plot6.Expansion.ExpansionPack.Attachment",
+        "prompt": {
+          "enabled": false,
+          "lineOfSight": false,
+          "hold": 0.4000000059604645,
+          "actionText": "$ 5.0K",
+          "distance": 11,
+          "objectText": "Expand Plot"
+        },
+        "attributes": {
+          "Expansion": true
+        },
+        "name": "ProximityPrompt"
+      },
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "clock": 1.3206700519995138,
+      "kind": "important_instance",
+      "unix": 1792044909,
+      "quality": 77
+    },
+    {
+      "semanticHash": "7bc35e6fb764",
+      "contextRefs": [
+        "5ae37a77f13d",
+        "c5207451ec8e",
+        "f99476dcd12f",
+        "ade97f7f5cf6"
+      ],
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "triggerKind": "semantic",
+      "phase": 2,
+      "corr": 2,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792044909,
+      "triggerHash": "7bc35e6fb764",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012899554349132814,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "angularVelocity": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -72,
+            "z": -26
+          },
+          "jumpPower": 50,
+          "walkSpeed": 17.5,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 2,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "CrateStock_woodCrate": 16,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 479322823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "HackPhaseBy": 8256567476,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 18,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 287711936820,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "HacksDefended": 28,
+          "MeleeVariant": "bat:gold",
+          "PrefCompanion": true,
+          "TaserVariant": "volt",
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 192500000,
+          "HackPhaseUntil": 1792044916.87394,
+          "TaserUnlocked": true,
+          "PendingTokens": 35938779030,
+          "CrateStock_ironCrate": 10,
+          "PlotReady": true,
+          "TutorialStep": 10,
+          "ShieldUntil": 1792044859,
+          "InfinityPity": 10,
+          "GroupRewardClaimed": false,
+          "SuperHackCredits": 0,
+          "GoldenClover": false,
+          "OfflineDouble": false
+        },
+        "recentRefs": [
+          "5ae37a77f13d",
+          "c5207451ec8e",
+          "f99476dcd12f",
+          "ade97f7f5cf6"
+        ],
+        "recentGui": []
+      },
+      "sig": "bd782a191a5e",
+      "probeId": 1,
+      "clock": 1.3392702599994664,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot6.LockedDeco",
+      "source": "Workspace",
+      "sig": "2e30777ae09c",
+      "corr": 2,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.385887759999605,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot3.Units",
+      "source": "Workspace",
+      "sig": "3f9d9cff29c6",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.71419088499988,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.LockedDeco",
+      "source": "Workspace",
+      "sig": "0ad174cfaf53",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.7534524479997344,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Expansion",
+      "source": "Workspace",
+      "sig": "e840463b2d92",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.7875471349998406,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "corr": 3,
+      "sig": "b80e45203ace",
+      "object": {
+        "path": "Workspace.Map.Generated.Plots.Plot1.Expansion.ExpansionPack.Attachment.ProximityPrompt",
+        "source": "Workspace",
+        "className": "ProximityPrompt",
+        "parent": "Workspace.Map.Generated.Plots.Plot1.Expansion.ExpansionPack.Attachment",
+        "prompt": {
+          "enabled": false,
+          "lineOfSight": false,
+          "hold": 0.4000000059604645,
+          "actionText": "$ 283.4K",
+          "distance": 11,
+          "objectText": "Expand Plot"
+        },
+        "attributes": {
+          "Expansion": true
+        },
+        "name": "ProximityPrompt"
+      },
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "clock": 1.788114166000014,
+      "kind": "important_instance",
+      "unix": 1792044909,
+      "quality": 77
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Unlocked",
+      "source": "Workspace",
+      "sig": "c82af05d2faf",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.8373166660003335,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units",
+      "source": "Workspace",
+      "sig": "553cb0d65de3",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 1.8546664579998833,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Data Center Feed",
+      "source": "Workspace",
+      "sig": "e4e772e24e52",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Data Center Feed",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 13
+      },
+      "className": "Model",
+      "clock": 1.8548460929996509,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "1c0413aebe4b",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 14
+      },
+      "className": "Model",
+      "clock": 1.8555492180003057,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "274ac4dd2101",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 15
+      },
+      "className": "Model",
+      "clock": 1.8751569790001668,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "3291750b83c8",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 16
+      },
+      "className": "Model",
+      "clock": 1.8915214580001702,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "848fce4d463f",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 16
+      },
+      "className": "Model",
+      "clock": 1.9090420309994443,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "79491d1ee389",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 15
+      },
+      "className": "Model",
+      "clock": 1.92565723899952,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Mining Rig",
+      "source": "Workspace",
+      "sig": "6e026cf080c2",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Mining Rig",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 14
+      },
+      "className": "Model",
+      "clock": 1.9432631250001577,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.RSS Harvester",
+      "source": "Workspace",
+      "sig": "fc4c8d3e017d",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "RSS Harvester",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 13
+      },
+      "className": "Model",
+      "clock": 1.9635741659994892,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.RSS Harvester",
+      "source": "Workspace",
+      "sig": "59919aae26aa",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "RSS Harvester",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 14
+      },
+      "className": "Model",
+      "clock": 1.9810255200000029,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.RSS Harvester",
+      "source": "Workspace",
+      "sig": "4e4ae97fc3f4",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "RSS Harvester",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 13
+      },
+      "className": "Model",
+      "clock": 1.9821592179996514,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "cad05e8a8249",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 12
+      },
+      "className": "Model",
+      "clock": 1.995225155999833,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Sensor Network",
+      "source": "Workspace",
+      "sig": "446ccb0659c6",
+      "corr": 3,
+      "unix": 1792044909,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Sensor Network",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 11
+      },
+      "className": "Model",
+      "clock": 1.9962599479995333,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "1d0c9a6dabf1",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 16
+      },
+      "className": "Model",
+      "clock": 2.0111691659994904,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "11c5e93f493b",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 15
+      },
+      "className": "Model",
+      "clock": 2.012455625000257,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "6f0af3af6e68",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 16
+      },
+      "className": "Model",
+      "clock": 2.0307372910001504,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "63c442810bb2",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 15
+      },
+      "className": "Model",
+      "clock": 2.0479270309997446,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Server",
+      "source": "Workspace",
+      "sig": "60a6788da15e",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Server",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 14
+      },
+      "className": "Model",
+      "clock": 2.0658852079995995,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Server",
+      "source": "Workspace",
+      "sig": "555fc75f3ea8",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Server",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 13
+      },
+      "className": "Model",
+      "clock": 2.067588488999718,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.RSS Harvester",
+      "source": "Workspace",
+      "sig": "9502919323b5",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "RSS Harvester",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 12
+      },
+      "className": "Model",
+      "clock": 2.0832995310001934,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "semanticHash": "d56df9c71d90",
+      "contextRefs": [
+        "63c442810bb2",
+        "60a6788da15e",
+        "555fc75f3ea8",
+        "9502919323b5"
+      ],
+      "unix": 1792044910,
+      "newSemantic": false,
+      "sig": "4484bf5cfb7a",
+      "corr": 4,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 192500000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 652486236127464,
+            "autoSet": true,
+            "points": 18,
+            "level": 1619,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": true
+          }
+        ]
+      },
+      "clock": 2.095878905999598,
+      "kind": "remote_inbound",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 88
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Web Scraper",
+      "source": "Workspace",
+      "sig": "1188099de20a",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Web Scraper",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 11
+      },
+      "className": "Model",
+      "clock": 2.0987643230000685,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "9df37a725e91",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 12
+      },
+      "className": "Model",
+      "clock": 2.0996361449997494,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "92acc943fbdb",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 11
+      },
+      "className": "Model",
+      "clock": 2.1127939059997516,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "40ae70023964",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 11
+      },
+      "className": "Model",
+      "clock": 2.1363825520002138,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.GPU Rack",
+      "source": "Workspace",
+      "sig": "4bf521309c1a",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "GPU Rack",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 12
+      },
+      "className": "Model",
+      "clock": 2.1378325519999635,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Sensor Network",
+      "source": "Workspace",
+      "sig": "e559fb8ccf48",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Sensor Network",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 18
+      },
+      "className": "Model",
+      "clock": 2.164222915999744,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "8cdc3da2c485",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 17
+      },
+      "className": "Model",
+      "clock": 2.181969166000272,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "3adde461020e",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 17
+      },
+      "className": "Model",
+      "clock": 2.198585989000094,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Satellite Uplink",
+      "source": "Workspace",
+      "sig": "37d8fd618c41",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Satellite Uplink",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 17
+      },
+      "className": "Model",
+      "clock": 2.202630155999941,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "4624958f64c4",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 18
+      },
+      "className": "Model",
+      "clock": 2.2187482809995345,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "f426394da24d",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 18
+      },
+      "className": "Model",
+      "clock": 2.2355288019998625,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Synthetic Data Gen",
+      "source": "Workspace",
+      "sig": "3f553ce15d7f",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Synthetic Data Gen",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 17
+      },
+      "className": "Model",
+      "clock": 2.2530809370000497,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.TPU Pod",
+      "source": "Workspace",
+      "sig": "04bafa14ee93",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "TPU Pod",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 19
+      },
+      "className": "Model",
+      "clock": 2.2703734890001215,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.TPU Pod",
+      "source": "Workspace",
+      "sig": "b2bc9ed32c0b",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "TPU Pod",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 19
+      },
+      "className": "Model",
+      "clock": 2.2721950519999154,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.TPU Pod",
+      "source": "Workspace",
+      "sig": "60be45916994",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "TPU Pod",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 19
+      },
+      "className": "Model",
+      "clock": 2.2896145830000023,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.TPU Pod",
+      "source": "Workspace",
+      "sig": "0ebfec4fa71d",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "TPU Pod",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 19
+      },
+      "className": "Model",
+      "clock": 2.3044113019996075,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "031a0b30e689",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 20
+      },
+      "className": "Model",
+      "clock": 2.3068882289999237,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "b11bafef2401",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 13,
+        "Footprint": 1,
+        "TileX": 20
+      },
+      "className": "Model",
+      "clock": 2.3227436449997185,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Server Tower",
+      "source": "Workspace",
+      "sig": "5f1d56ad618a",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Server Tower",
+        "TileZ": 12,
+        "Footprint": 1,
+        "TileX": 20
+      },
+      "className": "Model",
+      "clock": 2.340935833000003,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Liquid Cluster",
+      "source": "Workspace",
+      "sig": "3ebde5a4f0e1",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Liquid Cluster",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 20
+      },
+      "className": "Model",
+      "clock": 2.3553721870002846,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Satellite Uplink",
+      "source": "Workspace",
+      "sig": "5d5a2ea195e9",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Satellite Uplink",
+        "TileZ": 14,
+        "Footprint": 1,
+        "TileX": 21
+      },
+      "className": "Model",
+      "clock": 2.3739039579995733,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot1.Units.Liquid Cluster",
+      "source": "Workspace",
+      "sig": "d3c6c84531a4",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Liquid Cluster",
+        "TileZ": 11,
+        "Footprint": 1,
+        "TileX": 18
+      },
+      "className": "Model",
+      "clock": 2.3935684369998853,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.LockedDeco",
+      "source": "Workspace",
+      "sig": "df14f540b161",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 2.4324431770000956,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Expansion",
+      "source": "Workspace",
+      "sig": "d54aceb458b2",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 2.432559582999602,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Unlocked",
+      "source": "Workspace",
+      "sig": "1ba2d39ffc8e",
+      "corr": 4,
+      "unix": 1792044910,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 2.4326657809997414,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units",
+      "source": "Workspace",
+      "sig": "5f085bf84244",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": [],
+      "className": "Folder",
+      "clock": 2.5216676039999584,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "c7cf089dddee",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 9,
+        "Footprint": 2,
+        "TileX": 29
+      },
+      "className": "Model",
+      "clock": 2.5218673950002994,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "16a379ded2db",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 2.5223341660002916,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "0e93abff63a9",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 29
+      },
+      "className": "Model",
+      "clock": 2.535941248999734,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Antimatter Cluster",
+      "source": "Workspace",
+      "sig": "c24f69702baf",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Antimatter Cluster",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.5365291660000366,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dark Web Nexus",
+      "source": "Workspace",
+      "sig": "55bc79f04870",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dark Web Nexus",
+        "TileZ": 7,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.556139790999623,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "0c4740bac3d5",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.5731495310001264,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "22d23aaa5780",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 29
+      },
+      "className": "Model",
+      "clock": 2.573629790999803,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "ac083cac169c",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.574057916000129,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "9dfee44b43cf",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 35
+      },
+      "className": "Model",
+      "clock": 2.5876072390001355,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dark Web Nexus",
+      "source": "Workspace",
+      "sig": "100f7d2dde68",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dark Web Nexus",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 29
+      },
+      "className": "Model",
+      "clock": 2.58860812399962,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "97c9ad0122d6",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.6031751040000017,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Antimatter Cluster",
+      "source": "Workspace",
+      "sig": "4129354ddbc5",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Antimatter Cluster",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 2.619953905999864,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "671e82749da6",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 9,
+        "Footprint": 2,
+        "TileX": 37
+      },
+      "className": "Model",
+      "clock": 2.639279998999882,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "1f251b6d93b9",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 37
+      },
+      "className": "Model",
+      "clock": 2.640459010000086,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dyson Array",
+      "source": "Workspace",
+      "sig": "33f568f88cbc",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dyson Array",
+        "TileZ": 9,
+        "Footprint": 2,
+        "TileX": 39
+      },
+      "className": "Model",
+      "clock": 2.66016385399962,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dark Web Nexus",
+      "source": "Workspace",
+      "sig": "8ee9460b8e7e",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dark Web Nexus",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 27
+      },
+      "className": "Model",
+      "clock": 2.6758321870001964,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "2d2e73ce6686",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 35
+      },
+      "className": "Model",
+      "clock": 2.6778473949998443,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "41fb99cec8bd",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 7,
+        "Footprint": 2,
+        "TileX": 35
+      },
+      "className": "Model",
+      "clock": 2.6957561970002644,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dark Web Nexus",
+      "source": "Workspace",
+      "sig": "f9b92b73cd6f",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dark Web Nexus",
+        "TileZ": 9,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.6972951039997497,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "4448041368a2",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 7,
+        "Footprint": 2,
+        "TileX": 39
+      },
+      "className": "Model",
+      "clock": 2.712262967999777,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Reality Scraper",
+      "source": "Workspace",
+      "sig": "90218f440b72",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Reality Scraper",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 2.7355961969997225,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Reality Scraper",
+      "source": "Workspace",
+      "sig": "f7a7115ede56",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Reality Scraper",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 29
+      },
+      "className": "Model",
+      "clock": 2.738016561999757,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Reality Scraper",
+      "source": "Workspace",
+      "sig": "cda0ea13dfa4",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Reality Scraper",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 27
+      },
+      "className": "Model",
+      "clock": 2.755690050999874,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "c0d562ac78d3",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 7,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.75687338500029,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Antimatter Cluster",
+      "source": "Workspace",
+      "sig": "c49bd4b4cb83",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Antimatter Cluster",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 37
+      },
+      "className": "Model",
+      "clock": 2.7783301560002656,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "2085cf65b7ac",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.7982611970001017,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "8d6d74dd13bf",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 27
+      },
+      "className": "Model",
+      "clock": 2.799204269999791,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Antimatter Cluster",
+      "source": "Workspace",
+      "sig": "45c20bd71b6d",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Antimatter Cluster",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 39
+      },
+      "className": "Model",
+      "clock": 2.8001121870001953,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dark Web Nexus",
+      "source": "Workspace",
+      "sig": "0dc312e93e83",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dark Web Nexus",
+        "TileZ": 3,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.8163968219996605,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "2ae20889c6b2",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 2.8324333849996037,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Stellar Engine",
+      "source": "Workspace",
+      "sig": "1cd8b028f3e5",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Stellar Engine",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.8332214579995707,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "a1ac03880796",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 27
+      },
+      "className": "Model",
+      "clock": 2.8494794259995615,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Reality Scraper",
+      "source": "Workspace",
+      "sig": "a39ac3c8e0e1",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Reality Scraper",
+        "TileZ": 5,
+        "Footprint": 2,
+        "TileX": 25
+      },
+      "className": "Model",
+      "clock": 2.850289686999531,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Galaxy Forge",
+      "source": "Workspace",
+      "sig": "7488152dfee1",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Galaxy Forge",
+        "TileZ": 7,
+        "Footprint": 2,
+        "TileX": 31
+      },
+      "className": "Model",
+      "clock": 2.8660340099995665,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Chronos Lattice",
+      "source": "Workspace",
+      "sig": "596ae95d4bbf",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Chronos Lattice",
+        "TileZ": 9,
+        "Footprint": 2,
+        "TileX": 33
+      },
+      "className": "Model",
+      "clock": 2.866786978000164,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dyson Array",
+      "source": "Workspace",
+      "sig": "21ce57677b6b",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dyson Array",
+        "TileZ": 13,
+        "Footprint": 2,
+        "TileX": 39
+      },
+      "className": "Model",
+      "clock": 2.8675384369998937,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    },
+    {
+      "path": "Workspace.Map.Generated.Plots.Plot2.Units.Dyson Array",
+      "source": "Workspace",
+      "sig": "7dd1a2e3f66c",
+      "corr": 5,
+      "unix": 1792044910,
+      "attributes": {
+        "Rotation": 0,
+        "ItemName": "Dyson Array",
+        "TileZ": 11,
+        "Footprint": 2,
+        "TileX": 39
+      },
+      "className": "Model",
+      "clock": 2.8852517180002906,
+      "kind": "structure_path",
+      "runId": "3e09c945-ab58-4175-9fb1-1428066faafd",
+      "quality": 35
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-15T06:15:11.379Z",
+  "contentChecksum": "bkKUX-Np1N2hO54xkczb",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 1,
+    "totalBytes": 55673,
+    "inboundListeners": 61,
+    "ackBytes": 0,
+    "queueBytes": 55673
+  }
+}
