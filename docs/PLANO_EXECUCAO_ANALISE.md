@@ -316,6 +316,14 @@ O contrato atual de envio e a outbox devem permanecer estáveis enquanto a anál
 - O teste de integração usa um GitHub falso/local e diretório temporário; não comprova quota/autenticação real do GitHub, persistência do provedor de hospedagem nem funcionamento no Android.
 - Pull Request #225 permanece aberto como draft. Não foi mesclado à `main`.
 
+
+### Atualização de validação — 2026-10-15
+
+- Commit `f7868a4e5c21ca797f8387d85f6e4013759f7e15`: GitHub Actions execução #176 concluída com sucesso.
+- A execução validou `npm run check`, os testes de integração e a compilação do coletor Luau.
+- O teste de rota remove a cópia local de `analysis/latest.json` e confirma que a consulta GET recupera o relatório espelhado no GitHub.
+- Esta evidência é de teste automatizado com GitHub simulado; não substitui um teste ponta a ponta no Render/GitHub real ou em Android.
+
 ### Limitações ainda abertas
 
 - O relatório automático analisa os arquivos presentes no diretório local do gateway. Se a hospedagem perder o disco local após reinício, a análise não reconstruirá automaticamente o histórico completo que só existe no GitHub. Confirmar a persistência do volume ou planejar uma leitura paginada do histórico remoto antes de afirmar comparação histórica completa.
