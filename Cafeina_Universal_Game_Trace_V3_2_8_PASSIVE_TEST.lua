@@ -2552,7 +2552,8 @@ local INPUT_LOCK_KEYS = {
 }
 
 setInputQuarantine = function(enabled)
-    enabled = enabled == true
+    -- PASSIVE HARD GUARD: collector must never consume player input.
+    enabled = false
     if S.inputQuarantine == enabled then
         if inputShield then inputShield.Visible = enabled end
         return
@@ -3105,6 +3106,8 @@ local function beginBluePhase(inv, reason)
 end
 
 local function executeCandidate(inv)
+    -- PASSIVE HARD GUARD: never run controlled tests or replay a remote.
+    return
     if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
     setInvestigatorStage("execute_entered", "avaliando risco", inv, true)
 
@@ -3182,6 +3185,8 @@ local function executeCandidate(inv)
 end
 
 local function startInvestigationCandidate(candidate)
+    -- PASSIVE HARD GUARD: do not start investigation state machines or input locks.
+    return
     if not S.running or S.stopping or S.activeInvestigation then return end
     S.investigationSeq = S.investigationSeq + 1
     S.investigationCount = S.investigationCount + 1
