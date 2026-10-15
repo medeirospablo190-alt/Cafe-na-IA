@@ -346,3 +346,21 @@ O workflow `CAFEINA Trace V3 CI`:
 - compila `Cafeina_Universal_Game_Trace_V3_0.lua`.
 
 Além do CI, a validação final precisa de uma execução real no executor/mobile, porque disponibilidade/comportamento de `hookmetamethod`, `ContextActionService` e camadas de input podem variar conforme o executor e o cliente Roblox.
+
+## Segurança e validação antes de produção
+
+O endpoint `POST /api/inventory-trace-v3/batch` recebe dados de um cliente e não pode guardar um segredo confiável no script Lua. Por isso, o token do GitHub deve existir **somente como variável de ambiente no servidor**; nunca coloque `CAFEINA_COLLECTOR_GITHUB_TOKEN` no coletor, em arquivos públicos ou em logs.
+
+Os limites de tamanho, quantidade e taxa reduzem abuso acidental, mas o limitador por IP **não autentica o remetente** e não impede todas as formas de abuso distribuído. Antes de abrir o serviço amplamente, configure limites também no proxy/plataforma de hospedagem, monitore respostas HTTP 429/413/502 e defina um procedimento de rotação do token. Não use traces sintéticos como prova de que a captura real funciona.
+
+### Checklist de teste no Android
+
+1. Confirme que `/api/inventory-trace-v3/health` responde e indica o espelho GitHub configurado, sem revelar valores de segredo.
+2. Faça uma sessão curta e autorizada no jogo e envie um lote pequeno.
+3. Confirme que a resposta do envio indica `ok=true`, `github.configured=true` e `github.mirrored=true`.
+4. Confira no GitHub se o lote bruto existe no caminho esperado e se o relatório `analysis/latest.json` aparece após o manifesto.
+5. Interrompa a conexão durante uma sessão de teste e confirme que o coletor retoma sem criar conflito de lote (HTTP 409).
+6. Verifique que dados pessoais desnecessários não são coletados nem publicados; traces podem conter identificadores e detalhes de estado do jogo.
+
+Não faça testes de carga ou de abuso contra o serviço de produção. Use um ambiente de teste controlado para validar limites e falhas.
+
