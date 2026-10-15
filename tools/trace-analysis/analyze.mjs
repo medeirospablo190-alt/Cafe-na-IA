@@ -9,8 +9,10 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const MAX_FILES = 5000;
+const MAX_FILE_BYTES = 12 * 1024 * 1024;
 const MAX_DEPTH = 8;
 const MAX_FIELDS = 2000;
+const MAX_WARNINGS = 100;
 
 function typeOf(value) {
   if (value === null) return "null";
@@ -42,14 +44,14 @@ function inferFields(value, prefix, output, depth = 0) {
   }
 }
 
-function keyFor(row) {
+function groupParts(row) {
   const remote = row?.remote && typeof row.remote === "object" ? row.remote : {};
   const object = row?.object && typeof row.object === "object" ? row.object : {};
-  return [
-    safeLabel(row?.kind || "unknown", 80),
-    safeLabel(remote.path || object.path || row?.path || "no-path", 180),
-    safeLabel(row?.method || row?.candidate?.method || "", 40),
-  ].join("|");
+  return {
+    kind: safeLabel(row?.kind || row?.category || "unknown", 80),
+    path: safeLabel(remote.path || object.path || row?.path || "no-path", 180),
+    method: safeLabel(row?.method || row?.candidate?.method || "", 40),
+  };
 }
 
 function confidence(samples) {
@@ -61,15 +63,16 @@ function confidence(samples) {
 async function collectJsonFiles(input) {
   const stat = await fs.stat(input);
   if (stat.isFile()) return input.endsWith(".json") ? [input] : [];
+  if (!stat.isDirectory()) throw new Error("A entrada precisa ser um arquivo JSON ou uma pasta.");
   const found = [];
-  async function walk(dir) {
-    if (found.length >= MAX_FILES) return;
+  async function walk(dir, depth = 0) {
+    if (found.length >= MAX_FILES || depth > 8) return;
     const entries = await fs.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       if (found.length >= MAX_FILES) break;
       if (entry.name.startsWith(".")) continue;
       const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) await walk(full);
+      if (entry.isDirectory()) await walk(full, depth + 1);
       else if (entry.isFile() && entry.name.endsWith(".json")) found.push(full);
     }
   }
@@ -81,7 +84,7 @@ export async function analyzeTracePath(input) {
   const files = await collectJsonFiles(input);
   const result = {
     analyzer: "cafeina-trace-v3-offline",
-    analyzerVersion: 1,
+    analyzerVersion: 2,
     generatedAt: new Date().toISOString(),
     inputFiles: files.length,
     skippedFiles: 0,
@@ -92,33 +95,49 @@ export async function analyzeTracePath(input) {
     warnings: [],
   };
   const fields = new Map();
-  const seenRows = new Set();
+  const explicitSignatures = new Set();
   let totalRecords = 0;
   let totalRemotes = 0;
+
+  const warn = (code, file, extra = {}) => {
+    if (result.warnings.length < MAX_WARNINGS) {
+      result.warnings.push({ code, file: path.basename(file), ...extra });
+    }
+  };
 
   for (const file of files) {
     let batch;
     try {
+      const stat = await fs.stat(file);
+      if (stat.size > MAX_FILE_BYTES) {
+        result.skippedFiles += 1;
+        warn("file_too_large", file, { limitBytes: MAX_FILE_BYTES });
+        continue;
+      }
       const raw = await fs.readFile(file, "utf8");
       batch = JSON.parse(raw);
-    } catch {
+    } catch (error) {
       result.skippedFiles += 1;
-      result.warnings.push({ code: "invalid_json", file: path.basename(file) });
+      warn(error?.code === "ENOENT" ? "file_unavailable" : "invalid_json", file);
       continue;
     }
     if (!batch || typeof batch !== "object" || Array.isArray(batch)) {
       result.skippedFiles += 1;
+      warn("invalid_batch_shape", file);
       continue;
     }
     const isTrace = batch.schemaVersion === 3
       && (batch.type === "cafeina_universal_trace_v3_batch" || Array.isArray(batch.records));
     if (!isTrace) continue;
 
-    const sessionKey = [batch.gameId ?? "unknown", batch.placeId ?? "unknown", safeLabel(batch.runId || "unknown", 120)].join("/");
+    const gameId = safeLabel(batch.gameId ?? "unknown", 40);
+    const placeId = safeLabel(batch.placeId ?? "unknown", 40);
+    const runId = safeLabel(batch.runId || "unknown", 120);
+    const sessionKey = JSON.stringify([gameId, placeId, runId]);
     const session = result.sessions[sessionKey] || {
-      gameId: batch.gameId ?? null,
-      placeId: batch.placeId ?? null,
-      runId: safeLabel(batch.runId || "unknown", 120),
+      gameId,
+      placeId,
+      runId,
       batches: 0,
       recordCount: 0,
       remoteCount: 0,
@@ -133,10 +152,10 @@ export async function analyzeTracePath(input) {
     session.remoteCount += remotes.length;
     if (batch.capturedAt && (!session.firstCapturedAt || batch.capturedAt < session.firstCapturedAt)) session.firstCapturedAt = batch.capturedAt;
     if (batch.capturedAt && (!session.lastCapturedAt || batch.capturedAt > session.lastCapturedAt)) session.lastCapturedAt = batch.capturedAt;
-    if (batch.stats && typeof batch.stats === "object") {
+    if (batch.stats && typeof batch.stats === "object" && !Array.isArray(batch.stats)) {
       for (const [key, value] of Object.entries(batch.stats)) {
         if (typeof value === "number" && Number.isFinite(value)) {
-          session.stats[key] = Math.max(session.stats[key] || 0, value);
+          session.stats[safeLabel(key, 100)] = Math.max(session.stats[safeLabel(key, 100)] || 0, value);
         }
       }
     }
@@ -147,23 +166,32 @@ export async function analyzeTracePath(input) {
         if (!row || typeof row !== "object" || Array.isArray(row)) continue;
         totalRecords += collectionName === "records" ? 1 : 0;
         totalRemotes += collectionName === "remotes" ? 1 : 0;
-        const kind = safeLabel(row.kind || row.category || "unknown", 80);
-        result.kinds[kind] = (result.kinds[kind] || 0) + 1;
-        const groupKey = keyFor(row);
-        const group = result.groups[groupKey] || { kind, path: groupKey.split("|")[1], method: groupKey.split("|")[2], samples: 0, signatures: new Set(), qualityTotal: 0, qualityCount: 0, firstUnix: null, lastUnix: null };
+        const parts = groupParts(row);
+        result.kinds[parts.kind] = (result.kinds[parts.kind] || 0) + 1;
+        const groupKey = JSON.stringify([collectionName, parts.kind, parts.path, parts.method]);
+        const group = result.groups[groupKey] || {
+          collection: collectionName, ...parts, samples: 0,
+          signatures: new Set(), qualityTotal: 0, qualityCount: 0,
+          firstUnix: null, lastUnix: null,
+        };
         group.samples += 1;
         const signature = row.sig || row.semanticHash || row.candidate?.semanticHash || row.shapeHash || row.candidate?.shapeHash;
-        if (signature) group.signatures.add(String(signature));
+        if (signature !== undefined && signature !== null && String(signature)) {
+          const normalizedSignature = safeLabel(signature, 200);
+          group.signatures.add(normalizedSignature);
+          explicitSignatures.add(JSON.stringify([sessionKey, groupKey, normalizedSignature]));
+        }
         const quality = Number(row.quality);
-        if (Number.isFinite(quality)) { group.qualityTotal += quality; group.qualityCount += 1; }
+        if (row.quality !== null && row.quality !== undefined && row.quality !== "" && Number.isFinite(quality)) {
+          group.qualityTotal += quality;
+          group.qualityCount += 1;
+        }
         const unix = Number(row.unix);
-        if (Number.isFinite(unix)) {
+        if (row.unix !== null && row.unix !== undefined && row.unix !== "" && Number.isFinite(unix)) {
           group.firstUnix = group.firstUnix === null ? unix : Math.min(group.firstUnix, unix);
           group.lastUnix = group.lastUnix === null ? unix : Math.max(group.lastUnix, unix);
         }
         result.groups[groupKey] = group;
-        const dedupKey = `${sessionKey}|${collectionName}|${groupKey}|${signature || JSON.stringify(row).length}`;
-        seenRows.add(dedupKey);
         inferFields(row, collectionName === "records" ? "record" : "remote", fields);
       }
     }
@@ -171,7 +199,7 @@ export async function analyzeTracePath(input) {
 
   result.totalRecords = totalRecords;
   result.totalRemotes = totalRemotes;
-  result.uniqueObservedSignatures = seenRows.size;
+  result.uniqueObservedSignatures = explicitSignatures.size;
   result.groups = Object.fromEntries(Object.entries(result.groups).map(([key, group]) => [key, {
     ...group,
     signatures: group.signatures.size,
@@ -187,7 +215,7 @@ export async function analyzeTracePath(input) {
     confidence: confidence(item.seen),
   }]));
   if (files.length >= MAX_FILES) result.warnings.push({ code: "file_limit_reached", limit: MAX_FILES });
-  result.warnings = result.warnings.slice(0, 100);
+  result.warnings = result.warnings.slice(0, MAX_WARNINGS);
   return result;
 }
 
@@ -210,6 +238,7 @@ async function main() {
     remotes: report.totalRemotes,
     groups: Object.keys(report.groups).length,
     fields: Object.keys(report.fields).length,
+    signatures: report.uniqueObservedSignatures,
   }, null, 2));
 }
 
