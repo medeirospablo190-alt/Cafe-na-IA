@@ -1,5 +1,5 @@
 --==============================================================--
--- CAFEINA • UNIVERSAL GAME TRACE V3.2.7
+-- CAFEINA • UNIVERSAL GAME TRACE V3.2.8
 -- Adaptive, bidirectional, persistent-per-game collector.
 --
 -- DESIGN RULES
