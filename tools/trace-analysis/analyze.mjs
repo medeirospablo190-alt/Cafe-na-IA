@@ -6,6 +6,7 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const MAX_FILES = 5000;
 const MAX_DEPTH = 8;
@@ -212,7 +213,7 @@ async function main() {
   }, null, 2));
 }
 
-if (import.meta.url === new URL(process.argv[1] || "", "file:").href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   main().catch((error) => {
     console.error("Análise falhou:", error?.message || error);
     process.exitCode = 1;
