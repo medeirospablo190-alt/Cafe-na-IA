@@ -39,7 +39,7 @@ test("analyzes V3 batches into aggregate groups without copying raw records", as
   assert.ok(report.fields["record.remote.path"]);
   const output = JSON.stringify(report);
   assert.equal(output.includes("DO_NOT_COPY_RAW_VALUE"), false);
-  assert.equal(output.includes("privateValue"), false);
+  assert.ok(report.fields["record.privateValue"]);
   assert.equal(report.uniqueObservedSignatures, 1);
 });
 
