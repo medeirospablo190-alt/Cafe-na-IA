@@ -10,6 +10,7 @@ import { pathToFileURL } from "node:url";
 
 const MAX_FILES = 5000;
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
 const MAX_DEPTH = 8;
 const MAX_FIELDS = 2000;
 const MAX_WARNINGS = 100;
@@ -98,6 +99,7 @@ export async function analyzeTracePath(input) {
   const explicitSignatures = new Set();
   let totalRecords = 0;
   let totalRemotes = 0;
+  let totalBytesRead = 0;
 
   const warn = (code, file, extra = {}) => {
     if (result.warnings.length < MAX_WARNINGS) {
@@ -114,7 +116,13 @@ export async function analyzeTracePath(input) {
         warn("file_too_large", file, { limitBytes: MAX_FILE_BYTES });
         continue;
       }
+      if (totalBytesRead + stat.size > MAX_TOTAL_BYTES) {
+        result.skippedFiles += 1;
+        warn("total_input_byte_limit_reached", file, { limitBytes: MAX_TOTAL_BYTES });
+        continue;
+      }
       const raw = await fs.readFile(file, "utf8");
+      totalBytesRead += Buffer.byteLength(raw, "utf8");
       batch = JSON.parse(raw);
     } catch (error) {
       result.skippedFiles += 1;
