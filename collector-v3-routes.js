@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
+import { analyzeTracePath } from "./tools/trace-analysis/analyze.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -291,6 +292,7 @@ async function handleBatch(req, res) {
   }
 
   let profile = null;
+  let analysis = null;
   if (batchKind === "manifest") {
     const manifest = safeObject(body.manifest);
     try {
@@ -316,6 +318,35 @@ async function handleBatch(req, res) {
         latestText,
         `Trace V3 latest ${gameId}/${placeId}`
       );
+
+      // Derived analysis is best-effort: raw batch persistence/mirroring remains authoritative.
+      try {
+        const analysisInput = path.join(TRACE_V3_DIR, String(gameId), String(placeId));
+        const report = await analyzeTracePath(analysisInput);
+        const reportText = `${JSON.stringify({
+          ...report,
+          reportType: "cafeina_trace_v3_analysis",
+          scope: { gameId, placeId },
+        }, null, 2)}\\n`;
+        const reportRelative = `${gameId}/${placeId}/analysis/latest.json`;
+        await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
+        await upsertGitHubText(
+          `${TRACE_V3_GITHUB_BASE}/${reportRelative}`,
+          reportText,
+          `Trace V3 analysis ${gameId}/${placeId} ${runId}`
+        );
+        analysis = {
+          generated: true,
+          path: `${TRACE_V3_GITHUB_BASE}/${reportRelative}`,
+          sessions: Object.keys(report.sessions).length,
+          records: report.totalRecords,
+          remotes: report.totalRemotes,
+          groups: Object.keys(report.groups).length,
+        };
+      } catch (error) {
+        console.error("TRACE_V3_ANALYSIS_MIRROR_ERROR", error?.message || error);
+        analysis = { generated: false, error: "analysis_mirror_failed" };
+      }
     } catch (error) {
       console.error("TRACE_V3_MANIFEST_FINALIZE_ERROR", error?.message || error);
       return jsonError(res, 502, "Lote salvo, mas a finalização do perfil/manifesto falhou.", {
