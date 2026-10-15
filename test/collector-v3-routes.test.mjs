@@ -29,6 +29,21 @@ async function startFakeGitHub(port) {
 
     if (req.method === "GET") {
       if (!current) {
+        const directoryPrefix = repoPath ? repoPath + "/" : "";
+        const children = new Map();
+        for (const filePath of files.keys()) {
+          if (!filePath.startsWith(directoryPrefix)) continue;
+          const remainder = filePath.slice(directoryPrefix.length);
+          if (!remainder) continue;
+          const slash = remainder.indexOf("/");
+          const name = slash < 0 ? remainder : remainder.slice(0, slash);
+          children.set(name, slash < 0 ? "file" : "dir");
+        }
+        if (children.size) {
+          res.writeHead(200, { "content-type": "application/json" });
+          res.end(JSON.stringify([...children].map(([name, type]) => ({ name, type }))));
+          return;
+        }
         res.writeHead(404, { "content-type": "application/json" });
         res.end(JSON.stringify({ message: "Not Found" }));
         return;
@@ -184,6 +199,9 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(largeConflictBody.existing.recordCount, 1050);
   assert.equal(largeConflictBody.existing.remoteCount, 0);
   assert.match(largeConflictBody.existing.recordsHash, /^[a-f0-9]{12}$/);
+
+  // Simulate an ephemeral host: retain the batches on GitHub but remove local run history.
+  await fs.rm(path.join(dir, String(common.gameId), String(common.placeId), common.runId), { recursive: true, force: true });
 
   const manifest = {
     ...common,
