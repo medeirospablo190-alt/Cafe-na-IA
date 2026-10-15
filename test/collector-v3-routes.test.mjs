@@ -400,4 +400,36 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(secondRetryReceipt.analysis.generated, true);
   assert.equal(secondRetryReceipt.analysis.reused, false);
   assert.ok(fake.files.has(retryReportPath), "o relatório deve ser espelhado no reenvio");
+
+  // Failure while updating latest.json returns a retryable error, while the raw manifest remains stored.
+  const latestRetryGameId = common.gameId + 3;
+  const latestRetryPlaceId = common.placeId + 3;
+  const latestRetryRunId = "dddddddd-eeee-ffff-0000-111111111111";
+  const latestRetryRoot = `inventory-traces-v3/${latestRetryGameId}/${latestRetryPlaceId}`;
+  const latestRetryManifest = {
+    ...common,
+    gameId: latestRetryGameId,
+    placeId: latestRetryPlaceId,
+    runId: latestRetryRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const latestPath = `${latestRetryRoot}/latest.json`;
+  fake.failNextPutForPath.add(latestPath);
+  const latestFailure = await post(latestRetryManifest);
+  assert.equal(latestFailure.status, 502, "falha ao publicar latest.json deve ser informada como recuperável");
+  const latestFailureBody = await latestFailure.json();
+  assert.match(latestFailureBody.message, /finalização do perfil\/manifesto falhou/);
+  assert.ok(fake.files.has(`${latestRetryRoot}/${latestRetryRunId}/0001-manifest.json`), "lote bruto permanece salvo apesar da falha secundária");
+
+  const latestRetry = await post(latestRetryManifest);
+  assert.equal(latestRetry.status, 201, "reenvio deve finalizar manifesto após falha temporária");
+  assert.ok(fake.files.has(latestPath), "latest.json deve ser publicado no reenvio");
+  const latestRetryBody = await latestRetry.json();
+  assert.equal(latestRetryBody.github.mirrored, true);
 });
