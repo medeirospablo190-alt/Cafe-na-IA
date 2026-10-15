@@ -1,0 +1,3280 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-15T04:27:49.000Z",
+  "gameId": 10515143755,
+  "placeId": 84637477108843,
+  "placeVersion": 1452,
+  "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+  "batchIndex": 17,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 57353,
+  "records": [
+    {
+      "corr": 417,
+      "investigating": true,
+      "clock": 208.9255318989999,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "c0667ee90873",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "0863d85462ba",
+          "effectTotal": 214,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.48,
+          "trustedSupport": 4,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 38,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 2.1812330200009455,
+          "shape": "dce684a6a265",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 4,
+          "semantic": "d8543f08d001",
+          "effectTotal": 214,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.48,
+          "trustedSupport": 4,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 39,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TrainingStats",
+          "age": 2.1810344260011334,
+          "shape": "245370d47acc",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 214,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.636,
+          "trustedSupport": 2,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 0.963664687000346,
+          "shape": "4668f34be01a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 495559612333262.3,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "3ed316c3d8da",
+        "3f161fc4222b",
+        "bcc61accc05c",
+        "a703e70c17f8"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038678
+    },
+    {
+      "corr": 417,
+      "unix": 1792038678,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.386754989624023,
+          "type": "Vector3",
+          "x": -233.70895385742188,
+          "z": -25.43841552734375
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "3f161fc4222b",
+        "bcc61accc05c",
+        "a703e70c17f8",
+        "c0667ee90873"
+      ],
+      "quality": 94,
+      "clock": 208.9601391390006,
+      "kind": "gui_activated",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "gui": {
+        "name": "X",
+        "path": "Players.capuccino40.PlayerGui.TabletUI.Frame.X",
+        "source": "PlayerGui",
+        "className": "TextButton",
+        "parent": "Players.capuccino40.PlayerGui.TabletUI.Frame",
+        "attributes": {
+          "ClickSfx": "UiClose"
+        },
+        "gui": {
+          "visible": true,
+          "text": "",
+          "size": {
+            "type": "UDim2",
+            "ys": 0,
+            "xs": 0,
+            "xo": 60,
+            "yo": 50
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": 0,
+            "xs": 1,
+            "xo": -14,
+            "yo": 10
+          }
+        }
+      }
+    },
+    {
+      "sig": "04bf11615295",
+      "corr": 417,
+      "unix": 1792038678,
+      "correlationModel": "evidence_v2",
+      "state": "enabled",
+      "quality": 70,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "0863d85462ba",
+          "effectTotal": 1,
+          "confidence": 19,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.TabletUI:enabled",
+          "id": 38,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 2.2167456240003958,
+          "shape": "dce684a6a265",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "d8543f08d001",
+          "effectTotal": 1,
+          "confidence": 19,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.TabletUI:enabled",
+          "id": 39,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TrainingStats",
+          "age": 2.2165470300005836,
+          "shape": "245370d47acc",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 1,
+          "confidence": 27,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "gui:Players.capuccino40.PlayerGui.TabletUI:enabled",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 0.9991772909997962,
+          "shape": "4668f34be01a",
+          "importance": 78
+        }
+      ],
+      "clock": 208.96104325300075,
+      "value": false,
+      "kind": "gui_state",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "gui": {
+        "path": "Players.capuccino40.PlayerGui.TabletUI",
+        "name": "TabletUI",
+        "className": "ScreenGui"
+      }
+    },
+    {
+      "corr": 417,
+      "contextRefs": [
+        "a703e70c17f8",
+        "c0667ee90873",
+        "6d815e1727a0",
+        "04bf11615295"
+      ],
+      "unix": 1792038678,
+      "importance": 59,
+      "clock": 208.9615578890007,
+      "newSemantic": true,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 87,
+      "semanticHash": "d09789e70857",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "8e7d389207f5",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.UiTrack",
+        "name": "UiTrack",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.386754989624023,
+          "type": "Vector3",
+          "x": -233.70895385742188,
+          "z": -25.43841552734375
+        },
+        "userId": 765329164
+      },
+      "triggerContext": {
+        "path": "Players.capuccino40.PlayerGui.TabletUI.Frame.X",
+        "kind": "gui_activated",
+        "age": 0.001,
+        "category": "gui_interaction"
+      },
+      "payload": {
+        "count": 2,
+        "values": [
+          "WindowClosed",
+          "Tablet"
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 2,
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "semanticHash": "d09789e70857",
+      "triggerShape": "d09789e70857",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.CrateCollected",
+            "name": "CrateCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GlitchBlockRevealed",
+            "name": "GlitchBlockRevealed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGlitchBlock",
+            "name": "OpenGlitchBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AdminCheck",
+            "name": "AdminCheck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetHackHistory",
+            "name": "GetHackHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetIntel",
+            "name": "GetIntel",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SpendHackRep",
+            "name": "SpendHackRep",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackRepSync",
+            "name": "HackRepSync",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigameReport",
+            "name": "UsbMinigameReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackDefend",
+            "name": "HackDefend",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyRespec",
+            "name": "BuyRespec",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyShield",
+            "name": "BuyShield",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimVipSmuggler",
+            "name": "ClaimVipSmuggler",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGoldenClover",
+            "name": "ClaimGoldenClover",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbHackStart",
+            "name": "UsbHackStart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SellItem",
+            "name": "SellItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PickupItem",
+            "name": "PickupItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PlaceItem",
+            "name": "PlaceItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimDailyReward",
+            "name": "ClaimDailyReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 417,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.UiTrack",
+        "name": "UiTrack",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "c0667ee90873",
+        "6d815e1727a0",
+        "04bf11615295",
+        "8e7d389207f5"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 2.4043149693397936e-8,
+          "type": "Vector3",
+          "x": 3.0545791673830536e-7,
+          "z": -5.776233820142807e-7
+        },
+        "angularVelocity": {
+          "y": 1.7497171238135107e-15,
+          "type": "Vector3",
+          "x": 0.000001045633212015673,
+          "z": 5.529505529011658e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.386754989624023,
+          "type": "Vector3",
+          "x": -233.70895385742188,
+          "z": -25.43841552734375
+        },
+        "jumpPower": 50,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "88d36cecefb2",
+      "unix": 1792038678,
+      "clock": 208.96184455500043,
+      "kind": "investigation_context",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100
+    },
+    {
+      "corr": 418,
+      "contextRefs": [
+        "6d815e1727a0",
+        "04bf11615295",
+        "8e7d389207f5",
+        "88d36cecefb2"
+      ],
+      "unix": 1792038679,
+      "importance": 56,
+      "clock": 209.43104663799932,
+      "newSemantic": true,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 87,
+      "semanticHash": "0820cf541969",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "96b4d78f6c6a",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.SetTabletHeld",
+        "name": "SetTabletHeld",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newShape": false,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.060051441192627,
+          "type": "Vector3",
+          "x": -231.90528869628906,
+          "z": -23.571571350097656
+        },
+        "userId": 765329164
+      },
+      "triggerContext": {
+        "path": "Players.capuccino40.PlayerGui.TabletUI.Frame.X",
+        "kind": "gui_activated",
+        "age": 0.471,
+        "category": "gui_interaction"
+      },
+      "payload": {
+        "count": 1,
+        "values": [
+          false
+        ]
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "semanticHash": "0820cf541969",
+      "triggerShape": "0820cf541969",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.CrateCollected",
+            "name": "CrateCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GlitchBlockRevealed",
+            "name": "GlitchBlockRevealed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGlitchBlock",
+            "name": "OpenGlitchBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AdminCheck",
+            "name": "AdminCheck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetHackHistory",
+            "name": "GetHackHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetIntel",
+            "name": "GetIntel",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SpendHackRep",
+            "name": "SpendHackRep",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackRepSync",
+            "name": "HackRepSync",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigameReport",
+            "name": "UsbMinigameReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackDefend",
+            "name": "HackDefend",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyRespec",
+            "name": "BuyRespec",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyShield",
+            "name": "BuyShield",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimVipSmuggler",
+            "name": "ClaimVipSmuggler",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGoldenClover",
+            "name": "ClaimGoldenClover",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbHackStart",
+            "name": "UsbHackStart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SellItem",
+            "name": "SellItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PickupItem",
+            "name": "PickupItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PlaceItem",
+            "name": "PlaceItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimDailyReward",
+            "name": "ClaimDailyReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 418,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.SetTabletHeld",
+        "name": "SetTabletHeld",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "04bf11615295",
+        "8e7d389207f5",
+        "88d36cecefb2",
+        "96b4d78f6c6a"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 0.24960559606552124,
+          "type": "Vector3",
+          "x": 10.575735092163086,
+          "z": 11.799882888793945
+        },
+        "angularVelocity": {
+          "y": -3.656970739364624,
+          "type": "Vector3",
+          "x": 0.00007659295079065487,
+          "z": 0.00029005875694565475
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.6657958030700684,
+          "z": 0.7461340427398682
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.060051441192627,
+          "type": "Vector3",
+          "x": -231.90528869628906,
+          "z": -23.571571350097656
+        },
+        "jumpPower": 50,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "334db92b90f9",
+      "unix": 1792038679,
+      "clock": 209.43136356499963,
+      "kind": "investigation_context",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100
+    },
+    {
+      "velocity": {
+        "y": 0.003821972059085965,
+        "type": "Vector3",
+        "x": 11.647207260131836,
+        "z": 10.926726341247559
+      },
+      "unix": 1792038679,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066658020019531,
+          "type": "Vector3",
+          "x": -230.5933380126953,
+          "z": -22.245792388916016
+        },
+        "userId": 765329164
+      },
+      "corr": 419,
+      "clock": 209.54886137799986,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "attributes": {
+        "Variant": "hacker"
+      },
+      "path": "Players.capuccino40.Backpack.Tablet",
+      "source": "Workspace",
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 10,
+          "confidence": 1,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "runtime_remove:Tool:Tablet",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 1.6813821349987847,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "d09789e70857",
+          "effectTotal": 10,
+          "confidence": 2,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "runtime_remove:Tool:Tablet",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 0.6816393749995768,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "0820cf541969",
+          "effectTotal": 10,
+          "confidence": 2,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 2,
+          "method": "FireServer",
+          "effect": "runtime_remove:Tool:Tablet",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 0.21213177099889435,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "sig": "64fe60d9ba99",
+      "corr": 419,
+      "unix": 1792038679,
+      "contextRefs": [
+        "88d36cecefb2",
+        "96b4d78f6c6a",
+        "334db92b90f9",
+        "ce49d1afc54f"
+      ],
+      "correlationModel": "evidence_v2",
+      "lifetimeSeconds": 2.683,
+      "name": "Tablet",
+      "className": "Tool",
+      "clock": 209.64324299200052,
+      "kind": "workspace_removing",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 80
+    },
+    {
+      "contextRefs": [
+        "96b4d78f6c6a",
+        "334db92b90f9",
+        "ce49d1afc54f",
+        "64fe60d9ba99"
+      ],
+      "corr": 419,
+      "unix": 1792038679,
+      "quality": 90,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066751003265381,
+          "type": "Vector3",
+          "x": -229.5987091064453,
+          "z": -21.35854721069336
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 2,
+          "confidence": 11,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_removed:Tablet",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 1.6819173949988908,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "d09789e70857",
+          "effectTotal": 2,
+          "confidence": 14,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_removed:Tablet",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 0.6821746349996829,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "0820cf541969",
+          "effectTotal": 2,
+          "confidence": 16,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_removed:Tablet",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 0.21266703099900042,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "clock": 209.64378367000063,
+      "kind": "tool_removed",
+      "tool": {
+        "name": "Tablet",
+        "path": "Players.capuccino40.Backpack.Tablet"
+      },
+      "container": "Character"
+    },
+    {
+      "contextRefs": [
+        "334db92b90f9",
+        "ce49d1afc54f",
+        "64fe60d9ba99",
+        "884921d3e10a"
+      ],
+      "corr": 419,
+      "unix": 1792038679,
+      "quality": 90,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066751003265381,
+          "type": "Vector3",
+          "x": -229.5987091064453,
+          "z": -21.35854721069336
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 2,
+          "confidence": 11,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_added:Tablet",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 1.6837690100001055,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "d09789e70857",
+          "effectTotal": 2,
+          "confidence": 14,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_added:Tablet",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 0.6840262500008976,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "0820cf541969",
+          "effectTotal": 2,
+          "confidence": 16,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "tool:tool_added:Tablet",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 0.21451864600021509,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "clock": 209.64562293999916,
+      "kind": "tool_added",
+      "tool": {
+        "attributes": {
+          "Variant": "hacker"
+        },
+        "path": "Players.capuccino40.Backpack.Tablet",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Players.capuccino40.Backpack",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Tablet"
+      },
+      "container": "Backpack"
+    },
+    {
+      "sig": "2bf080408da0",
+      "corr": 419,
+      "unix": 1792038679,
+      "contextRefs": [
+        "ce49d1afc54f",
+        "64fe60d9ba99",
+        "884921d3e10a",
+        "7bbc98d7b0a8"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066751003265381,
+          "type": "Vector3",
+          "x": -229.5987091064453,
+          "z": -21.35854721069336
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "clock": 209.64632090899977,
+      "kind": "tool_unequipped",
+      "tool": {
+        "attributes": {
+          "Variant": "hacker"
+        },
+        "path": "Players.capuccino40.Backpack.Tablet",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Players.capuccino40.Backpack",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Tablet"
+      },
+      "container": "Backpack"
+    },
+    {
+      "semanticHash": "621b8e200fc7",
+      "contextRefs": [
+        "64fe60d9ba99",
+        "884921d3e10a",
+        "7bbc98d7b0a8",
+        "2bf080408da0"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "semantic",
+      "phase": 3,
+      "corr": 419,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.UiTrack",
+        "name": "UiTrack",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038679,
+      "triggerHash": "621b8e200fc7",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 2148857317209,
+            "path": "Players.capuccino40.leaderstats.Money",
+            "activityCount": 1,
+            "clock": 156.96744301299987,
+            "eventValue": 2148857317209
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00004401477053761482,
+            "type": "Vector3",
+            "x": 15.661812782287598,
+            "z": 3.122936487197876
+          },
+          "angularVelocity": {
+            "y": 3.053758144378662,
+            "type": "Vector3",
+            "x": 0.0007920021307654679,
+            "z": -0.0012557125883176923
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9819138646125793,
+            "z": 0.1893286257982254
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -227.94140625,
+            "z": -20.543960571289062
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 424564823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 0,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 404484659817,
+          "TutorialDone": true,
+          "AILevel": 1601,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 597758700,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "64fe60d9ba99",
+          "884921d3e10a",
+          "7bbc98d7b0a8",
+          "2bf080408da0"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 155.16562285700093,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 171.23041118400033,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 171.2306846219999,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 171.23087790300087,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 171.2309844650008,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 180.50756571199963,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 180.5228718060007,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 180.5229512850001,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 180.5229899829992,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 187.8340331569998,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 187.83431607400053,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 187.8344906050006,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 187.834570084,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 206.74299012899974,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TabletUI",
+            "className": "ScreenGui",
+            "clock": 208.96087299300052,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 208.96123132600042,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "3e900ec38f8a",
+      "probeId": 34,
+      "clock": 209.74754445100007,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "0863d85462ba",
+      "contextRefs": [
+        "884921d3e10a",
+        "7bbc98d7b0a8",
+        "2bf080408da0",
+        "3e900ec38f8a"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 3,
+      "corr": 419,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.SetTabletHeld",
+        "name": "SetTabletHeld",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038679,
+      "triggerHash": "dce684a6a265",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 2148857317209,
+            "path": "Players.capuccino40.leaderstats.Money",
+            "activityCount": 1,
+            "clock": 156.96744301299987,
+            "eventValue": 2148857317209
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00004401477053761482,
+            "type": "Vector3",
+            "x": 15.661812782287598,
+            "z": 3.122936487197876
+          },
+          "angularVelocity": {
+            "y": 3.053758144378662,
+            "type": "Vector3",
+            "x": 0.0007920021307654679,
+            "z": -0.0012557125883176923
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9819138646125793,
+            "z": 0.1893286257982254
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -227.94140625,
+            "z": -20.543960571289062
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 424564823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 0,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 404484659817,
+          "TutorialDone": true,
+          "AILevel": 1601,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 597758700,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "884921d3e10a",
+          "7bbc98d7b0a8",
+          "2bf080408da0",
+          "3e900ec38f8a"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 155.16562285700093,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 171.23041118400033,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 171.2306846219999,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 171.23087790300087,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 171.2309844650008,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 180.50756571199963,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 180.5228718060007,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 180.5229512850001,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 180.5229899829992,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 187.8340331569998,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 187.83431607400053,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 187.8344906050006,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 187.834570084,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 206.74299012899974,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TabletUI",
+            "className": "ScreenGui",
+            "clock": 208.96087299300052,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 208.96123132600042,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "3ed317c3d8db",
+      "probeId": 35,
+      "clock": 209.74797554500037,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "d8543f08d001",
+      "contextRefs": [
+        "7bbc98d7b0a8",
+        "2bf080408da0",
+        "3e900ec38f8a",
+        "3ed317c3d8db"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 3,
+      "corr": 419,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038679,
+      "triggerHash": "245370d47acc",
+      "state": {
+        "recentValues": [
+          {
+            "observedAfterValue": 2148857317209,
+            "path": "Players.capuccino40.leaderstats.Money",
+            "activityCount": 1,
+            "clock": 156.96744301299987,
+            "eventValue": 2148857317209
+          }
+        ],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.00004401477053761482,
+            "type": "Vector3",
+            "x": 15.661812782287598,
+            "z": 3.122936487197876
+          },
+          "angularVelocity": {
+            "y": 3.053758144378662,
+            "type": "Vector3",
+            "x": 0.0007920021307654679,
+            "z": -0.0012557125883176923
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0.9819138646125793,
+            "z": 0.1893286257982254
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -227.94140625,
+            "z": -20.543960571289062
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 424564823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 0,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 404484659817,
+          "TutorialDone": true,
+          "AILevel": 1601,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 597758700,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "7bbc98d7b0a8",
+          "2bf080408da0",
+          "3e900ec38f8a",
+          "3ed317c3d8db"
+        ],
+        "recentGui": [
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 155.16562285700093,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 171.23041118400033,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 171.2306846219999,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 171.23087790300087,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 171.2309844650008,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 180.50756571199963,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 180.5228718060007,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 180.5229512850001,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 180.5229899829992,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.ShopGui",
+            "className": "ScreenGui",
+            "clock": 187.8340331569998,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 187.83431607400053,
+            "kind": "visible"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI",
+            "className": "ScreenGui",
+            "clock": 187.8344906050006,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.WarpUI",
+            "className": "ScreenGui",
+            "clock": 187.834570084,
+            "kind": "enabled"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 206.74299012899974,
+            "kind": "visible"
+          },
+          {
+            "state": false,
+            "path": "Players.capuccino40.PlayerGui.TabletUI",
+            "className": "ScreenGui",
+            "clock": 208.96087299300052,
+            "kind": "enabled"
+          },
+          {
+            "state": true,
+            "path": "Players.capuccino40.PlayerGui.InventoryUI.BackpackAccessBounds.OpenBackpack",
+            "className": "TextButton",
+            "clock": 208.96123132600042,
+            "kind": "visible"
+          }
+        ]
+      },
+      "sig": "3f1620c4222c",
+      "probeId": 36,
+      "clock": 209.7483078360001,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "corr": 419,
+      "investigating": true,
+      "clock": 209.95703861699985,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "b1ed7ec812c2",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 215,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.475,
+          "trustedSupport": 3,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 1.9951723949998268,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "d09789e70857",
+          "effectTotal": 215,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 0.9954296350006189,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "0820cf541969",
+          "effectTotal": 215,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 0.5259220309999364,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 495815754593426.2,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "2bf080408da0",
+        "3e900ec38f8a",
+        "3ed317c3d8db",
+        "3f1620c4222c"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038679
+    },
+    {
+      "velocity": {
+        "y": 2.542544166317384e-7,
+        "type": "Vector3",
+        "x": 15.478374481201172,
+        "z": -4.052169322967529
+      },
+      "unix": 1792038680,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066755294799805,
+          "type": "Vector3",
+          "x": -214.79315185546875,
+          "z": -23.11489486694336
+        },
+        "userId": 765329164
+      },
+      "corr": 421,
+      "clock": 210.58213736700054,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "corr": 421,
+      "investigating": true,
+      "clock": 210.9743140339997,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "6a84cf9647ca",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 216,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.386,
+          "trustedSupport": 4,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 3.0124553109999397,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "d09789e70857",
+          "effectTotal": 216,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.567,
+          "trustedSupport": 2,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 2.0127125510007318,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "0820cf541969",
+          "effectTotal": 216,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.567,
+          "trustedSupport": 2,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 1.5432049470000493,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 496072013543409,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "3ed317c3d8db",
+        "3f1620c4222c",
+        "b1ed7ec812c2",
+        "c9383bd6f89b"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038680
+    },
+    {
+      "corr": 423,
+      "investigating": true,
+      "clock": 211.99195502300063,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "da6fdec903f3",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 5,
+          "semantic": "ab612ed7efbe",
+          "effectTotal": 217,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.327,
+          "trustedSupport": 5,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 40,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SpendSkillPoints",
+          "age": 4.0300885919987195,
+          "shape": "4668f34be01a",
+          "importance": 78
+        },
+        {
+          "distinctEffects": 3,
+          "semantic": "d09789e70857",
+          "effectTotal": 217,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.445,
+          "trustedSupport": 3,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 3.0303458319995116,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 3,
+          "semantic": "0820cf541969",
+          "effectTotal": 217,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.445,
+          "trustedSupport": 3,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 2.560838227998829,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 496328389222308.3,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "3f1620c4222c",
+        "b1ed7ec812c2",
+        "c9383bd6f89b",
+        "6a84cf9647ca"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038681
+    },
+    {
+      "velocity": {
+        "y": 0.000014082863344810903,
+        "type": "Vector3",
+        "x": -7.088218688964844,
+        "z": -14.343114852905273
+      },
+      "unix": 1792038682,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.72756958007812,
+          "z": -28.822654724121094
+        },
+        "userId": 765329164
+      },
+      "corr": 425,
+      "clock": 212.8960525750008,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "corr": 426,
+      "investigating": true,
+      "clock": 213.00815663700087,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "6a09f9a2e954",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "d09789e70857",
+          "effectTotal": 218,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.37,
+          "trustedSupport": 4,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 41,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.UiTrack",
+          "age": 4.046558071000618,
+          "shape": "b23eef837953",
+          "importance": 59
+        },
+        {
+          "distinctEffects": 4,
+          "semantic": "0820cf541969",
+          "effectTotal": 218,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.37,
+          "trustedSupport": 4,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 3.5770504669999355,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 496584881669230.2,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "c9383bd6f89b",
+        "6a84cf9647ca",
+        "da6fdec903f3",
+        "f470802f12b6"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038682
+    },
+    {
+      "sig": "dd2f1fa20142",
+      "corr": 427,
+      "unix": 1792038683,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "0820cf541969",
+          "effectTotal": 43,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 22,
+          "method": "FireServer",
+          "effect": "attribute:Data",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 4.558392601999003,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "6a84cf9647ca",
+        "da6fdec903f3",
+        "f470802f12b6",
+        "6a09f9a2e954"
+      ],
+      "name": "Data",
+      "value": 425214823512495,
+      "clock": 213.9895012199995,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "corr": 428,
+      "investigating": true,
+      "clock": 214.02371543899972,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "20edda82a908",
+      "sig": "ca087e8f1c8c",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 5,
+          "semantic": "0820cf541969",
+          "effectTotal": 219,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.317,
+          "trustedSupport": 5,
+          "baseline": 77,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 42,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.SetTabletHeld",
+          "age": 4.592606561000139,
+          "shape": "dce684a6a265",
+          "importance": 56
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 496841490923289.2,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "da6fdec903f3",
+        "f470802f12b6",
+        "6a09f9a2e954",
+        "dd2f1fa20142"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038683
+    },
+    {
+      "semanticHash": "20edda82a908",
+      "contextRefs": [
+        "f470802f12b6",
+        "6a09f9a2e954",
+        "dd2f1fa20142",
+        "ca087e8f1c8c"
+      ],
+      "unix": 1792038684,
+      "newSemantic": false,
+      "sig": "c6acaafcd091",
+      "corr": 430,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 497098217023608.5,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 215.0415736670002,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88
+    },
+    {
+      "semanticHash": "20edda82a908",
+      "contextRefs": [
+        "6a09f9a2e954",
+        "dd2f1fa20142",
+        "ca087e8f1c8c",
+        "c6acaafcd091"
+      ],
+      "unix": 1792038685,
+      "newSemantic": false,
+      "sig": "5c45975b0fa8",
+      "corr": 432,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 497355060009319.7,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 216.04587231299956,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88
+    },
+    {
+      "semanticHash": "20edda82a908",
+      "unix": 1792038686,
+      "newSemantic": false,
+      "sig": "a1fab45874ed",
+      "corr": 434,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 497612019919563,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 217.08063330200093,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 1.3312042312918493e-7,
+        "type": "Vector3",
+        "x": 5.002526108910388e-7,
+        "z": 8.903324442144367e-7
+      },
+      "unix": 1792038687,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066755294799805,
+          "type": "Vector3",
+          "x": -216.00363159179688,
+          "z": -29.36981201171875
+        },
+        "userId": 765329164
+      },
+      "corr": 436,
+      "clock": 218.04146298900014,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "semanticHash": "20edda82a908",
+      "unix": 1792038687,
+      "newSemantic": false,
+      "sig": "d7c3d77814d1",
+      "corr": 436,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 497869096793487.1,
+            "autoSet": true,
+            "points": 0,
+            "level": 1601,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 218.09175350999976,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "corr": 436,
+      "investigating": true,
+      "clock": 218.09262590599974,
+      "newSemantic": true,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 99,
+      "semanticHash": "ede745995a7c",
+      "sig": "26f22f699e31",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "5c45975b0fa8",
+        "a1fab45874ed",
+        "4999166d3197",
+        "d7c3d77814d1"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066755294799805,
+          "type": "Vector3",
+          "x": -216.00363159179688,
+          "z": -29.36981201171875
+        },
+        "userId": 765329164
+      },
+      "unix": 1792038687,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 497869096793487.1,
+            "autoSet": true,
+            "points": 1,
+            "level": 1602,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 11,
+            "type": "table",
+            "fields": {
+              "compute": {
+                "type": "number"
+              },
+              "levelCapped": {
+                "type": "boolean"
+              },
+              "auto": {
+                "type": "boolean"
+              },
+              "spent": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataStalled": {
+                "type": "boolean"
+              },
+              "xp": {
+                "type": "number"
+              },
+              "autoSet": {
+                "type": "boolean"
+              },
+              "points": {
+                "type": "number"
+              },
+              "level": {
+                "type": "number"
+              },
+              "manual": {
+                "fieldCountAtLeast": 3,
+                "type": "table",
+                "fields": {
+                  "Money": {
+                    "type": "number"
+                  },
+                  "Hacking": {
+                    "type": "number"
+                  },
+                  "Security": {
+                    "type": "number"
+                  }
+                }
+              },
+              "dataLimited": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "ede745995a7c",
+      "triggerShape": "ede745995a7c",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.CrateCollected",
+            "name": "CrateCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GlitchBlockRevealed",
+            "name": "GlitchBlockRevealed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGlitchBlock",
+            "name": "OpenGlitchBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AdminCheck",
+            "name": "AdminCheck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetHackHistory",
+            "name": "GetHackHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetIntel",
+            "name": "GetIntel",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SpendHackRep",
+            "name": "SpendHackRep",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackRepSync",
+            "name": "HackRepSync",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigameReport",
+            "name": "UsbMinigameReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackDefend",
+            "name": "HackDefend",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyRespec",
+            "name": "BuyRespec",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyShield",
+            "name": "BuyShield",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimVipSmuggler",
+            "name": "ClaimVipSmuggler",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGoldenClover",
+            "name": "ClaimGoldenClover",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbHackStart",
+            "name": "UsbHackStart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SellItem",
+            "name": "SellItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PickupItem",
+            "name": "PickupItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PlaceItem",
+            "name": "PlaceItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimDailyReward",
+            "name": "ClaimDailyReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 436,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "a1fab45874ed",
+        "4999166d3197",
+        "d7c3d77814d1",
+        "26f22f699e31"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 1.331204941834585e-7,
+          "type": "Vector3",
+          "x": 4.994570304006629e-7,
+          "z": 8.889161904335197e-7
+        },
+        "angularVelocity": {
+          "y": -4.88186041545653e-15,
+          "type": "Vector3",
+          "x": -0.0000017474042124376865,
+          "z": 9.81817493084236e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.066755294799805,
+          "type": "Vector3",
+          "x": -216.00363159179688,
+          "z": -29.36981201171875
+        },
+        "jumpPower": 50,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "c41f37f980aa",
+      "unix": 1792038687,
+      "clock": 218.0931575729992,
+      "kind": "investigation_context",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100
+    },
+    {
+      "semanticHash": "ede745995a7c",
+      "contextRefs": [
+        "4999166d3197",
+        "d7c3d77814d1",
+        "26f22f699e31",
+        "c41f37f980aa"
+      ],
+      "unix": 1792038688,
+      "newSemantic": false,
+      "sig": "c905690d4b47",
+      "corr": 438,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 498126290670249.3,
+            "autoSet": true,
+            "points": 1,
+            "level": 1602,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 219.0751535620002,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88
+    },
+    {
+      "semanticHash": "ede745995a7c",
+      "contextRefs": [
+        "d7c3d77814d1",
+        "26f22f699e31",
+        "c41f37f980aa",
+        "c905690d4b47"
+      ],
+      "unix": 1792038689,
+      "newSemantic": false,
+      "sig": "41d3fc549463",
+      "corr": 440,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": true,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1601,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 498383601589015.3,
+            "autoSet": true,
+            "points": 1,
+            "level": 1602,
+            "manual": {
+              "Money": 6683,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 220.09530647800057,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-15T04:31:31.635Z",
+  "contentChecksum": "VDz_itEVi0FBzOJV2_CI",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 728,
+    "totalBytes": 2396324,
+    "inboundListeners": 61,
+    "ackBytes": 2338971,
+    "queueBytes": 57353
+  }
+}
