@@ -52,3 +52,10 @@ A resposta do envio inclui `analysis.generated` e contagens agregadas quando ess
 A geração percorre os JSON já salvos daquele jogo/local, ignora arquivos que não são batches Trace V3 e aplica os limites definidos nesta ferramenta. O relatório é refeito no encerramento de uma sessão, não em cada lote, para evitar muitas chamadas ao GitHub.
 
 O upload e o espelhamento dos lotes continuam sendo feitos pelo endpoint Trace V3 existente. A captura Lua, o contrato HTTP e o mecanismo de retry dos lotes permanecem compatíveis. A execução real no Android e a integração ponta a ponta ainda precisam ser validadas separadamente.
+
+
+## Consultar o relatório pelo gateway
+
+A rota GET `/api/inventory-trace-v3/<gameId>/<placeId>/analysis` devolve o relatório mais recente, tentando o disco local e depois o GitHub. O relatório declara `historySource: "local_gateway_disk"` e `historyComplete: false`: isso evita afirmar que todo o histórico do GitHub foi reprocessado quando a disponibilidade do disco do host não está confirmada. Para análise histórica completa após reinicializações, é necessário configurar armazenamento persistente ou implementar uma reconstrução paginada a partir do GitHub.
+
+Reenvios do mesmo manifesto reutilizam o relatório já espelhado para evitar commits repetidos para a mesma sessão. Se a sessão ou os lotes mudarem, uma nova geração pode atualizar o relatório.
