@@ -321,28 +321,38 @@ async function handleBatch(req, res) {
 
       // Derived analysis is best-effort: raw batch persistence/mirroring remains authoritative.
       try {
-        const analysisInput = path.join(TRACE_V3_DIR, String(gameId), String(placeId));
-        const report = await analyzeTracePath(analysisInput);
-        const reportText = `${JSON.stringify({
-          ...report,
-          reportType: "cafeina_trace_v3_analysis",
-          scope: { gameId, placeId },
-        }, null, 2)}\n`;
         const reportRelative = `${gameId}/${placeId}/analysis/latest.json`;
-        await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
-        await upsertGitHubText(
-          `${TRACE_V3_GITHUB_BASE}/${reportRelative}`,
-          reportText,
-          `Trace V3 analysis ${gameId}/${placeId} ${runId}`
-        );
-        analysis = {
-          generated: true,
-          path: `${TRACE_V3_GITHUB_BASE}/${reportRelative}`,
-          sessions: Object.keys(report.sessions).length,
-          records: report.totalRecords,
-          remotes: report.totalRemotes,
-          groups: Object.keys(report.groups).length,
-        };
+        const reportGithubPath = `${TRACE_V3_GITHUB_BASE}/${reportRelative}`;
+        const existingReportText = await readGitHubText(reportGithubPath);
+        let existingReport = null;
+        try { existingReport = existingReportText ? JSON.parse(existingReportText) : null; } catch {}
+        if (existingReport?.triggerRunId === runId && existingReport?.reportType === "cafeina_trace_v3_analysis") {
+          analysis = {
+            generated: true, reused: true, path: reportGithubPath,
+            sessions: Object.keys(existingReport.sessions || {}).length,
+            records: existingReport.totalRecords || 0,
+            remotes: existingReport.totalRemotes || 0,
+            groups: Object.keys(existingReport.groups || {}).length,
+          };
+        } else {
+          const analysisInput = path.join(TRACE_V3_DIR, String(gameId), String(placeId));
+          const report = await analyzeTracePath(analysisInput);
+          const reportText = `${JSON.stringify({
+            ...report,
+            reportType: "cafeina_trace_v3_analysis",
+            triggerRunId: runId,
+            scope: { gameId, placeId },
+          }, null, 2)}\n`;
+          await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
+          await upsertGitHubText(reportGithubPath, reportText, `Trace V3 analysis ${gameId}/${placeId} ${runId}`);
+          analysis = {
+            generated: true, reused: false, path: reportGithubPath,
+            sessions: Object.keys(report.sessions).length,
+            records: report.totalRecords,
+            remotes: report.totalRemotes,
+            groups: Object.keys(report.groups).length,
+          };
+        }
       } catch (error) {
         console.error("TRACE_V3_ANALYSIS_MIRROR_ERROR", error?.message || error);
         analysis = { generated: false, error: "analysis_mirror_failed" };
