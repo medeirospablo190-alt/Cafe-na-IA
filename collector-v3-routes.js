@@ -817,12 +817,22 @@ function securityHeaders(_req, res, next) {
 function consumeRate(store, key, maxPerWindow, windowMs) {
   const now = Date.now();
   const current = store.get(key);
-  if (!current || now - current.windowStartedAt > windowMs) {
-    store.set(key, { count: 1, windowStartedAt: now });
+  if (current && now - current.windowStartedAt <= windowMs) {
+    if (current.count >= maxPerWindow) return false;
+    current.count += 1;
     return true;
   }
-  if (current.count >= maxPerWindow) return false;
-  current.count += 1;
+
+  // Bound memory when requests arrive with many distinct client IPs.
+  // Expired entries are removed before failing closed at the cap.
+  if (!current && store.size >= 10_000) {
+    for (const [storedKey, state] of store) {
+      if (now - state.windowStartedAt > windowMs) store.delete(storedKey);
+    }
+    if (store.size >= 10_000) return false;
+  }
+
+  store.set(key, { count: 1, windowStartedAt: now });
   return true;
 }
 
