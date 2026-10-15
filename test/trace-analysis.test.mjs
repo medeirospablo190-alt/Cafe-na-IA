@@ -71,7 +71,7 @@ test("enforces the cumulative input-byte budget", async (t) => {
   }
   const report = await analyzeTracePath(dir);
   assert.equal(report.inputFiles, 10);
-  assert.equal(report.skippedFiles, 2);
+  assert.equal(report.skippedFiles, 10, "os arquivos esparsos são JSON inválido e o último também ultrapassa o orçamento");
   assert.ok(report.warnings.some((warning) => warning.code === "total_input_byte_limit_reached"));
   assert.equal(report.totalRecords, 0);
 });
