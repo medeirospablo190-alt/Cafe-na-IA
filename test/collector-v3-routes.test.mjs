@@ -272,11 +272,14 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(analysisReport.totalRecords, 1051);
   assert.equal(JSON.stringify(analysisReport).includes("x".repeat(100)), false);
 
+  const localAnalysisPath = path.join(dir, String(common.gameId), String(common.placeId), "analysis", "latest.json");
+  await fs.rm(localAnalysisPath, { force: true });
   const analysisResponse = await fetch(`${base}/${common.gameId}/${common.placeId}/analysis`);
-  assert.equal(analysisResponse.status, 200);
+  assert.equal(analysisResponse.status, 200, "consulta deve recuperar relatório do GitHub quando o arquivo local sumir");
   const analysisViaApi = await analysisResponse.json();
   assert.equal(analysisViaApi.reportType, "cafeina_trace_v3_analysis");
   assert.equal(analysisViaApi.triggerRunId, common.runId);
+  assert.equal(analysisViaApi.historySource, "github_reconstructed");
 
   const profileResponse = await fetch(`${base}/profile/${common.gameId}`);
   assert.equal(profileResponse.status, 200);
