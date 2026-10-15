@@ -1,0 +1,4230 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-15T04:27:49.000Z",
+  "gameId": 10515143755,
+  "placeId": 84637477108843,
+  "placeVersion": 1452,
+  "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+  "batchIndex": 4,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 73648,
+  "records": [
+    {
+      "sig": "58a3f400c56e",
+      "corr": 76,
+      "unix": 1792038508,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "8102a18ebfbf",
+          "effectTotal": 30,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.447,
+          "trustedSupport": 4,
+          "baseline": 21,
+          "method": "FireServer",
+          "effect": "attribute:PendingTokens",
+          "id": 3,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleRadar",
+          "age": 3.3627293220015417,
+          "shape": "4c1a28c9a7bc",
+          "importance": 49
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "824cf939040d",
+          "effectTotal": 30,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 21,
+          "method": "FireServer",
+          "effect": "attribute:PendingTokens",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 0.5261904159997357,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "ee37d807599b",
+        "ccb870b767e3",
+        "834ed054c93e",
+        "0995c6105472"
+      ],
+      "name": "PendingTokens",
+      "value": 3573856440,
+      "clock": 38.34774316199946,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "corr": 76,
+      "investigating": true,
+      "clock": 38.34905441199953,
+      "newSemantic": false,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 88,
+      "semanticHash": "07e6f0a5bfa6",
+      "sig": "63199e037575",
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "correlationModel": "evidence_v2",
+      "newShape": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 10,
+          "semantic": "8102a18ebfbf",
+          "effectTotal": 40,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 10,
+          "timingConsistency": 0.347,
+          "trustedSupport": 10,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 3,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleRadar",
+          "age": 3.364032968000174,
+          "shape": "4c1a28c9a7bc",
+          "importance": 49
+        },
+        {
+          "distinctEffects": 1,
+          "semantic": "824cf939040d",
+          "effectTotal": 40,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 0.5274940619983681,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 454153082924118.6,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "contextRefs": [
+        "ccb870b767e3",
+        "834ed054c93e",
+        "0995c6105472",
+        "58a3f400c56e"
+      ],
+      "kind": "remote_inbound",
+      "importance": 34,
+      "unix": 1792038508
+    },
+    {
+      "velocity": {
+        "y": 0.00001258309384866152,
+        "type": "Vector3",
+        "x": 5.152601718902588,
+        "z": 15.149123191833496
+      },
+      "unix": 1792038508,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.79319763183594,
+          "z": -19.95484733581543
+        },
+        "userId": 765329164
+      },
+      "corr": 77,
+      "clock": 38.68152894299965,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "semanticHash": "824cf939040d",
+      "contextRefs": [
+        "0995c6105472",
+        "58a3f400c56e",
+        "63199e037575",
+        "3933b28a4dd2"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 2,
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038508,
+      "triggerHash": "4d648073ec0a",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.0000128671781567391,
+            "type": "Vector3",
+            "x": -2.3609683807990223e-7,
+            "z": -4.050235418162629e-7
+          },
+          "angularVelocity": {
+            "y": -2.0389922795972446e-14,
+            "type": "Vector3",
+            "x": 7.819795655450434e-7,
+            "z": -4.5583269070448296e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 402724823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 3573856440,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "0995c6105472",
+          "58a3f400c56e",
+          "63199e037575",
+          "3933b28a4dd2"
+        ],
+        "recentGui": []
+      },
+      "sig": "bec7571a88f3",
+      "probeId": 6,
+      "clock": 39.08287133900012,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038509,
+      "sig": "3637a133de2f",
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 11,
+          "semantic": "8102a18ebfbf",
+          "effectTotal": 41,
+          "confidence": 1,
+          "relationStage": "repeated",
+          "support": 11,
+          "timingConsistency": 0.327,
+          "trustedSupport": 11,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 3,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleRadar",
+          "age": 4.381307915000434,
+          "shape": "4c1a28c9a7bc",
+          "importance": 49
+        },
+        {
+          "distinctEffects": 2,
+          "semantic": "824cf939040d",
+          "effectTotal": 41,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.567,
+          "trustedSupport": 2,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 1.5447690089986281,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 454390169463390.7,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 39.366323057000045,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "investigationId": 3,
+      "contextRefs": [
+        "63199e037575",
+        "3933b28a4dd2",
+        "bec7571a88f3",
+        "3637a133de2f"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "009c34c7e2e5",
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.71,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038509,
+      "mode": "pending",
+      "clock": 39.48589899500075,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_fired",
+      "detail": "timer disparou"
+    },
+    {
+      "investigationId": 3,
+      "contextRefs": [
+        "3933b28a4dd2",
+        "bec7571a88f3",
+        "3637a133de2f",
+        "009c34c7e2e5"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "e285e51b0320",
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.71,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038509,
+      "mode": "pending",
+      "clock": 39.486014255000555,
+      "kind": "investigator_diag",
+      "stage": "execute_entered",
+      "detail": "avaliando risco"
+    },
+    {
+      "investigationId": 3,
+      "contextRefs": [
+        "bec7571a88f3",
+        "3637a133de2f",
+        "009c34c7e2e5",
+        "e285e51b0320"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "8941b975104b",
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.71,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038509,
+      "mode": "pending",
+      "clock": 39.48610389100031,
+      "kind": "investigator_diag",
+      "stage": "risk_blocked",
+      "detail": "stateful_effect"
+    },
+    {
+      "investigationId": 3,
+      "contextRefs": [
+        "3637a133de2f",
+        "009c34c7e2e5",
+        "e285e51b0320",
+        "8941b975104b"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "0503e99e14a4",
+      "corr": 78,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.71,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1792038509,
+      "mode": "passive",
+      "clock": 39.48656133899931,
+      "kind": "investigator_diag",
+      "stage": "blue_observing",
+      "detail": "observação segura"
+    },
+    {
+      "sig": "24d169a4700a",
+      "corr": 80,
+      "unix": 1792038510,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "824cf939040d",
+          "effectTotal": 31,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.397,
+          "trustedSupport": 2,
+          "baseline": 21,
+          "method": "FireServer",
+          "effect": "attribute:PendingTokens",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 2.5474157799999375,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "009c34c7e2e5",
+        "e285e51b0320",
+        "8941b975104b",
+        "0503e99e14a4"
+      ],
+      "name": "PendingTokens",
+      "value": 4169499180,
+      "clock": 40.36896467199949,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038510,
+      "sig": "878697b857f9",
+      "corr": 80,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "824cf939040d",
+          "effectTotal": 42,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.447,
+          "trustedSupport": 3,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 2.5495364049984346,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 454627366245161.6,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 40.37109659899943,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "semanticHash": "824cf939040d",
+      "contextRefs": [
+        "8941b975104b",
+        "0503e99e14a4",
+        "24d169a4700a",
+        "878697b857f9"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 3,
+      "corr": 81,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038510,
+      "triggerHash": "4d648073ec0a",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012867179975728504,
+            "type": "Vector3",
+            "x": -6.67141648591496e-7,
+            "z": -0.0000010907407386184786
+          },
+          "angularVelocity": {
+            "y": -3.223794861162248e-14,
+            "type": "Vector3",
+            "x": 0.0000021058992842881707,
+            "z": -0.0000012880543636129005
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 402984823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 4169499180,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "8941b975104b",
+          "0503e99e14a4",
+          "24d169a4700a",
+          "878697b857f9"
+        ],
+        "recentGui": []
+      },
+      "sig": "bec7581a88f4",
+      "probeId": 6,
+      "clock": 40.83391357800065,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038511,
+      "sig": "55dbc8df6a55",
+      "corr": 82,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "824cf939040d",
+          "effectTotal": 43,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.37,
+          "trustedSupport": 4,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 3.5770126539991907,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 454864673307096.06,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 41.39857764000044,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "sig": "74e4a15b3f90",
+      "corr": 84,
+      "unix": 1792038512,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "824cf939040d",
+          "effectTotal": 32,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.287,
+          "trustedSupport": 3,
+          "baseline": 21,
+          "method": "FireServer",
+          "effect": "attribute:PendingTokens",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 4.591837497999222,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "24d169a4700a",
+        "878697b857f9",
+        "bec7581a88f4",
+        "55dbc8df6a55"
+      ],
+      "name": "PendingTokens",
+      "value": 4765141920,
+      "clock": 42.41339154600064,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038512,
+      "sig": "b6037e6b1856",
+      "corr": 84,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 5,
+          "semantic": "824cf939040d",
+          "effectTotal": 44,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.317,
+          "trustedSupport": 5,
+          "baseline": 25,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 4,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser",
+          "age": 4.59301114399932,
+          "shape": "4d648073ec0a",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 455102090686867.1,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 42.4145780559993,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "unix": 1792038513,
+      "newSemantic": false,
+      "sig": "0f10e3bfb328",
+      "corr": 86,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 455339618422156.4,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 43.42737394100004,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.000012867170880781487,
+        "type": "Vector3",
+        "x": 4.5097871748112084e-7,
+        "z": 7.37277900952904e-7
+      },
+      "unix": 1792038513,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.67396545410156,
+          "z": -19.604272842407227
+        },
+        "userId": 765329164
+      },
+      "corr": 87,
+      "clock": 43.86743951400058,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "sig": "9cddf3cdb85e",
+      "corr": 88,
+      "unix": 1792038514,
+      "contextRefs": [
+        "74e4a15b3f90",
+        "b6037e6b1856",
+        "0f10e3bfb328",
+        "82c228f2fbb6"
+      ],
+      "name": "PendingTokens",
+      "value": 5360784660,
+      "clock": 44.446535815999596,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "unix": 1792038514,
+      "newSemantic": false,
+      "sig": "f57161f1ff44",
+      "corr": 88,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 455577256550654.06,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 44.44741842000076,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "investigationId": 3,
+      "contextRefs": [
+        "0f10e3bfb328",
+        "82c228f2fbb6",
+        "9cddf3cdb85e",
+        "f57161f1ff44"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "6a95dfb39795",
+      "corr": 90,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.ToggleTaser",
+        "name": "ToggleTaser",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.75,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1792038515,
+      "mode": "passive",
+      "clock": 45.16134487800082,
+      "kind": "investigator_diag",
+      "stage": "finishing",
+      "detail": "passive_observation_complete"
+    },
+    {
+      "finalStageDetail": "passive_observation_complete",
+      "finalStage": "finishing",
+      "reason": "passive_observation_complete",
+      "diff": {
+        "recentValues": [],
+        "playerAttributes": [
+          {
+            "before": 402594823512495,
+            "key": "Data",
+            "after": 403504823512495
+          },
+          {
+            "before": 3276035070,
+            "key": "PendingTokens",
+            "after": 5360784660
+          }
+        ],
+        "toolsRemoved": [
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": [],
+        "healthAfter": 100,
+        "healthBefore": 100,
+        "toolsAdded": [
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "positionDelta": 8.593,
+        "stateBefore": "Enum.HumanoidStateType.Running",
+        "stateAfter": "Enum.HumanoidStateType.Running",
+        "recentGui": []
+      },
+      "diagnostics": [
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_state_set",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 1,
+          "detail": "estado YELLOW definido"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_before_quarantine",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 2,
+          "detail": "antes de setInputQuarantine(false)"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_after_quarantine",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 3,
+          "detail": "setInputQuarantine(false) retornou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_before_ui_defer",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 4,
+          "detail": "antes de task.defer(UI)"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_after_ui_defer",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 5,
+          "detail": "task.defer(UI) retornou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 17.74,
+          "stage": "yellow_timer_scheduled",
+          "clock": 37.873,
+          "mode": "pending",
+          "seq": 6,
+          "detail": "aguardando 1.6s"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 16.71,
+          "stage": "yellow_timer_fired",
+          "clock": 39.486,
+          "mode": "pending",
+          "seq": 7,
+          "detail": "timer disparou"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 16.71,
+          "stage": "execute_entered",
+          "clock": 39.486,
+          "mode": "pending",
+          "seq": 8,
+          "detail": "avaliando risco"
+        },
+        {
+          "state": "YELLOW",
+          "pressure": 0,
+          "frameDtMs": 16.71,
+          "stage": "risk_blocked",
+          "clock": 39.486,
+          "mode": "pending",
+          "seq": 9,
+          "detail": "stateful_effect"
+        },
+        {
+          "state": "BLUE",
+          "pressure": 0,
+          "frameDtMs": 16.71,
+          "stage": "blue_observing",
+          "clock": 39.487,
+          "mode": "passive",
+          "seq": 10,
+          "detail": "observação segura"
+        },
+        {
+          "state": "BLUE",
+          "pressure": 0,
+          "frameDtMs": 16.75,
+          "stage": "finishing",
+          "clock": 45.161,
+          "mode": "passive",
+          "seq": 11,
+          "detail": "passive_observation_complete"
+        }
+      ],
+      "status": "completed",
+      "mode": "passive",
+      "middle": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012867169971286785,
+            "type": "Vector3",
+            "x": 5.609913387161214e-7,
+            "z": 9.172179034067085e-7
+          },
+          "angularVelocity": {
+            "y": 4.519567567960216e-14,
+            "type": "Vector3",
+            "x": -0.000001770878157003608,
+            "z": 0.0000010831095096364152
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 402984823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 4169499180,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "8941b975104b",
+          "0503e99e14a4",
+          "24d169a4700a",
+          "878697b857f9"
+        ],
+        "recentGui": []
+      },
+      "quality": 100,
+      "investigationId": 3,
+      "contextRefs": [
+        "82c228f2fbb6",
+        "9cddf3cdb85e",
+        "f57161f1ff44",
+        "6a95dfb39795"
+      ],
+      "after": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012867169971286785,
+            "type": "Vector3",
+            "x": 5.094135531180655e-7,
+            "z": 8.327880323122372e-7
+          },
+          "angularVelocity": {
+            "y": 2.8254289980247406e-14,
+            "type": "Vector3",
+            "x": -0.0000016094056718429783,
+            "z": 9.8446787433204e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 403504823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 5360784660,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "82c228f2fbb6",
+          "9cddf3cdb85e",
+          "f57161f1ff44",
+          "6a95dfb39795"
+        ],
+        "recentGui": []
+      },
+      "corr": 90,
+      "sig": "ac2b66bbf52c",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "unix": 1792038515,
+      "impact": 26,
+      "clock": 45.16232117999971,
+      "menuHealth": [
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 16.65,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 65,
+          "stage": "idle",
+          "clock": 0.065,
+          "kind": "status_change",
+          "seq": 1,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 30.48,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 10932,
+          "stage": "idle",
+          "clock": 10.932,
+          "kind": "status_change",
+          "seq": 2,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 16.81,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 15632,
+          "stage": "idle",
+          "clock": 15.632,
+          "kind": "status_change",
+          "seq": 3,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 17.17,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 19790,
+          "stage": "idle",
+          "clock": 19.79,
+          "kind": "queue_start",
+          "seq": 4,
+          "detail": "remote=ReplicatedStorage.Remotes.Warp ageMs=154 relation=candidate"
+        },
+        {
+          "activeInvestigationId": 1,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 18.42,
+          "state": "YELLOW",
+          "queueDepth": 0,
+          "stageAgeMs": 516,
+          "stage": "yellow_timer_scheduled",
+          "clock": 20.309,
+          "kind": "status_change",
+          "seq": 5,
+          "detail": "state=YELLOW stage=yellow_timer_scheduled active=true queue=0 quarantine=false"
+        },
+        {
+          "activeInvestigationId": 1,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": true,
+          "frameDtMs": 16.76,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 487,
+          "stage": "blue_observing",
+          "clock": 21.882,
+          "kind": "status_change",
+          "seq": 6,
+          "detail": "state=BLUE stage=blue_observing active=true queue=0 quarantine=true"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 16.95,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 949,
+          "stage": "idle",
+          "clock": 25.025,
+          "kind": "status_change",
+          "seq": 7,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 17.85,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 4171,
+          "stage": "idle",
+          "clock": 28.248,
+          "kind": "status_change",
+          "seq": 8,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 17.74,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 5217,
+          "stage": "idle",
+          "clock": 29.294,
+          "kind": "queue_start",
+          "seq": 9,
+          "detail": "remote=ReplicatedStorage.Remotes.ToggleRadar ageMs=259 relation=candidate"
+        },
+        {
+          "activeInvestigationId": 2,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 16.88,
+          "state": "YELLOW",
+          "queueDepth": 0,
+          "stageAgeMs": 506,
+          "stage": "yellow_timer_scheduled",
+          "clock": 29.801,
+          "kind": "status_change",
+          "seq": 10,
+          "detail": "state=YELLOW stage=yellow_timer_scheduled active=true queue=0 quarantine=false"
+        },
+        {
+          "activeInvestigationId": 2,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": true,
+          "frameDtMs": 16.51,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 486,
+          "stage": "blue_observing",
+          "clock": 31.386,
+          "kind": "status_change",
+          "seq": 11,
+          "detail": "state=BLUE stage=blue_observing active=true queue=0 quarantine=true"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 16.41,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 302,
+          "stage": "idle",
+          "clock": 34.517,
+          "kind": "status_change",
+          "seq": 12,
+          "detail": "state=GREEN stage=idle active=false queue=0 quarantine=false"
+        },
+        {
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": false,
+          "frameDtMs": 17.74,
+          "state": "GREEN",
+          "queueDepth": 0,
+          "stageAgeMs": 3657,
+          "stage": "idle",
+          "clock": 37.872,
+          "kind": "queue_start",
+          "seq": 13,
+          "detail": "remote=ReplicatedStorage.Remotes.ToggleTaser ageMs=50 relation=candidate"
+        },
+        {
+          "activeInvestigationId": 3,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": false,
+          "frameDtMs": 16.89,
+          "state": "YELLOW",
+          "queueDepth": 0,
+          "stageAgeMs": 1312,
+          "stage": "yellow_timer_scheduled",
+          "clock": 39.185,
+          "kind": "status_change",
+          "seq": 14,
+          "detail": "state=YELLOW stage=yellow_timer_scheduled active=true queue=0 quarantine=false"
+        },
+        {
+          "activeInvestigationId": 3,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": true,
+          "inputQuarantine": true,
+          "frameDtMs": 16.65,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 1256,
+          "stage": "blue_observing",
+          "clock": 40.743,
+          "kind": "status_change",
+          "seq": 15,
+          "detail": "state=BLUE stage=blue_observing active=true queue=0 quarantine=true"
+        },
+        {
+          "activeInvestigationId": 3,
+          "pressure": 0,
+          "severity": "info",
+          "uploading": false,
+          "inputQuarantine": true,
+          "frameDtMs": 17.83,
+          "state": "BLUE",
+          "queueDepth": 0,
+          "stageAgeMs": 2814,
+          "stage": "blue_observing",
+          "clock": 42.3,
+          "kind": "status_change",
+          "seq": 16,
+          "detail": "state=BLUE stage=blue_observing active=true queue=0 quarantine=true"
+        }
+      ],
+      "candidate": {
+        "semanticHash": "824cf939040d",
+        "method": "FireServer",
+        "remote": {
+          "path": "ReplicatedStorage.Remotes.ToggleTaser",
+          "name": "ToggleTaser",
+          "className": "RemoteEvent",
+          "parent": "ReplicatedStorage.Remotes",
+          "attributes": []
+        },
+        "relationStage": "candidate",
+        "key": "d90e2c2e3e30",
+        "payload": {
+          "count": 0,
+          "values": []
+        },
+        "triggerContext": {
+          "path": "Players.capuccino40.PlayerGui.InventoryUI.Hotbar.Slot3",
+          "kind": "gui_activated",
+          "age": 0.002,
+          "category": "gui_interaction"
+        },
+        "queuedAt": 37.82166024599974,
+        "importance": 78,
+        "shapeHash": "4d648073ec0a"
+      },
+      "timeline": [
+        {
+          "clock": 38.05007191200093,
+          "kind": "tool_removed",
+          "path": "Workspace.capuccino40.Taser",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 38.05184352700053,
+          "kind": "tool_added",
+          "path": "Workspace.capuccino40.Taser",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 38.052830661999906,
+          "kind": "tool_equipped",
+          "path": "Workspace.capuccino40.Taser",
+          "category": "tool_signal"
+        },
+        {
+          "clock": 38.34711873500055,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 38.347715402000176,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 38.34903961999953,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 39.364626702999885,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 39.365136287000496,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 39.36630936000074,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 40.368140608999965,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 40.368945035999786,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 40.37107800500053,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 41.39711024400094,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 41.397545713,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 41.3985688899993,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 42.412659202000214,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 42.413379046000045,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 42.41456909800036,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 43.42574159799915,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 43.426432169999316,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 43.42736524300017,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 44.445926648999375,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 44.44652253499953,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 44.447409461999996,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        }
+      ],
+      "prelude": [
+        {
+          "clock": 31.24052212300012,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 31.241481549999662,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 31.24243134199969,
+          "kind": "player_attribute_changed",
+          "path": "AILevel",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 31.244101653999678,
+          "kind": "player_attribute_changed",
+          "path": "SkillPoints",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "ae3c524e597a",
+          "category": "remote_inbound",
+          "clock": 31.24494556100035,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 31.24597759199969,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 32.23896274800063,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 32.23963123700014,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 32.241765404000034,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 33.27139946600073,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 33.27205675799996,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 33.27314608099914,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 34.28610811100043,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 34.28703613200014,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 34.288987174000795,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 34.98364457000025,
+          "kind": "gui_activated",
+          "path": "Players.capuccino40.PlayerGui.InventoryUI.Hotbar.Slot7",
+          "category": "gui_interaction"
+        },
+        {
+          "semanticHash": "8102a18ebfbf",
+          "method": "FireServer",
+          "category": "remote_outbound",
+          "clock": 34.98503743400033,
+          "kind": "remote_outbound",
+          "remote": "ReplicatedStorage.Remotes.ToggleRadar"
+        },
+        {
+          "clock": 35.19764311099971,
+          "kind": "tool_removed",
+          "path": "Players.capuccino40.Backpack.Radar",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 35.198266653000246,
+          "kind": "tool_added",
+          "path": "Players.capuccino40.Backpack.Radar",
+          "category": "tool_transition"
+        },
+        {
+          "clock": 35.19884800699947,
+          "kind": "tool_unequipped",
+          "path": "Players.capuccino40.Backpack.Radar",
+          "category": "tool_signal"
+        },
+        {
+          "clock": 35.30633305899937,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 35.30708811099976,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 35.30836649599951,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 36.301124882000295,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 36.30169618400032,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 36.30284800700065,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 37.32962446400052,
+          "kind": "player_attribute_changed",
+          "path": "Data",
+          "category": "player_attribute"
+        },
+        {
+          "clock": 37.33042196399947,
+          "kind": "player_attribute_changed",
+          "path": "PendingTokens",
+          "category": "player_attribute"
+        },
+        {
+          "semanticHash": "07e6f0a5bfa6",
+          "category": "remote_inbound",
+          "clock": 37.33131212099943,
+          "kind": "remote_inbound",
+          "remote": "ReplicatedStorage.Remotes.TrainingStats"
+        },
+        {
+          "clock": 37.81935571400027,
+          "kind": "gui_activated",
+          "path": "Players.capuccino40.PlayerGui.InventoryUI.Hotbar.Slot3",
+          "category": "gui_interaction"
+        },
+        {
+          "semanticHash": "824cf939040d",
+          "method": "FireServer",
+          "category": "remote_outbound",
+          "clock": 37.82143274600094,
+          "kind": "remote_outbound",
+          "remote": "ReplicatedStorage.Remotes.ToggleTaser"
+        }
+      ],
+      "kind": "investigation_bundle",
+      "detectedState": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 1.6006026726245182e-7,
+            "type": "Vector3",
+            "x": -9.888489103104803e-7,
+            "z": 4.6952135335232015e-7
+          },
+          "angularVelocity": {
+            "y": 2.9609496956075135e-14,
+            "type": "Vector3",
+            "x": -9.63177740231913e-7,
+            "z": -0.0000020285278878873214
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.066755294799805,
+            "type": "Vector3",
+            "x": -219.20416259765625,
+            "z": -27.43866539001465
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 402594823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 3276035070,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "903028f5bec8",
+          "ebd62e81f69c",
+          "b8c78117453f",
+          "20144ef509d1"
+        ],
+        "recentGui": []
+      },
+      "conditions": {
+        "startedHash": "b1ad024db6b8",
+        "started": {
+          "player": {
+            "state": "Enum.HumanoidStateType.Running",
+            "floor": "Enum.Material.Plastic",
+            "health": 100,
+            "position": {
+              "y": 5.066755294799805,
+              "type": "Vector3",
+              "x": -219.20416259765625,
+              "z": -27.43866539001465
+            }
+          },
+          "characterAttributes": {
+            "AvatarNormApplied": false
+          },
+          "playerAttributes": {
+            "LoadingDone": true,
+            "Invisible": false,
+            "PlotId": 1,
+            "BatUnlocked": true,
+            "DailyAvailable": false,
+            "GoldWrenchUnlocked": true,
+            "StarterPackOwned": false,
+            "CrateStock_hackerCrate": 6,
+            "UsbVariant": "purple",
+            "FreeRespecs": 0,
+            "InGroup": false,
+            "IronBatUnlocked": true,
+            "PrefPerformance": false,
+            "TrainingPass": false,
+            "PrefMusicVolume": 1,
+            "HackerTabletUnlocked": true,
+            "UsbUnlocked": true,
+            "SuperHackCredits": 0,
+            "VipSmuggler": false,
+            "PrefDealerDm": true,
+            "DiamondWrenchUnlocked": true,
+            "Version": 10,
+            "GoldBatUnlocked": true,
+            "VoltTaserUnlocked": true,
+            "RadarUnlocked": true,
+            "FriendBoostCount": 0,
+            "RunDefends": 1,
+            "Data": 402594823512495,
+            "CrateLuck": 335,
+            "Hacks": 0,
+            "RunHacks": 0,
+            "QuantumUsbUnlocked": true,
+            "TutorialStep": 10,
+            "DailyDayIndex": 6,
+            "EliteUsbUnlocked": true,
+            "PremiumBoost": true,
+            "CompanionStyle": "classic:aqua:void:auto",
+            "SkillPoints": 7,
+            "StarterPackReveal": false,
+            "DataRate": 130000000000,
+            "<truncated>": true,
+            "PrefSelfCollide": false,
+            "OfflineDoubleReady": true,
+            "Tokens": 351472455957,
+            "TutorialDone": true,
+            "AILevel": 1596,
+            "HoodieUnlocked": true,
+            "PrefSfxVolume": 1,
+            "PrefCompanion": true,
+            "HacksDefended": 28,
+            "TutorialCount": 0,
+            "ModelName": "Cafe1naAI",
+            "ComputeRate": 160300000,
+            "MeleeVariant": "bat:gold",
+            "TaserUnlocked": true,
+            "PendingTokens": 3276035070,
+            "CrateStock_ironCrate": 10,
+            "TaserVariant": "volt",
+            "OfflineDouble": false,
+            "ShieldUntil": 1792038411,
+            "InfinityPity": 10,
+            "PlotReady": true,
+            "GroupRewardClaimed": false,
+            "CrateStock_woodCrate": 16,
+            "GoldenClover": false
+          },
+          "tools": [
+            {
+              "attributes": {
+                "Variant": "purple"
+              },
+              "name": "USB Stick",
+              "container": "Backpack"
+            },
+            {
+              "attributes": [],
+              "name": "Hacker Hoodie",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "volt"
+              },
+              "name": "Taser",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "gold"
+              },
+              "name": "Baseball Bat",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "hacker"
+              },
+              "name": "Tablet",
+              "container": "Backpack"
+            },
+            {
+              "attributes": [],
+              "name": "Radar",
+              "container": "Backpack"
+            }
+          ],
+          "recentGui": []
+        },
+        "queuedHash": "b1ad024db6b8",
+        "queuedToStartSame": true,
+        "queued": {
+          "player": {
+            "state": "Enum.HumanoidStateType.Running",
+            "floor": "Enum.Material.Plastic",
+            "health": 100,
+            "position": {
+              "y": 5.066755294799805,
+              "type": "Vector3",
+              "x": -219.20416259765625,
+              "z": -27.43866539001465
+            }
+          },
+          "characterAttributes": {
+            "AvatarNormApplied": false
+          },
+          "playerAttributes": {
+            "LoadingDone": true,
+            "Invisible": false,
+            "PlotId": 1,
+            "BatUnlocked": true,
+            "DailyAvailable": false,
+            "GoldWrenchUnlocked": true,
+            "StarterPackOwned": false,
+            "CrateStock_hackerCrate": 6,
+            "UsbVariant": "purple",
+            "FreeRespecs": 0,
+            "InGroup": false,
+            "IronBatUnlocked": true,
+            "PrefPerformance": false,
+            "TrainingPass": false,
+            "PrefMusicVolume": 1,
+            "HackerTabletUnlocked": true,
+            "UsbUnlocked": true,
+            "SuperHackCredits": 0,
+            "VipSmuggler": false,
+            "PrefDealerDm": true,
+            "DiamondWrenchUnlocked": true,
+            "Version": 10,
+            "GoldBatUnlocked": true,
+            "VoltTaserUnlocked": true,
+            "RadarUnlocked": true,
+            "FriendBoostCount": 0,
+            "RunDefends": 1,
+            "Data": 402594823512495,
+            "CrateLuck": 335,
+            "Hacks": 0,
+            "RunHacks": 0,
+            "QuantumUsbUnlocked": true,
+            "TutorialStep": 10,
+            "DailyDayIndex": 6,
+            "EliteUsbUnlocked": true,
+            "PremiumBoost": true,
+            "CompanionStyle": "classic:aqua:void:auto",
+            "SkillPoints": 7,
+            "StarterPackReveal": false,
+            "DataRate": 130000000000,
+            "<truncated>": true,
+            "PrefSelfCollide": false,
+            "OfflineDoubleReady": true,
+            "Tokens": 351472455957,
+            "TutorialDone": true,
+            "AILevel": 1596,
+            "HoodieUnlocked": true,
+            "PrefSfxVolume": 1,
+            "PrefCompanion": true,
+            "HacksDefended": 28,
+            "TutorialCount": 0,
+            "ModelName": "Cafe1naAI",
+            "ComputeRate": 160300000,
+            "MeleeVariant": "bat:gold",
+            "TaserUnlocked": true,
+            "PendingTokens": 3276035070,
+            "CrateStock_ironCrate": 10,
+            "TaserVariant": "volt",
+            "OfflineDouble": false,
+            "ShieldUntil": 1792038411,
+            "InfinityPity": 10,
+            "PlotReady": true,
+            "GroupRewardClaimed": false,
+            "CrateStock_woodCrate": 16,
+            "GoldenClover": false
+          },
+          "tools": [
+            {
+              "attributes": {
+                "Variant": "purple"
+              },
+              "name": "USB Stick",
+              "container": "Backpack"
+            },
+            {
+              "attributes": [],
+              "name": "Hacker Hoodie",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "volt"
+              },
+              "name": "Taser",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "gold"
+              },
+              "name": "Baseball Bat",
+              "container": "Backpack"
+            },
+            {
+              "attributes": {
+                "Variant": "hacker"
+              },
+              "name": "Tablet",
+              "container": "Backpack"
+            },
+            {
+              "attributes": [],
+              "name": "Radar",
+              "container": "Backpack"
+            }
+          ],
+          "recentGui": []
+        }
+      }
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "unix": 1792038515,
+      "newSemantic": false,
+      "sig": "7d6c38fd0973",
+      "corr": 90,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "importance": 34,
+      "investigating": false,
+      "newShape": false,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 455815005110058.9,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 45.46445477400084,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "sig": "5d0a9c5c5bdb",
+      "corr": 92,
+      "unix": 1792038516,
+      "contextRefs": [
+        "f57161f1ff44",
+        "6a95dfb39795",
+        "ac2b66bbf52c",
+        "7d6c38fd0973"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.67396545410156,
+          "z": -19.604272842407227
+        },
+        "userId": 765329164
+      },
+      "quality": 91,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "clock": 46.34917873199993,
+      "kind": "tool_activated",
+      "tool": {
+        "attributes": {
+          "Variant": "volt"
+        },
+        "path": "Workspace.capuccino40.Taser",
+        "source": "Backpack",
+        "className": "Tool",
+        "parent": "Workspace.capuccino40",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "Taser"
+      },
+      "container": "Backpack"
+    },
+    {
+      "corr": 92,
+      "contextRefs": [
+        "6a95dfb39795",
+        "ac2b66bbf52c",
+        "7d6c38fd0973",
+        "5d0a9c5c5bdb"
+      ],
+      "unix": 1792038516,
+      "importance": 78,
+      "clock": 46.35084170099981,
+      "newSemantic": true,
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 87,
+      "semanticHash": "5b18935d19bf",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "cae6b2912ce5",
+      "investigating": true,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newShape": true,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.67396545410156,
+          "z": -19.604272842407227
+        },
+        "userId": 765329164
+      },
+      "triggerContext": {
+        "path": "Workspace.capuccino40.Taser",
+        "kind": "tool_activated",
+        "age": 0.002,
+        "category": "tool_signal"
+      },
+      "payload": {
+        "count": 1,
+        "values": []
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "type": "nil"
+          }
+        ]
+      }
+    },
+    {
+      "semanticHash": "5b18935d19bf",
+      "triggerShape": "f8fb6f2ed0b5",
+      "parent": {
+        "path": "ReplicatedStorage.Remotes",
+        "attributes": [],
+        "children": [
+          {
+            "path": "ReplicatedStorage.Remotes.CrateCollected",
+            "name": "CrateCollected",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GlitchBlockRevealed",
+            "name": "GlitchBlockRevealed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGlitchBlock",
+            "name": "OpenGlitchBlock",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.OpenGroupReward",
+            "name": "OpenGroupReward",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGroupReward",
+            "name": "ClaimGroupReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.AdminCheck",
+            "name": "AdminCheck",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetHackHistory",
+            "name": "GetHackHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.GetIntel",
+            "name": "GetIntel",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SpendHackRep",
+            "name": "SpendHackRep",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackRepSync",
+            "name": "HackRepSync",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbMinigameReport",
+            "name": "UsbMinigameReport",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackDefend",
+            "name": "HackDefend",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyRespec",
+            "name": "BuyRespec",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.BuyShield",
+            "name": "BuyShield",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimStarterPack",
+            "name": "ClaimStarterPack",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimVipSmuggler",
+            "name": "ClaimVipSmuggler",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimGoldenClover",
+            "name": "ClaimGoldenClover",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.UsbHackStart",
+            "name": "UsbHackStart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.HackAttempt",
+            "name": "HackAttempt",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.SellItem",
+            "name": "SellItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PickupItem",
+            "name": "PickupItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.PlaceItem",
+            "name": "PlaceItem",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.ClaimDailyReward",
+            "name": "ClaimDailyReward",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "ReplicatedStorage.Remotes.RebirthDone",
+            "name": "RebirthDone",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 92,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "contextRefs": [
+        "ac2b66bbf52c",
+        "7d6c38fd0973",
+        "5d0a9c5c5bdb",
+        "cae6b2912ce5"
+      ],
+      "triggerKind": "shape+semantic",
+      "player": {
+        "floor": "Enum.Material.Plastic",
+        "velocity": {
+          "y": 0.000012867170880781487,
+          "type": "Vector3",
+          "x": 4.641684654416167e-7,
+          "z": 7.588029689031828e-7
+        },
+        "angularVelocity": {
+          "y": 3.027849713034374e-14,
+          "type": "Vector3",
+          "x": -0.0000014650220236944733,
+          "z": 8.961710022958869e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.67396545410156,
+          "z": -19.604272842407227
+        },
+        "jumpPower": 50,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "5408b08cc76e",
+      "unix": 1792038516,
+      "clock": 46.35179008600062,
+      "kind": "investigation_context",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100
+    },
+    {
+      "investigationId": 4,
+      "contextRefs": [
+        "7d6c38fd0973",
+        "5d0a9c5c5bdb",
+        "cae6b2912ce5",
+        "5408b08cc76e"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "aa9c7d1cf5ea",
+      "corr": 92,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.56,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038516,
+      "mode": "pending",
+      "clock": 46.434516961000554,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_scheduled",
+      "detail": "aguardando 1.6s"
+    },
+    {
+      "sig": "e5c01be747cc",
+      "corr": 92,
+      "unix": 1792038516,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 34,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 22,
+          "method": "FireServer",
+          "effect": "attribute:PendingTokens",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 0.12843880200125568,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "5d0a9c5c5bdb",
+        "cae6b2912ce5",
+        "5408b08cc76e",
+        "aa9c7d1cf5ea"
+      ],
+      "name": "PendingTokens",
+      "value": 5956427400,
+      "clock": 46.47934331500073,
+      "kind": "player_attribute_changed",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 82
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038516,
+      "sig": "17b0b2d518a8",
+      "corr": 92,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 48,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 28,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 0.12932489600098052,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 456052864138078.06,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 46.48024102300042,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "semanticHash": "5b18935d19bf",
+      "contextRefs": [
+        "5408b08cc76e",
+        "aa9c7d1cf5ea",
+        "e5c01be747cc",
+        "17b0b2d518a8"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 1,
+      "corr": 93,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038516,
+      "triggerHash": "f8fb6f2ed0b5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012867170880781487,
+            "type": "Vector3",
+            "x": 4.6531914676961605e-7,
+            "z": 7.60679370159778e-7
+          },
+          "angularVelocity": {
+            "y": 7.775106852293302e-15,
+            "type": "Vector3",
+            "x": -0.0000014686447684653103,
+            "z": 8.98392556791805e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 403764823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 5956427400,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "5408b08cc76e",
+          "aa9c7d1cf5ea",
+          "e5c01be747cc",
+          "17b0b2d518a8"
+        ],
+        "recentGui": []
+      },
+      "sig": "bf0a5f1ad243",
+      "probeId": 7,
+      "clock": 46.575179669000136,
+      "kind": "deep_snapshot",
+      "delay": 0.2,
+      "quality": 98
+    },
+    {
+      "attributes": {
+        "Variant": "basic"
+      },
+      "path": "Players.Santirebe2022.Backpack.Wrench",
+      "source": "Workspace",
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 4,
+          "confidence": 5,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 1,
+          "method": "FireServer",
+          "effect": "runtime_remove:Tool:Wrench",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 1.0304102600002807,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "sig": "2c1913ce1275",
+      "corr": 94,
+      "unix": 1792038517,
+      "contextRefs": [
+        "aa9c7d1cf5ea",
+        "e5c01be747cc",
+        "17b0b2d518a8",
+        "bf0a5f1ad243"
+      ],
+      "correlationModel": "evidence_v2",
+      "lifetimeSeconds": 0.952,
+      "name": "Wrench",
+      "className": "Tool",
+      "clock": 47.381309980999504,
+      "kind": "workspace_removing",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 80
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038517,
+      "sig": "5871cff7fabe",
+      "corr": 95,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 2,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 49,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 2,
+          "timingConsistency": 0.565,
+          "trustedSupport": 2,
+          "baseline": 28,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 1.153855571999884,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 456290833672427.4,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 47.504756751999594,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "semanticHash": "5b18935d19bf",
+      "contextRefs": [
+        "17b0b2d518a8",
+        "bf0a5f1ad243",
+        "2c1913ce1275",
+        "5871cff7fabe"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 2,
+      "corr": 95,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038517,
+      "triggerHash": "f8fb6f2ed0b5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000012867170880781487,
+            "type": "Vector3",
+            "x": 4.528045565166394e-7,
+            "z": 7.402022106361983e-7
+          },
+          "angularVelocity": {
+            "y": 3.1010184518972736e-14,
+            "type": "Vector3",
+            "x": -0.0000015017328678368358,
+            "z": 9.186566103380756e-7
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 403894823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 6254248770,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "17b0b2d518a8",
+          "bf0a5f1ad243",
+          "2c1913ce1275",
+          "5871cff7fabe"
+        ],
+        "recentGui": []
+      },
+      "sig": "bf0a601ad244",
+      "probeId": 7,
+      "clock": 47.61529044999952,
+      "kind": "deep_snapshot",
+      "delay": 1.25,
+      "quality": 98
+    },
+    {
+      "investigationId": 4,
+      "contextRefs": [
+        "bf0a5f1ad243",
+        "2c1913ce1275",
+        "5871cff7fabe",
+        "bf0a601ad244"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "2aa76aa04e0d",
+      "corr": 96,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.88,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038517,
+      "mode": "pending",
+      "clock": 48.04654935600047,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_fired",
+      "detail": "timer disparou"
+    },
+    {
+      "investigationId": 4,
+      "contextRefs": [
+        "2c1913ce1275",
+        "5871cff7fabe",
+        "bf0a601ad244",
+        "2aa76aa04e0d"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "f98ef039ed88",
+      "corr": 96,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.88,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038517,
+      "mode": "pending",
+      "clock": 48.046631440000056,
+      "kind": "investigator_diag",
+      "stage": "execute_entered",
+      "detail": "avaliando risco"
+    },
+    {
+      "investigationId": 4,
+      "contextRefs": [
+        "5871cff7fabe",
+        "bf0a601ad244",
+        "2aa76aa04e0d",
+        "f98ef039ed88"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "5d54f537b083",
+      "corr": 96,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.88,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792038517,
+      "mode": "pending",
+      "clock": 48.04670878300021,
+      "kind": "investigator_diag",
+      "stage": "risk_blocked",
+      "detail": "stateful_effect"
+    },
+    {
+      "investigationId": 4,
+      "contextRefs": [
+        "bf0a601ad244",
+        "2aa76aa04e0d",
+        "f98ef039ed88",
+        "5d54f537b083"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 100,
+      "sig": "1c0cf4bcff0c",
+      "corr": 96,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "frameDtMs": 16.88,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1792038517,
+      "mode": "passive",
+      "clock": 48.047008991999974,
+      "kind": "investigator_diag",
+      "stage": "blue_observing",
+      "detail": "observação segura"
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038518,
+      "sig": "5792c52d5cf4",
+      "corr": 97,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 3,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 50,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 3,
+          "timingConsistency": 0.445,
+          "trustedSupport": 3,
+          "baseline": 28,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 2.1632487490005587,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 456528913750831.2,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 48.51414758499959,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "velocity": {
+        "y": 0.000012867169971286785,
+        "type": "Vector3",
+        "x": 4.840996439270384e-7,
+        "z": 7.913328659014951e-7
+      },
+      "unix": 1792038518,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": -215.67396545410156,
+          "z": -19.604272842407227
+        },
+        "userId": 765329164
+      },
+      "corr": 98,
+      "clock": 49.06647320999946,
+      "kind": "trajectory",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 26
+    },
+    {
+      "semanticHash": "5b18935d19bf",
+      "contextRefs": [
+        "5d54f537b083",
+        "1c0cf4bcff0c",
+        "5792c52d5cf4",
+        "96a2394ecb08"
+      ],
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "triggerKind": "shape+semantic",
+      "phase": 3,
+      "corr": 98,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TaserHit",
+        "name": "TaserHit",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "unix": 1792038519,
+      "triggerHash": "f8fb6f2ed0b5",
+      "state": {
+        "recentValues": [],
+        "player": {
+          "floor": "Enum.Material.Plastic",
+          "velocity": {
+            "y": 0.000013056554962531663,
+            "type": "Vector3",
+            "x": -7.093945555425307e-7,
+            "z": -0.0000011596025615290273
+          },
+          "angularVelocity": {
+            "y": -5.771187157723248e-14,
+            "type": "Vector3",
+            "x": 0.0000022388503566617146,
+            "z": -0.0000013696319456357742
+          },
+          "moveDirection": {
+            "y": 0,
+            "type": "Vector3",
+            "x": 0,
+            "z": 0
+          },
+          "state": "Enum.HumanoidStateType.Running",
+          "character": true,
+          "health": 100,
+          "position": {
+            "y": 5.0667548179626465,
+            "type": "Vector3",
+            "x": -215.67396545410156,
+            "z": -19.604272842407227
+          },
+          "jumpPower": 50,
+          "walkSpeed": 16,
+          "maxHealth": 100,
+          "userId": 765329164
+        },
+        "tools": [
+          {
+            "attributes": {
+              "Variant": "purple"
+            },
+            "name": "USB Stick",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Hacker Hoodie",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "gold"
+            },
+            "name": "Baseball Bat",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "hacker"
+            },
+            "name": "Tablet",
+            "container": "Backpack"
+          },
+          {
+            "attributes": [],
+            "name": "Radar",
+            "container": "Backpack"
+          },
+          {
+            "attributes": {
+              "Variant": "volt"
+            },
+            "name": "Taser",
+            "container": "Character"
+          }
+        ],
+        "characterAttributes": {
+          "AvatarNormApplied": false
+        },
+        "playerAttributes": {
+          "LoadingDone": true,
+          "Invisible": false,
+          "PlotId": 1,
+          "BatUnlocked": true,
+          "DailyAvailable": false,
+          "GoldWrenchUnlocked": true,
+          "StarterPackOwned": false,
+          "CrateStock_hackerCrate": 6,
+          "UsbVariant": "purple",
+          "FreeRespecs": 0,
+          "InGroup": false,
+          "IronBatUnlocked": true,
+          "PrefPerformance": false,
+          "TrainingPass": false,
+          "PrefMusicVolume": 1,
+          "HackerTabletUnlocked": true,
+          "UsbUnlocked": true,
+          "SuperHackCredits": 0,
+          "VipSmuggler": false,
+          "PrefDealerDm": true,
+          "DiamondWrenchUnlocked": true,
+          "Version": 10,
+          "GoldBatUnlocked": true,
+          "VoltTaserUnlocked": true,
+          "RadarUnlocked": true,
+          "FriendBoostCount": 0,
+          "RunDefends": 1,
+          "Data": 404024823512495,
+          "CrateLuck": 335,
+          "Hacks": 0,
+          "RunHacks": 0,
+          "QuantumUsbUnlocked": true,
+          "TutorialStep": 10,
+          "DailyDayIndex": 6,
+          "EliteUsbUnlocked": true,
+          "PremiumBoost": true,
+          "CompanionStyle": "classic:aqua:void:auto",
+          "SkillPoints": 7,
+          "StarterPackReveal": false,
+          "DataRate": 130000000000,
+          "<truncated>": true,
+          "PrefSelfCollide": false,
+          "OfflineDoubleReady": true,
+          "Tokens": 351472455957,
+          "TutorialDone": true,
+          "AILevel": 1596,
+          "HoodieUnlocked": true,
+          "PrefSfxVolume": 1,
+          "PrefCompanion": true,
+          "HacksDefended": 28,
+          "TutorialCount": 0,
+          "ModelName": "Cafe1naAI",
+          "ComputeRate": 160300000,
+          "MeleeVariant": "bat:gold",
+          "TaserUnlocked": true,
+          "PendingTokens": 6552070140,
+          "CrateStock_ironCrate": 10,
+          "TaserVariant": "volt",
+          "OfflineDouble": false,
+          "ShieldUntil": 1792038411,
+          "InfinityPity": 10,
+          "PlotReady": true,
+          "GroupRewardClaimed": false,
+          "CrateStock_woodCrate": 16,
+          "GoldenClover": false
+        },
+        "recentRefs": [
+          "5d54f537b083",
+          "1c0cf4bcff0c",
+          "5792c52d5cf4",
+          "96a2394ecb08"
+        ],
+        "recentGui": []
+      },
+      "sig": "bf0a611ad245",
+      "probeId": 7,
+      "clock": 49.36374961600086,
+      "kind": "deep_snapshot",
+      "delay": 3,
+      "quality": 98
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038519,
+      "sig": "6e30cf7c98e8",
+      "corr": 99,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 4,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 51,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 4,
+          "timingConsistency": 0.37,
+          "trustedSupport": 4,
+          "baseline": 28,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 3.1736646339995787,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 456767104411022.3,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 49.52457091799988,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    },
+    {
+      "semanticHash": "07e6f0a5bfa6",
+      "importance": 34,
+      "newShape": false,
+      "unix": 1792038520,
+      "sig": "5f3cae65ee0a",
+      "corr": 101,
+      "remote": {
+        "path": "ReplicatedStorage.Remotes.TrainingStats",
+        "name": "TrainingStats",
+        "className": "RemoteEvent",
+        "parent": "ReplicatedStorage.Remotes",
+        "attributes": []
+      },
+      "newSemantic": false,
+      "correlationModel": "evidence_v2",
+      "investigating": false,
+      "causeCandidates": [
+        {
+          "distinctEffects": 5,
+          "semantic": "5b18935d19bf",
+          "effectTotal": 52,
+          "confidence": 0,
+          "relationStage": "repeated",
+          "support": 5,
+          "timingConsistency": 0.317,
+          "trustedSupport": 5,
+          "baseline": 28,
+          "method": "FireServer",
+          "effect": "remote:ReplicatedStorage.Remotes.TrainingStats",
+          "id": 5,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.Remotes.TaserHit",
+          "age": 4.198866561000614,
+          "shape": "f8fb6f2ed0b5",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "compute": 160300000,
+            "levelCapped": false,
+            "auto": false,
+            "spent": {
+              "Money": 1589,
+              "Hacking": 0,
+              "Security": 0
+            },
+            "dataStalled": false,
+            "xp": 457005405690742.1,
+            "autoSet": true,
+            "points": 7,
+            "level": 1596,
+            "manual": {
+              "Money": 6671,
+              "Hacking": 8,
+              "Security": 1277
+            },
+            "dataLimited": false
+          }
+        ]
+      },
+      "clock": 50.54977409499952,
+      "kind": "remote_inbound",
+      "runId": "a7ae3b34-1f32-44af-b790-521aa8f23963",
+      "quality": 78
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-15T04:28:41.616Z",
+  "contentChecksum": "n54UO_i4ceIeBv124Vfh",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 728,
+    "totalBytes": 1002050,
+    "inboundListeners": 61,
+    "ackBytes": 928402,
+    "queueBytes": 73648
+  }
+}
