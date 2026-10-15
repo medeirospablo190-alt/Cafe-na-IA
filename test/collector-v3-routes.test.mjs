@@ -239,6 +239,12 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(analysisReport.totalRecords, 1051);
   assert.equal(JSON.stringify(analysisReport).includes("x".repeat(100)), false);
 
+  const analysisResponse = await fetch(`${base}/${common.gameId}/${common.placeId}/analysis`);
+  assert.equal(analysisResponse.status, 200);
+  const analysisViaApi = await analysisResponse.json();
+  assert.equal(analysisViaApi.reportType, "cafeina_trace_v3_analysis");
+  assert.equal(analysisViaApi.triggerRunId, common.runId);
+
   const profileResponse = await fetch(`${base}/profile/${common.gameId}`);
   assert.equal(profileResponse.status, 200);
   const profile = (await profileResponse.json()).profile;
