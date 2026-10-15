@@ -235,6 +235,8 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(fake.files.get(analysisPath).text, firstAnalysisText, "retry não deve reescrever relatório idêntico");
   const analysisReport = JSON.parse(fake.files.get(analysisPath).text);
   assert.equal(analysisReport.reportType, "cafeina_trace_v3_analysis");
+  assert.equal(analysisReport.historySource, "local_gateway_disk");
+  assert.equal(analysisReport.historyComplete, false);
   assert.equal(analysisReport.scope.gameId, common.gameId);
   assert.equal(analysisReport.totalRecords, 1051);
   assert.equal(JSON.stringify(analysisReport).includes("x".repeat(100)), false);
