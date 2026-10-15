@@ -226,7 +226,7 @@ async function handleBatch(req, res) {
   const batchTotal = safeInteger(body.batchTotal);
   const batchKind = String(body.batchKind || "data");
   if (!gameId || !placeId || !runId) return jsonError(res, 400, "gameId/placeId/runId inválido.");
-  if (!batchIndex || batchIndex < 1) return jsonError(res, 400, "batchIndex inválido.");
+  if (!batchIndex || batchIndex < 1 || batchIndex > MAX_BATCH_TOTAL) return jsonError(res, 400, "batchIndex inválido.");
   if (batchTotal !== null && (batchTotal < batchIndex || batchTotal > MAX_BATCH_TOTAL)) {
     return jsonError(res, 400, "batchTotal inválido.");
   }
