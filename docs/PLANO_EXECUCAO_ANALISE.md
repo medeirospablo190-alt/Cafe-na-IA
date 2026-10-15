@@ -332,6 +332,14 @@ O contrato atual de envio e a outbox devem permanecer estáveis enquanto a anál
 - O teste de integração confirma a consulta do relatório depois de remover a cópia local, usando o GitHub simulado como fallback.
 - Ainda não foi feita uma chamada de produção ao gateway hospedado nem um teste de envio a partir do Android; não afirmar que credenciais e persistência reais foram verificadas.
 
+
+### Revisão complementar — CI e superfície de envio (2026-10-15)
+
+- Commit `cf1816ed76d01a83d0df9213745e1d8f35003d08`: execução GitHub Actions #180 concluída com sucesso. Os passos de sintaxe, testes de integração e compilação Luau foram aprovados.
+- Revisão estática de `collector-v3-routes.js`: o endpoint POST de lotes verifica a presença do token GitHub no servidor e aplica rate limit por IP, mas não implementa autenticação de cliente própria nessa rota. Se o gateway estiver exposto publicamente, terceiros podem tentar enviar lotes e consumir quota/armazenamento; a proteção efetiva depende também dos limites e controles do host.
+- Não colocar o token GitHub no Lua, no aplicativo Android ou em qualquer artefato cliente. Isso exporia credenciais de escrita. Uma chave estática embutida no cliente também não deve ser tratada como segredo forte.
+- Antes de produção, avaliar limites de custo/quota no host, alertas de uso, limites de tamanho/frequência e, se necessário, um mecanismo de autorização que não exija distribuir credenciais de escrita do GitHub. A validação aqui foi estática; não houve teste de abuso nem chamada ao serviço de produção.
+
 ### Limitações ainda abertas
 
 - O relatório automático analisa os arquivos presentes no diretório local do gateway. Se a hospedagem perder o disco local após reinício, a análise não reconstruirá automaticamente o histórico completo que só existe no GitHub. Confirmar a persistência do volume ou planejar uma leitura paginada do histórico remoto antes de afirmar comparação histórica completa.
