@@ -32,7 +32,7 @@ O relatório é agregado: não inclui os objetos brutos de `records` nem de `rem
 
 - até 5.000 arquivos por execução;
 - profundidade de diretório limitada;
-- até 12 MiB por arquivo JSON;
+- até 12 MiB por arquivo JSON e 100 MiB somados por execução (arquivos que excedam o orçamento restante são ignorados com aviso);
 - até 8 níveis de inferência de campos e 2.000 campos distintos;
 - até 100 avisos no relatório;
 - os traces originais são somente leitura.
