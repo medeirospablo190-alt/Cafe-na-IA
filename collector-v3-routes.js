@@ -369,12 +369,17 @@ async function handleBatch(req, res) {
           let historyNote = "Somente os lotes V3 disponíveis no disco local foram analisados.";
           try {
             report = await analyzeTracePath(analysisInput);
-            if (report.inputFiles === 0 || report.warnings?.some((item) => item.code === "file_limit_reached")) {
-              const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
-              report = recovered.report;
-              historySource = "github_reconstructed";
-              historyComplete = recovered.complete;
-              historyNote = recovered.note;
+            if (report.inputFiles <= 1 || report.warnings?.some((item) => item.code === "file_limit_reached")) {
+              try {
+                const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
+                report = recovered.report;
+                historySource = "github_reconstructed";
+                historyComplete = recovered.complete;
+                historyNote = recovered.note;
+              } catch (recoveryError) {
+                historyNote = "A reconstrução do GitHub falhou; relatório limitado ao disco local.";
+                report.warnings = [...(report.warnings || []), { code: "github_history_recovery_failed" }].slice(0, 100);
+              }
             }
           } catch (localError) {
             const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
