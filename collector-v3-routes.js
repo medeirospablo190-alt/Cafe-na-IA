@@ -368,6 +368,9 @@ async function handleBatch(req, res) {
             reportType: "cafeina_trace_v3_analysis",
             triggerRunId: runId,
             scope: { gameId, placeId },
+            historySource: "local_gateway_disk",
+            historyComplete: false,
+            historyNote: "This report only includes V3 batch files available on the gateway disk at generation time; GitHub-only history may be missing after a host restart.",
           }, null, 2)}\n`;
           await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
           await upsertGitHubText(reportGithubPath, reportText, `Trace V3 analysis ${gameId}/${placeId} ${runId}`);
