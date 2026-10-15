@@ -1,4 +1,4 @@
-# CAFEÍNA Universal Game Trace V3.2.7
+# CAFEÍNA Universal Game Trace V3.2.8
 
 Arquivos principais:
 
