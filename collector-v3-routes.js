@@ -1,6 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { analyzeTracePath } from "./tools/trace-analysis/analyze.mjs";
@@ -362,24 +363,44 @@ async function handleBatch(req, res) {
           };
         } else {
           const analysisInput = path.join(TRACE_V3_DIR, String(gameId), String(placeId));
-          const report = await analyzeTracePath(analysisInput);
-          const reportText = `${JSON.stringify({
+          let report;
+          let historySource = "local_gateway_disk";
+          let historyComplete = false;
+          let historyNote = "Somente os lotes V3 disponíveis no disco local foram analisados.";
+          try {
+            report = await analyzeTracePath(analysisInput);
+            if (report.inputFiles === 0 || report.warnings?.some((item) => item.code === "file_limit_reached")) {
+              const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
+              report = recovered.report;
+              historySource = "github_reconstructed";
+              historyComplete = recovered.complete;
+              historyNote = recovered.note;
+            }
+          } catch (localError) {
+            const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
+            report = recovered.report;
+            historySource = "github_reconstructed";
+            historyComplete = recovered.complete;
+            historyNote = recovered.note;
+          }
+          const reportText = JSON.stringify({
             ...report,
             reportType: "cafeina_trace_v3_analysis",
             triggerRunId: runId,
             scope: { gameId, placeId },
-            historySource: "local_gateway_disk",
-            historyComplete: false,
-            historyNote: "This report only includes V3 batch files available on the gateway disk at generation time; GitHub-only history may be missing after a host restart.",
-          }, null, 2)}\n`;
+            historySource,
+            historyComplete,
+            historyNote,
+          }, null, 2) + "\n";
           await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
-          await upsertGitHubText(reportGithubPath, reportText, `Trace V3 analysis ${gameId}/${placeId} ${runId}`);
+          await upsertGitHubText(reportGithubPath, reportText, "Trace V3 analysis " + gameId + "/" + placeId + " " + runId);
           analysis = {
             generated: true, reused: false, path: reportGithubPath,
             sessions: Object.keys(report.sessions).length,
             records: report.totalRecords,
             remotes: report.totalRemotes,
             groups: Object.keys(report.groups).length,
+            historySource, historyComplete,
           };
         }
       } catch (error) {
@@ -639,6 +660,67 @@ function mergeBoundedStrings(current, incoming, max, maxLen) {
   return out.length <= max ? out : out.slice(out.length - max);
 }
 
+
+const MAX_GITHUB_HISTORY_FILES = 1000;
+const MAX_GITHUB_HISTORY_BYTES = 30 * 1024 * 1024;
+
+async function analyzeGitHubTraceHistory(gameId, placeId) {
+  const root = TRACE_V3_GITHUB_BASE + "/" + gameId + "/" + placeId;
+  const tempRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), "cafeina-trace-history-"));
+  let complete = true;
+  let note = "Histórico reconstruído a partir dos lotes do GitHub.";
+  let totalBytes = 0;
+  let filesWritten = 0;
+  const warnings = [];
+  try {
+    const runs = await listGitHubDirectory(root);
+    if (!runs) throw new Error("GitHub trace directory not found");
+    const runDirs = runs.filter((entry) => entry?.type === "dir" && /^[A-Za-z0-9_-]{1,100}$/.test(String(entry.name || "")));
+    for (const run of runDirs) {
+      if (filesWritten >= MAX_GITHUB_HISTORY_FILES || totalBytes >= MAX_GITHUB_HISTORY_BYTES) {
+        complete = false; warnings.push({ code: "github_history_limit_reached" }); break;
+      }
+      const entries = await listGitHubDirectory(root + "/" + run.name);
+      if (!entries) { complete = false; warnings.push({ code: "github_run_unreadable" }); continue; }
+      for (const entry of entries) {
+        if (entry?.type !== "file" || !/^\d{4}-(?:data|manifest)\.json$/.test(String(entry.name || ""))) continue;
+        if (filesWritten >= MAX_GITHUB_HISTORY_FILES || totalBytes >= MAX_GITHUB_HISTORY_BYTES) {
+          complete = false; warnings.push({ code: "github_history_limit_reached" }); break;
+        }
+        const text = await readGitHubText(root + "/" + run.name + "/" + entry.name);
+        if (text === null) { complete = false; warnings.push({ code: "github_batch_missing" }); continue; }
+        const bytes = Buffer.byteLength(text, "utf8");
+        if (bytes > 12 * 1024 * 1024 || totalBytes + bytes > MAX_GITHUB_HISTORY_BYTES) {
+          complete = false; warnings.push({ code: "github_history_byte_limit_reached" }); break;
+        }
+        let parsed;
+        try { parsed = JSON.parse(text); } catch { complete = false; warnings.push({ code: "github_invalid_batch" }); continue; }
+        if (parsed?.type !== "cafeina_universal_trace_v3_batch" || Number(parsed.gameId) !== Number(gameId) || Number(parsed.placeId) !== Number(placeId)) {
+          warnings.push({ code: "github_nonmatching_batch_skipped" }); continue;
+        }
+        const safeRun = run.name.replace(/[^A-Za-z0-9_-]/g, "_");
+        const safeName = entry.name.replace(/[^A-Za-z0-9_.-]/g, "_");
+        const target = path.join(tempRoot, safeRun, safeName);
+        await fs.promises.mkdir(path.dirname(target), { recursive: true });
+        await fs.promises.writeFile(target, text, { encoding: "utf8", flag: "wx" });
+        filesWritten += 1; totalBytes += bytes;
+      }
+    }
+    const report = await analyzeTracePath(tempRoot);
+    report.warnings = [...(report.warnings || []), ...warnings].slice(0, 100);
+    if (!complete) note = "Reconstrução limitada; podem faltar lotes além dos limites configurados ou em diretórios inacessíveis.";
+    return { report, complete, note };
+  } finally { await fs.promises.rm(tempRoot, { recursive: true, force: true }); }
+}
+
+async function listGitHubDirectory(repoPath) {
+  const { apiUrl } = githubLocation(repoPath);
+  const response = await fetch(apiUrl + "?ref=" + encodeURIComponent(GITHUB_BRANCH), { headers: githubHeaders(false) });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("GitHub directory listing failed: " + response.status);
+  const data = await response.json();
+  return Array.isArray(data) ? data : null;
+}
 async function upsertGitHubText(repoPath, text, message) {
   if (!GITHUB_TOKEN) throw new Error("GitHub token não configurado");
   const { apiUrl } = githubLocation(repoPath);
