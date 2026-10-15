@@ -297,3 +297,29 @@ O contrato atual de envio e a outbox devem permanecer estáveis enquanto a anál
 - Mapeamento inicial de módulos do Reverse Engine concluído por leitura estática dos arquivos principais.
 - Nenhum código do Reverse Engine foi copiado para o coletor; nenhuma alteração funcional foi feita.
 - Próxima tarefa: desenhar o esquema normalizado de saída para Trace V3 e mapear exemplos reais de lotes/campos existentes no repositório; depois criar testes com fixtures anonimizadas e comparar os resultados com os dados brutos.
+
+## Progresso da integração analítica — 2026-10-15
+
+### Implementado na branch de trabalho (ainda não incorporado à main)
+
+- Criado `tools/trace-analysis/analyze.mjs`: lê batches Trace V3 existentes, agrega sessões, registros, remotes, assinaturas explícitas e tipos de campos; o relatório não copia os objetos brutos.
+- Aplicados limites para até 5.000 arquivos, profundidade de diretório, 12 MiB por JSON, 8 níveis de inferência, 2.000 campos e 100 avisos.
+- Criados testes sintéticos para agrupamento, média de qualidade, ausência de valores brutos no relatório e rejeição de arquivo grande.
+- Adicionada execução automática best-effort ao receber um manifesto: o gateway gera e espelha `<gameId>/<placeId>/analysis/latest.json`. O relatório é derivado; os lotes originais continuam sendo a fonte de verdade.
+- A resposta do manifesto passa a incluir o resultado da tentativa de análise.
+- Atualizada a CI para cobrir os arquivos de análise.
+
+### Evidência de validação
+
+- GitHub Actions no commit `e45632fecc253791912babff44b0358711fab079`: sucesso para push e pull request.
+- A CI executou verificação sintática Node, testes de integração e compilação Luau.
+- O teste de integração usa um GitHub falso/local e diretório temporário; não comprova quota/autenticação real do GitHub, persistência do provedor de hospedagem nem funcionamento no Android.
+- Pull Request #225 permanece aberto como draft. Não foi mesclado à `main`.
+
+### Limitações ainda abertas
+
+- O relatório automático analisa os arquivos presentes no diretório local do gateway. Se a hospedagem perder o disco local após reinício, a análise não reconstruirá automaticamente o histórico completo que só existe no GitHub. Confirmar a persistência do volume ou planejar uma leitura paginada do histórico remoto antes de afirmar comparação histórica completa.
+- A análise ocorre no fechamento da sessão, não em cada lote. É um resumo estatístico; não descobre automaticamente lógica interna, não confirma causalidade e não executa testes ativos no jogo.
+- Não houve teste real no Android, nem validação do envio de uma sessão de jogo até o GitHub real.
+- A captura Lua contém caminhos de investigação ativa e bloqueio temporário de entrada descritos no próprio código. Antes de usar em jogo real, revisar esses caminhos para assegurar que qualquer teste seja explicitamente autorizado, seguro, cancelável e não interfira em outros jogadores ou no estado do servidor.
+
