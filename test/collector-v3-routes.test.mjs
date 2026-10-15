@@ -6,6 +6,24 @@ import http from "http";
 import os from "os";
 import path from "path";
 import express from "express";
+import { consumeRate } from "../collector-v3-routes.js";
+
+test("Trace V3 rate limiter bounds memory and cleans expired entries", () => {
+  const now = Date.now();
+  const expired = new Map();
+  for (let i = 0; i < 10_000; i += 1) {
+    expired.set(`expired-${i}`, { count: 1, windowStartedAt: now - 20_000 });
+  }
+  assert.equal(consumeRate(expired, "new-client", 10, 10_000), true);
+  assert.equal(expired.size, 1, "expired entries should be removed before accepting a new client");
+
+  const active = new Map();
+  for (let i = 0; i < 10_000; i += 1) {
+    active.set(`active-${i}`, { count: 1, windowStartedAt: now });
+  }
+  assert.equal(consumeRate(active, "overflow-client", 10, 10_000), false);
+  assert.equal(active.size, 10_000, "active entries must remain bounded");
+});
 
 function randomPort() {
   return 38_000 + crypto.randomInt(2_000);
