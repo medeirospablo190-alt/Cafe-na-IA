@@ -680,6 +680,8 @@ async function analyzeGitHubTraceHistory(gameId, placeId) {
   try {
     const runs = await listGitHubDirectory(root);
     if (!runs) throw new Error("GitHub trace directory not found");
+    // GitHub Contents API can cap directory responses at 1,000 entries; never claim completeness at that boundary.
+    if (runs.length >= 1000) { complete = false; warnings.push({ code: "github_directory_entry_limit" }); }
     const runDirs = runs.filter((entry) => entry?.type === "dir" && /^[A-Za-z0-9_-]{1,100}$/.test(String(entry.name || "")));
     for (const run of runDirs) {
       if (filesWritten >= MAX_GITHUB_HISTORY_FILES || totalBytes >= MAX_GITHUB_HISTORY_BYTES) {
@@ -687,6 +689,7 @@ async function analyzeGitHubTraceHistory(gameId, placeId) {
       }
       const entries = await listGitHubDirectory(root + "/" + run.name);
       if (!entries) { complete = false; warnings.push({ code: "github_run_unreadable" }); continue; }
+      if (entries.length >= 1000) { complete = false; warnings.push({ code: "github_directory_entry_limit" }); }
       for (const entry of entries) {
         if (entry?.type !== "file" || !/^\d{4}-(?:data|manifest)\.json$/.test(String(entry.name || ""))) continue;
         if (filesWritten >= MAX_GITHUB_HISTORY_FILES || totalBytes >= MAX_GITHUB_HISTORY_BYTES) {
@@ -701,7 +704,7 @@ async function analyzeGitHubTraceHistory(gameId, placeId) {
         let parsed;
         try { parsed = JSON.parse(text); } catch { complete = false; warnings.push({ code: "github_invalid_batch" }); continue; }
         if (parsed?.type !== "cafeina_universal_trace_v3_batch" || Number(parsed.gameId) !== Number(gameId) || Number(parsed.placeId) !== Number(placeId)) {
-          warnings.push({ code: "github_nonmatching_batch_skipped" }); continue;
+          complete = false; warnings.push({ code: "github_nonmatching_batch_skipped" }); continue;
         }
         const safeRun = run.name.replace(/[^A-Za-z0-9_-]/g, "_");
         const safeName = entry.name.replace(/[^A-Za-z0-9_.-]/g, "_");
