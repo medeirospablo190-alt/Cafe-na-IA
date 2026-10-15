@@ -122,7 +122,7 @@ export async function analyzeTracePath(input) {
         continue;
       }
       const raw = await fs.readFile(file, "utf8");
-      totalBytesRead += Buffer.byteLength(raw, "utf8");
+      totalBytesRead += stat.size;
       batch = JSON.parse(raw);
     } catch (error) {
       result.skippedFiles += 1;
