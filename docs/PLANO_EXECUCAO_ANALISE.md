@@ -256,3 +256,44 @@ Começar pela **Fase 0** e depois executar a **Fase 1**: confirmar a base da bra
 - **Compatibilidade dos testes:** os testes de gateway usam um GitHub falso local e cobrem idempotência, conflito, arquivos grandes, manifesto/perfil e fluxo legado. Eles não validam rede móvel, permissões do executor, autenticação real do GitHub, quotas reais da API ou execução do script Lua dentro do Roblox.
 - **Execução dos testes nesta sessão:** ainda não realizada. O conector GitHub disponível permite ler e gravar arquivos, mas não executar `npm test` no repositório. Não declarar CI verde sem consultar um resultado de execução específico.
 - **Inventário / próxima etapa:** Fase 1 está parcialmente concluída. Para encerrar, ainda falta mapear a rota legada e a configuração real de deploy/armazenamento do Render, além de conferir os estados de erro do cliente e como são apresentados na UI. A seguir, auditar os limites de dados e os pontos de encerramento/reinício do coletor, mantendo as mudanças funcionais suspensas até haver um teste reproduzível.
+
+
+## Análise cruzada: Reverse Engine → CAFÉÍNA Collector
+
+Repositório analisado: https://github.com/medeirospablo190-alt/reverse-enginee (branch `main`). Esta fase mapeia componentes reutilizáveis; não copia o framework inteiro nem substitui o coletor Lua.
+
+### Estrutura do Reverse Engine mapeada
+- `app/core/har_parser.py`: entrada de HAR e normalização para um registro por chamada (host, path, método, status, cabeçalhos, query, corpos, tempo).
+- `app/collectors/extractor.py`: identifica registros dentro de envelopes JSON, achata objetos/listas e conserva metadados de origem.
+- `app/core/path_templater.py`: agrupa caminhos concretos por template e extrai parâmetros de caminho.
+- `app/core/openapi_builder.py`: combina amostras para inferir esquemas, preservando diferenças de tipo.
+- `app/core/pagination_stitcher.py`: tenta inferir paginação por sequências de parâmetros e cursor; confiança deve ser mantida explícita, não tratada como certeza.
+- `app/core/system_detector.py`: resume tráfego por host.
+- `app/core/report_builder.py`: gera relatórios XLSX com união de colunas e abas de resumo/achados.
+- `app/core/vuln_scanner.py` e `app/core/bot_defense_scanner.py`: análises passivas do HAR. São específicas de HTTP/web e não substituem observação de estado em Roblox.
+- `README_INTEGRATION.md`: confirma fluxo de entrada HAR → normalização → extração → relatório; registra limitações com binários e paginação e alerta para sanitizar tokens capturados.
+
+### O que pode ser adaptado para o coletor
+1. **Camada de normalização offline (prioridade alta):** criar um analisador separado que leia lotes V3 já recebidos e normalize campos comuns, sem alterar o formato que o Lua envia.
+2. **Achatar estruturas com limites:** reaproveitar a ideia de `flatten` para produzir tabelas de atributos/argumentos e caminhos, mas com limites de profundidade, número de nós, tamanho de strings e proteção contra estruturas enormes/cíclicas.
+3. **Inferência de esquema por múltiplas amostras:** adaptar a união de tipos/propriedades do OpenAPI para os argumentos e registros observados, mantendo contagens, amostras e confiança; não concluir semântica só pelo nome de um campo.
+4. **Agrupamento por caminho lógico:** adaptar templating para caminhos de instâncias/objetos Roblox, usando segmentos e classes conhecidas em vez de heurísticas de IDs numéricos de URL.
+5. **Reconstrução temporal:** usar o timestamp, ordem de eventos e referências compartilhadas para agrupar observações relacionadas; a detecção de paginação do Reverse não é diretamente aplicável, mas seu padrão de inferência multi-amostra e confiança pode ser.
+6. **Relatórios e diferenças entre sessões:** adaptar o relatório XLSX/JSON para comparar runs, classes de Remote, tipos/forma de argumentos, propriedades e cobertura. Isso pode ocorrer no ambiente online/backend, preservando o requisito de coleta no Android.
+7. **Higiene de dados:** incorporar redaction de tokens/identificadores sensíveis em logs e relatórios compartilháveis; não registrar segredos.
+
+### O que não deve ser transplantado diretamente
+- HAR parser, detector de host e paginador: dependem de tráfego HTTP de navegador, enquanto a coleta principal é feita no runtime Roblox.
+- Geradores de cURL/Playwright e técnicas de impersonação de TLS: não melhoram a captura de estado Roblox e podem incentivar replay ou contornar controles; não entram na adaptação.
+- Scanner de vulnerabilidade web: só faz sentido para auditar endpoints HTTP autorizados, fora do caminho de coleta do jogo.
+- Dependências pesadas Python/Redis/SQLite: não adicionar ao script Lua/Android. Se um analisador offline Python for útil, deve ficar separado do runtime e ser opcional.
+
+### Arquitetura proposta de integração
+`Roblox/Lua no Android → lotes V3 atuais → gateway/espelho GitHub → analisador offline independente → normalização + deduplicação + inferência de esquemas + comparação entre sessões → relatório JSON/CSV/XLSX`.
+
+O contrato atual de envio e a outbox devem permanecer estáveis enquanto a análise offline é construída. O analisador deve ser reexecutável e idempotente, guardar a proveniência de cada inferência (arquivo/lote/índice/tempo), distinguir observação de hipótese e nunca editar os dados brutos recebidos.
+
+### Estado e próximos passos
+- Mapeamento inicial de módulos do Reverse Engine concluído por leitura estática dos arquivos principais.
+- Nenhum código do Reverse Engine foi copiado para o coletor; nenhuma alteração funcional foi feita.
+- Próxima tarefa: desenhar o esquema normalizado de saída para Trace V3 e mapear exemplos reais de lotes/campos existentes no repositório; depois criar testes com fixtures anonimizadas e comparar os resultados com os dados brutos.
