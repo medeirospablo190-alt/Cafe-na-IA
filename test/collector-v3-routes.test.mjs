@@ -25,6 +25,23 @@ test("Trace V3 rate limiter bounds memory and cleans expired entries", () => {
   assert.equal(active.size, 10_000, "active entries must remain bounded");
 });
 
+test("Trace V3 rate limiter resets a client's quota after the window expires", () => {
+  const store = new Map();
+  const originalNow = Date.now;
+  let now = 1_000_000;
+  Date.now = () => now;
+  try {
+    assert.equal(consumeRate(store, "client", 2, 1_000), true);
+    assert.equal(consumeRate(store, "client", 2, 1_000), true);
+    assert.equal(consumeRate(store, "client", 2, 1_000), false, "quota should block the third request");
+    now += 1_001;
+    assert.equal(consumeRate(store, "client", 2, 1_000), true, "quota should reset after the window");
+    assert.equal(store.get("client").count, 1);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
 function randomPort() {
   return 38_000 + crypto.randomInt(2_000);
 }
