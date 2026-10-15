@@ -289,4 +289,37 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
 
   const batch2Path = `inventory-traces-v3/${common.gameId}/${common.placeId}/${common.runId}/0002-data.json`;
   assert.ok(Buffer.byteLength(fake.files.get(batch2Path).text) > 1024 * 1024);
+
+  // A corrupt GitHub batch must produce an explicitly incomplete report, not a false complete result.
+  const damagedRunId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+  const damagedCommon = { ...common, runId: damagedRunId };
+  const damagedData = {
+    ...damagedCommon,
+    batchIndex: 1,
+    batchKind: "data",
+    payloadBytes: 20,
+    records: [{ kind: "remote_inbound", path: "Workspace.Damaged" }],
+    remotes: [],
+  };
+  assert.equal((await post(damagedData)).status, 201);
+  const damagedPath = `inventory-traces-v3/${common.gameId}/${common.placeId}/${damagedRunId}/0001-data.json`;
+  fake.files.get(damagedPath).text = "{broken json";
+  await fs.rm(path.join(dir, String(common.gameId), String(common.placeId), damagedRunId), { recursive: true, force: true });
+
+  const damagedManifest = {
+    ...damagedCommon,
+    batchIndex: 2,
+    batchTotal: 2,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const damagedManifestResponse = await post(damagedManifest);
+  assert.equal(damagedManifestResponse.status, 201);
+  const damagedReport = JSON.parse(fake.files.get(analysisPath).text);
+  assert.equal(damagedReport.historySource, "github_reconstructed");
+  assert.equal(damagedReport.historyComplete, false, "JSON corrompido nunca deve ser declarado como histórico completo");
+  assert.ok(damagedReport.warnings.some((warning) => warning.code === "github_invalid_batch"));
 });
