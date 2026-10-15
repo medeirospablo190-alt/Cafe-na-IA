@@ -18,6 +18,7 @@ function sha(text) {
 async function startFakeGitHub(port) {
   const files = new Map();
   const listingOverrides = new Map();
+  const failNextPutForPath = new Set();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://127.0.0.1:${port}`);
     const prefix = "/repos/test/repo/contents/";
@@ -71,6 +72,12 @@ async function startFakeGitHub(port) {
     }
 
     if (req.method === "PUT") {
+      if (failNextPutForPath.has(repoPath)) {
+        failNextPutForPath.delete(repoPath);
+        res.writeHead(503, { "content-type": "application/json" });
+        res.end(JSON.stringify({ message: "temporary simulated failure" }));
+        return;
+      }
       let raw = "";
       for await (const chunk of req) raw += chunk;
       const body = JSON.parse(raw || "{}");
@@ -90,7 +97,7 @@ async function startFakeGitHub(port) {
     res.writeHead(405).end();
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
-  return { server, files, listingOverrides };
+  return { server, files, listingOverrides, failNextPutForPath };
 }
 
 async function listen(app, port) {
@@ -357,4 +364,40 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(limitedReport.historySource, "github_reconstructed");
   assert.equal(limitedReport.historyComplete, false, "limite de 1.000 entradas não deve afirmar histórico completo");
   assert.ok(limitedReport.warnings.some((warning) => warning.code === "github_directory_entry_limit"));
+
+  // A transient report mirror failure must not invalidate the already mirrored raw manifest.
+  const retryGameId = common.gameId + 2;
+  const retryPlaceId = common.placeId + 2;
+  const retryRunId = "cccccccc-dddd-eeee-ffff-000000000000";
+  const retryRoot = `inventory-traces-v3/${retryGameId}/${retryPlaceId}`;
+  const retryManifest = {
+    ...common,
+    gameId: retryGameId,
+    placeId: retryPlaceId,
+    runId: retryRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const retryReportPath = `${retryRoot}/analysis/latest.json`;
+  fake.failNextPutForPath.add(retryReportPath);
+  const firstRetryAttempt = await post(retryManifest);
+  assert.equal(firstRetryAttempt.status, 201, "falha no relatório derivado não deve rejeitar lote bruto espelhado");
+  const firstRetryReceipt = await firstRetryAttempt.json();
+  assert.equal(firstRetryReceipt.github.mirrored, true);
+  assert.equal(firstRetryReceipt.analysis.generated, false);
+  assert.ok(fake.files.has(`${retryRoot}/${retryRunId}/0001-manifest.json`), "manifesto bruto permanece no GitHub");
+  assert.equal(fake.files.has(retryReportPath), false, "a primeira gravação do relatório foi simuladamente recusada");
+
+  const secondRetryAttempt = await post(retryManifest);
+  assert.equal(secondRetryAttempt.status, 201, "reenvio do manifesto deve recuperar a falha temporária");
+  const secondRetryReceipt = await secondRetryAttempt.json();
+  assert.equal(secondRetryReceipt.github.mirrored, true);
+  assert.equal(secondRetryReceipt.analysis.generated, true);
+  assert.equal(secondRetryReceipt.analysis.reused, false);
+  assert.ok(fake.files.has(retryReportPath), "o relatório deve ser espelhado no reenvio");
 });
