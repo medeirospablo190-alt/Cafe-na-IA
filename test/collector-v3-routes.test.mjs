@@ -219,8 +219,21 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
       coverage: { staticComplete: true, newRemotes: 1 },
     },
   };
-  assert.equal((await post(manifest)).status, 201);
+  const manifestResponse = await post(manifest);
+  assert.equal(manifestResponse.status, 201);
+  const manifestReceipt = await manifestResponse.json();
+  assert.equal(manifestReceipt.analysis.generated, true);
+  assert.equal(manifestReceipt.analysis.sessions, 1);
+  assert.ok(manifestReceipt.analysis.groups >= 1);
   assert.equal((await post(manifest)).status, 201, "manifesto repetido não deve reaplicar perfil");
+
+  const analysisPath = `inventory-traces-v3/${common.gameId}/${common.placeId}/analysis/latest.json`;
+  assert.ok(fake.files.has(analysisPath), "relatório agregado deve ser espelhado no GitHub");
+  const analysisReport = JSON.parse(fake.files.get(analysisPath).text);
+  assert.equal(analysisReport.reportType, "cafeina_trace_v3_analysis");
+  assert.equal(analysisReport.scope.gameId, common.gameId);
+  assert.equal(analysisReport.totalRecords, 1051);
+  assert.equal(JSON.stringify(analysisReport).includes("x".repeat(100)), false);
 
   const profileResponse = await fetch(`${base}/profile/${common.gameId}`);
   assert.equal(profileResponse.status, 200);
