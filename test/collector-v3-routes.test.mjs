@@ -17,6 +17,7 @@ function sha(text) {
 
 async function startFakeGitHub(port) {
   const files = new Map();
+  const listingOverrides = new Map();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://127.0.0.1:${port}`);
     const prefix = "/repos/test/repo/contents/";
@@ -28,6 +29,11 @@ async function startFakeGitHub(port) {
     const current = files.get(repoPath);
 
     if (req.method === "GET") {
+      if (!current && listingOverrides.has(repoPath)) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(listingOverrides.get(repoPath)));
+        return;
+      }
       if (!current) {
         const directoryPrefix = repoPath ? repoPath + "/" : "";
         const children = new Map();
@@ -84,7 +90,7 @@ async function startFakeGitHub(port) {
     res.writeHead(405).end();
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
-  return { server, files };
+  return { server, files, listingOverrides };
 }
 
 async function listen(app, port) {
@@ -322,4 +328,33 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(damagedReport.historySource, "github_reconstructed");
   assert.equal(damagedReport.historyComplete, false, "JSON corrompido nunca deve ser declarado como histórico completo");
   assert.ok(damagedReport.warnings.some((warning) => warning.code === "github_invalid_batch"));
+
+  // GitHub Contents API truncation boundary: exactly 1,000 listed entries is not complete.
+  const limitedGameId = common.gameId + 1;
+  const limitedPlaceId = common.placeId + 1;
+  const limitedRunId = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+  const limitedRoot = `inventory-traces-v3/${limitedGameId}/${limitedPlaceId}`;
+  fake.listingOverrides.set(limitedRoot, Array.from({ length: 1000 }, (_, i) => ({
+    name: `placeholder-${i}.json`,
+    type: "file",
+  })));
+  const limitedManifest = {
+    ...common,
+    gameId: limitedGameId,
+    placeId: limitedPlaceId,
+    runId: limitedRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  assert.equal((await post(limitedManifest)).status, 201);
+  const limitedAnalysisPath = `${limitedRoot}/analysis/latest.json`;
+  const limitedReport = JSON.parse(fake.files.get(limitedAnalysisPath).text);
+  assert.equal(limitedReport.historySource, "github_reconstructed");
+  assert.equal(limitedReport.historyComplete, false, "limite de 1.000 entradas não deve afirmar histórico completo");
+  assert.ok(limitedReport.warnings.some((warning) => warning.code === "github_directory_entry_limit"));
 });
