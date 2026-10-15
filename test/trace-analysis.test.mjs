@@ -60,3 +60,18 @@ test("skips oversized files and reports a bounded warning", async (t) => {
   assert.equal(report.warnings[0].code, "file_too_large");
   assert.equal(report.totalRecords, 0);
 });
+
+test("enforces the cumulative input-byte budget", async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "cafeina-analysis-total-size-"));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  for (let i = 0; i < 10; i += 1) {
+    const handle = await fs.open(path.join(dir, `batch-${String(i).padStart(2, "0")}.json`), "w");
+    try { await handle.truncate(11 * 1024 * 1024); }
+    finally { await handle.close(); }
+  }
+  const report = await analyzeTracePath(dir);
+  assert.equal(report.inputFiles, 10);
+  assert.equal(report.skippedFiles, 2);
+  assert.ok(report.warnings.some((warning) => warning.code === "total_input_byte_limit_reached"));
+  assert.equal(report.totalRecords, 0);
+});
