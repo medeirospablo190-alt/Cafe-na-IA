@@ -181,6 +181,29 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   });
   assert.equal(invalidKindResponse.status, 400, "tipo de lote desconhecido deve ser rejeitado");
 
+  const missingBatchIndexResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 0,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(missingBatchIndexResponse.status, 400, "batchIndex zero deve ser rejeitado");
+
+  const invalidBatchTotalResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 2,
+    batchTotal: 1,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(invalidBatchTotalResponse.status, 400, "batchTotal menor que batchIndex deve ser rejeitado");
+
   const firstBody = {
     ...common,
     batchIndex: 1,
