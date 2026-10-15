@@ -227,6 +227,17 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   });
   assert.equal(excessiveRecordsResponse.status, 413, "lote acima do limite de registros deve ser rejeitado");
 
+  const excessiveRemotesResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "data",
+    records: [],
+    remotes: Array.from({ length: 1001 }, () => ({ path: "ReplicatedStorage.Test" })),
+  });
+  assert.equal(excessiveRemotesResponse.status, 413, "lote acima do limite de remotes deve ser rejeitado");
+
   const firstBody = {
     ...common,
     batchIndex: 1,
