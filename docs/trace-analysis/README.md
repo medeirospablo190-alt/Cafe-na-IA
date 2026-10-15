@@ -39,6 +39,16 @@ O relatório é agregado: não inclui os objetos brutos de `records` nem de `rem
 
 A confiança indica volume de amostras, não prova que uma hipótese sobre o jogo esteja correta. Padrões e correlações não devem ser descritos como causalidade confirmada sem teste independente.
 
-## Relação com o espelhamento GitHub
+## Análise automática após manifesto
 
-O upload e o espelhamento dos lotes continuam sendo feitos pelo endpoint Trace V3 existente. Esta ferramenta analisa os lotes que já foram salvos. Ela não muda a captura Lua, o contrato HTTP, a autenticação, a persistência ou o mecanismo de retry. A execução real no Android e a integração ponta a ponta precisam ser validadas separadamente.
+Quando o gateway recebe um lote do tipo `manifest`, ele tenta gerar um relatório agregado para aquele par gameId/placeId e espelhá-lo em:
+
+```text
+inventory-traces-v3/<gameId>/<placeId>/analysis/latest.json
+```
+
+A resposta do envio inclui `analysis.generated` e contagens agregadas quando essa etapa conclui. A análise é best-effort: se ela falhar, o lote bruto e o manifesto já espelhados continuam sendo a fonte de verdade; o recibo informa a falha sem marcar o relatório como gerado.
+
+A geração percorre os JSON já salvos daquele jogo/local, ignora arquivos que não são batches Trace V3 e aplica os limites definidos nesta ferramenta. O relatório é refeito no encerramento de uma sessão, não em cada lote, para evitar muitas chamadas ao GitHub.
+
+O upload e o espelhamento dos lotes continuam sendo feitos pelo endpoint Trace V3 existente. A captura Lua, o contrato HTTP e o mecanismo de retry dos lotes permanecem compatíveis. A execução real no Android e a integração ponta a ponta ainda precisam ser validadas separadamente.
