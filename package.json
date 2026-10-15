@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node collector-gateway.js",
     "check": "node --check gateway-main.js && node --check collector-gateway.js && node --check collector-v3-routes.js && node --check tools/trace-analysis/analyze.mjs && node --check test/inventory-trace.test.mjs && node --check test/collector-v3-routes.test.mjs && node --check test/trace-analysis.test.mjs",
-    "test": "node --test test/inventory-trace.test.mjs test/collector-v3-routes.test.mjs test/trace-analysis.test.mjs"
+    "test": "node --test test/inventory-trace.test.mjs test/collector-v3-routes.test.mjs test/trace-analysis.test.mjs",
+    "analyze:trace": "node tools/trace-analysis/analyze.mjs"
   },
   "dependencies": {
     "express": "^5.1.0"
