@@ -238,6 +238,21 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   });
   assert.equal(excessiveRemotesResponse.status, 413, "lote acima do limite de remotes deve ser rejeitado");
 
+  const oversizedBodyResponse = await fetch(`${base}/batch`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      gameId: 123,
+      placeId: 456,
+      runId: "11111111-2222-3333-4444-555555555555",
+      batchIndex: 1,
+      batchKind: "data",
+      records: [{ kind: "test", payload: "z".repeat(3 * 1024 * 1024) }],
+      remotes: [],
+    }),
+  });
+  assert.equal(oversizedBodyResponse.status, 413, "corpo acima do limite configurado deve ser rejeitado");
+
   const firstBody = {
     ...common,
     batchIndex: 1,
