@@ -9,6 +9,29 @@
 
 Compreender o coletor de ponta a ponta, preservar o que já funciona e incorporar somente as ideias úteis do Reverse Engine: extração de estruturas, normalização, comparação, correlação temporal e relatórios. O Reverse Engine foi pensado para tráfego HTTP/HAR; o CAFÉÍNA observa sessões Roblox em runtime. Não tratar os dois mecanismos de captura como intercambiáveis.
 
+## Requisito obrigatório: funcionar no Android e enviar ao GitHub
+
+O resultado precisa ser funcional no ambiente Android usado pelo projeto, sem presumir que há um PC disponível. A análise ou integração não será considerada concluída só porque o código está no GitHub ou passa em testes isolados.
+
+- **Executar no Android:** identificar o executor/ambiente real, as APIs e permissões disponíveis, os pontos de entrada e as limitações da versão de Lua usada. Não depender de comandos, serviços ou caminhos exclusivos de desktop.
+- **Preservar o fluxo de envio existente:** antes de modificar transporte ou backend, documentar como os dados saem do coletor, chegam ao gateway (se aplicável) e são persistidos/espelhados no GitHub. Manter formato, autenticação, nomes/caminhos e compatibilidade dos registros existentes, salvo mudança justificada e testada.
+- **Envio eficiente:** manter lotes e limites de tamanho, evitar uploads repetidos, controlar frequência e concorrência, tratar respostas de erro, rate limits e falhas temporárias com backoff.
+- **Não perder dados silenciosamente:** confirmar se existe fila/cache persistente, quando um registro é considerado entregue, como ocorre retry após queda de conexão e como evitar duplicação em reenvios. Se algo não existir, documentar antes de projetar alteração.
+- **Recursos limitados:** avaliar consumo de memória, CPU, bateria, rede e impacto no FPS; limitar filas e investigações e oferecer interrupção segura quando aplicável.
+- **Segurança:** não registrar tokens, cookies ou credenciais em traces/logs; usar somente autenticação autorizada e não contornar anti-cheat, autenticação ou controles de acesso.
+- **Validação em camadas:** distinguir (1) inspeção estática, (2) testes automatizados, (3) teste de integração do envio e (4) execução real no Android/jogo. Nunca declarar o nível 4 validado sem evidência de execução real.
+
+### Critérios de aceitação para Android/GitHub
+
+- [ ] Inicializa no ambiente Android alvo sem API incompatível ou erro fatal.
+- [ ] Coleta os tipos de evento que o projeto já suporta, com limites e cancelamento funcionando.
+- [ ] Consegue serializar e dividir dados grandes sem corromper registros ou ultrapassar limites conhecidos.
+- [ ] O caminho de envio atual continua funcionando e o destino no GitHub recebe os dados esperados.
+- [ ] Erros de rede/autorização/rate limit são reportados sem travar a coleta nem descartar dados silenciosamente.
+- [ ] Retry e retomada após desconexão são testados; duplicação e idempotência são avaliadas.
+- [ ] O tamanho dos lotes, o número de requisições e o consumo de recursos são medidos ou, se não for possível medir, explicitamente marcados como não verificados.
+- [ ] O teste real no Android é registrado separadamente dos testes feitos no backend ou no ambiente de desenvolvimento.
+
 ## Regras de execução
 
 1. **Trabalhar primeiro na branch de backup.** Não alterar `main` sem uma decisão explícita.
@@ -20,7 +43,8 @@ Compreender o coletor de ponta a ponta, preservar o que já funciona e incorpora
 7. **Sem contornar anti-cheat, autenticação, controles de acesso ou proteções de terceiros.** Priorizar observação passiva e testes autorizados, reversíveis e de baixo impacto.
 8. **Não substituir a lógica existente por código do Reverse Engine sem justificar compatibilidade, dependências e riscos.**
 9. **Manter o coletor responsivo em dispositivos móveis:** limites de memória, CPU, filas e frequência de envio devem continuar sendo verificados.
-10. Ao retomar o trabalho, ler primeiro este plano e o registro de progresso antes de reexaminar arquivos.
+10. **Preservar o envio funcional para o GitHub:** nenhuma alteração no transporte ou no formato pode ser considerada segura sem teste de compatibilidade.
+11. Ao retomar o trabalho, ler primeiro este plano e o registro de progresso antes de reexaminar arquivos.
 
 ## Estado inicial — 2026-10-15
 
@@ -60,9 +84,10 @@ Um manifesto mencionado na conversa reportou 2,78 MB, 838 observadores de valore
 - [ ] Listar arquivos e identificar pontos de entrada, rotas, serviços, armazenamento, testes e documentação.
 - [ ] Mapear variáveis de ambiente e segredos esperados; registrar apenas os nomes, nunca os valores.
 - [ ] Identificar versões de protocolo (trace legado e V3), limites de compatibilidade e caminhos de dados.
-- [ ] Criar um mapa de dependências entre coletor Lua, gateway, API, persistência local e espelhamento GitHub.
+- [ ] Mapear o fluxo completo: coletor Lua → gateway/API (se aplicável) → persistência → GitHub.
+- [ ] Identificar explicitamente o ambiente Android alvo e as funções/APIs disponíveis nele.
 
-**Saída:** inventário de arquivos e diagrama textual do fluxo completo.
+**Saída:** inventário de arquivos, diagrama textual do fluxo completo e checklist de compatibilidade Android.
 
 ### Fase 2 — Auditoria do coletor Lua
 
@@ -75,6 +100,7 @@ Examinar o arquivo inteiro em blocos e seguir cada função relevante até seus 
 - [ ] Investigações aprofundadas e testes ativos: gatilhos, limites, cancelamento, efeitos colaterais e salvaguardas.
 - [ ] Deduplicação, prioridade, backpressure, limites de memória e proteção de FPS.
 - [ ] Cache local, retomada de envio, retries e tratamento de erros.
+- [ ] Confirmar APIs de rede/arquivo e compatibilidade com o executor Android real.
 - [ ] Interface do coletor e mecanismos para interromper uma investigação.
 - [ ] Pontos de risco: dados pessoais, excesso de coleta, falhas de serialização e interferência na sessão.
 
@@ -86,6 +112,7 @@ Examinar o arquivo inteiro em blocos e seguir cada função relevante até seus 
 - [ ] Mapear todas as rotas, validações de entrada, autenticação, limites de corpo e respostas.
 - [ ] Verificar gravação local, nomes de arquivo, isolamento por jogo/sessão, concorrência e recuperação após falhas.
 - [ ] Verificar espelhamento GitHub, tokens, tratamento de rate limit, idempotência e conflitos.
+- [ ] Confirmar o contrato de envio que o coletor Android realmente usa e não quebrar compatibilidade com clientes existentes.
 - [ ] Conferir se endpoints de consulta expõem somente os dados pretendidos.
 - [ ] Comparar implementação real com os testes; identificar comportamentos sem teste.
 - [ ] Executar testes existentes somente em ambiente controlado, se as dependências/ambiente estiverem disponíveis, e registrar o comando e o resultado.
@@ -146,6 +173,7 @@ Priorizar uma camada de análise offline no backend, sem mudar a captura Lua ini
 - [ ] Executar a suíte relevante e registrar testes aprovados/falhos/não executados.
 - [ ] Verificar compatibilidade com traces antigos e novos.
 - [ ] Confirmar que os limites de memória, fila, latência e envio continuam funcionando.
+- [ ] Validar separadamente o fluxo de upload para o GitHub e o comportamento real no Android.
 - [ ] Revisar segurança, privacidade e comportamento em falhas.
 - [ ] Comparar relatórios novos com o baseline.
 - [ ] Documentar limitações conhecidas e procedimento de rollback.
@@ -164,6 +192,8 @@ Use este formato ao terminar cada bloco de trabalho:
 - **O que foi confirmado (com evidência):**
 - **O que é apenas hipótese:**
 - **Testes executados e resultados:**
+- **Android real testado?** Sim / não; dispositivo/ambiente e resultado.
+- **Envio GitHub testado?** Sim / não; destino/resultado (sem registrar credenciais).
 - **Commit/branch:**
 - **Problemas ou bloqueios:**
 - **Próxima ação única:**
@@ -183,8 +213,8 @@ Use este formato ao terminar cada bloco de trabalho:
 
 ## Critério para considerar uma tarefa concluída
 
-Uma tarefa só passa a “concluída” quando o escopo está claro, a evidência foi registrada, as dependências relevantes foram verificadas e os testes aplicáveis foram executados ou explicitamente marcados como não executados. “Li o arquivo” não significa “validei o comportamento”.
+Uma tarefa só passa a “concluída” quando o escopo está claro, a evidência foi registrada, as dependências relevantes foram verificadas e os testes aplicáveis foram executados ou explicitamente marcados como não executados. “Li o arquivo” não significa “validei o comportamento”. Um teste em backend não prova compatibilidade Android; um envio simulado não prova que o upload real está funcionando.
 
 ## Próxima ação recomendada
 
-Começar pela **Fase 0** e depois executar a **Fase 1**: confirmar a base da branch e fazer o inventário completo do repositório. Não integrar código novo antes de concluir a auditoria do fluxo atual.
+Começar pela **Fase 0** e depois executar a **Fase 1**: confirmar a base da branch e fazer o inventário completo do repositório. Em seguida, mapear o caminho real de envio ao GitHub antes de modificar qualquer parte dele. Não integrar código novo antes de concluir a auditoria do fluxo atual.
