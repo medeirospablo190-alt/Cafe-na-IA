@@ -218,3 +218,19 @@ Uma tarefa só passa a “concluída” quando o escopo está claro, a evidênci
 ## Próxima ação recomendada
 
 Começar pela **Fase 0** e depois executar a **Fase 1**: confirmar a base da branch e fazer o inventário completo do repositório. Em seguida, mapear o caminho real de envio ao GitHub antes de modificar qualquer parte dele. Não integrar código novo antes de concluir a auditoria do fluxo atual.
+
+
+## Registro de progresso — 2026-10-15 (início da execução)
+
+- **Fase / tarefa:** Fase 0 concluída; Fase 1 iniciada.
+- **Arquivos lidos:** `README.md`, `package.json`, `.env.example`, `.gitignore`, `.github/workflows/cafeina-trace-v3-ci.yml`, `collector-gateway.js`, trechos relevantes de `gateway-main.js`, `collector-v3-routes.js` e `Cafeina_Universal_Game_Trace_V3_0.lua).
+- **Base confirmada:** `main` está no commit `4c50fb8193bfa08a9d56426ddea42d053360354b`. A branch `backup-coletor-2026-10-15` está 2 commits à frente e 0 atrás; a comparação indica que o único arquivo alterado em relação a `main` é este plano. Não houve mudança funcional no coletor.
+- **Inventário inicial:** árvore recursiva reporta 1.584 entradas (1.524 arquivos e 60 diretórios), incluindo muitos traces JSON históricos versionados junto do código. Isso pode tornar clones/checkout e diffs pesados; avaliar depois se é intencional, sem remover histórico automaticamente.
+- **Arquitetura confirmada:** `npm start` inicia `collector-gateway.js`, que importa `gateway-main.js`; o gateway instala as rotas V3 por `collector-v3-routes.js`. Dependência de runtime do gateway: Express 5.1.x; o projeto declara Node como ESM e CI usa Node 22.
+- **Fluxo V3 confirmado por leitura estática:** o Lua envia lotes JSON para `https://cafe-na-ia.onrender.com/api/inventory-trace-v3/batch`; o gateway valida o lote, grava arquivo local, consulta o caminho correspondente no GitHub e cria/atualiza o conteúdo via API GitHub. A resposta positiva do cliente exige `ok=true` e confirmação `github.configured=true` + `github.mirrored=true`.
+- **Proteções de transporte observadas:** lote alvo de aproximadamente 1,75 MiB; cliente guarda o corpo exato do lote em voo/outbox quando as funções de arquivo estão disponíveis; cache persistente guarda fila e estado de retomada; o servidor verifica checksum e retorna conflito 409 se o mesmo índice/run tiver conteúdo diferente. Há retries para falhas transitórias e bloqueio de retry cego para erros determinísticos.
+- **Compatibilidade Android ainda não comprovada:** o script procura APIs do executor para requisição HTTP e funções de arquivo (`request`, `http_request`, `syn.request`, `writefile`, `readfile`, `isfile`, `delfile`). Se o executor Android não disponibilizar alguma delas, upload ou retomada pode ficar limitado. Ainda não foi executado no aparelho nem em sessão Roblox nesta etapa.
+- **Configuração backend documentada:** `.env.example` contém nomes de variáveis para diretório persistente, token/repositório/branch GitHub, limites V2/V3 e limite de corpo V3 (padrão no código: `3mb`). Nenhum valor de segredo foi coletado neste inventário.
+- **Testes:** não executados por esta análise; apenas foi lido o workflow que define `npm run check`, `npm test` e compilação com Luau no CI. Leitura do workflow não equivale a teste aprovado.
+- **Arquivos alterados nesta etapa:** nenhum arquivo funcional; este registro de progresso no plano.
+- **Próxima ação única:** concluir a Fase 1 mapeando o contrato completo de resposta/erro do endpoint V3, a recuperação de cache/outbox no cliente e o conjunto de testes correspondente, antes de propor qualquer mudança de código.
