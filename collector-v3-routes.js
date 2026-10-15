@@ -327,7 +327,7 @@ async function handleBatch(req, res) {
           ...report,
           reportType: "cafeina_trace_v3_analysis",
           scope: { gameId, placeId },
-        }, null, 2)}\\n`;
+        }, null, 2)}\n`;
         const reportRelative = `${gameId}/${placeId}/analysis/latest.json`;
         await atomicWrite(path.join(TRACE_V3_DIR, reportRelative), reportText);
         await upsertGitHubText(
@@ -366,6 +366,7 @@ async function handleBatch(req, res) {
     checksum,
     github: { configured: true, mirrored: true, path: githubPath },
     profileRevision: profile?.revision || null,
+    analysis,
   });
 }
 
