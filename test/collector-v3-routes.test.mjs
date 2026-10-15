@@ -540,4 +540,19 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.ok(fake.files.has(latestPath), "latest.json deve ser publicado no reenvio");
   const latestRetryBody = await latestRetry.json();
   assert.equal(latestRetryBody.github.mirrored, true);
+
+  // The per-IP limiter is checked before payload validation. Invalid payloads must
+  // still consume quota so malformed requests cannot bypass the route-level limit.
+  let rateLimited = false;
+  for (let i = 0; i < 230; i += 1) {
+    const response = await post({ invalid: true });
+    if (response.status === 429) {
+      rateLimited = true;
+      break;
+    }
+    assert.equal(response.status, 400, "payload inválido deve ser rejeitado antes do limite ser atingido");
+  }
+  assert.equal(rateLimited, true, "o limite por IP deve bloquear requisições após exceder a janela");
+  const afterLimit = await post({ invalid: true });
+  assert.equal(afterLimit.status, 429, "o limite deve continuar ativo para o IP durante a janela");
 });
