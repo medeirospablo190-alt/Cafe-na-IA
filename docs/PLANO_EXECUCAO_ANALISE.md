@@ -324,6 +324,14 @@ O contrato atual de envio e a outbox devem permanecer estáveis enquanto a anál
 - O teste de rota remove a cópia local de `analysis/latest.json` e confirma que a consulta GET recupera o relatório espelhado no GitHub.
 - Esta evidência é de teste automatizado com GitHub simulado; não substitui um teste ponta a ponta no Render/GitHub real ou em Android.
 
+
+### Validação complementar — recuperação do relatório
+
+- Commit `f7868a4e5c21ca797f8387d85f6e4013759f7e15`: execução GitHub Actions #176 concluída com sucesso.
+- Commit `055ab51ff9ad8e1d4c3fc83375d48f5df89a2572` (documentação): execução GitHub Actions #177 concluída com sucesso.
+- O teste de integração confirma a consulta do relatório depois de remover a cópia local, usando o GitHub simulado como fallback.
+- Ainda não foi feita uma chamada de produção ao gateway hospedado nem um teste de envio a partir do Android; não afirmar que credenciais e persistência reais foram verificadas.
+
 ### Limitações ainda abertas
 
 - O relatório automático analisa os arquivos presentes no diretório local do gateway. Se a hospedagem perder o disco local após reinício, a análise não reconstruirá automaticamente o histórico completo que só existe no GitHub. Confirmar a persistência do volume ou planejar uma leitura paginada do histórico remoto antes de afirmar comparação histórica completa.
