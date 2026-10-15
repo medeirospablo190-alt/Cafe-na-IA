@@ -369,7 +369,7 @@ async function handleBatch(req, res) {
           let historyNote = "Somente os lotes V3 disponíveis no disco local foram analisados.";
           try {
             report = await analyzeTracePath(analysisInput);
-            if (report.inputFiles <= 1 || report.warnings?.some((item) => item.code === "file_limit_reached")) {
+            if (report.totalRecords === 0 || report.inputFiles <= 1 || report.warnings?.some((item) => item.code === "file_limit_reached")) {
               try {
                 const recovered = await analyzeGitHubTraceHistory(gameId, placeId);
                 report = recovered.report;
