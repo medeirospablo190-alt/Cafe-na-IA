@@ -814,7 +814,7 @@ function securityHeaders(_req, res, next) {
   next();
 }
 
-function consumeRate(store, key, maxPerWindow, windowMs) {
+export function consumeRate(store, key, maxPerWindow, windowMs) {
   const now = Date.now();
   const current = store.get(key);
   if (current && now - current.windowStartedAt <= windowMs) {
