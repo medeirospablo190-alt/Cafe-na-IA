@@ -49,13 +49,13 @@ inventory-traces-v3/<gameId>/<placeId>/analysis/latest.json
 
 A resposta do envio inclui `analysis.generated` e contagens agregadas quando essa etapa conclui. A análise é best-effort: se ela falhar, o lote bruto e o manifesto já espelhados continuam sendo a fonte de verdade; o recibo informa a falha sem marcar o relatório como gerado.
 
-A geração percorre os JSON já salvos daquele jogo/local, ignora arquivos que não são batches Trace V3 e aplica os limites definidos nesta ferramenta. O relatório é refeito no encerramento de uma sessão, não em cada lote, para evitar muitas chamadas ao GitHub.
+A geração tenta primeiro os JSON no disco local. Se o resultado local não contiver registros úteis, parecer incompleto ou falhar, tenta reconstruir o histórico lendo os batches armazenados no GitHub. Essa reconstrução tem limites de até 1.000 arquivos e 30 MiB; também considera incompleta uma listagem de diretório que atinja 1.000 entradas, arquivos inválidos, lotes ausentes ou lotes incompatíveis. Nesses casos, `historyComplete` permanece `false` e o relatório inclui avisos. Esses limites evitam afirmar que um histórico parcial é completo. O relatório é refeito no encerramento de uma sessão, não em cada lote, para evitar muitas chamadas ao GitHub.
 
 O upload e o espelhamento dos lotes continuam sendo feitos pelo endpoint Trace V3 existente. A captura Lua, o contrato HTTP e o mecanismo de retry dos lotes permanecem compatíveis. A execução real no Android e a integração ponta a ponta ainda precisam ser validadas separadamente.
 
 
 ## Consultar o relatório pelo gateway
 
-A rota GET `/api/inventory-trace-v3/<gameId>/<placeId>/analysis` devolve o relatório mais recente, tentando o disco local e depois o GitHub. O relatório declara `historySource: "local_gateway_disk"` e `historyComplete: false`: isso evita afirmar que todo o histórico do GitHub foi reprocessado quando a disponibilidade do disco do host não está confirmada. Para análise histórica completa após reinicializações, é necessário configurar armazenamento persistente ou implementar uma reconstrução paginada a partir do GitHub.
+A rota GET `/api/inventory-trace-v3/<gameId>/<placeId>/analysis` devolve o relatório mais recente, tentando o disco local e depois o GitHub. O campo `historySource` indica se a fonte foi `local_gateway_disk` ou `github_reconstructed`; `historyComplete` só fica `true` quando a reconstrução não detecta os limites ou problemas descritos acima. O relatório é uma visão agregada, não uma garantia de que o gateway tem armazenamento persistente. Históricos que excedam os limites exigem paginação/arquivamento adicionais antes de poderem ser declarados completos.
 
 Reenvios do mesmo manifesto reutilizam o relatório já espelhado para evitar commits repetidos para a mesma sessão. Se a sessão ou os lotes mudarem, uma nova geração pode atualizar o relatório.
