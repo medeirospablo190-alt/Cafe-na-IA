@@ -93,6 +93,7 @@ export function installCollectorV3Routes(app) {
     handleBatch
   );
   app.get("/api/inventory-trace-v3/:gameId/:placeId/latest", securityHeaders, handleLatestManifest);
+  app.get("/api/inventory-trace-v3/:gameId/:placeId/analysis", securityHeaders, handleLatestAnalysis);
 
   setInterval(() => {
     const now = Date.now();
@@ -114,6 +115,31 @@ async function handleGetProfile(req, res) {
     profile: profile || emptyProfile(gameId),
     source: profile ? "stored" : "new",
   });
+}
+
+async function handleLatestAnalysis(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+  const gameId = safePositiveId(req.params.gameId);
+  const placeId = safePositiveId(req.params.placeId);
+  if (!gameId || !placeId) return jsonError(res, 400, "gameId/placeId inválido.");
+
+  const relative = `${gameId}/${placeId}/analysis/latest.json`;
+  const local = await readLocalText(path.join(TRACE_V3_DIR, relative));
+  if (local) {
+    res.type("application/json; charset=utf-8");
+    return res.send(local);
+  }
+
+  try {
+    const remote = await readGitHubText(`${TRACE_V3_GITHUB_BASE}/${relative}`);
+    if (remote) {
+      res.type("application/json; charset=utf-8");
+      return res.send(remote);
+    }
+  } catch (error) {
+    console.error("TRACE_V3_ANALYSIS_GITHUB_READ_ERROR", error?.message || error);
+  }
+  return jsonError(res, 404, "Nenhum relatório de análise V3 encontrado.");
 }
 
 async function handleLatestManifest(req, res) {
