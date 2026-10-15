@@ -204,6 +204,29 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   });
   assert.equal(invalidBatchTotalResponse.status, 400, "batchTotal menor que batchIndex deve ser rejeitado");
 
+  const excessiveBatchTotalResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchTotal: 261,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(excessiveBatchTotalResponse.status, 400, "batchTotal acima do limite deve ser rejeitado");
+
+  const excessiveRecordsResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "data",
+    records: Array.from({ length: 6001 }, () => ({ kind: "test" })),
+    remotes: [],
+  });
+  assert.equal(excessiveRecordsResponse.status, 413, "lote acima do limite de registros deve ser rejeitado");
+
   const firstBody = {
     ...common,
     batchIndex: 1,
