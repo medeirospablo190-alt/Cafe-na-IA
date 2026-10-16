@@ -1,0 +1,578 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-16T22:22:52.000Z",
+  "gameId": 47545,
+  "placeId": 8080952959,
+  "placeVersion": 293,
+  "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+  "batchIndex": 18,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 8058,
+  "records": [
+    {
+      "corr": 429,
+      "investigating": true,
+      "clock": 214.98526200199922,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "fb85cc18f7ec",
+      "sig": "104fe5ca7327",
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "contextRefs": [
+        "8196f3f8c529",
+        "77d6a53091f5",
+        "37c85ff8ddd8",
+        "216ef8f873fe"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466755390167236,
+          "type": "Vector3",
+          "x": 41.06692123413086,
+          "z": -71.0987777709961
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189587,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "SausagePizza",
+              "Id": 2004,
+              "OrderNumber": 3,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House3",
+                "type": "Instance",
+                "name": "House3",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "2": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2009,
+              "OrderNumber": 2,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House15",
+                "type": "Instance",
+                "name": "House15",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "3": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2010,
+              "OrderNumber": 2,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House9",
+                "type": "Instance",
+                "name": "House9",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "4": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2011,
+              "OrderNumber": 2,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House5",
+                "type": "Instance",
+                "name": "House5",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 4,
+            "type": "table",
+            "fields": {
+              "1": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "2": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "3": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "4": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "fb85cc18f7ec",
+      "triggerShape": "fb85cc18f7ec",
+      "parent": {
+        "path": "Workspace.GameService",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.GameService.AnimateBugs",
+            "name": "AnimateBugs",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguisherUnequiped",
+            "name": "ExtinguisherUnequiped",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguishFire",
+            "name": "ExtinguishFire",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.SpawnExtinguisherPart",
+            "name": "SpawnExtinguisherPart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetOrders",
+            "name": "GetOrders",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.GameService.SetAlarmEnabled",
+            "name": "SetAlarmEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartWireAnimation",
+            "name": "StartWireAnimation",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartOvenProgressBar",
+            "name": "StartOvenProgressBar",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.WrongOrderMessage",
+            "name": "WrongOrderMessage",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.AddPizzaToBackpack",
+            "name": "AddPizzaToBackpack",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ChangeCamera",
+            "name": "ChangeCamera",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.CloseBox",
+            "name": "CloseBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DestroyIngredient",
+            "name": "DestroyIngredient",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DraggingStarted",
+            "name": "DraggingStarted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DropTool",
+            "name": "DropTool",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.FoodMenuVisible",
+            "name": "FoodMenuVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetSoundFolder",
+            "name": "GetSoundFolder",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.GameService.NofityFoodOrderComplete",
+            "name": "NofityFoodOrderComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderChosen",
+            "name": "OrderChosen",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderCompleted",
+            "name": "OrderCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PizzaGivenToPlayer",
+            "name": "PizzaGivenToPlayer",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.TruckLassoEnabled",
+            "name": "TruckLassoEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PutInBox",
+            "name": "PutInBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.RecivedCustomerOrder",
+            "name": "RecivedCustomerOrder",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 429,
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "contextRefs": [
+        "77d6a53091f5",
+        "37c85ff8ddd8",
+        "216ef8f873fe",
+        "104fe5ca7327"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": -0.000012986178262508474,
+          "type": "Vector3",
+          "x": -0.000001179461492029077,
+          "z": -5.241320195636945e-7
+        },
+        "angularVelocity": {
+          "y": -6.962263881735153e-14,
+          "type": "Vector3",
+          "x": 0.00000101888053904986,
+          "z": -0.000002292800672876183
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466755390167236,
+          "type": "Vector3",
+          "x": 41.06692123413086,
+          "z": -71.0987777709961
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "273b33e49fdf",
+      "unix": 1792189587,
+      "clock": 214.98591851199944,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-16T22:26:28.722Z",
+  "contentChecksum": "BMZ-smP6DiuY0m0vBzIw",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 6088150,
+    "inboundListeners": 973,
+    "ackBytes": 6080092,
+    "queueBytes": 8058
+  }
+}
