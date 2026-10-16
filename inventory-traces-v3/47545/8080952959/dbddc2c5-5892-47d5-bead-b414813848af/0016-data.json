@@ -1,0 +1,4837 @@
+{
+  "schemaVersion": 3,
+  "type": "cafeina_universal_trace_v3_batch",
+  "collector": {
+    "version": "CAFEINA_UNIVERSAL_GAME_TRACE_V3_2_8",
+    "purpose": "adaptive_bidirectional_game_mapping"
+  },
+  "userId": "765329164",
+  "username": "capuccino40",
+  "capturedAt": "2026-10-16T22:22:52.000Z",
+  "gameId": 47545,
+  "placeId": 8080952959,
+  "placeVersion": 293,
+  "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+  "batchIndex": 16,
+  "batchTotal": null,
+  "batchKind": "data",
+  "payloadBytes": 80691,
+  "records": [
+    {
+      "path": "Workspace.Customers.CustomerTemplate.Head.Mesh.FaceFrontAttachment",
+      "source": "Workspace",
+      "contextRefs": [
+        "b2cd977b6629",
+        "4021232595d3",
+        "94cb8360426d",
+        "bbfd9fa602f3"
+      ],
+      "sig": "91291e33226f",
+      "corr": 369,
+      "unix": 1792189557,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "b2c7a5517869",
+          "effectTotal": 1,
+          "confidence": 10,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "runtime_remove:Vector3Value:FaceFrontAttachment",
+          "id": 22,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.PlayerChannel",
+          "age": 3.491834894999556,
+          "shape": "8847a1d6251f",
+          "importance": 53
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "attributes": [],
+      "name": "FaceFrontAttachment",
+      "className": "Vector3Value",
+      "clock": 184.76460591999967,
+      "kind": "workspace_removing",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 80
+    },
+    {
+      "corr": 369,
+      "investigating": true,
+      "clock": 184.78752404499937,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "394629a04870",
+      "sig": "7a1f009d21f7",
+      "contextRefs": [
+        "4021232595d3",
+        "94cb8360426d",
+        "bbfd9fa602f3",
+        "91291e33226f"
+      ],
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "unix": 1792189557,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": 103.48992156982422,
+          "z": -103.14952850341797
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "b2c7a5517869",
+          "effectTotal": 22,
+          "confidence": 0,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 12,
+          "method": "FireServer",
+          "effect": "remote:Workspace.GameService.RefreshOrderBoard",
+          "id": 22,
+          "reliability": 1,
+          "remote": "ReplicatedStorage.PlayerChannel",
+          "age": 3.5147850509993077,
+          "shape": "8847a1d6251f",
+          "importance": 53
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "SausagePizza",
+              "Id": 2004,
+              "OrderNumber": 3,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House3",
+                "type": "Instance",
+                "name": "House3",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "2": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2007,
+              "OrderNumber": 2,
+              "OrderType": "Golden",
+              "House": {
+                "path": "Workspace.Houses.House6",
+                "type": "Instance",
+                "name": "House6",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 2,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 2,
+            "type": "table",
+            "fields": {
+              "1": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "2": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "394629a04870",
+      "triggerShape": "394629a04870",
+      "parent": {
+        "path": "Workspace.GameService",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.GameService.AnimateBugs",
+            "name": "AnimateBugs",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguisherUnequiped",
+            "name": "ExtinguisherUnequiped",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguishFire",
+            "name": "ExtinguishFire",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.SpawnExtinguisherPart",
+            "name": "SpawnExtinguisherPart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetOrders",
+            "name": "GetOrders",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.GameService.SetAlarmEnabled",
+            "name": "SetAlarmEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartWireAnimation",
+            "name": "StartWireAnimation",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartOvenProgressBar",
+            "name": "StartOvenProgressBar",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.WrongOrderMessage",
+            "name": "WrongOrderMessage",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.AddPizzaToBackpack",
+            "name": "AddPizzaToBackpack",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ChangeCamera",
+            "name": "ChangeCamera",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.CloseBox",
+            "name": "CloseBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DestroyIngredient",
+            "name": "DestroyIngredient",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DraggingStarted",
+            "name": "DraggingStarted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DropTool",
+            "name": "DropTool",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.FoodMenuVisible",
+            "name": "FoodMenuVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetSoundFolder",
+            "name": "GetSoundFolder",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.GameService.NofityFoodOrderComplete",
+            "name": "NofityFoodOrderComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderChosen",
+            "name": "OrderChosen",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderCompleted",
+            "name": "OrderCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PizzaGivenToPlayer",
+            "name": "PizzaGivenToPlayer",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.TruckLassoEnabled",
+            "name": "TruckLassoEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PutInBox",
+            "name": "PutInBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.RecivedCustomerOrder",
+            "name": "RecivedCustomerOrder",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 369,
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "contextRefs": [
+        "94cb8360426d",
+        "bbfd9fa602f3",
+        "91291e33226f",
+        "7a1f009d21f7"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Fabric",
+        "velocity": {
+          "y": 0.000012980959581909701,
+          "type": "Vector3",
+          "x": -1.7164438759209588e-9,
+          "z": -3.454658781265607e-9
+        },
+        "angularVelocity": {
+          "y": -4.107316293718369e-14,
+          "type": "Vector3",
+          "x": -0.0000013931083913121256,
+          "z": 6.923174851181102e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": 103.48992156982422,
+          "z": -103.14952850341797
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "7c85c5e7764c",
+      "unix": 1792189557,
+      "clock": 184.7883553469992,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "velocity": {
+        "y": 0.000012980959581909701,
+        "type": "Vector3",
+        "x": 3.384454316801566e-7,
+        "z": 6.810241188759392e-7
+      },
+      "unix": 1792189559,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.0667548179626465,
+          "type": "Vector3",
+          "x": 103.48992156982422,
+          "z": -103.14952850341797
+        },
+        "userId": 765329164
+      },
+      "corr": 374,
+      "clock": 187.33080461699956,
+      "kind": "trajectory",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 26
+    },
+    {
+      "path": "Workspace.AllMountainDew.MountainDew.CurrentDragger",
+      "source": "Workspace",
+      "sig": "2e09901f0452",
+      "corr": 376,
+      "unix": 1792189560,
+      "contextRefs": [
+        "91291e33226f",
+        "7a1f009d21f7",
+        "7c85c5e7764c",
+        "6b08ee16ba0b"
+      ],
+      "attributes": [],
+      "name": "CurrentDragger",
+      "className": "ObjectValue",
+      "clock": 188.04869425199922,
+      "kind": "workspace_removing",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 80
+    },
+    {
+      "velocity": {
+        "y": 4.466845512390137,
+        "type": "Vector3",
+        "x": -14.331382751464844,
+        "z": -7.114168643951416
+      },
+      "unix": 1792189560,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.343371868133545,
+          "type": "Vector3",
+          "x": 94.35578918457031,
+          "z": -105.07423400878906
+        },
+        "userId": 765329164
+      },
+      "corr": 376,
+      "clock": 188.37309721999918,
+      "kind": "trajectory",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 26
+    },
+    {
+      "corr": 378,
+      "investigating": true,
+      "clock": 189.42633034499977,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "28821d5e7835",
+      "sig": "703dd191ea7f",
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "7c85c5e7764c",
+        "6b08ee16ba0b",
+        "2e09901f0452",
+        "a51fc3f60c6a"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189561,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Frame.Music",
+            "type": "Instance",
+            "name": "Music",
+            "className": "Sound"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          "Play",
+          {
+            "Looped": true
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Sound",
+            "type": "Instance"
+          },
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Looped": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 378,
+      "investigating": true,
+      "clock": 189.42701524099994,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "bef7a8a72918",
+      "sig": "18194e732c34",
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "6b08ee16ba0b",
+        "2e09901f0452",
+        "a51fc3f60c6a",
+        "703dd191ea7f"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189561,
+      "payload": {
+        "count": 3,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Frame.Bell_SFX",
+            "type": "Instance",
+            "name": "Bell_SFX",
+            "className": "Sound"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          "Play"
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "className": "Sound",
+            "type": "Instance"
+          },
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 378,
+      "investigating": true,
+      "clock": 189.42793586599964,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "semanticHash": "db691b17befe",
+      "sig": "d5d80737a6c8",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "2e09901f0452",
+        "a51fc3f60c6a",
+        "703dd191ea7f",
+        "18194e732c34"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189561,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.OldMan",
+            "type": "Instance",
+            "name": "OldMan",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.35,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.Out"
+          },
+          {
+            "Position": {
+              "y": -12.23552417755127,
+              "type": "Vector3",
+              "x": -59.00041198730469,
+              "z": -605.6655883789062
+            }
+          }
+        ]
+      },
+      "importance": 70,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": true
+    },
+    {
+      "semanticHash": "28821d5e7835",
+      "triggerShape": "28821d5e7835",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 378,
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "a51fc3f60c6a",
+        "703dd191ea7f",
+        "18194e732c34",
+        "d5d80737a6c8"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.000039078400732250884,
+          "type": "Vector3",
+          "x": -0.0000014222914614947513,
+          "z": 5.519425485545071e-7
+        },
+        "angularVelocity": {
+          "y": -6.52625971042653e-8,
+          "type": "Vector3",
+          "x": 5.325753704710223e-7,
+          "z": 0.0000013415154853646527
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "6035ec98e7e0",
+      "unix": 1792189561,
+      "clock": 189.42843893899953,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "bef7a8a72918",
+      "triggerShape": "bef7a8a72918",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 378,
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "703dd191ea7f",
+        "18194e732c34",
+        "d5d80737a6c8",
+        "6035ec98e7e0"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.000039078400732250884,
+          "type": "Vector3",
+          "x": -0.0000014222914614947513,
+          "z": 5.519425485545071e-7
+        },
+        "angularVelocity": {
+          "y": -6.52625971042653e-8,
+          "type": "Vector3",
+          "x": 5.325753704710223e-7,
+          "z": 0.0000013415154853646527
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "a3a47d59c91a",
+      "unix": 1792189561,
+      "clock": 189.42880284500006,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "db691b17befe",
+      "triggerShape": "64d1fdd40f4b",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 378,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "18194e732c34",
+        "d5d80737a6c8",
+        "6035ec98e7e0",
+        "a3a47d59c91a"
+      ],
+      "triggerKind": "shape+semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.000039078400732250884,
+          "type": "Vector3",
+          "x": -0.0000014222914614947513,
+          "z": 5.519425485545071e-7
+        },
+        "angularVelocity": {
+          "y": -6.52625971042653e-8,
+          "type": "Vector3",
+          "x": 5.325753704710223e-7,
+          "z": 0.0000013415154853646527
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466320991516113,
+          "type": "Vector3",
+          "x": 93.30606079101562,
+          "z": -107.04556274414062
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "b9d824f1a44d",
+      "unix": 1792189561,
+      "clock": 189.42918102199928,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "corr": 381,
+      "investigating": true,
+      "clock": 190.91806648999955,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "8192007b2b2b",
+      "sig": "5f144a638f6f",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "d5d80737a6c8",
+        "6035ec98e7e0",
+        "a3a47d59c91a",
+        "b9d824f1a44d"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.448872089385986,
+          "type": "Vector3",
+          "x": 93.30575561523438,
+          "z": -107.04576110839844
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189563,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.OldMan",
+            "type": "Instance",
+            "name": "OldMan",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.3,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.In"
+          },
+          {
+            "Position": {
+              "y": -13.23552417755127,
+              "type": "Vector3",
+              "x": -59.00041198730469,
+              "z": -605.6655883789062
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "8192007b2b2b",
+      "triggerShape": "8192007b2b2b",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 381,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "6035ec98e7e0",
+        "a3a47d59c91a",
+        "b9d824f1a44d",
+        "5f144a638f6f"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.6749003529548645,
+          "type": "Vector3",
+          "x": -0.0000032469445159222232,
+          "z": -0.0000018688164118429995
+        },
+        "angularVelocity": {
+          "y": 0.00004221142444293946,
+          "type": "Vector3",
+          "x": -9.701695944386302e-7,
+          "z": -0.0000010419618092782912
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.448872089385986,
+          "type": "Vector3",
+          "x": 93.30575561523438,
+          "z": -107.04576110839844
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "1121ec587bb9",
+      "unix": 1792189563,
+      "clock": 190.91864357299983,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "sig": "cc3e6d6eac2b",
+      "corr": 382,
+      "unix": 1792189563,
+      "contextRefs": [
+        "a3a47d59c91a",
+        "b9d824f1a44d",
+        "5f144a638f6f",
+        "1121ec587bb9"
+      ],
+      "object": {
+        "value": {
+          "path": "ReplicatedStorage.ZonesDisabled.FirstFloor",
+          "type": "Instance",
+          "name": "FirstFloor",
+          "className": "Part"
+        },
+        "path": "Workspace.Houses.House6.Tiny.Rooms.FirstFloor",
+        "source": "Workspace",
+        "className": "ObjectValue",
+        "parent": "Workspace.Houses.House6.Tiny.Rooms",
+        "attributes": [],
+        "name": "FirstFloor"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 191.13365424999938,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "104e36806914",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "557fb1d61b11",
+      "corr": 382,
+      "unix": 1792189563,
+      "contextRefs": [
+        "b9d824f1a44d",
+        "5f144a638f6f",
+        "1121ec587bb9",
+        "cc3e6d6eac2b"
+      ],
+      "object": {
+        "value": {
+          "path": "ReplicatedStorage.ZonesDisabled.Porch",
+          "type": "Instance",
+          "name": "Porch",
+          "className": "Part"
+        },
+        "path": "Workspace.Houses.House6.Tiny.Rooms.Porch",
+        "source": "Workspace",
+        "className": "ObjectValue",
+        "parent": "Workspace.Houses.House6.Tiny.Rooms",
+        "attributes": [],
+        "name": "Porch"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 191.13405977099956,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "ead1cfa65864",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "c01b51f662c2",
+      "corr": 382,
+      "unix": 1792189563,
+      "contextRefs": [
+        "5f144a638f6f",
+        "1121ec587bb9",
+        "cc3e6d6eac2b",
+        "557fb1d61b11"
+      ],
+      "object": {
+        "value": 10,
+        "path": "Workspace.Houses.House6.Tiny.Doors.FrontDoorMain.ClickDetector",
+        "source": "Workspace",
+        "className": "IntValue",
+        "parent": "Workspace.Houses.House6.Tiny.Doors.FrontDoorMain",
+        "attributes": [],
+        "name": "ClickDetector"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 191.1835887819998,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "6e7095f756e4",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "be04737f41f8",
+      "corr": 382,
+      "unix": 1792189563,
+      "contextRefs": [
+        "1121ec587bb9",
+        "cc3e6d6eac2b",
+        "557fb1d61b11",
+        "c01b51f662c2"
+      ],
+      "object": {
+        "value": 10,
+        "path": "Workspace.Houses.House6.Tiny.Window.ClickDetector",
+        "source": "Workspace",
+        "className": "IntValue",
+        "parent": "Workspace.Houses.House6.Tiny.Window",
+        "attributes": [],
+        "name": "ClickDetector"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 191.21699326099952,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "370d9290c556",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "corr": 382,
+      "investigating": true,
+      "clock": 191.23729961499976,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "17a24f57eb4c",
+      "sig": "8cd622772d28",
+      "remote": {
+        "path": "Workspace.Main.DisplaySystemMessage",
+        "name": "DisplaySystemMessage",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "cc3e6d6eac2b",
+        "557fb1d61b11",
+        "c01b51f662c2",
+        "be04737f41f8"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Freefall",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 14.445276260375977,
+          "type": "Vector3",
+          "x": 91.51811218261719,
+          "z": -105.87745666503906
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189563,
+      "payload": {
+        "count": 3,
+        "values": {
+          "2": {
+            "1": "PlayerUpgradedTheirHouse",
+            "2": "Girl",
+            "3": "JustA_girl404"
+          },
+          "3": false
+        }
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 3,
+        "args": [
+          {
+            "type": "nil"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "string"
+              },
+              "2": {
+                "type": "string"
+              },
+              "3": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "17a24f57eb4c",
+      "triggerShape": "17a24f57eb4c",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 382,
+      "remote": {
+        "path": "Workspace.Main.DisplaySystemMessage",
+        "name": "DisplaySystemMessage",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "557fb1d61b11",
+        "c01b51f662c2",
+        "be04737f41f8",
+        "8cd622772d28"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Air",
+        "velocity": {
+          "y": 24.359970092773438,
+          "type": "Vector3",
+          "x": -13.036154747009277,
+          "z": 9.274081230163574
+        },
+        "angularVelocity": {
+          "y": -1.7691487073898315,
+          "type": "Vector3",
+          "x": 0.00004306322807678953,
+          "z": 0.000051056162192253396
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": -0.7999061942100525,
+          "z": 0.6001250147819519
+        },
+        "state": "Enum.HumanoidStateType.Freefall",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 14.445276260375977,
+          "type": "Vector3",
+          "x": 91.51811218261719,
+          "z": -105.87745666503906
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "cad77c03d9da",
+      "unix": 1792189563,
+      "clock": 191.2380102399993,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "velocity": {
+        "y": 20.27247428894043,
+        "type": "Vector3",
+        "x": -12.800259590148926,
+        "z": 9.599571228027344
+      },
+      "unix": 1792189563,
+      "state": "Enum.HumanoidStateType.Freefall",
+      "player": {
+        "state": "Enum.HumanoidStateType.Freefall",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 14.90168285369873,
+          "type": "Vector3",
+          "x": 91.25018310546875,
+          "z": -105.67886352539062
+        },
+        "userId": 765329164
+      },
+      "corr": 382,
+      "clock": 191.2424658129994,
+      "kind": "trajectory",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 63
+    },
+    {
+      "corr": 384,
+      "investigating": true,
+      "clock": 192.02327872899968,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "628641437a6b",
+      "sig": "aa41f576ecb5",
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "be04737f41f8",
+        "8cd622772d28",
+        "cad77c03d9da",
+        "7bfcc04b53fa"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189564,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Frame.Music",
+            "type": "Instance",
+            "name": "Music",
+            "className": "Sound"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          "Stop",
+          {
+            "Looped": true
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Sound",
+            "type": "Instance"
+          },
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Looped": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 384,
+      "investigating": true,
+      "clock": 192.0240314899993,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "edf5a7e47e9b",
+      "sig": "fb82f0d86111",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "8cd622772d28",
+        "cad77c03d9da",
+        "7bfcc04b53fa",
+        "aa41f576ecb5"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189564,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.EvilElf",
+            "type": "Instance",
+            "name": "EvilElf",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.3,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.In"
+          },
+          {
+            "Position": {
+              "y": -13.332347869873047,
+              "type": "Vector3",
+              "x": -58.41943359375,
+              "z": -606.8275756835938
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 384,
+      "investigating": true,
+      "clock": 192.02502273999926,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "7cd65de9a147",
+      "sig": "6bec0d05bbfd",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "cad77c03d9da",
+        "7bfcc04b53fa",
+        "aa41f576ecb5",
+        "fb82f0d86111"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189564,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.Reindeer",
+            "type": "Instance",
+            "name": "Reindeer",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.3,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.In"
+          },
+          {
+            "Position": {
+              "y": -13.392361640930176,
+              "type": "Vector3",
+              "x": -60.16236877441406,
+              "z": -605.656982421875
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 384,
+      "investigating": true,
+      "clock": 192.02565747899916,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "b26084411315",
+      "sig": "199aaa437fcc",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "7bfcc04b53fa",
+        "aa41f576ecb5",
+        "fb82f0d86111",
+        "6bec0d05bbfd"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189564,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.Snowman",
+            "type": "Instance",
+            "name": "Snowman",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.3,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.In"
+          },
+          {
+            "Position": {
+              "y": -13.361383438110352,
+              "type": "Vector3",
+              "x": -57.83845520019531,
+              "z": -605.6771240234375
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "corr": 384,
+      "investigating": true,
+      "clock": 192.02629378099937,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "c0b2a1baa4a8",
+      "sig": "e96e3e99ec8d",
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "aa41f576ecb5",
+        "fb82f0d86111",
+        "6bec0d05bbfd",
+        "199aaa437fcc"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189564,
+      "payload": {
+        "count": 4,
+        "values": [
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole",
+            "type": "Instance",
+            "name": "Whac-A-Mole",
+            "className": "Model"
+          },
+          {
+            "path": "ReplicatedStorage.StreamingFurnitureStorage.Whac-A-Mole.Moles.Penguin",
+            "type": "Instance",
+            "name": "Penguin",
+            "className": "MeshPart"
+          },
+          {
+            "1": 0.3,
+            "2": "Enum.EasingStyle.Back",
+            "3": "Enum.EasingDirection.In"
+          },
+          {
+            "Position": {
+              "y": -13.541250228881836,
+              "type": "Vector3",
+              "x": -59.581390380859375,
+              "z": -606.8536376953125
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 4,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          },
+          {
+            "className": "MeshPart",
+            "type": "Instance"
+          },
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "type": "number"
+              },
+              "2": {
+                "enum": "EasingStyle",
+                "type": "EnumItem"
+              },
+              "3": {
+                "enum": "EasingDirection",
+                "type": "EnumItem"
+              }
+            }
+          },
+          {
+            "fieldCountAtLeast": 1,
+            "type": "table",
+            "fields": {
+              "Position": {
+                "type": "Vector3"
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "628641437a6b",
+      "triggerShape": "628641437a6b",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 384,
+      "remote": {
+        "path": "Workspace.Main.FurnitureSound",
+        "name": "FurnitureSound",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "fb82f0d86111",
+        "6bec0d05bbfd",
+        "199aaa437fcc",
+        "e96e3e99ec8d"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00018044257012661546,
+          "type": "Vector3",
+          "x": 2.3462045192718506,
+          "z": 15.826574325561523
+        },
+        "angularVelocity": {
+          "y": 0.000004669509053201182,
+          "type": "Vector3",
+          "x": 0.0000025098158857872477,
+          "z": 5.843565986651811e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.11895515024662018,
+          "z": 0.9928995966911316
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "de8e1f5c2214",
+      "unix": 1792189564,
+      "clock": 192.02691852099997,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "edf5a7e47e9b",
+      "triggerShape": "edf5a7e47e9b",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 384,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "6bec0d05bbfd",
+        "199aaa437fcc",
+        "e96e3e99ec8d",
+        "de8e1f5c2214"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00018044257012661546,
+          "type": "Vector3",
+          "x": 2.3462045192718506,
+          "z": 15.826574325561523
+        },
+        "angularVelocity": {
+          "y": 0.000004669509053201182,
+          "type": "Vector3",
+          "x": 0.0000025098158857872477,
+          "z": 5.843565986651811e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.11895515024662018,
+          "z": 0.9928995966911316
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "0cc96cc470d4",
+      "unix": 1792189564,
+      "clock": 192.02724070799923,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "7cd65de9a147",
+      "triggerShape": "7cd65de9a147",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 384,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "199aaa437fcc",
+        "e96e3e99ec8d",
+        "de8e1f5c2214",
+        "0cc96cc470d4"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00018044257012661546,
+          "type": "Vector3",
+          "x": 2.3462045192718506,
+          "z": 15.826574325561523
+        },
+        "angularVelocity": {
+          "y": 0.000004669509053201182,
+          "type": "Vector3",
+          "x": 0.0000025098158857872477,
+          "z": 5.843565986651811e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.11895515024662018,
+          "z": 0.9928995966911316
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "3ecca0ec7cfc",
+      "unix": 1792189564,
+      "clock": 192.0275273749994,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "b26084411315",
+      "triggerShape": "b26084411315",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 384,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "e96e3e99ec8d",
+        "de8e1f5c2214",
+        "0cc96cc470d4",
+        "3ecca0ec7cfc"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00018044257012661546,
+          "type": "Vector3",
+          "x": 2.3462045192718506,
+          "z": 15.826574325561523
+        },
+        "angularVelocity": {
+          "y": 0.000004669509053201182,
+          "type": "Vector3",
+          "x": 0.0000025098158857872477,
+          "z": 5.843565986651811e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.11895515024662018,
+          "z": 0.9928995966911316
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "4e2f5cfba7e7",
+      "unix": 1792189564,
+      "clock": 192.02781451099963,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "semanticHash": "c0b2a1baa4a8",
+      "triggerShape": "c0b2a1baa4a8",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 384,
+      "remote": {
+        "path": "Workspace.Main.TweenFurniture",
+        "name": "TweenFurniture",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "de8e1f5c2214",
+        "0cc96cc470d4",
+        "3ecca0ec7cfc",
+        "4e2f5cfba7e7"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00018044257012661546,
+          "type": "Vector3",
+          "x": 2.3462045192718506,
+          "z": 15.826574325561523
+        },
+        "angularVelocity": {
+          "y": 0.000004669509053201182,
+          "type": "Vector3",
+          "x": 0.0000025098158857872477,
+          "z": 5.843565986651811e-7
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.11895515024662018,
+          "z": 0.9928995966911316
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466750621795654,
+          "type": "Vector3",
+          "x": 90.90107727050781,
+          "z": -95.07801818847656
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "d3829b0311fd",
+      "unix": 1792189564,
+      "clock": 192.02809169800003,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "velocity": {
+        "y": 0.020479265600442886,
+        "type": "Vector3",
+        "x": -3.4278528690338135,
+        "z": 15.628482818603516
+      },
+      "unix": 1792189564,
+      "state": "Enum.HumanoidStateType.Running",
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466214656829834,
+          "type": "Vector3",
+          "x": 90.35417938232422,
+          "z": -90.60931396484375
+        },
+        "userId": 765329164
+      },
+      "corr": 384,
+      "clock": 192.28741549999995,
+      "kind": "trajectory",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 63
+    },
+    {
+      "corr": 385,
+      "investigating": true,
+      "clock": 192.60442070799945,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "8b6757bddf39",
+      "sig": "d5d4acfb5d5e",
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "contextRefs": [
+        "3ecca0ec7cfc",
+        "4e2f5cfba7e7",
+        "d3829b0311fd",
+        "8203c3cabb11"
+      ],
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 89.99259185791016,
+          "z": -85.76830291748047
+        },
+        "userId": 765329164
+      },
+      "unix": 1792189565,
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "1": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "SausagePizza",
+              "Id": 2004,
+              "OrderNumber": 3,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House3",
+                "type": "Instance",
+                "name": "House3",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "2": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2007,
+              "OrderNumber": 2,
+              "OrderType": "Golden",
+              "House": {
+                "path": "Workspace.Houses.House6",
+                "type": "Instance",
+                "name": "House6",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 2,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            },
+            "3": {
+              "CapsuleType": false,
+              "Phase": 2,
+              "Order": "PepperoniPizza",
+              "Id": 2009,
+              "OrderNumber": 2,
+              "OrderType": "Normal",
+              "House": {
+                "path": "Workspace.Houses.House15",
+                "type": "Instance",
+                "name": "House15",
+                "className": "Model"
+              },
+              "PresentType": false,
+              "Object": {
+                "path": "Workspace.Orders",
+                "type": "Instance",
+                "name": "Orders",
+                "className": "Model"
+              },
+              "IsSliced": false,
+              "PetPizzaType": false,
+              "Multiplier": 1,
+              "ItemType": false,
+              "IsGoldenSliced": false
+            }
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "fieldCountAtLeast": 3,
+            "type": "table",
+            "fields": {
+              "1": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "2": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "3": {
+                "fieldCountAtLeast": 14,
+                "type": "table",
+                "fields": {
+                  "CapsuleType": {
+                    "type": "boolean"
+                  },
+                  "Phase": {
+                    "type": "number"
+                  },
+                  "Order": {
+                    "type": "string"
+                  },
+                  "Id": {
+                    "type": "number"
+                  },
+                  "OrderNumber": {
+                    "type": "number"
+                  },
+                  "OrderType": {
+                    "type": "string"
+                  },
+                  "House": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "PresentType": {
+                    "type": "boolean"
+                  },
+                  "Object": {
+                    "className": "Model",
+                    "type": "Instance"
+                  },
+                  "IsSliced": {
+                    "type": "boolean"
+                  },
+                  "PetPizzaType": {
+                    "type": "boolean"
+                  },
+                  "Multiplier": {
+                    "type": "number"
+                  },
+                  "ItemType": {
+                    "type": "boolean"
+                  },
+                  "IsGoldenSliced": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "8b6757bddf39",
+      "triggerShape": "8b6757bddf39",
+      "parent": {
+        "path": "Workspace.GameService",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.GameService.AnimateBugs",
+            "name": "AnimateBugs",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguisherUnequiped",
+            "name": "ExtinguisherUnequiped",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ExtinguishFire",
+            "name": "ExtinguishFire",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.SpawnExtinguisherPart",
+            "name": "SpawnExtinguisherPart",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetOrders",
+            "name": "GetOrders",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.GameService.SetAlarmEnabled",
+            "name": "SetAlarmEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartWireAnimation",
+            "name": "StartWireAnimation",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.StartOvenProgressBar",
+            "name": "StartOvenProgressBar",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.WrongOrderMessage",
+            "name": "WrongOrderMessage",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.AddPizzaToBackpack",
+            "name": "AddPizzaToBackpack",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.ChangeCamera",
+            "name": "ChangeCamera",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.CloseBox",
+            "name": "CloseBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DestroyIngredient",
+            "name": "DestroyIngredient",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DraggingStarted",
+            "name": "DraggingStarted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.DropTool",
+            "name": "DropTool",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.FoodMenuVisible",
+            "name": "FoodMenuVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.GetSoundFolder",
+            "name": "GetSoundFolder",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.GameService.NofityFoodOrderComplete",
+            "name": "NofityFoodOrderComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderChosen",
+            "name": "OrderChosen",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.OrderCompleted",
+            "name": "OrderCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PizzaGivenToPlayer",
+            "name": "PizzaGivenToPlayer",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.TruckLassoEnabled",
+            "name": "TruckLassoEnabled",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.PutInBox",
+            "name": "PutInBox",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.GameService.RecivedCustomerOrder",
+            "name": "RecivedCustomerOrder",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 385,
+      "remote": {
+        "path": "Workspace.GameService.RefreshOrderBoard",
+        "name": "RefreshOrderBoard",
+        "className": "RemoteEvent",
+        "parent": "Workspace.GameService",
+        "attributes": []
+      },
+      "contextRefs": [
+        "4e2f5cfba7e7",
+        "d3829b0311fd",
+        "8203c3cabb11",
+        "d5d4acfb5d5e"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.000038949696318013594,
+          "type": "Vector3",
+          "x": 0.24355238676071167,
+          "z": 15.998106956481934
+        },
+        "angularVelocity": {
+          "y": 8.49865018854104e-14,
+          "type": "Vector3",
+          "x": -0.000001475305566600582,
+          "z": -0.0000011247261682001408
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0.015324918553233147,
+          "z": 0.9998825788497925
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 89.99259185791016,
+          "z": -85.76830291748047
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "04e706d0c129",
+      "unix": 1792189565,
+      "clock": 192.604991229,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "corr": 385,
+      "unix": 1792189565,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 90.10093688964844,
+          "z": -83.74322509765625
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "d3829b0311fd",
+        "8203c3cabb11",
+        "d5d4acfb5d5e",
+        "04e706d0c129"
+      ],
+      "kind": "prompt_triggered",
+      "clock": 192.84445445799975,
+      "prompt": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ProximityPrompt",
+        "source": "triggered",
+        "className": "ProximityPrompt",
+        "parent": "Workspace.Cars.Delivery Car.Driver",
+        "prompt": {
+          "enabled": true,
+          "lineOfSight": false,
+          "hold": 0,
+          "actionText": "",
+          "distance": 13,
+          "objectText": ""
+        },
+        "attributes": [],
+        "name": "ProximityPrompt"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 95
+    },
+    {
+      "corr": 385,
+      "contextRefs": [
+        "8203c3cabb11",
+        "d5d4acfb5d5e",
+        "04e706d0c129",
+        "73638fcb90d8"
+      ],
+      "unix": 1792189565,
+      "importance": 78,
+      "clock": 192.84505102099956,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 87,
+      "semanticHash": "76928bab89aa",
+      "automatedInvestigation": false,
+      "method": "FireServer",
+      "newResponseSemantic": false,
+      "sig": "34783a568948",
+      "investigating": true,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "newShape": true,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 90.10093688964844,
+          "z": -83.74322509765625
+        },
+        "userId": 765329164
+      },
+      "triggerContext": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ProximityPrompt",
+        "kind": "prompt_triggered",
+        "age": 0.001,
+        "category": "prompt_triggered"
+      },
+      "payload": {
+        "count": 0,
+        "values": []
+      },
+      "newResponseShape": false,
+      "kind": "remote_outbound",
+      "schema": {
+        "count": 0,
+        "args": []
+      }
+    },
+    {
+      "semanticHash": "76928bab89aa",
+      "triggerShape": "e9ab59f29ac4",
+      "parent": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+            "name": "Detector",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 385,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "contextRefs": [
+        "d5d4acfb5d5e",
+        "04e706d0c129",
+        "73638fcb90d8",
+        "34783a568948"
+      ],
+      "triggerKind": "shape+semantic",
+      "player": {
+        "floor": "Enum.Material.Pebble",
+        "velocity": {
+          "y": 0.00003895050394930877,
+          "type": "Vector3",
+          "x": -5.802316422887088e-7,
+          "z": 7.390258360828739e-7
+        },
+        "angularVelocity": {
+          "y": 3.9075561091960614e-14,
+          "type": "Vector3",
+          "x": -0.000001436616344108188,
+          "z": -0.0000011279350928816712
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 90.10093688964844,
+          "z": -83.74322509765625
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "9da52703721b",
+      "unix": 1792189565,
+      "clock": 192.84640164599932,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "corr": 385,
+      "unix": 1792189565,
+      "player": {
+        "state": "Enum.HumanoidStateType.Running",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 5.466728210449219,
+          "type": "Vector3",
+          "x": 90.10093688964844,
+          "z": -83.74322509765625
+        },
+        "userId": 765329164
+      },
+      "contextRefs": [
+        "04e706d0c129",
+        "73638fcb90d8",
+        "34783a568948",
+        "9da52703721b"
+      ],
+      "quality": 94,
+      "clock": 192.9139945099996,
+      "kind": "gui_activated",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "gui": {
+        "name": "TextButton",
+        "path": "Players.capuccino40.PlayerGui.ProximityPrompts.Prompt.TextButton",
+        "source": "PlayerGui",
+        "className": "TextButton",
+        "parent": "Players.capuccino40.PlayerGui.ProximityPrompts.Prompt",
+        "attributes": [],
+        "gui": {
+          "visible": true,
+          "text": "Button",
+          "size": {
+            "type": "UDim2",
+            "ys": 1,
+            "xs": 1,
+            "xo": 0,
+            "yo": 0
+          },
+          "position": {
+            "type": "UDim2",
+            "ys": 0,
+            "xs": 0,
+            "xo": 0,
+            "yo": 0
+          }
+        }
+      }
+    },
+    {
+      "investigationId": 12,
+      "contextRefs": [
+        "73638fcb90d8",
+        "34783a568948",
+        "9da52703721b",
+        "8bdc80b00397"
+      ],
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "sig": "99e456f408f3",
+      "corr": 386,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "frameDtMs": 16.68,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792189565,
+      "mode": "pending",
+      "clock": 193.0669375309999,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_scheduled",
+      "detail": "aguardando 1.6s"
+    },
+    {
+      "corr": 386,
+      "investigating": true,
+      "clock": 193.13161049999962,
+      "newSemantic": true,
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 99,
+      "semanticHash": "436cba22415d",
+      "sig": "8966a4755767",
+      "contextRefs": [
+        "34783a568948",
+        "9da52703721b",
+        "8bdc80b00397",
+        "99e456f408f3"
+      ],
+      "remote": {
+        "path": "Workspace.Main.SittingInCar",
+        "name": "SittingInCar",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "unix": 1792189565,
+      "correlationModel": "evidence_v2",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 3.6049771308898926,
+          "type": "Vector3",
+          "x": 88.29914093017578,
+          "z": -77.6125259399414
+        },
+        "userId": 765329164
+      },
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "76928bab89aa",
+          "effectTotal": 2,
+          "confidence": 16,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "remote:Workspace.Main.SittingInCar",
+          "id": 23,
+          "reliability": 1,
+          "remote": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+          "age": 0.28645265599971026,
+          "shape": "e9ab59f29ac4",
+          "importance": 78
+        }
+      ],
+      "payload": {
+        "count": 1,
+        "values": [
+          {
+            "path": "Workspace.Cars.Delivery Car",
+            "type": "Instance",
+            "name": "Delivery Car",
+            "className": "Model"
+          }
+        ]
+      },
+      "importance": 48,
+      "kind": "remote_inbound",
+      "schema": {
+        "count": 1,
+        "args": [
+          {
+            "className": "Model",
+            "type": "Instance"
+          }
+        ]
+      },
+      "newShape": false
+    },
+    {
+      "semanticHash": "436cba22415d",
+      "triggerShape": "436cba22415d",
+      "parent": {
+        "path": "Workspace.Main",
+        "attributes": [],
+        "children": [
+          {
+            "path": "Workspace.Main.LoadFaces",
+            "name": "LoadFaces",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ReportGlitch",
+            "name": "ReportGlitch",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.IsFriendsWithPlayer",
+            "name": "IsFriendsWithPlayer",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyAsset",
+            "name": "BuyAsset",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.BuyPetWithMoneyz",
+            "name": "BuyPetWithMoneyz",
+            "className": "BindableFunction"
+          },
+          {
+            "path": "Workspace.Main.FurnitureSound",
+            "name": "FurnitureSound",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.FilterString",
+            "name": "FilterString",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SubmitRating",
+            "name": "SubmitRating",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetAssetHistory",
+            "name": "GetAssetHistory",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.QuitTutorial",
+            "name": "QuitTutorial",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetCompletedTutorials",
+            "name": "GetCompletedTutorials",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.GivePaycheck",
+            "name": "GivePaycheck",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ThrowCoin",
+            "name": "ThrowCoin",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.SetWindowVisible",
+            "name": "SetWindowVisible",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowBoatButton",
+            "name": "ShowBoatButton",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ProductPurchaseComplete",
+            "name": "ProductPurchaseComplete",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.AssetUsed",
+            "name": "AssetUsed",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.SellItemsMode",
+            "name": "SellItemsMode",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.StartUpgradeCutscene",
+            "name": "StartUpgradeCutscene",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.ShowHouseKickList",
+            "name": "ShowHouseKickList",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetRatings",
+            "name": "GetRatings",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.RefreshJobsCompleted",
+            "name": "RefreshJobsCompleted",
+            "className": "RemoteEvent"
+          },
+          {
+            "path": "Workspace.Main.GetTutorialProgress",
+            "name": "GetTutorialProgress",
+            "className": "RemoteFunction"
+          },
+          {
+            "path": "Workspace.Main.FadeMusic",
+            "name": "FadeMusic",
+            "className": "RemoteEvent"
+          }
+        ]
+      },
+      "corr": 386,
+      "remote": {
+        "path": "Workspace.Main.SittingInCar",
+        "name": "SittingInCar",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Main",
+        "attributes": []
+      },
+      "contextRefs": [
+        "9da52703721b",
+        "8bdc80b00397",
+        "99e456f408f3",
+        "8966a4755767"
+      ],
+      "triggerKind": "semantic",
+      "player": {
+        "floor": "Enum.Material.Air",
+        "velocity": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "angularVelocity": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "moveDirection": {
+          "y": 0,
+          "type": "Vector3",
+          "x": 0,
+          "z": 0
+        },
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 3.6049771308898926,
+          "type": "Vector3",
+          "x": 88.29914093017578,
+          "z": -77.6125259399414
+        },
+        "jumpPower": 60,
+        "walkSpeed": 16,
+        "maxHealth": 100,
+        "userId": 765329164
+      },
+      "sig": "61fd27553f5e",
+      "unix": 1792189565,
+      "clock": 193.13228904099924,
+      "kind": "investigation_context",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100
+    },
+    {
+      "velocity": {
+        "y": -0.0015198588371276855,
+        "type": "Vector3",
+        "x": -0.0001888311526272446,
+        "z": 0.00017048700829036534
+      },
+      "unix": 1792189565,
+      "state": "Enum.HumanoidStateType.Seated",
+      "player": {
+        "state": "Enum.HumanoidStateType.Seated",
+        "character": true,
+        "health": 100,
+        "position": {
+          "y": 3.605257987976074,
+          "type": "Vector3",
+          "x": 88.29904174804688,
+          "z": -77.61274719238281
+        },
+        "userId": 765329164
+      },
+      "corr": 386,
+      "clock": 193.32801950999965,
+      "kind": "trajectory",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 63
+    },
+    {
+      "sig": "5e0adad97772",
+      "corr": 388,
+      "unix": 1792189566,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "76928bab89aa",
+          "effectTotal": 1,
+          "confidence": 23,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "runtime_added:Tool:SodaTemplate",
+          "id": 23,
+          "reliability": 1,
+          "remote": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+          "age": 1.5813619259997722,
+          "shape": "e9ab59f29ac4",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "99e456f408f3",
+        "8966a4755767",
+        "61fd27553f5e",
+        "ad256b3b652b"
+      ],
+      "object": {
+        "attributes": [],
+        "path": "Workspace.SodaTemplate",
+        "source": "Workspace",
+        "className": "Tool",
+        "parent": "Workspace",
+        "tool": {
+          "requiresHandle": true,
+          "canBeDropped": false
+        },
+        "name": "SodaTemplate"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 194.42651601999933,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "5294c4045fb2",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "sig": "b8402ad195d7",
+      "corr": 388,
+      "unix": 1792189566,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "76928bab89aa",
+          "effectTotal": 1,
+          "confidence": 23,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "runtime_added:StringValue:SodaName",
+          "id": 23,
+          "reliability": 1,
+          "remote": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+          "age": 1.582108436999988,
+          "shape": "e9ab59f29ac4",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "contextRefs": [
+        "8966a4755767",
+        "61fd27553f5e",
+        "ad256b3b652b",
+        "5e0adad97772"
+      ],
+      "object": {
+        "value": "YetiFlow",
+        "path": "Workspace.SodaTemplate.SodaName",
+        "source": "Workspace",
+        "className": "StringValue",
+        "parent": "Workspace.SodaTemplate",
+        "attributes": [],
+        "name": "SodaName"
+      },
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "clock": 194.42727279099927,
+      "kind": "workspace_added",
+      "runtimePattern": {
+        "hash": "05ad166327a5",
+        "count": 1,
+        "newPattern": true
+      },
+      "quality": 87
+    },
+    {
+      "investigationId": 12,
+      "contextRefs": [
+        "61fd27553f5e",
+        "ad256b3b652b",
+        "5e0adad97772",
+        "b8402ad195d7"
+      ],
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "sig": "fbc8f2fae04f",
+      "corr": 389,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "frameDtMs": 16.76,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792189567,
+      "mode": "pending",
+      "clock": 194.6718658639993,
+      "kind": "investigator_diag",
+      "stage": "yellow_timer_fired",
+      "detail": "timer disparou"
+    },
+    {
+      "investigationId": 12,
+      "contextRefs": [
+        "ad256b3b652b",
+        "5e0adad97772",
+        "b8402ad195d7",
+        "fbc8f2fae04f"
+      ],
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "sig": "82f8784a1e06",
+      "corr": 389,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "frameDtMs": 16.76,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792189567,
+      "mode": "pending",
+      "clock": 194.67203711399998,
+      "kind": "investigator_diag",
+      "stage": "execute_entered",
+      "detail": "avaliando risco"
+    },
+    {
+      "investigationId": 12,
+      "contextRefs": [
+        "5e0adad97772",
+        "b8402ad195d7",
+        "fbc8f2fae04f",
+        "82f8784a1e06"
+      ],
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "sig": "e21e00ab1eaa",
+      "corr": 389,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "frameDtMs": 16.76,
+      "state": "YELLOW",
+      "pressure": 0,
+      "unix": 1792189567,
+      "mode": "pending",
+      "clock": 194.67231133199948,
+      "kind": "investigator_diag",
+      "stage": "risk_blocked",
+      "detail": "stateful_effect"
+    },
+    {
+      "investigationId": 12,
+      "contextRefs": [
+        "b8402ad195d7",
+        "fbc8f2fae04f",
+        "82f8784a1e06",
+        "e21e00ab1eaa"
+      ],
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 100,
+      "sig": "a57679cd2f8a",
+      "corr": 389,
+      "remote": {
+        "path": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+        "name": "Detector",
+        "className": "RemoteEvent",
+        "parent": "Workspace.Cars.Delivery Car.Driver.ClickDetector",
+        "attributes": []
+      },
+      "frameDtMs": 16.76,
+      "state": "BLUE",
+      "pressure": 0,
+      "unix": 1792189567,
+      "mode": "passive",
+      "clock": 194.67300711400003,
+      "kind": "investigator_diag",
+      "stage": "blue_observing",
+      "detail": "observação segura"
+    },
+    {
+      "path": "Workspace.dava_m2407.Shortcut",
+      "source": "Workspace",
+      "contextRefs": [
+        "fbc8f2fae04f",
+        "82f8784a1e06",
+        "e21e00ab1eaa",
+        "a57679cd2f8a"
+      ],
+      "sig": "34f191841d15",
+      "corr": 390,
+      "unix": 1792189567,
+      "causeCandidates": [
+        {
+          "distinctEffects": 1,
+          "semantic": "76928bab89aa",
+          "effectTotal": 1,
+          "confidence": 17,
+          "relationStage": "candidate",
+          "support": 1,
+          "timingConsistency": 1,
+          "trustedSupport": 1,
+          "baseline": 0,
+          "method": "FireServer",
+          "effect": "runtime_remove:Tool:Shortcut",
+          "id": 23,
+          "reliability": 1,
+          "remote": "Workspace.Cars.Delivery Car.Driver.ClickDetector.Detector",
+          "age": 2.4904186449994086,
+          "shape": "e9ab59f29ac4",
+          "importance": 78
+        }
+      ],
+      "correlationModel": "evidence_v2",
+      "attributes": [],
+      "name": "Shortcut",
+      "className": "Tool",
+      "clock": 195.33556372799922,
+      "kind": "workspace_removing",
+      "runId": "dbddc2c5-5892-47d5-bead-b414813848af",
+      "quality": 80
+    }
+  ],
+  "remotes": [],
+  "serverReceivedAt": "2026-10-16T22:26:11.631Z",
+  "contentChecksum": "9aRU1d9KBHzQLfmgTFOy",
+  "stats": {
+    "pressure": 0,
+    "valueWatchers": 850,
+    "totalBytes": 6011071,
+    "inboundListeners": 973,
+    "ackBytes": 5930380,
+    "queueBytes": 80691
+  }
+}
