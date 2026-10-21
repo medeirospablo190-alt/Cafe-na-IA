@@ -1,10 +1,10 @@
 --==============================================================--
 -- CAFEINA • UNIVERSAL GAME TRACE LOCAL V1.0
--- Adaptive, bidirectional, persistent-per-game collector.
+-- Passive observer with local-only JSON storage; no network requests.
 --
 -- DESIGN RULES
 --  1) Observe inbound AND client->server remote calls without changing their arguments.
---  2) Never invent unknown remote calls; active tests may replay only previously observed low-impact FireServer calls after generic risk gates.
+--  2) Never replay remote calls; active tests are disabled in local-only mode.
 --  3) Exact duplicates are suppressed; repeated noise is counted, not stored.
 --  4) Knowledge is scoped by game.GameId. A different game starts fresh.
 --  5) New/high-interest remote shapes receive temporary deeper observation.
@@ -13,11 +13,11 @@
 --  8) Collection adapts to novelty yield instead of self-modifying code.
 --  9) Static scans are incremental and time-budgeted to protect mobile FPS.
 -- 10) Backpressure reduces low-value collection before memory can grow.
--- 11) Uploads are coalesced; tiny batches are not flushed every UI tick.
+-- 11) Records are coalesced into local JSON batch files.
 -- 12) One manifest slot is always reserved; batch exhaustion cannot deadlock finalization.
 -- 13) 96 MB = soft budget, 128 MB = protection, 150 MB = hard stop.
--- 14) A batch is acknowledged only after the server confirms GitHub mirroring.
--- 15) Historical batches are append-only/idempotent on the V3 server route.
+-- 14) A batch is acknowledged only after the local file is written successfully.
+-- 15) Each batch is stored as a separate JSON file in the local folder.
 -- 16) The UI stays compact and can minimize to a draggable investigation-status icon.
 -- 17) A bounded circular context buffer is kept in memory only to build action bundles.
 -- 18) Semantic novelty is learned independently from raw argument shapes.
@@ -30,8 +30,8 @@
 -- 25) RED/BLUE quarantine player input without changing Humanoid/Camera state; the CAFEINA icon remains an emergency escape.
 -- 26) Controlled active tests are bounded, one-at-a-time, and skipped when side-effect evidence or pressure makes replay unsafe.
 -- 27) Each investigation emits one action bundle with prelude, before/mid/after state and a compact diff.
--- 28) Upload retries preserve the exact in-flight body so a lost ACK cannot rebuild a conflicting batch.
--- 29) Upload/cache failures are classified and surfaced by a compact on-screen diagnostic panel.
+-- 28) Local batch files are written before queued records are acknowledged.
+-- 29) Local save failures are surfaced by a compact on-screen diagnostic panel.
 --==============================================================--
 
 local Players = game:GetService("Players")
@@ -1994,13 +1994,11 @@ kickUpload = function()
                 S.serverReady = true
                 U.noteUploadError("local_write", err, batch.index)
                 S.uploading = false
-                if mainButton then mainButton.Text = "ERRO • SALVAMENTO LOCAL" end
-                return
+                    return
             end
             batch.body = encoded
             acknowledgeBatch(batch)
             S.serverReady = true
-            if mainButton and S.running then mainButton.Text = "ENCERRAR + SALVAR" end
             task.wait()
         end
         S.uploading = false
