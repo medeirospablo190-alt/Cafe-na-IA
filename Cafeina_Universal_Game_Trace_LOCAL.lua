@@ -172,7 +172,7 @@ local C = {
 -- EXECUTOR CAPABILITIES
 --==============================================================--
 
-local function pick(...)
+function pick(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         if type(v) == "function" then return v end
@@ -202,7 +202,7 @@ local S -- forward declaration used by local-storage helpers
 --==============================================================--
 
 local LOCAL_FOLDER = "dados do coletor"
-local function ensureLocalFolder()
+function ensureLocalFolder()
     if not WRITEFILE then return false, "writefile indisponível no executor" end
     if not MAKEFOLDER then return false, "makefolder indisponível no executor" end
     if ISFOLDER then
@@ -218,7 +218,7 @@ local function ensureLocalFolder()
     return false, tostring(err or "não foi possível criar a pasta local")
 end
 
-local function localFileName(kind, index)
+function localFileName(kind, index)
     local gameId = tostring(S.runGameId or game.GameId):gsub("[^%w_%-]", "_")
     local runId = tostring(S.runId or "sem_sessao"):gsub("[^%w_%-]", "_")
     if kind == "lote" then
@@ -227,7 +227,7 @@ local function localFileName(kind, index)
     return LOCAL_FOLDER .. "/" .. gameId .. "_" .. runId .. "_resumo.json"
 end
 
-local function writeLocalJson(path, value)
+function writeLocalJson(path, value)
     local ready, folderErr = ensureLocalFolder()
     if not ready then return false, folderErr end
     local encodedOk, encoded = pcall(HttpService.JSONEncode, HttpService, value)
@@ -241,32 +241,32 @@ end
 -- SAFE SERIALIZATION + STABLE SIGNATURES
 --==============================================================--
 
-local function iso()
+function iso()
     local ok, value = pcall(function() return DateTime.now():ToIsoDate() end)
     return ok and value or tostring(os.time())
 end
 
-local function pathOf(x)
+function pathOf(x)
     if typeof(x) ~= "Instance" then return tostring(x) end
     local ok, value = pcall(function() return x:GetFullName() end)
     return ok and value or (x.ClassName .. ":" .. x.Name)
 end
 
-local function bufferLength(v)
+function bufferLength(v)
     if typeof(v) ~= "buffer" or type(buffer) ~= "table" or type(buffer.len) ~= "function" then return nil end
     local ok, n = pcall(buffer.len, v)
     if not ok or type(n) ~= "number" or n < 0 then return nil end
     return math.floor(n)
 end
 
-local function bufferByte(v, index)
+function bufferByte(v, index)
     if type(buffer) ~= "table" or type(buffer.readu8) ~= "function" then return nil end
     local ok, b = pcall(buffer.readu8, v, index)
     if not ok or type(b) ~= "number" then return nil end
     return math.clamp(math.floor(b), 0, 255)
 end
 
-local function bufferLengthBucket(n)
+function bufferLengthBucket(n)
     n = tonumber(n)
     if not n then return "unknown" end
     if n <= 8 then return "0-8" end
@@ -280,7 +280,7 @@ local function bufferLengthBucket(n)
     return "1025+"
 end
 
-local function bufferFingerprint(v)
+function bufferFingerprint(v)
     local len = bufferLength(v)
     if not len then return { type = "buffer", readable = false, repr = tostring(v) } end
     local sampleTarget = math.min(len, C.BUFFER_SAMPLE_BYTES)
@@ -328,13 +328,13 @@ local function bufferFingerprint(v)
     }
 end
 
-local function bufferShallow(v)
+function bufferShallow(v)
     local len = bufferLength(v)
     if len then return { type = "buffer", length = len, lengthBucket = bufferLengthBucket(len) } end
     return { type = "buffer", readable = false, repr = tostring(v) }
 end
 
-local function bufferSemanticToken(v)
+function bufferSemanticToken(v)
     local len = bufferLength(v)
     if not len then return "BUF:unknown" end
     local b0 = bufferByte(v, 0) or 0
@@ -342,7 +342,7 @@ local function bufferSemanticToken(v)
     return string.format("BUF:%s:%02x%02x", bufferLengthBucket(len), b0, b1)
 end
 
-local function ser(v, depth, seen)
+function ser(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
     if depth > C.MAX_DEPTH then return "<max_depth>" end
@@ -386,12 +386,12 @@ local function ser(v, depth, seen)
     return tostring(v)
 end
 
-local function attrs(inst)
+function attrs(inst)
     local ok, value = pcall(function() return inst:GetAttributes() end)
     return ok and ser(value) or {}
 end
 
-local function canon(v, depth, seen, shapeOnly)
+function canon(v, depth, seen, shapeOnly)
     depth = depth or 0
     seen = seen or {}
     if depth > C.MAX_DEPTH then return "D" end
@@ -460,7 +460,7 @@ local function canon(v, depth, seen, shapeOnly)
     return shapeOnly and ("X:" .. t) or ("X:" .. t .. ":" .. tostring(v))
 end
 
-local function hashText(text)
+function hashText(text)
     local h1, h2 = 216613, 131071
     for i = 1, #text do
         local b = string.byte(text, i)
@@ -470,18 +470,18 @@ local function hashText(text)
     return string.format("%06x%06x", h1, h2)
 end
 
-local function signature(kind, key, value, shapeOnly)
+function signature(kind, key, value, shapeOnly)
     return hashText(tostring(kind) .. "\31" .. tostring(key or "") .. "\31" .. canon(value, 0, {}, shapeOnly == true))
 end
 
-local function tagsOf(inst)
+function tagsOf(inst)
     local ok, value = pcall(function() return CollectionService:GetTags(inst) end)
     if not ok or type(value) ~= "table" or #value == 0 then return nil end
     table.sort(value)
     return value
 end
 
-local function packed(args)
+function packed(args)
     local n = tonumber(args and args.n) or 0
     local out = { count = n, values = {} }
     local lim = math.min(n, C.MAX_ARGS)
@@ -490,7 +490,7 @@ local function packed(args)
     return out
 end
 
-local function packedCanon(args, shapeOnly)
+function packedCanon(args, shapeOnly)
     local n = tonumber(args and args.n) or 0
     local parts = { tostring(n), "[" }
     local lim = math.min(n, C.MAX_ARGS)
@@ -503,7 +503,7 @@ local function packedCanon(args, shapeOnly)
     return table.concat(parts)
 end
 
-local function semanticNumber(v)
+function semanticNumber(v)
     if v ~= v then return "N:nan" end
     if v == math.huge then return "N:inf" end
     if v == -math.huge then return "N:-inf" end
@@ -522,13 +522,13 @@ local function semanticNumber(v)
     return "N:" .. (v < 0 and "-" or "+") .. bucket
 end
 
-local function semanticString(v)
+function semanticString(v)
     local text = tostring(v)
     if #text <= C.SEMANTIC_MAX_STRING then return "S:" .. text end
     return "S:" .. string.sub(text, 1, math.floor(C.SEMANTIC_MAX_STRING / 2)) .. "#len=" .. tostring(#text)
 end
 
-local function semanticCanon(v, depth, seen)
+function semanticCanon(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
     if depth > 3 then return "D" end
@@ -574,7 +574,7 @@ local function semanticCanon(v, depth, seen)
     return "X:" .. t
 end
 
-local function packedSemantic(args)
+function packedSemantic(args)
     local n = tonumber(args and args.n) or 0
     local parts = { tostring(n), "[" }
     local lim = math.min(n, C.MAX_ARGS)
@@ -591,15 +591,15 @@ end
 -- NETWORK
 --==============================================================--
 
-local function rawRequest(options)
+function rawRequest(options)
     return false, nil, "modo local: rede desativada"
 end
 
-local function getJson(url)
+function getJson(url)
     return false, nil, "modo local: rede desativada"
 end
 
-local function postRaw(url, body)
+function postRaw(url, body)
     return false, nil, "modo local: rede desativada"
 end
 
@@ -608,7 +608,7 @@ end
 -- STATE + PROFILE MEMORY
 --==============================================================--
 
-local function arrayToSet(list)
+function arrayToSet(list)
     local out = {}
     if type(list) == "table" then
         for _, value in ipairs(list) do out[tostring(value)] = true end
@@ -869,18 +869,18 @@ U.clearActiveUploadError = function()
     if not S.uploadBlocked then S.lastUploadError = nil end
 end
 
-local function bump(tbl, key, amount)
+function bump(tbl, key, amount)
     tbl[key] = (tbl[key] or 0) + (amount or 1)
 end
 
-local function addBoundedDelta(array, set, value, cap)
+function addBoundedDelta(array, set, value, cap)
     value = tostring(value)
     if set[value] or #array >= cap then return end
     set[value] = true
     array[#array + 1] = value
 end
 
-local function strategyFor(category)
+function strategyFor(category)
     local state = S.strategy[category]
     if state then return state end
     local prior = S.profile and S.profile.strategy and S.profile.strategy[category]
@@ -893,7 +893,7 @@ local function strategyFor(category)
     return state
 end
 
-local function tuneStrategy(state)
+function tuneStrategy(state)
     if state.observed < 50 or state.observed % 50 ~= 0 then return end
     local novelty = state.novel / math.max(1, state.observed)
     if novelty < 0.01 then
@@ -907,14 +907,14 @@ end
 
 local setInputQuarantine
 
-local function pressureLevel()
+function pressureLevel()
     if S.totalBytes >= C.HARD_BYTES or S.queueBytes >= C.QUEUE_HARD_BYTES then return 3 end
     if S.totalBytes >= C.PROTECT_BYTES or S.queueBytes >= C.QUEUE_SOFT_BYTES or S.frameDt > 0.055 then return 2 end
     if S.totalBytes >= C.SOFT_BYTES or S.queueBytes >= C.QUEUE_SOFT_BYTES * 0.5 or S.frameDt > 0.038 then return 1 end
     return 0
 end
 
-local function adaptiveAllow(category, priority, novel, bypassSampling)
+function adaptiveAllow(category, priority, novel, bypassSampling)
     local st = strategyFor(category)
     st.observed = st.observed + 1
     if novel then st.novel = st.novel + 1 end
@@ -938,12 +938,12 @@ local function adaptiveAllow(category, priority, novel, bypassSampling)
     return true
 end
 
-local function rememberRecent(ref)
+function rememberRecent(ref)
     S.recentRefs[#S.recentRefs + 1] = ref
     if #S.recentRefs > 10 then table.remove(S.recentRefs, 1) end
 end
 
-local function contextRefs()
+function contextRefs()
     local out = {}
     local first = math.max(1, #S.recentRefs - 3)
     for i = first, #S.recentRefs do out[#out + 1] = S.recentRefs[i] end
@@ -956,7 +956,7 @@ local TIMELINE_CATEGORIES = {
     prompt_triggered = true, gui_interaction = true, gui_state = true, character = true,
 }
 
-local function timelineIdentity(category, object)
+function timelineIdentity(category, object)
     object = type(object) == "table" and object or {}
     local row = {
         clock = os.clock() - S.startClock, category = category, kind = tostring(object.kind or category),
@@ -980,7 +980,7 @@ local function timelineIdentity(category, object)
     return row
 end
 
-local function noteTimeline(category, object)
+function noteTimeline(category, object)
     if not TIMELINE_CATEGORIES[category] then return end
     local now = os.clock() - S.startClock
     S.recentTimeline[#S.recentTimeline + 1] = timelineIdentity(category, object)
@@ -990,7 +990,7 @@ local function noteTimeline(category, object)
     end
 end
 
-local function timelineSnapshot(sinceClock)
+function timelineSnapshot(sinceClock)
     local out = {}
     local since = tonumber(sinceClock) or ((os.clock() - S.startClock) - C.TIMELINE_SECONDS)
     for _, row in ipairs(S.recentTimeline) do
@@ -999,7 +999,7 @@ local function timelineSnapshot(sinceClock)
     return out
 end
 
-local function recentDirectInteraction(maxAge)
+function recentDirectInteraction(maxAge)
     local now = os.clock() - S.startClock
     local limit = tonumber(maxAge) or C.INTERACTION_CONTEXT_SECONDS
     for i = #S.recentTimeline, 1, -1 do
@@ -1019,7 +1019,7 @@ local function recentDirectInteraction(maxAge)
     return nil
 end
 
-local function modelProtocol(direction, remotePath, method, shapeHash, semanticHash)
+function modelProtocol(direction, remotePath, method, shapeHash, semanticHash)
     local key = tostring(direction) .. "|" .. tostring(remotePath) .. "|" .. tostring(method)
     local row = S.protocolModels[key]
     if not row then
@@ -1053,7 +1053,7 @@ local function modelProtocol(direction, remotePath, method, shapeHash, semanticH
     end
 end
 
-local function fieldModelTouch(streamKey, fieldPath, value)
+function fieldModelTouch(streamKey, fieldPath, value)
     local key = hashText("field|" .. tostring(streamKey) .. "|" .. tostring(fieldPath))
     local row = S.argumentFields[key]
     if not row then
@@ -1077,7 +1077,7 @@ local function fieldModelTouch(streamKey, fieldPath, value)
     end
 end
 
-local function observeArgumentFields(remotePath, method, args, namespace)
+function observeArgumentFields(remotePath, method, args, namespace)
     local stream = tostring(namespace or "out") .. "|" .. tostring(remotePath) .. "|" .. tostring(method)
     local n = math.min(tonumber(args and args.n) or 0, C.ACTIVE_TEST_MAX_ARGS)
     for i = 1, n do
@@ -1094,7 +1094,7 @@ local function observeArgumentFields(remotePath, method, args, namespace)
     end
 end
 
-local function applyProfile(profile)
+function applyProfile(profile)
     profile = type(profile) == "table" and profile or {}
     S.profile = profile
     S.profileLow = arrayToSet(profile.knownLowValueHashes)
@@ -1111,7 +1111,7 @@ local function applyProfile(profile)
     S.profileReady = true
 end
 
-local function semanticStatus(remotePath, method, args, namespace)
+function semanticStatus(remotePath, method, args, namespace)
     namespace = tostring(namespace or "call")
     local semanticHash = hashText("semantic\31" .. namespace .. "\31" .. tostring(remotePath) .. "\31" ..
         tostring(method) .. "\31" .. packedSemantic(args))
@@ -1122,7 +1122,7 @@ local function semanticStatus(remotePath, method, args, namespace)
     return semanticHash, isNew, remoteKey
 end
 
-local function rememberSemantic(semanticHash, remoteKey)
+function rememberSemantic(semanticHash, remoteKey)
     if not semanticHash or S.sessionSemantic[semanticHash] then return end
     S.sessionSemantic[semanticHash] = true
     S.profileSemantic[semanticHash] = true
@@ -1131,13 +1131,13 @@ local function rememberSemantic(semanticHash, remoteKey)
     S.smartStats.semanticNovel = (S.smartStats.semanticNovel or 0) + 1
 end
 
-local function rememberShape(shapeHash)
+function rememberShape(shapeHash)
     if not shapeHash or S.profileShape[shapeHash] then return end
     S.profileShape[shapeHash] = true
     addBoundedDelta(S.deltaShape, S.deltaShapeSet, shapeHash, C.DELTA_SHAPE_CAP)
 end
 
-local function loadRemoteProfile(preserveOnFailure)
+function loadRemoteProfile(preserveOnFailure)
     if not REQUEST then
         if not preserveOnFailure then applyProfile({}) end
         return false, "no_request"
@@ -1155,7 +1155,7 @@ end
 -- PLAYER / OBJECT SNAPSHOTS
 --==============================================================--
 
-local function playerContext(full)
+function playerContext(full)
     local ch = LP.Character
     local out = { userId = LP.UserId, character = ch ~= nil }
     if not ch then return out end
@@ -1182,7 +1182,7 @@ local function playerContext(full)
     return out
 end
 
-local function normalizeDynamicSegment(segment)
+function normalizeDynamicSegment(segment)
     local text = tostring(segment or "")
     if #text >= 8 and string.match(text, "^%d+$") then return "<id>" end
     local compact = string.gsub(text, "%-", "")
@@ -1192,7 +1192,7 @@ end
 
 local NORMALIZED_CHARACTER_ROOT = setmetatable({}, { __mode = "k" })
 
-local function normalizedPath(inst)
+function normalizedPath(inst)
     if typeof(inst) ~= "Instance" then return tostring(inst) end
     local raw = pathOf(inst)
     local top = inst
@@ -1220,11 +1220,11 @@ local function normalizedPath(inst)
     return table.concat(parts, ".")
 end
 
-local function isRemote(x)
+function isRemote(x)
     return x:IsA("RemoteEvent") or x:IsA("RemoteFunction") or x:IsA("UnreliableRemoteEvent")
 end
 
-local function remoteDesc(r)
+function remoteDesc(r)
     return {
         path = pathOf(r), name = r.Name, className = r.ClassName,
         parent = r.Parent and pathOf(r.Parent) or nil,
@@ -1232,13 +1232,13 @@ local function remoteDesc(r)
     }
 end
 
-local function valueSnap(v)
+function valueSnap(v)
     local out = { path = pathOf(v), name = v.Name, className = v.ClassName, attributes = attrs(v) }
     pcall(function() out.value = ser(v.Value) end)
     return out
 end
 
-local function obj(inst, source, cachedAttrs)
+function obj(inst, source, cachedAttrs)
     local out = {
         source = source, path = pathOf(inst), name = inst.Name, className = inst.ClassName,
         parent = inst.Parent and pathOf(inst.Parent) or nil, attributes = cachedAttrs or attrs(inst),
@@ -1285,7 +1285,7 @@ local LOW_VALUE_REMOTE_TERMS = {
     "analytics", "footstep", "particle", "camera", "soundeffect", "console",
 }
 
-local function importanceScore(remotePath, method, newShape, className, newSemantic, newResponseShape, newResponseSemantic)
+function importanceScore(remotePath, method, newShape, className, newSemantic, newResponseShape, newResponseSemantic)
     local score = method == "InvokeServer" and 50 or (method == "FireServer" and 42 or 34)
     if newShape then score = score + 22 end
     if newSemantic then score = score + 14 end
@@ -1304,7 +1304,7 @@ local function importanceScore(remotePath, method, newShape, className, newSeman
     return math.clamp(score, 0, 100)
 end
 
-local function schemaOf(v, depth, seen)
+function schemaOf(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
     local t = typeof(v)
@@ -1332,7 +1332,7 @@ local function schemaOf(v, depth, seen)
     return { type = t }
 end
 
-local function packedSchema(args)
+function packedSchema(args)
     local n = tonumber(args and args.n) or 0
     local out = { count = n, args = {} }
     local lim = math.min(n, C.MAX_ARGS)
@@ -1364,7 +1364,7 @@ local BEHAVIOR_CATEGORIES = {
     character = true,
 }
 
-local function pruneCorrelationWindows()
+function pruneCorrelationWindows()
     local now = os.clock()
     local out = {}
     for _, window in ipairs(S.correlationWindows) do
@@ -1373,7 +1373,7 @@ local function pruneCorrelationWindows()
     S.correlationWindows = out
 end
 
-local function effectIdentity(category, object)
+function effectIdentity(category, object)
     object = type(object) == "table" and object or {}
     if category == "remote_inbound" then
         return "remote:" .. tostring(object.remote and object.remote.path or "?")
@@ -1398,7 +1398,7 @@ local function effectIdentity(category, object)
 end
 
 
-local function pathInsidePlayerCharacter(path)
+function pathInsidePlayerCharacter(path)
     local text = tostring(path or "")
     if text == "" then return false end
     local ok, players = pcall(function() return Players:GetPlayers() end)
@@ -1412,7 +1412,7 @@ local function pathInsidePlayerCharacter(path)
     return false
 end
 
-local function correlationEffectReliability(category, object)
+function correlationEffectReliability(category, object)
     if category ~= "runtime_added" and category ~= "runtime_remove" then return 1 end
     object = type(object) == "table" and object or {}
     local o = type(object.object) == "table" and object.object or {}
@@ -1424,7 +1424,7 @@ local function correlationEffectReliability(category, object)
     return 1
 end
 
-local function correlationMetrics(evidence)
+function correlationMetrics(evidence)
     if type(evidence) ~= "table" then
         return { baseline = 0, total = 0, confidence = 0, stage = "candidate", trustedSupport = 0 }
     end
@@ -1475,7 +1475,7 @@ local function correlationMetrics(evidence)
     }
 end
 
-local function relationStageForCandidate(remotePath, shapeHash, semanticHash)
+function relationStageForCandidate(remotePath, shapeHash, semanticHash)
     local rank = { weak_context = 0, candidate = 1, repeated = 2, confirmed = 3 }
     local best = nil
     for _, row in pairs(S.correlationEvidence) do
@@ -1489,7 +1489,7 @@ local function relationStageForCandidate(remotePath, shapeHash, semanticHash)
     return best or "candidate"
 end
 
-local function correlationCandidates(category, object, priority)
+function correlationCandidates(category, object, priority)
     if not CORRELATABLE_CATEGORIES[category] then return nil end
     pruneCorrelationWindows()
     local effectLabel = string.sub(effectIdentity(category, object), 1, 220)
@@ -1568,7 +1568,7 @@ local function correlationCandidates(category, object, priority)
     return out
 end
 
-local function openCorrelationWindow(remotePath, method, shapeHash, importance, semanticHash)
+function openCorrelationWindow(remotePath, method, shapeHash, importance, semanticHash)
     local now = os.clock()
     local correlationKey = tostring(remotePath) .. "\31" .. tostring(semanticHash or shapeHash or "")
     local last = S.lastCorrelationByRemote[correlationKey] or 0
@@ -1585,7 +1585,7 @@ local function openCorrelationWindow(remotePath, method, shapeHash, importance, 
     S.smartStats.correlationsOpened = (S.smartStats.correlationsOpened or 0) + 1
 end
 
-local function behaviorIdentity(category, object)
+function behaviorIdentity(category, object)
     object = type(object) == "table" and object or {}
     if category == "remote_outbound" or category == "remote_inbound" then
         local path = tostring(object.remote and object.remote.path or "?")
@@ -1612,7 +1612,7 @@ local function behaviorIdentity(category, object)
     return nil, nil
 end
 
-local function observeBehavior(category, object, priority)
+function observeBehavior(category, object, priority)
     if not BEHAVIOR_CATEGORIES[category] or (tonumber(priority) or 0) < 72 then return end
     local key, label = behaviorIdentity(category, object)
     if not key then return end
@@ -1645,18 +1645,18 @@ end
 
 local kickUpload
 
-local function hasSeenExact(hash)
+function hasSeenExact(hash)
     return hash ~= nil and S.sessionExact[hash] == true
 end
 
-local function markExact(hash)
+function markExact(hash)
     if not hash or S.sessionExact[hash] then return end
     if S.sessionExactCount >= C.EXACT_SESSION_CAP then return end
     S.sessionExact[hash] = true
     S.sessionExactCount = S.sessionExactCount + 1
 end
 
-local function noteRepeat(hash)
+function noteRepeat(hash)
     if not hash then return end
     if S.repeatCounts[hash] then
         S.repeatCounts[hash] = S.repeatCounts[hash] + 1
@@ -1716,7 +1716,7 @@ U.noteQueueDrop = function(reason, category, priority, bytes, critical)
     row.reasons[reason] = (tonumber(row.reasons[reason]) or 0) + 1
 end
 
-local function enqueue(channel, category, object, priority, novelty, persistentKind, persistentHash, exactHash, bypassSampling)
+function enqueue(channel, category, object, priority, novelty, persistentKind, persistentHash, exactHash, bypassSampling)
     if not S.running or S.stopping then return false end
 
     noteTimeline(category, object)
@@ -1820,7 +1820,7 @@ local function enqueue(channel, category, object, priority, novelty, persistentK
     return true
 end
 
-local function shouldFlushQueue(force)
+function shouldFlushQueue(force)
     if S.queueHead > #S.queue or S.queueBytes <= 0 then return false end
     if force then return true end
     if S.queueBytes >= C.BATCH_MIN_FLUSH_BYTES then return true end
@@ -1829,7 +1829,7 @@ local function shouldFlushQueue(force)
     return false
 end
 
-local function dropPendingForBatchBudget()
+function dropPendingForBatchBudget()
     if S.queueBytes > 0 then
         bump(S.dropped, "batch_budget_bytes", S.queueBytes)
         bump(S.dropped, "batch_budget_events")
@@ -1842,7 +1842,7 @@ local function dropPendingForBatchBudget()
     S.pendingSend = nil
 end
 
-local function compactQueue()
+function compactQueue()
     if S.queueHead <= 256 then return end
     local out = {}
     for i = S.queueHead, #S.queue do out[#out + 1] = S.queue[i] end
@@ -1850,7 +1850,7 @@ local function compactQueue()
     S.queueHead = 1
 end
 
-local function buildDataBatch()
+function buildDataBatch()
     if S.pendingSend then return S.pendingSend end
     if S.queueHead > #S.queue then return nil end
 
@@ -1891,7 +1891,7 @@ local function buildDataBatch()
     return S.pendingSend
 end
 
-local function encodeBatchBody(batch, isManifest, manifest)
+function encodeBatchBody(batch, isManifest, manifest)
     local meta = {
         schemaVersion = 3,
         userId = tostring(LP.UserId), username = tostring(LP.Name), capturedAt = S.startIso or iso(),
@@ -1919,7 +1919,7 @@ local function encodeBatchBody(batch, isManifest, manifest)
     return encoded .. ',"records":[' .. recordJson .. '],"remotes":[' .. remoteJson .. ']}'
 end
 
-local function sendDataBatch(batch)
+function sendDataBatch(batch)
     local since = os.clock() - S.lastSendClock
     if since < C.MIN_SEND_INTERVAL then task.wait(C.MIN_SEND_INTERVAL - since) end
 
@@ -1943,7 +1943,7 @@ local function sendDataBatch(batch)
     return ok, ok and data or postErr
 end
 
-local function acknowledgeBatch(batch)
+function acknowledgeBatch(batch)
     local recoveryMode = S.cached ~= nil
     S.batchIndex = batch.index
     S.queueHead = batch.stop + 1
@@ -2012,7 +2012,7 @@ end
 -- PERSISTENT CACHE FOR UNSENT QUEUE
 --==============================================================--
 
-local function cacheFile()
+function cacheFile()
     return tostring(game.GameId) .. "_" .. C.CACHE_SUFFIX
 end
 
@@ -2058,7 +2058,7 @@ U.clearInflight = function()
     end
 end
 
-local function queueForCache()
+function queueForCache()
     local out = {}
     for i = S.queueHead, #S.queue do
         local item = S.queue[i]
@@ -2067,7 +2067,7 @@ local function queueForCache()
     return out
 end
 
-local function strategySnapshot()
+function strategySnapshot()
     local out = {}
     for category, st in pairs(S.strategy) do
         out[category] = {
@@ -2131,7 +2131,7 @@ U.saveCache = function(snap)
     return true, nil
 end
 
-local function loadCache()
+function loadCache()
     if not READFILE or not ISFILE then return nil end
     local ok, exists = pcall(ISFILE, cacheFile())
     if not ok or not exists then return nil end
@@ -2142,14 +2142,14 @@ local function loadCache()
     return data
 end
 
-local function clearCache()
+function clearCache()
     if DELFILE and ISFILE then
         local ok, exists = pcall(ISFILE, cacheFile())
         if ok and exists then pcall(DELFILE, cacheFile()) end
     end
 end
 
-local function restoreCache(data)
+function restoreCache(data)
     setInputQuarantine(false)
     S.investigatorState, S.investigatorReason = "GREEN", "cache"
     S.activeInvestigation, S.investigationQueue, S.investigationQueuedKeys = nil, {}, {}
@@ -2386,14 +2386,14 @@ end
 -- REMOTES / VALUES / RUNTIME WATCHERS
 --==============================================================--
 
-local function addFrontier(path)
+function addFrontier(path)
     path = tostring(path or "")
     if path == "" or S.frontierSet[path] or #S.frontier >= 100 then return end
     S.frontierSet[path] = true
     S.frontier[#S.frontier + 1] = path
 end
 
-local function rememberRecentValue(path, eventValue, observedAfterValue)
+function rememberRecentValue(path, eventValue, observedAfterValue)
     path = tostring(path)
     local activity = (tonumber(S.valueActivity[path]) or 0) + 1
     S.valueActivity[path] = activity
@@ -2404,7 +2404,7 @@ local function rememberRecentValue(path, eventValue, observedAfterValue)
     while #S.recentValueChanges > C.RECENT_VALUE_CAP do table.remove(S.recentValueChanges, 1) end
 end
 
-local function compactToolState()
+function compactToolState()
     local out = {}
     local function add(container, label)
         if not container then return end
@@ -2422,7 +2422,7 @@ local function compactToolState()
     return out
 end
 
-local function compactDeepState()
+function compactDeepState()
     local rare, background = {}, {}
     for i = #S.recentValueChanges, 1, -1 do
         local row = S.recentValueChanges[i]
@@ -2463,7 +2463,7 @@ local function compactDeepState()
 end
 
 
-local function compactInvestigationCondition()
+function compactInvestigationCondition()
     local ch = LP.Character
     local hum = ch and ch:FindFirstChildOfClass("Humanoid")
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -2484,11 +2484,11 @@ local function compactInvestigationCondition()
     }
 end
 
-local function conditionHash(context)
+function conditionHash(context)
     return hashText("condition|" .. canon(context or {}, 0, {}, false))
 end
 
-local function opaqueDiagnostics(args, streamKey, force)
+function opaqueDiagnostics(args, streamKey, force)
     local n = tonumber(args and args.n) or 0
     local hasBuffer = false
     for i = 1, math.min(n, C.MAX_ARGS) do
@@ -2534,7 +2534,7 @@ local function opaqueDiagnostics(args, streamKey, force)
     return #rows > 0 and rows or nil
 end
 
-local function scheduleDeepProbe(r, triggerHash, triggerKind, semanticHash)
+function scheduleDeepProbe(r, triggerHash, triggerKind, semanticHash)
     if not S.running or S.stopping or pressureLevel() >= 2 then return end
     if S.deepProbeCount >= C.DEEP_PROBE_MAX then return end
     local remotePath = pathOf(r)
@@ -2595,7 +2595,7 @@ setInputQuarantine = function(enabled)
     if inputShield then inputShield.Visible = enabled end
 end
 
-local function appendInvestigatorDiagnostic(stage, detail, inv, emitRecord)
+function appendInvestigatorDiagnostic(stage, detail, inv, emitRecord)
     stage = tostring(stage or "unknown")
     detail = tostring(detail or "")
     local now = os.clock()
@@ -2644,7 +2644,7 @@ local function appendInvestigatorDiagnostic(stage, detail, inv, emitRecord)
     end
 end
 
-local function probeYellowTransition(inv, stage, detail)
+function probeYellowTransition(inv, stage, detail)
     if not inv then return end
     local ok, err = pcall(function()
         appendInvestigatorDiagnostic(stage, detail, inv, false)
@@ -2655,7 +2655,7 @@ local function probeYellowTransition(inv, stage, detail)
     end
 end
 
-local function setInvestigatorState(state, reason)
+function setInvestigatorState(state, reason)
     state = tostring(state or "GREEN")
     local inv = S.activeInvestigation
 
@@ -2710,14 +2710,14 @@ setInvestigatorStage = function(stage, detail, inv, emitRecord)
     if investigatorUiRefresh then task.defer(investigatorUiRefresh) end
 end
 
-local function markInvestigatorError(inv, source, err)
+function markInvestigatorError(inv, source, err)
     local message = string.sub(tostring(err or "unknown_error"), 1, 260)
     S.lastInvestigatorError = tostring(source or "unknown") .. ": " .. message
     S.smartStats.investigatorErrors = (S.smartStats.investigatorErrors or 0) + 1
     setInvestigatorStage("execute_error", S.lastInvestigatorError, inv, true)
 end
 
-local function compactErrorTrace(err)
+function compactErrorTrace(err)
     local message = tostring(err or "unknown_error")
     local traced = nil
     pcall(function()
@@ -2728,7 +2728,7 @@ local function compactErrorTrace(err)
     return string.sub(tostring(traced or message), 1, 520)
 end
 
-local function appendMenuHealthDiagnostic(kind, detail, severity, emitRecord)
+function appendMenuHealthDiagnostic(kind, detail, severity, emitRecord)
     local now = os.clock()
     S.menuHealthDiagSeq = (tonumber(S.menuHealthDiagSeq) or 0) + 1
     local row = {
@@ -2762,7 +2762,7 @@ local function appendMenuHealthDiagnostic(kind, detail, severity, emitRecord)
     return row
 end
 
-local function menuHealthTail(limit)
+function menuHealthTail(limit)
     local out = {}
     local rows = S.menuHealthDiagnostics
     local first = math.max(1, #rows - math.max(1, tonumber(limit) or 24) + 1)
@@ -2770,7 +2770,7 @@ local function menuHealthTail(limit)
     return out
 end
 
-local function menuHealthWatchdogTick()
+function menuHealthWatchdogTick()
     local now = os.clock()
     if now - (tonumber(S.menuHealthLastCheck) or 0) < C.MENU_HEALTH_CHECK_INTERVAL then return end
     S.menuHealthLastCheck = now
@@ -2839,7 +2839,7 @@ local function menuHealthWatchdogTick()
     end
 end
 
-local function rememberGuiChange(kind, inst, state)
+function rememberGuiChange(kind, inst, state)
     local row = {
         kind = tostring(kind), path = pathOf(inst), className = inst.ClassName,
         state = ser(state), clock = os.clock() - S.startClock,
@@ -2848,7 +2848,7 @@ local function rememberGuiChange(kind, inst, state)
     while #S.recentGuiChanges > C.RECENT_GUI_CAP do table.remove(S.recentGuiChanges, 1) end
 end
 
-local function stateMapDiff(before, after, cap)
+function stateMapDiff(before, after, cap)
     before = type(before) == "table" and before or {}
     after = type(after) == "table" and after or {}
     local keys, seen = {}, {}
@@ -2867,11 +2867,11 @@ local function stateMapDiff(before, after, cap)
     return out
 end
 
-local function toolKey(row)
+function toolKey(row)
     return tostring(row and row.container or "?") .. "|" .. tostring(row and row.name or "?")
 end
 
-local function stateDiff(before, after, sinceClock)
+function stateDiff(before, after, sinceClock)
     before = type(before) == "table" and before or {}
     after = type(after) == "table" and after or {}
     local bTools, aTools = {}, {}
@@ -2907,7 +2907,7 @@ local function stateDiff(before, after, sinceClock)
     }
 end
 
-local function investigationImpact(diff)
+function investigationImpact(diff)
     diff = type(diff) == "table" and diff or {}
     local score = 0
     score = score + math.min(24, #(diff.recentValues or {}) * 6)
@@ -2919,7 +2919,7 @@ local function investigationImpact(diff)
     return math.clamp(score, 0, 100)
 end
 
-local function replayCloneValue(v, depth, seen)
+function replayCloneValue(v, depth, seen)
     depth = depth or 0
     seen = seen or {}
     if depth > 3 then return false, nil end
@@ -2954,7 +2954,7 @@ local function replayCloneValue(v, depth, seen)
     return true, out
 end
 
-local function cloneReplayArgs(args)
+function cloneReplayArgs(args)
     local n = tonumber(args and args.n) or 0
     if n > C.ACTIVE_TEST_MAX_ARGS then return nil, "too_many_args" end
     local out = { n = n }
@@ -2966,7 +2966,7 @@ local function cloneReplayArgs(args)
     return out
 end
 
-local function sideEffectReason(candidate)
+function sideEffectReason(candidate)
     if candidate.method ~= "FireServer" then return "not_fire_server" end
     if (tonumber(candidate.importance) or 0) > C.ACTIVE_TEST_MAX_IMPORTANCE then return "high_importance" end
     if (tonumber(S.remoteImpact[candidate.remotePath]) or 0) >= 12 then return "learned_impact" end
@@ -2987,7 +2987,7 @@ local function sideEffectReason(candidate)
     return nil
 end
 
-local function investigatorStable()
+function investigatorStable()
     if pressureLevel() >= 2 then return false, "pressure" end
     local ch = LP.Character
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -2998,7 +2998,7 @@ local function investigatorStable()
     return true
 end
 
-local function knowledgeDeltaRow(key)
+function knowledgeDeltaRow(key)
     local row = S.investigationKnowledgeDelta[key]
     if not row then
         if (function() local n = 0 for _ in pairs(S.investigationKnowledgeDelta) do n = n + 1 end return n end)() >= C.DELTA_INVESTIGATION_CAP then
@@ -3010,7 +3010,7 @@ local function knowledgeDeltaRow(key)
     return row
 end
 
-local function recordKnowledge(candidate, field, amount, extra)
+function recordKnowledge(candidate, field, amount, extra)
     local row = knowledgeDeltaRow(candidate.key)
     if not row then return end
     row[field] = (tonumber(row[field]) or 0) + (amount or 1)
@@ -3019,7 +3019,7 @@ local function recordKnowledge(candidate, field, amount, extra)
     end
 end
 
-local function finishActiveInvestigation(status, reason)
+function finishActiveInvestigation(status, reason)
     local inv = S.activeInvestigation
     if not inv then
         setInvestigatorState("GREEN", "livre")
@@ -3093,7 +3093,7 @@ local function finishActiveInvestigation(status, reason)
     S.investigationNextStartAt = os.clock() + 0.35
 end
 
-local function cancelActiveInvestigation(reason)
+function cancelActiveInvestigation(reason)
     if not S.activeInvestigation then
         setInputQuarantine(false)
         setInvestigatorState("GREEN", "livre")
@@ -3102,7 +3102,7 @@ local function cancelActiveInvestigation(reason)
     finishActiveInvestigation("cancelled", tostring(reason or "manual"))
 end
 
-local function beginBluePhase(inv, reason)
+function beginBluePhase(inv, reason)
     if S.activeInvestigation ~= inv then return end
     inv.blueStarted = os.clock()
     inv.lastRelevantClock = os.clock()
@@ -3125,7 +3125,7 @@ local function beginBluePhase(inv, reason)
     end)
 end
 
-local function executeCandidate(inv)
+function executeCandidate(inv)
     if S.activeInvestigation ~= inv or not S.running or S.stopping then return end
     setInvestigatorStage("execute_entered", "avaliando risco", inv, true)
 
@@ -3202,7 +3202,7 @@ local function executeCandidate(inv)
     end)
 end
 
-local function startInvestigationCandidate(candidate)
+function startInvestigationCandidate(candidate)
     if not S.running or S.stopping or S.activeInvestigation then return end
     S.investigationSeq = S.investigationSeq + 1
     S.investigationCount = S.investigationCount + 1
@@ -3234,7 +3234,7 @@ local function startInvestigationCandidate(candidate)
     end)
 end
 
-local function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance, triggerContext)
+function queueInvestigationCandidate(remote, method, args, shapeHash, semanticHash, importance, triggerContext)
     -- Local-only mode never replays FireServer calls or runs active tests.
     return
 end
@@ -3261,7 +3261,7 @@ processInvestigationQueue = function()
     end
 end
 
-local function focusedRemoteContext(r, shapeHash, triggerKind, semanticHash)
+function focusedRemoteContext(r, shapeHash, triggerKind, semanticHash)
     local parent = r.Parent
     local siblings = {}
     if parent then
@@ -3283,7 +3283,7 @@ local function focusedRemoteContext(r, shapeHash, triggerKind, semanticHash)
     scheduleDeepProbe(r, shapeHash, triggerKind or "shape", semanticHash)
 end
 
-local function registerRemote(r, source)
+function registerRemote(r, source)
     if not isRemote(r) then return end
     local path = pathOf(r)
     if S.remoteSeen[path] then return end
@@ -3299,7 +3299,7 @@ local function registerRemote(r, source)
     end
 end
 
-local function attachInbound(r)
+function attachInbound(r)
     if S.inbound[r] or S.inboundCount >= C.MAX_INBOUND then return end
     if not (r:IsA("RemoteEvent") or r:IsA("UnreliableRemoteEvent")) then return end
     S.inbound[r] = true
@@ -3358,7 +3358,7 @@ local function attachInbound(r)
     S.conns[#S.conns + 1] = connection
 end
 
-local function attachValue(v)
+function attachValue(v)
     if S.values[v] or S.valueCount >= C.MAX_VALUES or not v:IsA("ValueBase") then return end
     S.values[v] = { last = canon(v.Value, 0, {}, false) }
     S.valueCount = S.valueCount + 1
@@ -3389,7 +3389,7 @@ end
 local OUTBOUND_HOOK_KEY = "__CAFEINA_V3_OUTBOUND_HOOK"
 local OUTBOUND_HOOK_VERSION = 4
 
-local function installOutboundObserver()
+function installOutboundObserver()
     if not HOOKMETAMETHOD or not GETNAMECALLMETHOD then
         S.coverage.outboundObserver = "unavailable"
         S.outboundHookReady = false
@@ -3550,14 +3550,14 @@ local function installOutboundObserver()
     return true
 end
 
-local function disableOutboundObserver()
+function disableOutboundObserver()
     local registry = S.outboundHookRegistry
     if type(registry) == "table" then registry.callback = nil end
     S.outboundHookRegistry = nil
     S.outboundHookReady = false
 end
 
-local function attachToolSignals(tool, label)
+function attachToolSignals(tool, label)
     if not tool or not tool:IsA("Tool") or S.toolSignals[tool] then return end
     S.toolSignals[tool] = true
     local function emit(kind)
@@ -3572,7 +3572,7 @@ local function attachToolSignals(tool, label)
     S.conns[#S.conns + 1] = tool.Activated:Connect(function() emit("tool_activated") end)
 end
 
-local function attachGuiSignals(inst)
+function attachGuiSignals(inst)
     if not inst or S.guiSignals[inst] then return end
     if not (inst:IsA("GuiButton") or inst:IsA("ScreenGui")) then return end
     S.guiSignals[inst] = true
@@ -3608,7 +3608,7 @@ local function attachGuiSignals(inst)
 end
 
 local toolState = {}
-local function watchContainer(container, label)
+function watchContainer(container, label)
     if not container then return end
     for _, x in ipairs(container:GetChildren()) do
         if x:IsA("Tool") then
@@ -3638,7 +3638,7 @@ local function watchContainer(container, label)
     S.conns[#S.conns + 1] = removed
 end
 
-local function runtimePatternDecision(x, source)
+function runtimePatternDecision(x, source)
     local patternPath = normalizedPath(x)
     local patternHash = signature("runtime_pattern", tostring(source) .. ":" .. patternPath, {
         className = x.ClassName, name = normalizeDynamicSegment(x.Name),
@@ -3655,7 +3655,7 @@ local function runtimePatternDecision(x, source)
     return keep, newPattern, patternHash, count, active
 end
 
-local function recordRuntimeAdded(x, source, kind, priority)
+function recordRuntimeAdded(x, source, kind, priority)
     S.objectBorn[x] = os.clock()
     local keep, newPattern, patternHash, count, active = runtimePatternDecision(x, source)
     if not keep then bump(S.suppressed, "runtime_pattern"); return end
@@ -3668,7 +3668,7 @@ local function recordRuntimeAdded(x, source, kind, priority)
         newPattern or active)
 end
 
-local function recordRuntimeRemoving(x, source, kind)
+function recordRuntimeRemoving(x, source, kind)
     local born = S.objectBorn[x]
     local lifetime = born and math.max(0, os.clock() - born) or nil
     S.objectBorn[x] = nil
@@ -3680,7 +3680,7 @@ local function recordRuntimeRemoving(x, source, kind)
     }, 80, false, nil, nil, exact, false)
 end
 
-local function runtimeWatchers()
+function runtimeWatchers()
     installOutboundObserver()
 
     local ra = ReplicatedStorage.DescendantAdded:Connect(function(x)
@@ -3794,7 +3794,7 @@ local function runtimeWatchers()
     S.conns[#S.conns + 1] = ca
 end
 
-local function disconnect()
+function disconnect()
     disableOutboundObserver()
     for _, c in ipairs(S.conns) do pcall(function() c:Disconnect() end) end
     table.clear(S.conns)
@@ -3806,7 +3806,7 @@ end
 -- INCREMENTAL DISCOVERY SCANS
 --==============================================================--
 
-local function rotatedChildren(root)
+function rotatedChildren(root)
     local list = root:GetChildren()
     local n = #list
     if n <= 1 then return list end
@@ -3836,7 +3836,7 @@ local function rotatedChildren(root)
     return out
 end
 
-local function staticRecord(inst, label)
+function staticRecord(inst, label)
     if isRemote(inst) then
         registerRemote(inst, label)
         if inst:IsA("RemoteEvent") or inst:IsA("UnreliableRemoteEvent") then attachInbound(inst) end
@@ -3883,11 +3883,11 @@ local function staticRecord(inst, label)
     end
 end
 
-local function scanActive(epoch)
+function scanActive(epoch)
     return S.running and not S.stopping and S.runEpoch == epoch
 end
 
-local function scanTree(root, label, cap, coverageKey, epoch)
+function scanTree(root, label, cap, coverageKey, epoch)
     -- Bounded DFS: unlike GetDescendants()/unbounded BFS this never keeps more
     -- than the remaining scan budget worth of Instance references in memory.
     local roots = rotatedChildren(root)
@@ -3926,7 +3926,7 @@ local function scanTree(root, label, cap, coverageKey, epoch)
     end
 end
 
-local function scanNearby(epoch)
+function scanNearby(epoch)
     if not scanActive(epoch) then return end
     local ch = LP.Character
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -3956,7 +3956,7 @@ local function scanNearby(epoch)
     end
 end
 
-local function scanTags(epoch)
+function scanTags(epoch)
     if not scanActive(epoch) then return end
     local ok, tags = pcall(function() return CollectionService:GetAllTags() end)
     if not ok then return end
@@ -3978,7 +3978,7 @@ local function scanTags(epoch)
     end
 end
 
-local function scanPlayer(epoch)
+function scanPlayer(epoch)
     if not scanActive(epoch) then return end
     enqueue("record", "player_snapshot", {
         kind = "player_snapshot", player = playerContext(true), attributes = attrs(LP),
@@ -4008,7 +4008,7 @@ local function scanPlayer(epoch)
     end
 end
 
-local function scanGui(epoch)
+function scanGui(epoch)
     if not scanActive(epoch) then return end
     local pg = LP:FindFirstChildOfClass("PlayerGui")
     if not pg then return end
@@ -4063,7 +4063,7 @@ local function scanGui(epoch)
     end
 end
 
-local function startScans(epoch)
+function startScans(epoch)
     task.spawn(function()
         scanTree(ReplicatedStorage, "ReplicatedStorage", C.RS_NODE_CAP, "replicatedVisited", epoch)
         if scanActive(epoch) then scanTree(Workspace, "Workspace", C.WS_NODE_CAP, "workspaceVisited", epoch) end
@@ -4079,7 +4079,7 @@ end
 -- TRAJECTORY: CHANGE-BASED, NOT EVERY FRAME
 --==============================================================--
 
-local function maybeTrajectory()
+function maybeTrajectory()
     if not S.running or S.stopping then return end
     local now = os.clock()
     if now - S.lastTrajectoryAt < C.TRAJECTORY_MIN_INTERVAL then return end
@@ -4109,7 +4109,7 @@ end
 -- FINALIZATION
 --==============================================================--
 
-local function repeatSummary()
+function repeatSummary()
     local rows = {}
     for hash, count in pairs(S.repeatCounts) do rows[#rows + 1] = { sig = hash, repeats = count } end
     table.sort(rows, function(a, b) return a.repeats > b.repeats end)
@@ -4118,7 +4118,7 @@ local function repeatSummary()
     return out
 end
 
-local function correlationEvidenceSummary()
+function correlationEvidenceSummary()
     local rows = {}
     for _, row in pairs(S.correlationEvidence) do
         local metrics = correlationMetrics(row)
@@ -4139,7 +4139,7 @@ local function correlationEvidenceSummary()
     return out
 end
 
-local function behaviorSummary()
+function behaviorSummary()
     local rows = {}
     for _, row in pairs(S.behaviorTransitions) do
         rows[#rows + 1] = {
@@ -4155,7 +4155,7 @@ local function behaviorSummary()
     return out
 end
 
-local function impactSummary()
+function impactSummary()
     local rows = {}
     for remote, score in pairs(S.remoteImpact) do rows[#rows + 1] = { remote = remote, score = score } end
     table.sort(rows, function(a, b) return a.score > b.score end)
@@ -4166,7 +4166,7 @@ local function impactSummary()
     return out
 end
 
-local function protocolSummary()
+function protocolSummary()
     local rows = {}
     for _, row in pairs(S.protocolModels) do
         rows[#rows + 1] = {
@@ -4186,7 +4186,7 @@ local function protocolSummary()
     return out
 end
 
-local function argumentFieldSummary()
+function argumentFieldSummary()
     local rows = {}
     for _, row in pairs(S.argumentFields) do
         rows[#rows + 1] = {
@@ -4204,7 +4204,7 @@ local function argumentFieldSummary()
     return out
 end
 
-local function investigationKnowledgeDeltaSummary()
+function investigationKnowledgeDeltaSummary()
     local rows = {}
     for _, row in pairs(S.investigationKnowledgeDelta) do rows[#rows + 1] = row end
     table.sort(rows, function(a, b) return (a.completed or 0) > (b.completed or 0) end)
@@ -4213,7 +4213,7 @@ local function investigationKnowledgeDeltaSummary()
     return out
 end
 
-local function runtimePatternSummary()
+function runtimePatternSummary()
     local rows = {}
     for hash, count in pairs(S.runtimePatternCounts) do
         if count > 1 then rows[#rows + 1] = { hash = hash, count = count } end
@@ -4224,7 +4224,7 @@ local function runtimePatternSummary()
     return out
 end
 
-local function manifestTable()
+function manifestTable()
     return {
         version = C.VERSION, purpose = C.PURPOSE,
         startedAt = S.startIso, finishedAt = iso(),
@@ -4297,7 +4297,7 @@ local function manifestTable()
     }
 end
 
-local function sendManifest()
+function sendManifest()
     if S.batchIndex + 1 > C.MAX_BATCHES and not S.pendingManifestBody then
         return false, "max_batches_reached"
     end
@@ -4332,7 +4332,7 @@ local function sendManifest()
     return ok, ok and data or postErr
 end
 
-local function drainQueue(timeoutSeconds)
+function drainQueue(timeoutSeconds)
     local deadline = os.clock() + (timeoutSeconds or 120)
     while S.queueHead <= #S.queue and os.clock() < deadline do
         if S.uploadBlocked then return false end
@@ -4342,7 +4342,7 @@ local function drainQueue(timeoutSeconds)
     return S.queueHead > #S.queue
 end
 
-local function resetRunState()
+function resetRunState()
     setInputQuarantine(false)
     S.running = false
     S.stopping = false
@@ -4423,7 +4423,7 @@ local mainButton
 local gui
 local disconnectUi
 
-local function finalize(auto)
+function finalize(auto)
     if S.finalizing then return end
     if not S.running and S.queueHead > #S.queue then return end
 
@@ -4480,7 +4480,7 @@ local function finalize(auto)
 end
 S.finishCallback = finalize
 
-local function begin()
+function begin()
     if S.running or S.finalizing or not S.preflightReady then return end
 
     resetRunState()
@@ -4514,7 +4514,7 @@ local function begin()
     if mainButton then mainButton.Text = "ENCERRAR + SALVAR" end
 end
 
-local function retryCached()
+function retryCached()
     if S.finalizing or not S.cached then return end
     restoreCache(S.cached)
     cancelActiveInvestigation("retry_cached")
@@ -4557,7 +4557,7 @@ end
 -- COMPACT MOBILE UI + INVESTIGATION STATUS ICON
 --==============================================================--
 
-local function buildCompactUi()
+function buildCompactUi()
 local GUI_NAME = "CafeinaUniversalGameTraceV30"
 local parent = CoreGui
 pcall(function() if type(gethui) == "function" then parent = gethui() end end)
@@ -4805,7 +4805,7 @@ diagTextCorner.Parent = diagText
 
 local lastAutoShownUploadDiag = 0
 
-local function diagnosticText()
+function diagnosticText()
     local e = S.uploadError or S.uploadDiagnostics[#S.uploadDiagnostics]
     local queueItems = math.max(0, #S.queue - S.queueHead + 1)
     local pendingExact = type(S.pendingSend) == "table" and type(S.pendingSend.body) == "string"
@@ -4905,7 +4905,7 @@ local stageLabels = {
 }
 
 local minimized = false
-local function setMinimized(value)
+function setMinimized(value)
     minimized = value == true
     frame.Visible = not minimized
     miniIcon.Visible = minimized
@@ -4978,12 +4978,12 @@ task.spawn(function()
 end)
 
 local uiConns = {}
-local function uiConnect(signal, callback)
+function uiConnect(signal, callback)
     local connection = signal:Connect(callback)
     uiConns[#uiConns + 1] = connection
     return connection
 end
-local function disconnectUi()
+function disconnectUi()
     for _, connection in ipairs(uiConns) do pcall(function() connection:Disconnect() end) end
     table.clear(uiConns)
 end
@@ -4992,7 +4992,7 @@ local heartbeat = uiConnect(RunService.Heartbeat, function(dt)
     S.frameDt = S.frameDt * 0.94 + dt * 0.06
 end)
 
-local function clampObject(object, margin)
+function clampObject(object, margin)
     margin = margin or 4
     local rootPos = safeRoot.AbsolutePosition
     local rootSize = safeRoot.AbsoluteSize
