@@ -195,6 +195,8 @@ local GETNAMECALLMETHOD = pick(rawget(ENV, "getnamecallmethod"), getnamecallmeth
 local NEWCLOSURE = pick(rawget(ENV, "newcclosure"), newcclosure)
 
 
+local S -- forward declaration used by local-storage helpers
+
 --==============================================================--
 -- LOCAL-ONLY STORAGE (Delta executor file APIs)
 --==============================================================--
@@ -614,7 +616,7 @@ local function arrayToSet(list)
     return out
 end
 
-local S = {
+S = {
     running = false,
     stopping = false,
     finalizing = false,
