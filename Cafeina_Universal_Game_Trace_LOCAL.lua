@@ -5178,7 +5178,10 @@ ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
 }
 
 gui.Destroying:Connect(function()
-    if S.running and not S.finalizing then U.saveCache() end
+    if S.running and not S.finalizing then
+        S.stopping = true
+        pcall(function() kickUpload() end)
+    end
     setInputQuarantine(false)
     S.stopping = true
     S.running = false
