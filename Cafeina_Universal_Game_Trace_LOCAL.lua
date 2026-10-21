@@ -4478,7 +4478,7 @@ local function finalize(auto)
         if mainButton then mainButton.Text = "INICIAR COLETA LOCAL" end
     end)
 end
-S.finishCallback = finalizeS.finishCallback = finalize
+S.finishCallback = finalize
 
 local function begin()
     if S.running or S.finalizing or not S.preflightReady then return end
@@ -5132,7 +5132,6 @@ task.spawn(function()
     S.profileReady = true
     applyProfile({})
     if mainButton then mainButton.Text = "INICIAR COLETA LOCAL" end
-end)
 end)
 
 ENV.__CAFEINA_UNIVERSAL_TRACE_V30 = {
