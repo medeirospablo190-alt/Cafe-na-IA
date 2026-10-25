@@ -6,6 +6,41 @@ import http from "http";
 import os from "os";
 import path from "path";
 import express from "express";
+import { consumeRate } from "../collector-v3-routes.js";
+
+test("Trace V3 rate limiter bounds memory and cleans expired entries", () => {
+  const now = Date.now();
+  const expired = new Map();
+  for (let i = 0; i < 10_000; i += 1) {
+    expired.set(`expired-${i}`, { count: 1, windowStartedAt: now - 20_000 });
+  }
+  assert.equal(consumeRate(expired, "new-client", 10, 10_000), true);
+  assert.equal(expired.size, 1, "expired entries should be removed before accepting a new client");
+
+  const active = new Map();
+  for (let i = 0; i < 10_000; i += 1) {
+    active.set(`active-${i}`, { count: 1, windowStartedAt: now });
+  }
+  assert.equal(consumeRate(active, "overflow-client", 10, 10_000), false);
+  assert.equal(active.size, 10_000, "active entries must remain bounded");
+});
+
+test("Trace V3 rate limiter resets a client's quota after the window expires", () => {
+  const store = new Map();
+  const originalNow = Date.now;
+  let now = 1_000_000;
+  Date.now = () => now;
+  try {
+    assert.equal(consumeRate(store, "client", 2, 1_000), true);
+    assert.equal(consumeRate(store, "client", 2, 1_000), true);
+    assert.equal(consumeRate(store, "client", 2, 1_000), false, "quota should block the third request");
+    now += 1_001;
+    assert.equal(consumeRate(store, "client", 2, 1_000), true, "quota should reset after the window");
+    assert.equal(store.get("client").count, 1);
+  } finally {
+    Date.now = originalNow;
+  }
+});
 
 function randomPort() {
   return 38_000 + crypto.randomInt(2_000);
@@ -17,6 +52,8 @@ function sha(text) {
 
 async function startFakeGitHub(port) {
   const files = new Map();
+  const listingOverrides = new Map();
+  const failNextPutForPath = new Set();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://127.0.0.1:${port}`);
     const prefix = "/repos/test/repo/contents/";
@@ -28,7 +65,27 @@ async function startFakeGitHub(port) {
     const current = files.get(repoPath);
 
     if (req.method === "GET") {
+      if (!current && listingOverrides.has(repoPath)) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(listingOverrides.get(repoPath)));
+        return;
+      }
       if (!current) {
+        const directoryPrefix = repoPath ? repoPath + "/" : "";
+        const children = new Map();
+        for (const filePath of files.keys()) {
+          if (!filePath.startsWith(directoryPrefix)) continue;
+          const remainder = filePath.slice(directoryPrefix.length);
+          if (!remainder) continue;
+          const slash = remainder.indexOf("/");
+          const name = slash < 0 ? remainder : remainder.slice(0, slash);
+          children.set(name, slash < 0 ? "file" : "dir");
+        }
+        if (children.size) {
+          res.writeHead(200, { "content-type": "application/json" });
+          res.end(JSON.stringify([...children].map(([name, type]) => ({ name, type }))));
+          return;
+        }
         res.writeHead(404, { "content-type": "application/json" });
         res.end(JSON.stringify({ message: "Not Found" }));
         return;
@@ -50,6 +107,12 @@ async function startFakeGitHub(port) {
     }
 
     if (req.method === "PUT") {
+      if (failNextPutForPath.has(repoPath)) {
+        failNextPutForPath.delete(repoPath);
+        res.writeHead(503, { "content-type": "application/json" });
+        res.end(JSON.stringify({ message: "temporary simulated failure" }));
+        return;
+      }
       let raw = "";
       for await (const chunk of req) raw += chunk;
       const body = JSON.parse(raw || "{}");
@@ -69,7 +132,7 @@ async function startFakeGitHub(port) {
     res.writeHead(405).end();
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
-  return { server, files };
+  return { server, files, listingOverrides, failNextPutForPath };
 }
 
 async function listen(app, port) {
@@ -131,6 +194,111 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
     body: JSON.stringify(body),
   });
 
+  const invalidIdResponse = await post({
+    gameId: "../unexpected",
+    placeId: 123,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(invalidIdResponse.status, 400, "identificadores inválidos devem ser rejeitados");
+
+  const invalidKindResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "unknown",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(invalidKindResponse.status, 400, "tipo de lote desconhecido deve ser rejeitado");
+
+  const missingBatchIndexResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 0,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(missingBatchIndexResponse.status, 400, "batchIndex zero deve ser rejeitado");
+
+  const invalidBatchTotalResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 2,
+    batchTotal: 1,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(invalidBatchTotalResponse.status, 400, "batchTotal menor que batchIndex deve ser rejeitado");
+
+  const excessiveBatchTotalResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchTotal: 261,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(excessiveBatchTotalResponse.status, 400, "batchTotal acima do limite deve ser rejeitado");
+
+  const excessiveBatchIndexResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 261,
+    batchKind: "data",
+    records: [],
+    remotes: [],
+  });
+  assert.equal(excessiveBatchIndexResponse.status, 400, "batchIndex acima do limite deve ser rejeitado mesmo sem batchTotal");
+
+  const excessiveRecordsResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "data",
+    records: Array.from({ length: 6001 }, () => ({ kind: "test" })),
+    remotes: [],
+  });
+  assert.equal(excessiveRecordsResponse.status, 413, "lote acima do limite de registros deve ser rejeitado");
+
+  const excessiveRemotesResponse = await post({
+    gameId: 123,
+    placeId: 456,
+    runId: "11111111-2222-3333-4444-555555555555",
+    batchIndex: 1,
+    batchKind: "data",
+    records: [],
+    remotes: Array.from({ length: 1001 }, () => ({ path: "ReplicatedStorage.Test" })),
+  });
+  assert.equal(excessiveRemotesResponse.status, 413, "lote acima do limite de remotes deve ser rejeitado");
+
+  const oversizedBodyResponse = await fetch(`${base}/batch`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      gameId: 123,
+      placeId: 456,
+      runId: "11111111-2222-3333-4444-555555555555",
+      batchIndex: 1,
+      batchKind: "data",
+      records: [{ kind: "test", payload: "z".repeat(3 * 1024 * 1024) }],
+      remotes: [],
+    }),
+  });
+  assert.equal(oversizedBodyResponse.status, 413, "corpo acima do limite configurado deve ser rejeitado");
+
   const firstBody = {
     ...common,
     batchIndex: 1,
@@ -185,6 +353,9 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
   assert.equal(largeConflictBody.existing.remoteCount, 0);
   assert.match(largeConflictBody.existing.recordsHash, /^[a-f0-9]{12}$/);
 
+  // Simulate an ephemeral host: retain the batches on GitHub but remove local run history.
+  await fs.rm(path.join(dir, String(common.gameId), String(common.placeId), common.runId), { recursive: true, force: true });
+
   const manifest = {
     ...common,
     batchIndex: 3,
@@ -219,8 +390,36 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
       coverage: { staticComplete: true, newRemotes: 1 },
     },
   };
-  assert.equal((await post(manifest)).status, 201);
-  assert.equal((await post(manifest)).status, 201, "manifesto repetido não deve reaplicar perfil");
+  const manifestResponse = await post(manifest);
+  assert.equal(manifestResponse.status, 201);
+  const manifestReceipt = await manifestResponse.json();
+  assert.equal(manifestReceipt.analysis.generated, true);
+  assert.equal(manifestReceipt.analysis.sessions, 1);
+  assert.ok(manifestReceipt.analysis.groups >= 1);
+  const analysisPath = `inventory-traces-v3/${common.gameId}/${common.placeId}/analysis/latest.json`;
+  assert.ok(fake.files.has(analysisPath), "relatório agregado deve ser espelhado no GitHub");
+  const firstAnalysisText = fake.files.get(analysisPath).text;
+  const repeatedManifestResponse = await post(manifest);
+  assert.equal(repeatedManifestResponse.status, 201, "manifesto repetido não deve reaplicar perfil");
+  const repeatedReceipt = await repeatedManifestResponse.json();
+  assert.equal(repeatedReceipt.analysis.reused, true, "retry deve reutilizar o relatório existente");
+  assert.equal(fake.files.get(analysisPath).text, firstAnalysisText, "retry não deve reescrever relatório idêntico");
+  const analysisReport = JSON.parse(fake.files.get(analysisPath).text);
+  assert.equal(analysisReport.reportType, "cafeina_trace_v3_analysis");
+  assert.equal(analysisReport.historySource, "github_reconstructed");
+  assert.equal(analysisReport.historyComplete, true);
+  assert.equal(analysisReport.scope.gameId, common.gameId);
+  assert.equal(analysisReport.totalRecords, 1051);
+  assert.equal(JSON.stringify(analysisReport).includes("x".repeat(100)), false);
+
+  const localAnalysisPath = path.join(dir, String(common.gameId), String(common.placeId), "analysis", "latest.json");
+  await fs.rm(localAnalysisPath, { force: true });
+  const analysisResponse = await fetch(`${base}/${common.gameId}/${common.placeId}/analysis`);
+  assert.equal(analysisResponse.status, 200, "consulta deve recuperar relatório do GitHub quando o arquivo local sumir");
+  const analysisViaApi = await analysisResponse.json();
+  assert.equal(analysisViaApi.reportType, "cafeina_trace_v3_analysis");
+  assert.equal(analysisViaApi.triggerRunId, common.runId);
+  assert.equal(analysisViaApi.historySource, "github_reconstructed");
 
   const profileResponse = await fetch(`${base}/profile/${common.gameId}`);
   assert.equal(profileResponse.status, 200);
@@ -246,4 +445,149 @@ test("Trace V3 is idempotent, rejects conflicts, and reads GitHub files above 1 
 
   const batch2Path = `inventory-traces-v3/${common.gameId}/${common.placeId}/${common.runId}/0002-data.json`;
   assert.ok(Buffer.byteLength(fake.files.get(batch2Path).text) > 1024 * 1024);
+
+  // A corrupt GitHub batch must produce an explicitly incomplete report, not a false complete result.
+  const damagedRunId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+  const damagedCommon = { ...common, runId: damagedRunId };
+  const damagedData = {
+    ...damagedCommon,
+    batchIndex: 1,
+    batchKind: "data",
+    payloadBytes: 20,
+    records: [{ kind: "remote_inbound", path: "Workspace.Damaged" }],
+    remotes: [],
+  };
+  assert.equal((await post(damagedData)).status, 201);
+  const damagedPath = `inventory-traces-v3/${common.gameId}/${common.placeId}/${damagedRunId}/0001-data.json`;
+  fake.files.get(damagedPath).text = "{broken json";
+  await fs.rm(path.join(dir, String(common.gameId), String(common.placeId), damagedRunId), { recursive: true, force: true });
+
+  const damagedManifest = {
+    ...damagedCommon,
+    batchIndex: 2,
+    batchTotal: 2,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const damagedManifestResponse = await post(damagedManifest);
+  assert.equal(damagedManifestResponse.status, 201);
+  const damagedReport = JSON.parse(fake.files.get(analysisPath).text);
+  assert.equal(damagedReport.historySource, "github_reconstructed");
+  assert.equal(damagedReport.historyComplete, false, "JSON corrompido nunca deve ser declarado como histórico completo");
+  assert.ok(damagedReport.warnings.some((warning) => warning.code === "github_invalid_batch"));
+
+  // GitHub Contents API truncation boundary: exactly 1,000 listed entries is not complete.
+  const limitedGameId = common.gameId + 1;
+  const limitedPlaceId = common.placeId + 1;
+  const limitedRunId = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+  const limitedRoot = `inventory-traces-v3/${limitedGameId}/${limitedPlaceId}`;
+  fake.listingOverrides.set(limitedRoot, Array.from({ length: 1000 }, (_, i) => ({
+    name: `placeholder-${i}.json`,
+    type: "file",
+  })));
+  const limitedManifest = {
+    ...common,
+    gameId: limitedGameId,
+    placeId: limitedPlaceId,
+    runId: limitedRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  assert.equal((await post(limitedManifest)).status, 201);
+  const limitedAnalysisPath = `${limitedRoot}/analysis/latest.json`;
+  const limitedReport = JSON.parse(fake.files.get(limitedAnalysisPath).text);
+  assert.equal(limitedReport.historySource, "github_reconstructed");
+  assert.equal(limitedReport.historyComplete, false, "limite de 1.000 entradas não deve afirmar histórico completo");
+  assert.ok(limitedReport.warnings.some((warning) => warning.code === "github_directory_entry_limit"));
+
+  // A transient report mirror failure must not invalidate the already mirrored raw manifest.
+  const retryGameId = common.gameId + 2;
+  const retryPlaceId = common.placeId + 2;
+  const retryRunId = "cccccccc-dddd-eeee-ffff-000000000000";
+  const retryRoot = `inventory-traces-v3/${retryGameId}/${retryPlaceId}`;
+  const retryManifest = {
+    ...common,
+    gameId: retryGameId,
+    placeId: retryPlaceId,
+    runId: retryRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const retryReportPath = `${retryRoot}/analysis/latest.json`;
+  fake.failNextPutForPath.add(retryReportPath);
+  const firstRetryAttempt = await post(retryManifest);
+  assert.equal(firstRetryAttempt.status, 201, "falha no relatório derivado não deve rejeitar lote bruto espelhado");
+  const firstRetryReceipt = await firstRetryAttempt.json();
+  assert.equal(firstRetryReceipt.github.mirrored, true);
+  assert.equal(firstRetryReceipt.analysis.generated, false);
+  assert.ok(fake.files.has(`${retryRoot}/${retryRunId}/0001-manifest.json`), "manifesto bruto permanece no GitHub");
+  assert.equal(fake.files.has(retryReportPath), false, "a primeira gravação do relatório foi simuladamente recusada");
+
+  const secondRetryAttempt = await post(retryManifest);
+  assert.equal(secondRetryAttempt.status, 201, "reenvio do manifesto deve recuperar a falha temporária");
+  const secondRetryReceipt = await secondRetryAttempt.json();
+  assert.equal(secondRetryReceipt.github.mirrored, true);
+  assert.equal(secondRetryReceipt.analysis.generated, true);
+  assert.equal(secondRetryReceipt.analysis.reused, false);
+  assert.ok(fake.files.has(retryReportPath), "o relatório deve ser espelhado no reenvio");
+
+  // Failure while updating latest.json returns a retryable error, while the raw manifest remains stored.
+  const latestRetryGameId = common.gameId + 3;
+  const latestRetryPlaceId = common.placeId + 3;
+  const latestRetryRunId = "dddddddd-eeee-ffff-0000-111111111111";
+  const latestRetryRoot = `inventory-traces-v3/${latestRetryGameId}/${latestRetryPlaceId}`;
+  const latestRetryManifest = {
+    ...common,
+    gameId: latestRetryGameId,
+    placeId: latestRetryPlaceId,
+    runId: latestRetryRunId,
+    batchIndex: 1,
+    batchTotal: 1,
+    batchKind: "manifest",
+    payloadBytes: 0,
+    records: [],
+    remotes: [],
+    manifest: {},
+  };
+  const latestPath = `${latestRetryRoot}/latest.json`;
+  fake.failNextPutForPath.add(latestPath);
+  const latestFailure = await post(latestRetryManifest);
+  assert.equal(latestFailure.status, 502, "falha ao publicar latest.json deve ser informada como recuperável");
+  const latestFailureBody = await latestFailure.json();
+  assert.match(latestFailureBody.message, /finalização do perfil\/manifesto falhou/);
+  assert.ok(fake.files.has(`${latestRetryRoot}/${latestRetryRunId}/0001-manifest.json`), "lote bruto permanece salvo apesar da falha secundária");
+
+  const latestRetry = await post(latestRetryManifest);
+  assert.equal(latestRetry.status, 201, "reenvio deve finalizar manifesto após falha temporária");
+  assert.ok(fake.files.has(latestPath), "latest.json deve ser publicado no reenvio");
+  const latestRetryBody = await latestRetry.json();
+  assert.equal(latestRetryBody.github.mirrored, true);
+
+  // The per-IP limiter is checked before payload validation. Invalid payloads must
+  // still consume quota so malformed requests cannot bypass the route-level limit.
+  let rateLimited = false;
+  for (let i = 0; i < 230; i += 1) {
+    const response = await post({ invalid: true });
+    if (response.status === 429) {
+      rateLimited = true;
+      break;
+    }
+    assert.equal(response.status, 400, "payload inválido deve ser rejeitado antes do limite ser atingido");
+  }
+  assert.equal(rateLimited, true, "o limite por IP deve bloquear requisições após exceder a janela");
+  const afterLimit = await post({ invalid: true });
+  assert.equal(afterLimit.status, 429, "o limite deve continuar ativo para o IP durante a janela");
 });
