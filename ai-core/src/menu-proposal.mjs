@@ -57,3 +57,33 @@ export function createMenuProposal(report,{nowMs=Date.now(),ttlMs=600000}={}){
     approvalRequired:true,approved:false,executable:false
   });
 }
+
+
+const receiptFields=["schemaVersion","type","missionId","identity","kind","executed","approvalGranted"];
+const receiptKinds=new Set(["RECEIVED","DECLINED","NOT_EXECUTED"]);
+
+export function menuReceipt(proposal,kind){
+  validateMenuProposal(proposal);
+  if(!receiptKinds.has(kind))throw new Error("Tipo de recibo nao permitido.");
+  return {
+    schemaVersion:1,type:"cafeina_ai_menu_receipt",
+    missionId:proposal.missionId,identity:{...proposal.identity},
+    kind,executed:false,approvalGranted:false
+  };
+}
+export function validateMenuReceipt(receipt,proposal,{nowMs=Date.now()}={}){
+  validateMenuProposal(proposal);
+  if(!keys(receipt,receiptFields)||receipt.schemaVersion!==1||
+     receipt.type!=="cafeina_ai_menu_receipt"||
+     receipt.missionId!==proposal.missionId||
+     !identityValid(receipt.identity)||
+     receipt.identity.gameId!==proposal.identity.gameId||
+     receipt.identity.placeId!==proposal.identity.placeId||
+     receipt.identity.runId!==proposal.identity.runId||
+     !receiptKinds.has(receipt.kind)||receipt.executed!==false||
+     receipt.approvalGranted!==false||!timeValid(nowMs)||
+     nowMs>=proposal.expiresAtMs){
+    throw new Error("Recibo fora do contrato.");
+  }
+  return receipt;
+}
