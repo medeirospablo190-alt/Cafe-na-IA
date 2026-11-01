@@ -22,3 +22,10 @@
 - Falta de quantidade declarada de lotes nunca equivale a cobertura completa.
 
 A execução da CI com uma sessão histórica real **não publica registros brutos nos logs** e não oferece essas capturas a modelos externos. Mesmo assim, a revisão de privacidade dos dados já publicados permanece pendente.
+
+## Modelo local e privilegios de CI
+
+- O cliente de modelo permite somente endpoint HTTP local (127.0.0.1/localhost), impõe timeout e limita os tokens gerados.
+- As respostas do LLM passam por enums restritos, não podem executar ferramentas, aprovar missões ou elevar hipóteses a VALIDATED.
+- Workflow de memória separa dois jobs: leitura com `contents: read` e publicação explícita com `contents: write`.
+- A CI principal nunca grava memória remota; a publicação real continua pendente de revisão e teste controlado.

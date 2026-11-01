@@ -42,3 +42,10 @@
 O CI do AI Core analisou uma sessão histórica de 15 lotes V3, manifesto V3 e perfil persistido de esquema V1. A análise foi executada no runner sem enviar dados brutos para modelos ou publicar seus conteúdos nos logs. A memória local foi testada com fixtures sintéticas de múltiplas sessões, idempotência e conflito.
 
 As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA e ligação reversa com o Roblox continuam pendentes.
+
+## Incremento: agentes e infraestrutura de memoria
+
+- Quatro agentes possuem contrato de troca de mensagens com passos limitados, sem autonomia ativa no Roblox.
+- Há interface opcional para um modelo local compatível com Ollama, testada com respostas simuladas; execução de LLM real continua pendente.
+- A sincronização de índices no GitHub valida dados, detecta conflitos e só escreve com opt-in. A branch de memória foi criada, mas nenhuma sessão real foi publicada nela.
+- CI inclui um teste read-only de consulta remota à API do GitHub, além de testes de privacidade em fixtures sintéticas.

@@ -66,5 +66,25 @@ jobs:
           '
       - name: Demonstrate bounded deterministic agent protocol
         run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
+      - name: Read-only GitHub knowledge integration smoke
+        shell: bash
+        env:
+          CAFEINA_GAME_ID: "10112019404"
+          CAFEINA_PLACE_ID: "105352101879443"
+          CAFEINA_RUN_ID: "c59f475c-6740-46cb-9d9b-e7f8c0065433"
+          CAFEINA_PUBLISH: "false"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          node ai-core/src/knowledge-workflow.mjs > "$RUNNER_TEMP/knowledge-check.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const data=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/knowledge-check.json","utf8"));
+            assert.equal(data.status,"DRY_RUN");
+            assert.equal(data.published,false);
+            assert.equal(data.uniqueBatches,15);
+            console.log("GitHub knowledge read-only dry-run PASS.");
+          '
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

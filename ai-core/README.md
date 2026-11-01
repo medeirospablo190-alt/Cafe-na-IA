@@ -44,3 +44,9 @@ node src/session-cli.mjs \
 - `plan/progress.json` — fonte calculável do percentual.
 
 O coletor V3, o gateway e as configurações de produção continuam intocados.
+
+## Agentes e memoria GitHub: incremento atual
+
+O comando `npm run agents:demo` executa quatro papeis determinísticos (Investigadora, Crítica, Pesquisadora, Coordenadora) usando somente dados sintéticos. Eles produzem recomendações e não executam ações. O módulo `src/model.mjs` acrescenta uma interface opcional para um servidor local compatível com Ollama, com saída restrita a ferramentas permitidas, limite de tempo e nenhuma dependência de APIs pagas. O modelo real **não está instalado nem foi executado**.
+
+O GitHub possui a branch `cafeina-ai-knowledge` para memória saneada. `src/knowledge-github.mjs` combina sessões com controle de conflito e escrita condicionada a opt-in. A CI experimenta a leitura em modo `DRY_RUN`; a publicação pela API ainda depende de execução manual e revisão. O workflow `.github/workflows/cafeina-ai-knowledge.yml` só será acionável normalmente após sua aprovação/mesclagem na branch padrão.
