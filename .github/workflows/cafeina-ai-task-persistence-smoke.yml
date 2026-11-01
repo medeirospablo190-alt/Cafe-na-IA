@@ -1,0 +1,49 @@
+name: CAFEINA AI Synthetic Task Persistence Smoke
+
+# One-off validation. Writes ONLY synthetic task metadata to a non-production branch.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/task-persist.marker"
+      - ".github/workflows/cafeina-ai-task-persistence-smoke.yml"
+
+concurrency:
+  group: cafeina-synthetic-task-persistence
+  cancel-in-progress: true
+
+jobs:
+  publish-synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Publish a sanitized synthetic-only offline task
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/task-persist-smoke.mjs publish
+  read-in-new-runner:
+    needs: publish-synthetic
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Retrieve same task from GitHub on a fresh runner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/task-persist-smoke.mjs read
