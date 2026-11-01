@@ -44,3 +44,9 @@ test("menu can acknowledge or decline, but never grant approval or execution",()
   assert.throws(()=>validateMenuReceipt({...receipt,kind:"UNKNOWN"},p,{nowMs:now}),/contrato/);
   assert.throws(()=>validateMenuReceipt(receipt,p,{nowMs:now+600000}),/contrato/);
 });
+
+test("mission cannot cite evidence absent from the sanitized report",()=>{
+  const r=report();
+  r.mission.evidenceRefs=["v3:101:202:demo-run-0001:1:599"];
+  assert.throws(()=>createMenuProposal(r,{nowMs:now}),/observacoes/);
+});

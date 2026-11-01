@@ -42,6 +42,11 @@ export function createMenuProposal(report,{nowMs=Date.now(),ttlMs=600000}={}){
     throw new Error("Relatorio inadequado para entrega.");
   }
   validateMissionProposal(mission);
+  const evidenceKind=mission.toolId==="watch_state"?"remote_outbound":"gui_state";
+  const observed=report.observations?.evidenceRefs?.[evidenceKind];
+  if(!Array.isArray(observed)||mission.evidenceRefs.some(ref=>!observed.includes(ref))){
+    throw new Error("Evidencia da missao nao consta nas observacoes.");
+  }
   if(mission.gameId!==id.gameId||mission.placeId!==id.placeId||
      mission.originatingRunId!==id.runId||!missionId.test(mission.missionId)){
     throw new Error("Missao nao pertence a sessao.");
