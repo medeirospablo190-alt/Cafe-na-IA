@@ -149,5 +149,7 @@ jobs:
             assert.equal(r.flow.at(-1),"CLOSED_NO_EXECUTION");
             console.log("Simulated menu transport PASS: no game execution.");
           '
+      - name: Check simulated versioned menu receipt resilience
+        run: node --test ai-core/test/menu-delivery-e2e.test.mjs
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

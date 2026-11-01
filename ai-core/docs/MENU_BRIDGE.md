@@ -30,3 +30,28 @@ A entrega pode ser repetida; o ACK requer entrega prévia; o resultado requer AC
 ## Testar
 
 Use Node.js 22+ e execute `npm --prefix ai-core test`, `npm --prefix ai-core run menu:demo` e `npm --prefix ai-core run check`. Todos os testes usam apenas dados sintéticos.
+
+## Registro durável de ACK e respostas (em teste)
+
+O novo módulo `src/menu-delivery-state.mjs` valida a evolução estrita
+`QUEUED → DELIVERED → ACKNOWLEDGED → CLOSED_NO_EXECUTION`.
+Cada evento aumenta a revisão; mensagens repetidas são idempotentes e
+respostas finais contraditórias são rejeitadas. Os campos aceitos não incluem
+usuários, texto livre, argumentos de remotes, scripts ou autorização de execução.
+
+O adaptador `src/github-menu-receipts.mjs` permite armazenar **somente o estado
+saneado** em `cafeina-ai-knowledge/ai-core/menu-receipts/<gameId>/<missionId>.json`,
+validando SHA, conteúdo, identidade, prazo e revisões. A escrita é opt-in
+(`dryRun=true` por padrão), com tentativas limitadas após conflitos da API.
+
+O gateway HTTP isolado agora aceita um callback opcional `persistEvent`:
+se houver erro de armazenamento, retorna HTTP 503 e **não confirma**
+entrega, ACK ou conclusão. Os testes verificam o percurso com uma API do
+GitHub **simulada**, incluindo reinicialização lógica por nova leitura,
+idempotência e indisponibilidade da API.
+
+**Ainda não comprovado:** persistência de recibos no GitHub real,
+sessão Roblox autenticada, instalação no gateway/Render, interface do menu
+no dispositivo ou execução de ferramentas. O simulador continua
+exclusivamente em loopback, não fornece credenciais reais e não deve
+ser usado como gateway de produção.

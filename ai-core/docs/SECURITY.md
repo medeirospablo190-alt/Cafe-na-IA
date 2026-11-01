@@ -55,3 +55,17 @@ Essas garantias são locais e não equivalem a autorização de ferramentas no m
 ## Propostas e recibos do menu
 
 Toda proposta é não executável e exige aprovação independente. Referências devem pertencer à mesma sessão. O token de teste do gateway local não representa identidade Roblox; o servidor real precisará autenticar a sessão e gerenciar seus próprios tokens. O cliente não recebe acesso GitHub. Nenhuma rota foi adicionada ao Render.
+
+## Registros de ACK e estado de entrega
+
+O registro de missão não contém qualquer resultado de observação nem
+identidade do jogador. Ele armazena apenas IDs de jogo/sessão,
+hash da proposta, quatro estados enumerados, três instantes, revisão
+e a decisão `DECLINED` ou `NOT_EXECUTED`. Todos os registros possuem
+`approved=false` e `executed=false`.
+
+Somente os eventos previstos podem mudar o estado; não há endpoint
+para elevar permissões. O gateway **simulado** só confirma eventos
+após confirmação do armazenamento opcional. As integrações GitHub reais
+de recibo ainda não foram exercitadas. Não reutilizar este contrato como
+prova de autenticação de jogadores em Roblox.

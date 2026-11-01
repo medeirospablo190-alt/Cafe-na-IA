@@ -98,3 +98,12 @@ node ai-core/src/planning-demo.mjs /caminho/relatorio-saneado.json /pasta-privad
 - `npm run menu:demo`: prova do fluxo completo usando fixtures sintéticas.
 
 Consulte `docs/MENU_BRIDGE.md` antes de qualquer integração com Roblox real.
+
+## ACK e respostas com estado versionado
+
+Adicionado o ciclo de recibos seguro em `src/menu-delivery-state.mjs` e
+armazenamento opcional de metadados no GitHub por
+`src/github-menu-receipts.mjs`. Um teste de ponta a ponta usa gateway
+HTTP local + API GitHub **simulada** para testar entrega, ACK,
+recusa, repetição e falha fechada quando o armazenamento está indisponível.
+Ainda não há endpoint de produção nem comunicação Roblox real.
