@@ -7,12 +7,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "node --check src/schema.mjs && node --check src/analysis.mjs && node --check src/session.mjs && node --check src/store.mjs && node --check src/session-cli.mjs && node --check src/progress.mjs && node --check src/cli.mjs && node --check src/agents.mjs && node --check src/agents-cli.mjs && node --check src/knowledge-github.mjs && node --check src/knowledge-workflow.mjs && node --check src/model.mjs && node --check src/model-smoke.mjs && node --check src/decision-journal.mjs && node --check src/agent-report-cli.mjs && node --check src/task-engine.mjs && node --check src/specialists.mjs && node --check src/planning-demo.mjs",
+    "check": "node --check src/schema.mjs && node --check src/analysis.mjs && node --check src/session.mjs && node --check src/store.mjs && node --check src/session-cli.mjs && node --check src/progress.mjs && node --check src/cli.mjs && node --check src/agents.mjs && node --check src/agents-cli.mjs && node --check src/knowledge-github.mjs && node --check src/knowledge-workflow.mjs && node --check src/model.mjs && node --check src/model-smoke.mjs && node --check src/decision-journal.mjs && node --check src/agent-report-cli.mjs && node --check src/task-engine.mjs && node --check src/specialists.mjs && node --check src/planning-demo.mjs && node --check src/rea-adapter.mjs && node --check src/rea-demo.mjs",
     "test": "node --test",
     "demo": "node src/cli.mjs test/fixtures/batch.json test/fixtures/latest.json",
     "progress": "node src/progress.mjs",
     "validate": "npm run check && npm test && npm run progress",
     "demo:session": "node src/session-cli.mjs --session-dir ../inventory-traces-v3/10112019404/105352101879443/c59f475c-6740-46cb-9d9b-e7f8c0065433 --manifest ../inventory-traces-v3/10112019404/105352101879443/latest.json --profile ../inventory-traces-v3/profiles/10112019404.json",
-    "agents:demo": "node src/agents-cli.mjs"
+    "agents:demo": "node src/agents-cli.mjs",
+    "rea:demo": "node src/rea-demo.mjs"
   }
 }
