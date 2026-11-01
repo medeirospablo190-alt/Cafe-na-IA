@@ -5,6 +5,7 @@ import {fileURLToPath} from "node:url";
 import {coordinateInvestigation} from "./agents.mjs";
 import {createPlanningTask,savePlanningTask,loadPlanningTask,changePlanningTask} from "./task-engine.mjs";
 import {draftSpecialistPlan} from "./specialists.mjs";
+import {prepareReaHandoff} from "./rea-adapter.mjs";
 
 export async function runPlanningDemo(reportPath,outDir,{nowMs=1700000000000}={}){
   const report=JSON.parse(await readFile(reportPath,"utf8"));
@@ -20,17 +21,24 @@ export async function runPlanningDemo(reportPath,outDir,{nowMs=1700000000000}={}
   await savePlanningTask(store,result,{expectedRevision:running.revision});
   const after=await loadPlanningTask(store,task.identity.gameId,task.taskId);
   const spec=draftSpecialistPlan(report,after);
+  const rea=prepareReaHandoff(report);
   const specsDir=path.join(outDir,"plans");
   await mkdir(specsDir,{recursive:true,mode:0o700});
   const file=path.join(specsDir,spec.planId+".json");
   await writeFile(file,JSON.stringify(spec,null,2)+"\n",{flag:"wx",mode:0o600});
+  const reaFile=path.join(specsDir,rea.handoffId+".json");
+  await writeFile(reaFile,JSON.stringify(rea,null,2)+"\n",{flag:"wx",mode:0o600});
   return {
     taskId:task.taskId,taskState:after.status,attempt:after.attempt,
     recoveredFromDisk:true,gameId:after.identity.gameId,
     specialists:spec.specialists.map(x=>x.role),codeGenerated:spec.codeGenerated,
     toolExecutions:spec.toolExecutions,testsExecuted:spec.testsExecuted,
     planStatus:spec.specialists[1].status,
-    source:"SANITIZED_SESSION_REPORT"
+    source:"SANITIZED_SESSION_REPORT",
+    reaHandoffPrepared:true,
+    reaEvidenceAuthenticated:false,
+    reaQuestions:rea.pendingQuestions.length,
+    verifiedReconstructionClaims:0
   };
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

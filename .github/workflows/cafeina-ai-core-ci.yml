@@ -102,6 +102,9 @@ jobs:
             assert.equal(p.codeGenerated,false);
             assert.equal(p.toolExecutions,0);
             assert.equal(p.testsExecuted,0);
+            assert.equal(p.reaHandoffPrepared,true);
+            assert.equal(p.reaEvidenceAuthenticated,false);
+            assert.equal(p.verifiedReconstructionClaims,0);
             console.log("Historical V3 offline orchestration and specialists PASS.");
           '
       - name: Demonstrate bounded deterministic agent protocol

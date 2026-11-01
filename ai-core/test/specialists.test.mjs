@@ -58,9 +58,16 @@ test("offline pipeline survives disk reload, writes only safe spec",async t=>{
   assert.equal(status.planStatus,"BLOCKED");
   const dir=path.join(out,"plans");
   const names=await readdir(dir);
-  assert.equal(names.length,1);
-  const content=await readFile(path.join(dir,names[0]),"utf8");
-  assert.ok(!content.includes("TEST_SECRET"));
-  assert.ok(!content.includes("username"));
+  assert.equal(names.length,2);
+  for(const name of names){
+    const content=await readFile(path.join(dir,name),"utf8");
+    assert.ok(!content.includes("TEST_SECRET"));
+    assert.ok(!content.includes("username"));
+  }
+  const handoffName=names.find(name=>name.startsWith("rea-handoff-"));
+  assert.ok(handoffName);
+  const handoff=JSON.parse(await readFile(path.join(dir,handoffName),"utf8"));
+  assert.equal(handoff.reaEvidenceAuthenticated,false);
+  assert.equal(handoff.verifiedReconstructionClaims,0);
   await assert.rejects(()=>runPlanningDemo(file,out,{nowMs:now}),/CONFLICT: atualizacao nao sequencial/);
 });
