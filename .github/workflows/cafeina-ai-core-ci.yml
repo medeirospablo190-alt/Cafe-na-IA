@@ -1,0 +1,35 @@
+name: CAFEINA AI Core CI
+
+on:
+  pull_request:
+    paths:
+      - "ai-core/**"
+      - ".github/workflows/cafeina-ai-core-ci.yml"
+  push:
+    branches:
+      - "feat/cafeina-ai-core-*"
+    paths:
+      - "ai-core/**"
+      - ".github/workflows/cafeina-ai-core-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check syntax
+        run: npm --prefix ai-core run check
+      - name: Test safe ingestion and mission proposals
+        run: npm --prefix ai-core test
+      - name: Demonstrate synthetic batch analysis
+        run: npm --prefix ai-core run demo
+      - name: Validate roadmap points
+        run: npm --prefix ai-core run progress
