@@ -21,9 +21,10 @@
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
-- **P3, P4, P6, P7 e P8 = 0**: ainda não implementadas.
+- **P3 = 3/15**: proposta read-only, fila com API GitHub simulada, polling e recibos em gateway HTTP de loopback; nenhuma autenticação ou comunicação real com Roblox.
+- **P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 40/100; faltam 60 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 43/100; faltam 57 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -92,3 +93,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - A branch de memória tem apenas tarefa de teste sintética; dados brutos de jogadores não foram gravados nesse processo.
 
 **Pontuação atual: P0 10 + P1 14 + P2 13 + P3 0 + P4 0 + P5 3 + P6 0 + P7 0 + P8 0 = 40/100.**
+
+## Primeira camada de comunicacao com o menu — 2026-11-01
+
+- Propostas de missao somente para ferramentas de observacao e nunca executaveis; referencias validadas contra relatorio V3 saneado.
+- Recibos de menu limitados a RECEIVED, DECLINED e NOT_EXECUTED; nenhuma dessas mensagens concede aprovacao.
+- Gateway HTTP somente no loopback simula polling, ACK e resultado; autenticação com token de **teste**, escopo de sessao, timeout, repeticao idempotente e limite de polling.
+- Fila GitHub de propostas imutaveis implementada com `dryRun=true` por padrão; **testada apenas com API simulada**, sem gravacao real de propostas.
+- Teste de ponta a ponta **sintetico e simulado** entre a fila e o menu passou no CI: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363961534
+- Documentacao tecnica: `ai-core/docs/MENU_BRIDGE.md`.
+- **Nao implementado:** sessao real Roblox autenticada, endpoint de gateway no Render, ACK duravel no GitHub, coletor recebendo novas instrucoes, executores ou aprovacao real de missoes.
+
+**Pontuacao P3 = 3/15; total = 43/100; restam 57 pontos.**

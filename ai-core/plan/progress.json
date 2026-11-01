@@ -92,16 +92,26 @@
       "id": "P3",
       "title": "Fila segura GitHub ↔ gateway ↔ Roblox",
       "weight": 15,
-      "earned": 0,
-      "status": "not_started",
-      "done": [],
+      "earned": 3,
+      "status": "in_progress",
+      "done": [
+        "contratos de propostas de observacao nao executaveis e recibos que nao concedem permissoes",
+        "fila GitHub de propostas imutaveis em modo dry-run com testes de API simulada, conflito e idempotencia",
+        "gateway HTTP apenas no loopback: polling, ACK, recusa, expiração, limites e protecao de sessao com token de teste",
+        "teste E2E sintetico GitHub simulado → gateway local → menu simulado → recibo, CI aprovada",
+        "documentacao da fronteira de permissao e do contrato necessario ao gateway real"
+      ],
       "pending": [
-        "autenticacao",
-        "fila",
-        "polling",
-        "ack",
-        "resposta",
-        "idempotencia"
+        "autenticacao de sessao Roblox comprovada pelo servidor, sem token GitHub no cliente",
+        "gravar e recuperar proposta sintetica na fila real do GitHub entre dois runners (nao comprovado)",
+        "integrar gateway/Render real sob aprovacao especifica, sem alterar rotas existentes",
+        "integrar interface do menu Roblox e obter ACK/resposta de dispositivo real",
+        "persistir ACK e resultado por mensagem com retries, controle de concorrencia, TTL e auditoria",
+        "testar fluxo autorizado ponta a ponta com jogo proprio, sem executar comandos arbitrarios"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363716857",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363961534"
       ]
     },
     {
