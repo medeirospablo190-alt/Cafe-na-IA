@@ -19,10 +19,11 @@
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
-- **P2 = 11/15**: modelo Qwen2.5 0.5B validado no Actions; protocolo dos agentes, fila local de planejamento com retomada, bloqueio de comandos, Arquiteta/Programadora/Testadora em fase de contrato e CI com sessão V3 histórica. Persistência entre runners e agentes que gerem código ainda pendentes.
-- **P3 a P8 = 0**: apenas planejadas.
+- **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
+- **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
+- **P3, P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 35/100; faltam 65 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 40/100; faltam 60 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -81,3 +82,13 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - Nao houve comunicacao de volta ao Roblox, execucao de REA, modificacao do gateway ou uso de credenciais do jogo.
 
 **Pontuacao atual: P0 10/10 + P1 14/15 + P2 11/15 + P3–P8 0 = 35/100 pontos.**
+
+## Memoria entre runners e REA CLI — 2026-11-01
+
+- GitHub Actions concluiu escrita e leitura da MESMA tarefa **sintetica** em runners independentes usando `cafeina-ai-knowledge` com autenticação e controle de revisão: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362546343
+- REA 6.7.0 iniciou no GitHub Actions com ledger vazio documentado e sem evidência Roblox fictícia: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362281164
+- Pipeline de sessão V3 histórica agora emite `rea-handoff-*.json` com referencias CAFEINA e `reaEvidenceAuthenticated=false`; aprovado pela CI: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362629393
+- **Não foi testado ainda**: execução do REA sobre Evidence real autorizada, integração com o Roblox/gateway, código Luau gerado por agentes ou publicação de testes Roblox.
+- A branch de memória tem apenas tarefa de teste sintética; dados brutos de jogadores não foram gravados nesse processo.
+
+**Pontuação atual: P0 10 + P1 14 + P2 13 + P3 0 + P4 0 + P5 3 + P6 0 + P7 0 + P8 0 = 40/100.**

@@ -55,7 +55,7 @@
       "id": "P2",
       "title": "Modelo e agentes especializados",
       "weight": 15,
-      "earned": 11,
+      "earned": 13,
       "status": "in_progress",
       "done": [
         "protocolo deterministico de quatro agentes com mensagens estruturadas e limite de turnos",
@@ -69,14 +69,14 @@
         "sessao historica V3 processada por agentes deterministas com diario de decisoes",
         "tarefa de planejamento offline com estados, limites, lease, revisao e recuperacao de interrupcao testados",
         "Arquiteta, Programadora e Testadora deterministicas com bloqueio de codigo sem evidencias",
-        "CI com sessao historica V3: task state gravado/recarregado e plano de testes sem execucao"
+        "CI com sessao historica V3: task state gravado/recarregado e plano de testes sem execucao",
+        "sincronizacao de estado de tarefa em branch GitHub com SHA e revisoes testada por API simulada",
+        "tarefa inteiramente sintetica persistida por um runner e recuperada por segundo runner independente no Actions"
       ],
       "pending": [
-        "execucao do modelo com qualidade suficiente para mecanicas reais de jogo autorizado",
-        "persistencia e retomada de tarefas entre runners distintos do GitHub (hoje apenas disco local)",
-        "agentes Programadora e Testadora com geracao Luau e verificacao efetiva (hoje apenas planos seguros)",
-        "recuperacao, limites e logs em coordenacao completa com gateway e modelo",
-        "avaliacao comparativa e medidas de confiabilidade por jogo"
+        "ligar persistencia entre runners ao orquestrador normal e tratar exclusao/retencao",
+        "executar agentes e modelo mais capazes em mecanicas autorizadas com dados tratados",
+        "agentes Programadora e Testadora com geracao Luau e verificacoes reais (hoje somente planos)"
       ],
       "evidence": [
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490",
@@ -84,7 +84,8 @@
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353005800",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353072322",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354698722",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354703167"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354703167",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362546343"
       ]
     },
     {
@@ -122,13 +123,23 @@
       "id": "P5",
       "title": "REA executavel e adaptador",
       "weight": 10,
-      "earned": 0,
-      "status": "not_started",
-      "done": [],
+      "earned": 3,
+      "status": "in_progress",
+      "done": [
+        "adaptador de handoff REA que preserva somente referencias de observacao e lacunas",
+        "REA CLI 6.7.0 executado em runner do GitHub com ledger vazio autentico, sem criar provas ficticias",
+        "pipeline V3 historico emite handoff de REA nao autenticado e plano read-only",
+        "testes contra falso reconhecimento de evidencias e referencias de outra sessao"
+      ],
       "pending": [
-        "CLI/MCP em runner",
-        "evidencias",
-        "limitacoes"
+        "converter investigacoes autorizadas em registros Evidence reais produzidos pelos recursos REA",
+        "validar adaptador de importacao e comparacao de Evidence, nao somente handoff",
+        "integrar CLI/MCP do REA em execucao de agentes com limites de tempo e recursos",
+        "criar obrigacoes autenticas e testes comparativos de mecanicas de ambiente proprio"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362281164",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362629393"
       ]
     },
     {

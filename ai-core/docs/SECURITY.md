@@ -45,3 +45,10 @@ Os testes de leitura em runners usam o `github.token` efemero do proprio Actions
 O estado do planejamento não contém payload bruto, nomes de jogadores, tokens ou instruções livres. Limites de duração, tentativas, revisão e lease reduzem loops e duplicações. Somente transições de estado permitidas são gravadas; atualizações conflitantes e atributos extras são rejeitados. A conclusão exige o ID da conversa derivado da sessão e manifesto; todo trabalho continua `OFFLINE_METADATA_ONLY`.
 
 Essas garantias são locais e não equivalem a autorização de ferramentas no menu Roblox ou a persistência durável entre runners. Não há executor de comandos no novo módulo.
+
+## GitHub tasks e REA (integracao read-only)
+
+- O armazenamento remoto de tarefas é restrito à branch `cafeina-ai-knowledge`, aos caminhos `ai-core/tasks/<gameId>/task-<hash>.json` e a estados com campos validados. Cada gravação exige token e revisão esperada; leitura não executa conteúdo.
+- Teste em runners distintos usou exclusivamente fixtures **sintéticas**, sem dados reais de jogadores, e não habilitou execução no Roblox.
+- O REA foi instalado temporariamente por versão fixada, sem credenciais e com dados vazios. O handoff V3 informa `reaEvidenceAuthenticated=false` e não cria obrigações verificadas de reconstrução.
+- Nenhuma dessas integrações fornece autonomamente autoridade para inspecionar jogos de terceiros, executar remotes ou publicar código.
