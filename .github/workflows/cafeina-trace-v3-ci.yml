@@ -3,6 +3,8 @@ name: CAFEINA Collector CI
 on:
   push:
     paths:
+      - "README.md"
+      - "*.lua"
       - "Cafeina_Universal_Game_Trace_V3_0.lua"
       - "collector-v3-routes.js"
       - "collector-gateway.js"
@@ -16,6 +18,8 @@ on:
       - ".github/workflows/cafeina-trace-v3-ci.yml"
   pull_request:
     paths:
+      - "README.md"
+      - "*.lua"
       - "Cafeina_Universal_Game_Trace_V3_0.lua"
       - "collector-v3-routes.js"
       - "collector-gateway.js"
