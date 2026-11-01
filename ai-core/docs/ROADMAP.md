@@ -21,10 +21,10 @@
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
-- **P3 = 3/15**: proposta read-only, fila com API GitHub simulada, polling e recibos em gateway HTTP de loopback; nenhuma autenticação ou comunicação real com Roblox.
+- **P3 = 5/15**: propostas read-only, fila com API GitHub simulada, gateway HTTP isolado, ACK/recusa, estado de recibos persistido por API simulada com revisões e falha segura; sem autenticação ou comunicação Roblox real.
 - **P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 43/100; faltam 57 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 45/100; faltam 55 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -105,3 +105,14 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Nao implementado:** sessao real Roblox autenticada, endpoint de gateway no Render, ACK duravel no GitHub, coletor recebendo novas instrucoes, executores ou aprovacao real de missoes.
 
 **Pontuacao P3 = 3/15; total = 43/100; restam 57 pontos.**
+
+## Resiliencia dos recibos do menu — 2026-11-01
+
+- `src/menu-delivery-state.mjs`: estados QUEUED, DELIVERED, ACKNOWLEDGED e CLOSED_NO_EXECUTION, com transicoes estritas, revisao e horarios limitados.
+- `src/github-menu-receipts.mjs`: contrato de armazenamento na branch de conhecimento, exclusivamente para metadados, com leitura e validacao, atualizacao otimista por SHA, retries limitados e dry-run como padrao.
+- O simulador do gateway aceita callback opcional de persistencia; em falha da API, responde HTTP 503, sem fingir sucesso.
+- Testes E2E usaram HTTP local e **API GitHub simulada**, abrangendo recuperacao dos recibos, idempotencia, conflitos e indisponibilidade.
+- [CI do PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41364586743) inclui etapa "Check simulated versioned menu receipt resilience".
+- **Nao confirmado:** gravacao real de recibos no GitHub, novo endpoint em Render, autenticacao da sessao Roblox, menu real e execucao de ferramentas.
+
+**Pontuacao atual: P3 5/15; total 45/100; faltam 55 pontos.**
