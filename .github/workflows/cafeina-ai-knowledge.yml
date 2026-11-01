@@ -47,6 +47,7 @@ jobs:
           CAFEINA_RUN_ID: ${{ inputs.run_id }}
           CAFEINA_PUBLISH: "false"
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
   publish:
     if: ${{ inputs.publish_knowledge }}
     runs-on: ubuntu-latest

@@ -35,3 +35,7 @@ A execução da CI com uma sessão histórica real **não publica registros brut
 O Qwen2.5 0.5B foi baixado pelo Ollama em container Docker no runner efemero do GitHub Actions. A API so ficou acessivel em `127.0.0.1:11434`, sem acesso a secrets de producao, Render ou menu. A entrada foi uma fixture sintetica com campos maliciosos simulados; o contrato de saida manteve a geracao em enum seguro. O modelo nao pode executar ferramentas, adicionar permissoes nem marcar evidencias como comprovadas.
 
 O diario `decision-journal.mjs` aceita somente IDs de jogo/sessao, papeis de agentes e campos controlados. Nao exporta livremente prompts, nomes, mensagens ou respostas integrais do modelo. Um artefato desse diario dura no maximo sete dias.
+
+## API GitHub e limites de requisicao
+
+Os testes de leitura em runners usam o `github.token` efemero do proprio Actions, com `permissions: contents: read`; isso evita depender de chamadas anonimas sujeitas a limite por IP. O token nao e enviado a modelos nem exibido nos logs. Publicacao continua restrita a um job explicitamente solicitado com `contents: write`.

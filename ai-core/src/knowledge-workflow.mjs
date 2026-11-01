@@ -37,7 +37,7 @@ async function main(){
   const publish=process.env.CAFEINA_PUBLISH==="true";
   const result=await syncGithubKnowledge({
     repository:process.env.GITHUB_REPOSITORY,report,
-    token:publish?process.env.GITHUB_TOKEN:"",dryRun:!publish
+    token:process.env.GITHUB_TOKEN ?? "",dryRun:!publish
   });
   process.stdout.write(JSON.stringify({
     status:result.status,gameId:s.gameId,

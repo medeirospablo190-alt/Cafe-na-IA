@@ -92,6 +92,7 @@ jobs:
           CAFEINA_RUN_ID: "c59f475c-6740-46cb-9d9b-e7f8c0065433"
           CAFEINA_PUBLISH: "false"
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           node ai-core/src/knowledge-workflow.mjs > "$RUNNER_TEMP/knowledge-check.json"
