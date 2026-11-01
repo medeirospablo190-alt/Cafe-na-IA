@@ -40,6 +40,7 @@ jobs:
             --session-dir ../inventory-traces-v3/10112019404/105352101879443/c59f475c-6740-46cb-9d9b-e7f8c0065433 \
             --manifest ../inventory-traces-v3/10112019404/105352101879443/latest.json \
             --profile ../inventory-traces-v3/profiles/10112019404.json \
+            --store "$RUNNER_TEMP/cafeina-safe-store" \
             > /tmp/cafeina-safe-analysis.json
           node --input-type=module -e '
             import {readFileSync} from "node:fs";
@@ -52,7 +53,14 @@ jobs:
             assert.equal(result.privacy.rawRecordsIncluded,false);
             assert.ok(result.observations.recordCount>0);
             assert.equal(result.mission?.executable,false);
-            console.log("Historical V3 sanitized smoke PASS: 15 batches, no raw payload.");
+            assert.equal(result.persistence.status,"CREATED");
+            const memory=readFileSync(process.env.RUNNER_TEMP + "/cafeina-safe-store/10112019404.json","utf8");
+            const stored=JSON.parse(memory);
+            assert.equal(stored.totals.knownRuns,1);
+            assert.equal(stored.sessions[result.identity.runId].verification,"EXPERIMENTAL");
+            assert.equal(memory.includes("username"),false);
+            assert.equal(memory.includes("userId"),false);
+            console.log("Historical V3 smoke PASS: 15 batches, sanitized memory, no raw payload.");
           '
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

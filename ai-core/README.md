@@ -34,7 +34,7 @@ node src/session-cli.mjs \
   --out /pasta/privada/relatorio.json
 ```
 
-`--store` e `--out` são opcionais. A memória `<gameId>.json` fica no disco local do ambiente executor, **não é enviada automaticamente ao GitHub**. Em runners temporários, será necessário implementar persistência autenticada em etapa posterior. Nenhuma confiança é elevada automaticamente a VALIDATED.
+`--store` e `--out` são opcionais. A memória `<gameId>.json` fica no disco local do ambiente executor, **não é enviada automaticamente ao GitHub**. A fase P1 está em **13/15**, faltando persistência segura entre runners e revisão da privacidade histórica. Em runners temporários, será necessário implementar persistência autenticada em etapa posterior. Nenhuma confiança é elevada automaticamente a VALIDATED.
 
 ## Documentação
 

@@ -18,10 +18,10 @@
 ## Primeiro marco, 2026-11-01
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
-- **P1 = 5/15 (a validar para atualização)**: multi-batch, resumo de perfil, armazenamento de metadados por jogo, deduplicação e conflitos agora implementados na branch. Pontos novos apenas após CI e smoke real confirmados; ainda pendem política de dados históricos e memória persistente remota.
+- **P1 = 13/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). Restam memória durável entre runners e revisão da privacidade histórica.
 - **Demais etapas = 0**: apenas planejadas.
 
-**Atual: 15/100; faltam 85 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 23/100; faltam 77 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -36,3 +36,9 @@
 9. Publicar apenas com aprovação e concluir E2E.
 
 **R$ 0 de novas mensalidades é objetivo, não garantia de acesso ilimitado.** Quando uma cota gratuita acabar, o sistema deve parar a tarefa, não iniciar cobranças.
+
+## Evidência da segunda entrega — 2026-11-01
+
+O CI do AI Core analisou uma sessão histórica de 15 lotes V3, manifesto V3 e perfil persistido de esquema V1. A análise foi executada no runner sem enviar dados brutos para modelos ou publicar seus conteúdos nos logs. A memória local foi testada com fixtures sintéticas de múltiplas sessões, idempotência e conflito.
+
+As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA e ligação reversa com o Roblox continuam pendentes.
