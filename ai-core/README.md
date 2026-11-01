@@ -90,3 +90,11 @@ node ai-core/src/planning-demo.mjs /caminho/relatorio-saneado.json /pasta-privad
 - `src/planning-demo.mjs` emite agora os dois artefatos: plano dos especialistas e handoff REA.
 
 **Pontuação oficial atual: 40/100, faltam 60 pontos.** A `main`, o gateway e o coletor não foram alterados.
+## Canal do menu — simulador P3
+
+- `src/menu-proposal.mjs`: propostas e recibos que nunca concedem autorização.
+- `src/github-menu-queue.mjs`: fila imutável no GitHub; gravação real ainda não verificada.
+- `src/menu-gateway-sim.mjs`: HTTP local com polling, confirmação e resposta de não execução.
+- `npm run menu:demo`: prova do fluxo completo usando fixtures sintéticas.
+
+Consulte `docs/MENU_BRIDGE.md` antes de qualquer integração com Roblox real.

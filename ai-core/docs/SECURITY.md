@@ -52,3 +52,6 @@ Essas garantias são locais e não equivalem a autorização de ferramentas no m
 - Teste em runners distintos usou exclusivamente fixtures **sintéticas**, sem dados reais de jogadores, e não habilitou execução no Roblox.
 - O REA foi instalado temporariamente por versão fixada, sem credenciais e com dados vazios. O handoff V3 informa `reaEvidenceAuthenticated=false` e não cria obrigações verificadas de reconstrução.
 - Nenhuma dessas integrações fornece autonomamente autoridade para inspecionar jogos de terceiros, executar remotes ou publicar código.
+## Propostas e recibos do menu
+
+Toda proposta é não executável e exige aprovação independente. Referências devem pertencer à mesma sessão. O token de teste do gateway local não representa identidade Roblox; o servidor real precisará autenticar a sessão e gerenciar seus próprios tokens. O cliente não recebe acesso GitHub. Nenhuma rota foi adicionada ao Render.

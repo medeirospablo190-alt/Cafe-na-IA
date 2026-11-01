@@ -38,3 +38,6 @@ O contrato de especialistas `ai-core/src/specialists.mjs` bloqueia geração de 
 ## Ponte read-only para o REA
 
 A analise offline agora produz `rea-handoff-*.json` com referencias V3 saneadas e questoes pendentes. A origem dessas referencias e CAFEINA e **nao** equivale a um `evidence_id` autenticado do REA. O workflow separado executa o REA 6.7.0 com um ledger vazio, confirmando que o CLI inicia no GitHub Actions sem fabricar obrigacoes. A ligacao com Evidence real, importacao, comparacao e validacao de mecanicas continua pendente.
+## Canal reverso (simulado)
+
+O P3 simula `GitHub inbox → gateway HTTP local → menu simulado → recibo`. Faltam autenticação da sessão real, fila durável de resultados, integração ao menu e aprovação separada para observações ativas. Ver `docs/MENU_BRIDGE.md`.
