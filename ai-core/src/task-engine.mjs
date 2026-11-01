@@ -18,7 +18,13 @@ function immutable(task){
     task.executionScope,task.proposedMissionId]);
 }
 export function validatePlanningTask(task){
+  const allowed=["schemaVersion","type","taskId","identity","sourceManifestSha256",
+    "createdAtMs","updatedAtMs","expiresAtMs","maxAttempts","attempt","stepLimit",
+    "modelCallLimit","usedModelCalls","executionScope","remoteExecutionAllowed",
+    "proposedMissionId","status","revision","leaseUntilMs","conversationId","decision","failure"];
   if(!task||typeof task!=="object"||Array.isArray(task)||
+     Object.keys(task).length!==allowed.length ||
+     Object.keys(task).some(key=>!allowed.includes(key)) ||
      task.schemaVersion!==1||task.type!=="cafeina_ai_planning_task"||
      !TASK.test(task.taskId??"")||!STATES.has(task.status)||
      task.executionScope!=="OFFLINE_METADATA_ONLY"||task.remoteExecutionAllowed!==false||
@@ -33,6 +39,10 @@ export function validatePlanningTask(task){
      !SHA.test(task.sourceManifestSha256??"")||
      (task.proposedMissionId!==null&&!MISSION.test(task.proposedMissionId??""))){
     throw new Error("Estado da tarefa invalido.");
+  }
+  if(!task.identity||Object.keys(task.identity).length!==3 ||
+    Object.keys(task.identity).some(key=>!["gameId","placeId","runId"].includes(key))){
+    throw new Error("Identidade da tarefa nao saneada.");
   }
   const ids=task.identity??{};
   if(typeof ids.gameId!=="string"||!ID.test(ids.gameId)||
@@ -167,6 +177,62 @@ export function changePlanningTask(task,action,{nowMs=Date.now(),leaseMs=60000,c
 function taskPath(root,task){
   return path.join(path.resolve(root),task.identity.gameId,task.taskId+".json");
 }
+
+function validStoredTransition(old,next){
+  if(TERMINAL.has(old.status))throw new Error("CONFLICT: tarefa terminal nao pode mudar.");
+  if(next.updatedAtMs<old.updatedAtMs ||
+     next.revision!==old.revision+1 ||
+     next.modelCallLimit!==0 ||next.usedModelCalls!==0 ||
+     (next.status!=="RUNNING"&&next.attempt!==old.attempt)){
+    throw new Error("CONFLICT: atualizacao nao sequencial.");
+  }
+  const from=old.status,to=next.status,now=next.updatedAtMs;
+  const within=now<old.expiresAtMs;
+  if(to==="CANCELLED"){
+    if(next.failure!=="CANCELLED_BY_USER")throw new Error("CONFLICT: cancelamento invalido.");
+    return;
+  }
+  if(to==="EXPIRED"){
+    if(within || next.failure!=="DEADLINE")throw new Error("CONFLICT: expiracao invalida.");
+    return;
+  }
+  if(from==="CREATED"&&to==="RUNNING"){
+    if(!within || next.attempt!==old.attempt+1 ||
+       next.leaseUntilMs<=now ||next.leaseUntilMs>old.expiresAtMs||
+       next.leaseUntilMs-now>300000||
+       next.conversationId!==null||next.decision!==null||next.failure!==null){
+      throw new Error("CONFLICT: inicio invalido.");
+    }
+    return;
+  }
+  if(from==="RUNNING"&&to==="CREATED"){
+    if(now<old.leaseUntilMs || next.attempt!==old.attempt ||
+       next.conversationId!==null||next.decision!==null||next.failure!==null){
+      throw new Error("CONFLICT: recuperacao invalida.");
+    }
+    return;
+  }
+  if(from==="RUNNING"&&to==="FAILED"){
+    if(!(next.failure==="ANALYSIS_ERROR"&&now<old.leaseUntilMs&&within ||
+         next.failure==="MAX_ATTEMPTS"&&now>=old.leaseUntilMs&&
+         old.attempt>=old.maxAttempts)){
+      throw new Error("CONFLICT: falha nao justificada.");
+    }
+    return;
+  }
+  if(from==="RUNNING"&&["WAITING_USER","COMPLETED"].includes(to)){
+    const correct=old.proposedMissionId?"WAITING_USER":"COMPLETED";
+    const correctDecision=old.proposedMissionId?"WAITING_USER":"WAITING_EVIDENCE";
+    if(to!==correct||now>=old.leaseUntilMs||!within||
+       !CONVERSATION.test(next.conversationId??"")||
+       next.decision!==correctDecision||next.failure!==null){
+      throw new Error("CONFLICT: conclusao invalida.");
+    }
+    return;
+  }
+  throw new Error("CONFLICT: transicao de estado proibida.");
+}
+
 export async function savePlanningTask(root,task,{expectedRevision=null}={}){
   validatePlanningTask(task);
   const file=taskPath(root,task);
@@ -184,7 +250,7 @@ export async function savePlanningTask(root,task,{expectedRevision=null}={}){
         throw new Error("CONFLICT: revisao desatualizada.");
       }
       if(JSON.stringify(old)===JSON.stringify(task))return {status:"UNCHANGED",file};
-      if(task.revision!==old.revision+1)throw new Error("CONFLICT: revisao nao sequencial.");
+      validStoredTransition(old,task);
     }else if(task.revision!==0||expectedRevision!==null){
       throw new Error("CONFLICT: tarefa ainda nao existe.");
     }

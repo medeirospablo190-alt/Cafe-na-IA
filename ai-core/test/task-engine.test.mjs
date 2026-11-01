@@ -79,3 +79,19 @@ test("tarefa sem nova missao pode encerrar sem acao de coletor",()=>{
   assert.equal(done.status,"COMPLETED");
   assert.equal(done.decision,"WAITING_EVIDENCE");
 });
+
+test("rejeita injeção de campos e transição inventada no arquivo",async t=>{
+  const folder=await mkdtemp(path.join(tmpdir(),"cafeina-forged-"));
+  t.after(()=>rm(folder,{recursive:true,force:true}));
+  const rep=report(),task=createPlanningTask(rep,{nowMs:clock});
+  await savePlanningTask(folder,task);
+  await assert.rejects(()=>savePlanningTask(folder,{
+    ...task,revision:1,status:"WAITING_USER",
+    conversationId:"conversation-"+"a".repeat(16),decision:"WAITING_USER"
+  }),/CONFLICT/);
+  await assert.rejects(()=>savePlanningTask(folder,{
+    ...task,revision:1,username:"TEST_SECRET"
+  }),/invalido/);
+  const saved=await loadPlanningTask(folder,task.identity.gameId,task.taskId);
+  assert.equal(saved.status,"CREATED");
+});
