@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {writeFile,readFile,mkdtemp,rm} from "node:fs/promises";
+import {writeFile,readFile,mkdtemp,readdir,rm} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import path from "node:path";
 import {analyzeSession} from "../src/session.mjs";
@@ -23,9 +23,12 @@ test("pipeline reports -> agents -> sanitized journal is idempotent",async t=>{
   assert.equal(first.decision,"WAITING_USER");
   assert.equal(first.modelCalls,0);
   assert.equal(first.toolExecutions,0);
-  const stored=await readFile(path.join(pathToStore,"101",
-    "conversation-"+report.identity.runId+"-DETERMINISTIC_REHEARSAL.json"),"utf8").catch(()=>null);
-  // The path has a hash-derived identity; it is deliberately not the runId itself.
-  assert.equal(stored,null);
+  const files=await readdir(path.join(pathToStore,"101"));
+  assert.equal(files.length,1);
+  assert.ok(/^conversation-[a-f0-9]{16}-DETERMINISTIC_REHEARSAL\.json$/.test(files[0]));
+  const stored=await readFile(path.join(pathToStore,"101",files[0]),"utf8");
+  assert.equal(JSON.parse(stored).messages.length,4);
+  assert.ok(!stored.includes("TEST_SECRET"));
+  assert.ok(!stored.includes("username"));
   assert.equal(first.journalSha256.length,64);
 });

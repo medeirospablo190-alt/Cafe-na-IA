@@ -56,3 +56,15 @@ O GitHub possui a branch `cafeina-ai-knowledge` para memória saneada. `src/know
 O contador oficial esta em `plan/progress.json`: **27/100 pontos**. A CI aprovada testou um dry-run de consulta a memoria no proprio GitHub, mas nao realizou uma gravacao real. Ainda faltam ativar um modelo de linguagem, criar a fila de missoes e integrar o menu.
 
 A branch `cafeina-ai-knowledge` foi criada separadamente, sem alterar a main. A implementacao da equipe de agentes e do armazenamento permanece no PR #228.
+
+## Modelo aberto realmente testado e diario de decisoes
+
+O GitHub Actions executou um modelo `qwen2.5:0.5b` em CPU via Ollama (com ambiente e tempo limitados). O teste foi feito **somente com dados sinteticos** e terminou com uma recomendacao validada de `watch_state`, sem executar nenhuma ferramenta.
+
+- Workflow one-off: `.github/workflows/cafeina-ai-local-model-smoke.yml`
+- Cliente com schema JSON estrito: `src/model.mjs`
+- Registro com campos estritamente permitidos: `src/decision-journal.mjs`
+- Pipeline real de coleta historica → agentes por regras → diario: `src/agent-report-cli.mjs`
+- Artefato sintetico gerado com a IA real expira em 7 dias: [Execucao aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353005800)
+
+**Importante:** nenhum modelo foi implantado como servico sempre ligado, e nenhum dado real de jogador foi enviado a inferencia. O modelo pequeno nao basta para Engenharia Reversa complexa. Continua faltando conectar REA, menu Roblox e publicar memoria de forma segura.

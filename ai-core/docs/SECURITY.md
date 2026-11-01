@@ -29,3 +29,9 @@ A execução da CI com uma sessão histórica real **não publica registros brut
 - As respostas do LLM passam por enums restritos, não podem executar ferramentas, aprovar missões ou elevar hipóteses a VALIDATED.
 - Workflow de memória separa dois jobs: leitura com `contents: read` e publicação explícita com `contents: write`.
 - A CI principal nunca grava memória remota; a publicação real continua pendente de revisão e teste controlado.
+
+## Teste real do modelo, fonte e fronteiras
+
+O Qwen2.5 0.5B foi baixado pelo Ollama em container Docker no runner efemero do GitHub Actions. A API so ficou acessivel em `127.0.0.1:11434`, sem acesso a secrets de producao, Render ou menu. A entrada foi uma fixture sintetica com campos maliciosos simulados; o contrato de saida manteve a geracao em enum seguro. O modelo nao pode executar ferramentas, adicionar permissoes nem marcar evidencias como comprovadas.
+
+O diario `decision-journal.mjs` aceita somente IDs de jogo/sessao, papeis de agentes e campos controlados. Nao exporta livremente prompts, nomes, mensagens ou respostas integrais do modelo. Um artefato desse diario dura no maximo sete dias.

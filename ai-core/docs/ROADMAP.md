@@ -19,10 +19,10 @@
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
-- **P2 = 3/15**: quatro agentes baseados em regras, contrato de mensagens e interface opcional de modelo local testada com API simulada. Ainda nao existe LLM real executado.
+- **P2 = 8/15**: modelo Qwen2.5 0.5B executado realmente no GitHub Actions (CPU) com dados sinteticos, respostas estruturadas restritas e diario de decisoes validado. Ainda faltam orquestracao persistente, outros agentes, modelo mais capaz e testes de qualidade.
 - **P3 a P8 = 0**: apenas planejadas.
 
-**Atual: 27/100; faltam 73 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 32/100; faltam 68 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -60,3 +60,13 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - O workflow manual de escrita continua na branch do PR; nao foi implantado na main nem acionado.
 
 **Pontuacao: P0 10/10 + P1 14/15 + P2 3/15 = 27/100.**
+
+## Entrega de modelo aberto e diario de decisoes — 2026-11-01
+
+- Execucao real Ollama + Qwen2.5 0.5B com dados sintéticos, **aprovada**: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41352808367
+- Primeiro teste falhou por rejeicao de uma resposta fora do contrato: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41352541441
+- A correcao usou schema JSON de enums. O modelo real passou e escolheu a observacao `watch_state`, mantendo `executable=false`.
+- Diario saneado e artefato da inferencia real (retencao de 7 dias): https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353005800
+- Sessao historica com 15 batches → agente deterministico → diario de decisoes, CI aprovada: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353072322
+
+**Limites:** o Qwen 0.5B e adequado para verificar infraestrutura, mas nao demonstra capacidade para reconstruir jogos complexos. O teste real usou somente fixture sintetica; registros historicos nao foram enviados ao modelo. P1 continua em 14/15 e P3–P8 permanecem em 0.
