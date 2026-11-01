@@ -12,7 +12,7 @@ test("REA handoff preserves only references, not personal data or fake proof",()
   assert.equal(handoff.reaEvidenceAuthenticated,false);
   assert.equal(handoff.reaLedgerExecuted,false);
   assert.equal(handoff.verifiedReconstructionClaims,0);
-  assert.equal(handoff.pendingQuestions.length,2);
+  assert.equal(handoff.pendingQuestions.length,3);
   assert.ok(handoff.pendingQuestions.every(x=>x.status==="NEEDS_AUTHENTICATED_REA_EVIDENCE"));
   assert.ok(handoff.pendingQuestions[0].sourceRefs[0].startsWith("v3:101:202:"));
   const serialized=JSON.stringify(handoff);
