@@ -190,7 +190,7 @@ function taskPath(root,task){
   return path.join(path.resolve(root),task.identity.gameId,task.taskId+".json");
 }
 
-function validStoredTransition(old,next){
+export function validStoredTransition(old,next){
   if(TERMINAL.has(old.status))throw new Error("CONFLICT: tarefa terminal nao pode mudar.");
   if(next.updatedAtMs<old.updatedAtMs ||
      next.revision!==old.revision+1 ||
@@ -244,6 +244,22 @@ function validStoredTransition(old,next){
     return;
   }
   throw new Error("CONFLICT: transicao de estado proibida.");
+}
+
+export function assertTaskUpdate(previous,next){
+  validatePlanningTask(next);
+  if(previous===null){
+    if(next.revision!==0 ||next.status!=="CREATED"){
+      throw new Error("CONFLICT: primeira revisao invalida.");
+    }
+    return true;
+  }
+  validatePlanningTask(previous);
+  if(immutable(previous)!==immutable(next)){
+    throw new Error("CONFLICT: identidade de tarefa divergente.");
+  }
+  validStoredTransition(previous,next);
+  return true;
 }
 
 export async function savePlanningTask(root,task,{expectedRevision=null}={}){
