@@ -26,3 +26,5 @@ O gateway existente ja implementa postagem de batches e manifestos V3 e espelham
 **Futuro contrato:** `missionId` único, `gameId`, `placeId`, `runId`, tipo e parâmetros da ferramenta, prazo, risco, escopo autorizado, aprovação e estado. Exigir idempotência, limite de uso, logs e cancelamento. Executar apenas ferramentas de allowlist.
 
 **Memória futura:** separar conhecimento EXPERIMENTAL / VALIDATED / CONSOLIDATED / OBSOLETE, armazenar hipóteses com referências, contradições e resultados comparativos. Não transcrever código ou assets protegidos de terceiros.
+
+**Compatibilidade observada em dados reais:** os batches e o manifesto têm `schemaVersion: 3`, enquanto os arquivos em `inventory-traces-v3/profiles/<gameId>.json` atualmente têm `schemaVersion: 1`. O adaptador aceita perfis V1 e V3, sempre validando o `gameId` e publicando apenas contadores permitidos.

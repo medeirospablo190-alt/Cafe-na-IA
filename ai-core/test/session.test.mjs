@@ -137,3 +137,11 @@ test("sem contagem oficial nao declara sessao completa",()=>{
   assert.equal(r.coverage.completeBatchSequence,false);
   assert.ok(r.unknowns.some(x=>x.code==="BATCH_COUNT_UNREPORTED"));
 });
+
+test("perfil historico usa schema 1 mesmo com lote V3",()=>{
+  const historic={...profile(),schemaVersion:1};
+  const result=analyzeSession({batches:[seed()],manifest:manifest(),profile:historic});
+  assert.equal(result.profile.gameId,"101");
+  assert.equal(result.profile.revision,2);
+  assert.ok(!JSON.stringify(result).includes("DONOTCOPY"));
+});

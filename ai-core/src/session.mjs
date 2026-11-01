@@ -17,7 +17,7 @@ function sameSession(a, b) {
 export function summarizeProfile(rawProfile, gameId) {
   if (rawProfile == null) return null;
   if (!rawProfile || typeof rawProfile !== "object" || Array.isArray(rawProfile) ||
-      rawProfile.schemaVersion !== 3 || String(rawProfile.gameId) !== gameId) {
+      ![1, 3].includes(rawProfile.schemaVersion) || String(rawProfile.gameId) !== gameId) {
     throw new DataError("Perfil V3 nao pertence ao gameId da sessao.");
   }
   const revision = rawProfile.revision;
