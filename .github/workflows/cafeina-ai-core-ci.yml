@@ -82,6 +82,28 @@ jobs:
             assert.equal(s.decision,"WAITING_USER");
             console.log("Real V3 -> agents -> sanitized journal PASS.");
           '
+      - name: Exercise real V3 offline task state and specialist gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ai-core/src/planning-demo.mjs \
+            /tmp/cafeina-safe-analysis.json \
+            "$RUNNER_TEMP/cafeina-offline-planning" \
+            > "$RUNNER_TEMP/cafeina-offline-status.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const p=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+              "/cafeina-offline-status.json","utf8"));
+            assert.equal(p.taskState,"WAITING_USER");
+            assert.equal(p.recoveredFromDisk,true);
+            assert.deepEqual(p.specialists,["Arquiteta","Programadora","Testadora"]);
+            assert.equal(p.planStatus,"BLOCKED");
+            assert.equal(p.codeGenerated,false);
+            assert.equal(p.toolExecutions,0);
+            assert.equal(p.testsExecuted,0);
+            console.log("Historical V3 offline orchestration and specialists PASS.");
+          '
       - name: Demonstrate bounded deterministic agent protocol
         run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
       - name: Read-only GitHub knowledge integration smoke

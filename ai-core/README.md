@@ -68,3 +68,15 @@ O GitHub Actions executou um modelo `qwen2.5:0.5b` em CPU via Ollama (com ambien
 - Artefato sintetico gerado com a IA real expira em 7 dias: [Execucao aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353005800)
 
 **Importante:** nenhum modelo foi implantado como servico sempre ligado, e nenhum dado real de jogador foi enviado a inferencia. O modelo pequeno nao basta para Engenharia Reversa complexa. Continua faltando conectar REA, menu Roblox e publicar memoria de forma segura.
+
+## Missões offline com recuperação e especialistas (Fase P2)
+
+O sistema agora possui um fluxo **local e somente de análise**, separado dos comandos do Roblox:
+- `src/task-engine.mjs` cria tarefas determinísticas por sessão e manifesto, com estados, revisão, limites de tentativas, lease, prazo, cancelamento e recuperação após interrupção.
+- `src/specialists.mjs` adiciona Arquiteta, Programadora e Testadora como papéis determinísticos. Eles apenas identificam requisitos ainda não comprovados e desenham verificações; **não geram código nem executam testes ativos**.
+- `src/planning-demo.mjs` integra relatório V3 saneado, Coordenadora e especialistas. Exemplo:
+```bash
+node ai-core/src/planning-demo.mjs /caminho/relatorio-saneado.json /pasta-privada
+```
+
+**Persistência**: a tarefa sobrevive à reinicialização do processo quando seu arquivo é conservado no mesmo disco. Ainda **não** é gravada automaticamente na branch de memória nem recuperável entre dois runners independentes. A integração GitHub ↔ Roblox permanece inexistente.

@@ -12,6 +12,12 @@ const CONVERSATION=/^conversation-[0-9a-f]{16}$/;
 const STATES=new Set(["CREATED","RUNNING","WAITING_USER","COMPLETED","FAILED","CANCELLED","EXPIRED"]);
 const TERMINAL=new Set(["COMPLETED","FAILED","CANCELLED","EXPIRED"]);
 function safeMs(x){return Number.isSafeInteger(x)&&x>=0;}
+
+function expectedConversationId(task){
+  return "conversation-"+createHash("sha256")
+    .update([task.identity.gameId,task.identity.placeId,task.identity.runId,
+      task.sourceManifestSha256].join(":")).digest("hex").slice(0,16);
+}
 function immutable(task){
   return JSON.stringify([task.taskId,task.identity,task.sourceManifestSha256,
     task.createdAtMs,task.expiresAtMs,task.maxAttempts,task.stepLimit,
@@ -156,6 +162,12 @@ export function changePlanningTask(task,action,{nowMs=Date.now(),leaseMs=60000,c
        conversation.budgets?.toolExecutions!==0||
        conversation.messages?.length!==4||
        !CONVERSATION.test(conversation.conversationId??"")||
+       conversation.conversationId!==expectedConversationId(task)||
+       conversation.codeGenerated!==false||
+       conversation.evidenceValidated!==false||
+       conversation.messages.at(-1)?.role!=="Coordenadora"||
+       conversation.messages.at(-1)?.kind!=="DECISION"||
+       conversation.messages.at(-1)?.detail?.executionAllowed!==false||
        conversation.identity?.gameId!==task.identity.gameId||
        conversation.identity?.placeId!==task.identity.placeId||
        conversation.identity?.runId!==task.identity.runId||
@@ -225,6 +237,7 @@ function validStoredTransition(old,next){
     const correctDecision=old.proposedMissionId?"WAITING_USER":"WAITING_EVIDENCE";
     if(to!==correct||now>=old.leaseUntilMs||!within||
        !CONVERSATION.test(next.conversationId??"")||
+       next.conversationId!==expectedConversationId(old)||
        next.decision!==correctDecision||next.failure!==null){
       throw new Error("CONFLICT: conclusao invalida.");
     }

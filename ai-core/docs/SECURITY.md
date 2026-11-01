@@ -39,3 +39,9 @@ O diario `decision-journal.mjs` aceita somente IDs de jogo/sessao, papeis de age
 ## API GitHub e limites de requisicao
 
 Os testes de leitura em runners usam o `github.token` efemero do proprio Actions, com `permissions: contents: read`; isso evita depender de chamadas anonimas sujeitas a limite por IP. O token nao e enviado a modelos nem exibido nos logs. Publicacao continua restrita a um job explicitamente solicitado com `contents: write`.
+
+## Missões offline e recuperação
+
+O estado do planejamento não contém payload bruto, nomes de jogadores, tokens ou instruções livres. Limites de duração, tentativas, revisão e lease reduzem loops e duplicações. Somente transições de estado permitidas são gravadas; atualizações conflitantes e atributos extras são rejeitados. A conclusão exige o ID da conversa derivado da sessão e manifesto; todo trabalho continua `OFFLINE_METADATA_ONLY`.
+
+Essas garantias são locais e não equivalem a autorização de ferramentas no menu Roblox ou a persistência durável entre runners. Não há executor de comandos no novo módulo.
