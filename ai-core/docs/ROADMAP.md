@@ -17,11 +17,11 @@
 
 ## Primeiro marco, 2026-11-01
 
-- **P0 = 7/10**: estrutura, contratos e documentos. Faltam 3 pontos até confirmar CI no GitHub.
+- **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
 - **P1 = 5/15**: leitura de um lote e manifesto V3, checksums, referências e proposta de observação. Faltam múltiplas sessões, perfis e memória real.
 - **Demais etapas = 0**: apenas planejadas.
 
-**Inicial: 12/100; faltam 88 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 15/100; faltam 85 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 

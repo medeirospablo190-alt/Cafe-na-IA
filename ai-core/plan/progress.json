@@ -3,14 +3,141 @@
   "asOf": "2026-11-01",
   "rule": "Pontos apenas com entregas e evidencias verificadas; 100 exige ciclo E2E completo.",
   "phases": [
-    {"id":"P0","title":"Fundacao e CI","weight":10,"earned":7,"status":"in_progress","done":["scaffold","arquitetura","contratos","seguranca"],"pending":["CI verde confirmada"]},
-    {"id":"P1","title":"Ingestao, privacidade e evidencias V3","weight":15,"earned":5,"status":"in_progress","done":["1 batch e 1 manifesto","hash e referencias","resumo redigido"],"pending":["multi-batch","perfil por jogo","memoria persistente","contradicoes"]},
-    {"id":"P2","title":"Modelo e agentes especializados","weight":15,"earned":0,"status":"not_started","done":[],"pending":["interface de modelo gratuito","orquestradora","agentes","limites"]},
-    {"id":"P3","title":"Fila segura GitHub ↔ gateway ↔ Roblox","weight":15,"earned":0,"status":"not_started","done":[],"pending":["autenticacao","fila","polling","ack","resposta","idempotencia"]},
-    {"id":"P4","title":"Ferramentas passivas e testes controlados no coletor","weight":15,"earned":0,"status":"not_started","done":[],"pending":["catalogo","Lua","permissoes","auditoria","testes em jogo proprio"]},
-    {"id":"P5","title":"REA executavel e adaptador","weight":10,"earned":0,"status":"not_started","done":[],"pending":["CLI/MCP em runner","evidencias","limitacoes"]},
-    {"id":"P6","title":"Programacao Luau e reconstrucoes","weight":10,"earned":0,"status":"not_started","done":[],"pending":["specs","geracao","comparacao","PR"]},
-    {"id":"P7","title":"Rojo e publicacao Roblox de teste","weight":5,"earned":0,"status":"not_started","done":[],"pending":["build","ambiente de teste","aprovacao"]},
-    {"id":"P8","title":"Validacao total, custos e seguranca","weight":5,"earned":0,"status":"not_started","done":[],"pending":["E2E real","resiliencia","cotagem","revisao final"]}
+    {
+      "id": "P0",
+      "title": "Fundacao e CI",
+      "weight": 10,
+      "earned": 10,
+      "status": "completed",
+      "done": [
+        "scaffold",
+        "arquitetura",
+        "contratos",
+        "seguranca",
+        "GitHub Actions push + pull_request aprovados"
+      ],
+      "pending": [],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474"
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "Ingestao, privacidade e evidencias V3",
+      "weight": 15,
+      "earned": 5,
+      "status": "in_progress",
+      "done": [
+        "1 batch e 1 manifesto",
+        "hash e referencias",
+        "resumo redigido"
+      ],
+      "pending": [
+        "multi-batch",
+        "perfil por jogo",
+        "memoria persistente",
+        "contradicoes"
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Modelo e agentes especializados",
+      "weight": 15,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "interface de modelo gratuito",
+        "orquestradora",
+        "agentes",
+        "limites"
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Fila segura GitHub ↔ gateway ↔ Roblox",
+      "weight": 15,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "autenticacao",
+        "fila",
+        "polling",
+        "ack",
+        "resposta",
+        "idempotencia"
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Ferramentas passivas e testes controlados no coletor",
+      "weight": 15,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "catalogo",
+        "Lua",
+        "permissoes",
+        "auditoria",
+        "testes em jogo proprio"
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "REA executavel e adaptador",
+      "weight": 10,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "CLI/MCP em runner",
+        "evidencias",
+        "limitacoes"
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Programacao Luau e reconstrucoes",
+      "weight": 10,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "specs",
+        "geracao",
+        "comparacao",
+        "PR"
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Rojo e publicacao Roblox de teste",
+      "weight": 5,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "build",
+        "ambiente de teste",
+        "aprovacao"
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Validacao total, custos e seguranca",
+      "weight": 5,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "E2E real",
+        "resiliencia",
+        "cotagem",
+        "revisao final"
+      ]
+    }
   ]
 }
