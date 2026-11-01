@@ -62,5 +62,5 @@ test("offline pipeline survives disk reload, writes only safe spec",async t=>{
   const content=await readFile(path.join(dir,names[0]),"utf8");
   assert.ok(!content.includes("TEST_SECRET"));
   assert.ok(!content.includes("username"));
-  await assert.rejects(()=>runPlanningDemo(file,out,{nowMs:now}),/Tarefa inicial nao salva/);
+  await assert.rejects(()=>runPlanningDemo(file,out,{nowMs:now}),/CONFLICT: atualizacao nao sequencial/);
 });
