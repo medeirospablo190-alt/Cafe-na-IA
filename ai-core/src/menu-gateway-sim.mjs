@@ -31,15 +31,34 @@ async function readSmallJson(req){
  * This is not Roblox authentication: callers supply an opaque simulator-only token.
  * Only proposal delivery, acknowledgement and non-execution reports are supported.
  */
-export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}){
+export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now(),persistEvent=null}){
   if(process.env.NODE_ENV==="production"){
     throw new Error("Simulador nao deve executar em producao.");
   }
   validateMenuProposal(proposal);
   if(typeof token!=="string"||token.length<16||token.length>128||
     typeof nowMs!=="function")throw new Error("Credencial de teste invalida.");
+  if(persistEvent!==null&&typeof persistEvent!=="function"){
+    throw new Error("Persistencia do simulador invalida.");
+  }
   const stored=JSON.parse(JSON.stringify(proposal));
   let status="QUEUED",ack=null,completion=null,polls=0;
+  async function persist(kind,res){
+    if(!persistEvent)return true;
+    try{
+      const result=await persistEvent(kind,nowMs());
+      const desired=kind==="DELIVERED"?"DELIVERED":
+        kind==="RECEIVED"?"ACKNOWLEDGED":"CLOSED_NO_EXECUTION";
+      if(!result||!["SAVED","UNCHANGED"].includes(result.status)||
+         result.deliveryStatus!==desired){
+        throw new Error("Nao persistido.");
+      }
+      return true;
+    }catch{
+      json(res,503,{ok:false,error:"RECEIPT_STORE_UNAVAILABLE"});
+      return false;
+    }
+  }
   const server=createServer(async(req,res)=>{
     if(!equalTokens(req.headers.authorization,token)){
       json(res,401,{ok:false,error:"UNAUTHORIZED"});return;
@@ -56,8 +75,11 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}
       if(polls>=20){
         json(res,429,{ok:false,error:"POLL_LIMIT"});return;
       }
+      if(status==="QUEUED"){
+        if(!await persist("DELIVERED",res))return;
+        status="DELIVERED";
+      }
       polls++;
-      if(status==="QUEUED")status="DELIVERED";
       json(res,200,{ok:true,status,
         hasProposal:!completion,proposal:completion?null:stored});
       return;
@@ -80,7 +102,10 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}
         json(res,422,{ok:false,error:"ACK_KIND_REQUIRED"});return;
       }
       const duplicate=!!ack;
-      if(!ack){ack=receipt;status="ACKNOWLEDGED";}
+      if(!ack){
+        if(!await persist("RECEIVED",res))return;
+        ack=receipt;status="ACKNOWLEDGED";
+      }
       json(res,200,{ok:true,status,duplicate,approved:false,executed:false});
       return;
     }
@@ -94,7 +119,10 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}
       json(res,409,{ok:false,error:"RESULT_CONFLICT"});return;
     }
     const duplicate=!!completion;
-    if(!completion){completion=receipt;status="CLOSED_NO_EXECUTION";}
+    if(!completion){
+      if(!await persist(receipt.kind,res))return;
+      completion=receipt;status="CLOSED_NO_EXECUTION";
+    }
     json(res,200,{ok:true,status,duplicate,approved:false,executed:false});
   });
   server.on("clientError",(_error,socket)=>{
