@@ -5,12 +5,14 @@ on:
     paths:
       - "ai-core/**"
       - ".github/workflows/cafeina-ai-core-ci.yml"
+      - ".github/workflows/cafeina-ai-knowledge.yml"
   push:
     branches:
       - "feat/cafeina-ai-core-*"
     paths:
       - "ai-core/**"
       - ".github/workflows/cafeina-ai-core-ci.yml"
+      - ".github/workflows/cafeina-ai-knowledge.yml"
   workflow_dispatch:
 
 permissions:
@@ -62,5 +64,7 @@ jobs:
             assert.equal(memory.includes("userId"),false);
             console.log("Historical V3 smoke PASS: 15 batches, sanitized memory, no raw payload.");
           '
+      - name: Demonstrate bounded deterministic agent protocol
+        run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

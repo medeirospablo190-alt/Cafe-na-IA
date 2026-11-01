@@ -71,3 +71,14 @@ test("remote adulterado e rejeitado sem propagacao",async()=>{
     request:m.request
   }),/invalida/);
 });
+
+test("runId com nome de propriedade especial nao se confunde com prototype",async()=>{
+  const api=mockApi();
+  const result=await syncGithubKnowledge({
+    repository:"medeirospablo190-alt/Cafe-na-IA",
+    request:api.request,token:"MOCK",dryRun:false,
+    report:make("constructor")
+  });
+  assert.equal(result.status,"CREATED");
+  assert.equal(api.memory.totals.knownRuns,1);
+});

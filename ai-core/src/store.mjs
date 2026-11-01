@@ -91,7 +91,7 @@ export async function persistSession(storeDir, report) {
         !previous.sessions || typeof previous.sessions !== "object") {
       throw new Error("Memoria existente corrompida ou de outro jogo.");
     }
-    const old = previous.sessions[runId];
+    const old = Object.hasOwn(previous.sessions, runId) ? previous.sessions[runId] : null;
     if (old) {
       if (old.manifestSha256 !== run.manifestSha256 || old.placeId !== run.placeId) {
         throw new Error("CONFLICT: mesmo runId com manifesto ou lugar divergente.");

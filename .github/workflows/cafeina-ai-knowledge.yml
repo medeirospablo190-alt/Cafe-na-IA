@@ -26,7 +26,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  analyze:
+  inspect:
+    if: ${{ !inputs.publish_knowledge }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dry-run sanitized analysis
+        run: node ai-core/src/knowledge-workflow.mjs
+        env:
+          CAFEINA_GAME_ID: ${{ inputs.game_id }}
+          CAFEINA_PLACE_ID: ${{ inputs.place_id }}
+          CAFEINA_RUN_ID: ${{ inputs.run_id }}
+          CAFEINA_PUBLISH: "false"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+  publish:
+    if: ${{ inputs.publish_knowledge }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -38,12 +60,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Analyze V3 and optionally sync sanitized knowledge
+      - name: Publish only sanitized metadata (explicit opt-in)
         run: node ai-core/src/knowledge-workflow.mjs
         env:
           CAFEINA_GAME_ID: ${{ inputs.game_id }}
           CAFEINA_PLACE_ID: ${{ inputs.place_id }}
           CAFEINA_RUN_ID: ${{ inputs.run_id }}
-          CAFEINA_PUBLISH: ${{ inputs.publish_knowledge }}
+          CAFEINA_PUBLISH: "true"
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
