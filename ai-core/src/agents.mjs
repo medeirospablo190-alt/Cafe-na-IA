@@ -1,5 +1,6 @@
 import {createHash} from "node:crypto";
 import {validateMissionProposal} from "./analysis.mjs";
+import {askLocalModel} from "./model.mjs";
 
 const UNKNOWN=new Set([
   "CAUSALITY_NOT_PROVEN","GUI_TRANSITION_UNVERIFIED",
@@ -72,5 +73,39 @@ export function coordinateInvestigation(report,{maxSteps=4}={}){
       "Nenhuma execucao de ferramentas ou comunicacao com Roblox.",
       "Hipoteses permanecem EXPERIMENTAL ate testes suficientes."
     ]
+  };
+}
+
+/**
+ * Optional model-assisted round: advisory only. The deterministic gate always wins.
+ * Does not grant tools or modify the original passive proposal.
+ */
+export async function coordinateWithLocalModel(report,{model,server,request,timeoutMs}={}){
+  const base=coordinateInvestigation(report);
+  const advisory=await askLocalModel({
+    report,role:"Investigadora",model,server,request,timeoutMs
+  });
+  return {
+    ...base,
+    mode:"MODEL_ASSISTED_REHEARSAL",
+    budgets:{maxSteps:5,usedSteps:5,modelCalls:1,toolExecutions:0},
+    messages:[
+      ...base.messages,
+      message("Investigadora","MODEL_ADVISORY",{
+        unknownCode:advisory.unknownCode,
+        recommendation:advisory.recommendation,
+        accepted:advisory.modelRecommendationAccepted,
+        verification:"EXPERIMENTAL",
+        executable:false
+      },5)
+    ],
+    proposedMission:base.proposedMission,
+    modelAdvice:{
+      role:advisory.role,
+      unknownCode:advisory.unknownCode,
+      recommendation:advisory.recommendation,
+      verification:"EXPERIMENTAL",
+      executable:false
+    }
   };
 }
