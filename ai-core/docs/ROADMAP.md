@@ -19,10 +19,10 @@
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
-- **P2 = 8/15**: modelo Qwen2.5 0.5B executado realmente no GitHub Actions (CPU) com dados sinteticos, respostas estruturadas restritas e diario de decisoes validado. Ainda faltam orquestracao persistente, outros agentes, modelo mais capaz e testes de qualidade.
+- **P2 = 11/15**: modelo Qwen2.5 0.5B validado no Actions; protocolo dos agentes, fila local de planejamento com retomada, bloqueio de comandos, Arquiteta/Programadora/Testadora em fase de contrato e CI com sessão V3 histórica. Persistência entre runners e agentes que gerem código ainda pendentes.
 - **P3 a P8 = 0**: apenas planejadas.
 
-**Atual: 32/100; faltam 68 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 35/100; faltam 65 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -70,3 +70,14 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - Sessao historica com 15 batches → agente deterministico → diario de decisoes, CI aprovada: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353072322
 
 **Limites:** o Qwen 0.5B e adequado para verificar infraestrutura, mas nao demonstra capacidade para reconstruir jogos complexos. O teste real usou somente fixture sintetica; registros historicos nao foram enviados ao modelo. P1 continua em 14/15 e P3–P8 permanecem em 0.
+
+## Implementacao de estados de tarefa e especialistas — 2026-11-01
+
+- Contrato local de tarefa `OFFLINE_METADATA_ONLY`: CREATED, RUNNING, WAITING_USER, COMPLETED, FAILED, CANCELLED e EXPIRED; lease, revisoes e tentativas limitadas.
+- `src/task-engine.mjs` grava em disco com lock, verifica transicoes e recusa adulteracao de campos ou conclusoes sem identidade e evidencias correspondentes.
+- `src/specialists.mjs`: papeis Arquiteta, Programadora e Testadora **deterministicos**, que produzem planos de verificacao, nao Luau nem acoes reais.
+- Teste de integracao com uma sessao V3 historica, CI do PR aprovada: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354703167
+- **Limitacao de persistencia:** arquivo de estado sobrevive a reinicio do processo com o mesmo disco, mas nao entre runners descartaveis. `cafeina-ai-knowledge` nao foi usada para gravar tarefas reais.
+- Nao houve comunicacao de volta ao Roblox, execucao de REA, modificacao do gateway ou uso de credenciais do jogo.
+
+**Pontuacao atual: P0 10/10 + P1 14/15 + P2 11/15 + P3–P8 0 = 35/100 pontos.**
