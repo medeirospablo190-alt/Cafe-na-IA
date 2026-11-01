@@ -50,3 +50,9 @@ O coletor V3, o gateway e as configurações de produção continuam intocados.
 O comando `npm run agents:demo` executa quatro papeis determinísticos (Investigadora, Crítica, Pesquisadora, Coordenadora) usando somente dados sintéticos. Eles produzem recomendações e não executam ações. O módulo `src/model.mjs` acrescenta uma interface opcional para um servidor local compatível com Ollama, com saída restrita a ferramentas permitidas, limite de tempo e nenhuma dependência de APIs pagas. O modelo real **não está instalado nem foi executado**.
 
 O GitHub possui a branch `cafeina-ai-knowledge` para memória saneada. `src/knowledge-github.mjs` combina sessões com controle de conflito e escrita condicionada a opt-in. A CI experimenta a leitura em modo `DRY_RUN`; a publicação pela API ainda depende de execução manual e revisão. O workflow `.github/workflows/cafeina-ai-knowledge.yml` só será acionável normalmente após sua aprovação/mesclagem na branch padrão.
+
+## Progresso auditado deste incremento
+
+O contador oficial esta em `plan/progress.json`: **27/100 pontos**. A CI aprovada testou um dry-run de consulta a memoria no proprio GitHub, mas nao realizou uma gravacao real. Ainda faltam ativar um modelo de linguagem, criar a fila de missoes e integrar o menu.
+
+A branch `cafeina-ai-knowledge` foi criada separadamente, sem alterar a main. A implementacao da equipe de agentes e do armazenamento permanece no PR #228.

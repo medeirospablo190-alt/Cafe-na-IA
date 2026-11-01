@@ -18,10 +18,11 @@
 ## Primeiro marco, 2026-11-01
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
-- **P1 = 13/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). Restam memória durável entre runners e revisão da privacidade histórica.
-- **Demais etapas = 0**: apenas planejadas.
+- **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
+- **P2 = 3/15**: quatro agentes baseados em regras, contrato de mensagens e interface opcional de modelo local testada com API simulada. Ainda nao existe LLM real executado.
+- **P3 a P8 = 0**: apenas planejadas.
 
-**Atual: 23/100; faltam 77 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 27/100; faltam 73 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -49,3 +50,13 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - Há interface opcional para um modelo local compatível com Ollama, testada com respostas simuladas; execução de LLM real continua pendente.
 - A sincronização de índices no GitHub valida dados, detecta conflitos e só escreve com opt-in. A branch de memória foi criada, mas nenhuma sessão real foi publicada nela.
 - CI inclui um teste read-only de consulta remota à API do GitHub, além de testes de privacidade em fixtures sintéticas.
+
+## Atualizacao verificada — 2026-11-01
+
+- CI do PR com todos os testes: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490
+- Branch de memoria: https://github.com/medeirospablo190-alt/Cafe-na-IA/tree/cafeina-ai-knowledge/ai-core/knowledge
+- Importacao da sessao real e leitura GitHub em modo DRY_RUN aprovadas.
+- Merge remoto, salvamento real, modelo local carregado, REA e conexao com Roblox **nao foram executados**.
+- O workflow manual de escrita continua na branch do PR; nao foi implantado na main nem acionado.
+
+**Pontuacao: P0 10/10 + P1 14/15 + P2 3/15 = 27/100.**

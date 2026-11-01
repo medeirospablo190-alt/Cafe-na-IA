@@ -26,7 +26,7 @@
       "id": "P1",
       "title": "Ingestao, privacidade e evidencias V3",
       "weight": 15,
-      "earned": 13,
+      "earned": 14,
       "status": "in_progress",
       "done": [
         "leitura local de lote V3 e manifesto",
@@ -36,29 +36,41 @@
         "deteccao de lotes ausentes, cobertura desconhecida e causalidade nao comprovada",
         "memoria de metadados por jogo/sessao com lock e escrita atomica",
         "hipoteses exclusivamente EXPERIMENTAL, sem validar sem provas",
-        "testes sinteticos de privacidade, conflitos e atualizacoes incrementais"
+        "testes sinteticos de privacidade, conflitos e atualizacoes incrementais",
+        "adaptador GitHub testado com API simulada, conflitos e idempotencia",
+        "branch de conhecimento isolada criada e leitura read-only no GitHub Actions aprovada"
       ],
       "pending": [
-        "persistencia duravel segura entre execucoes temporarias do GitHub Actions",
-        "revisao e minimizacao dos dados historicos de jogadores ja publicados"
+        "gravar e recuperar memoria entre dois runs reais com permissao de escrita, sob revisao",
+        "revisar a privacidade e a retencao dos historicos de jogadores publicados"
       ],
       "evidence": [
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346431425"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346431425",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/tree/cafeina-ai-knowledge/ai-core/knowledge"
       ]
     },
     {
       "id": "P2",
       "title": "Modelo e agentes especializados",
       "weight": 15,
-      "earned": 0,
-      "status": "not_started",
-      "done": [],
+      "earned": 3,
+      "status": "in_progress",
+      "done": [
+        "protocolo deterministico de quatro agentes com mensagens estruturadas e limite de turnos",
+        "interface opcional de modelo local compatível com Ollama (API simulada nos testes)",
+        "respostas do modelo limitadas a enums e sem execucao de ferramentas",
+        "coordenacao com aconselhamento de modelo preserva decisao segura"
+      ],
       "pending": [
-        "interface de modelo gratuito",
-        "orquestradora",
-        "agentes",
-        "limites"
+        "testar um modelo aberto real em ambiente gratuito compativel",
+        "adicionar memoria persistente das decisoes dos agentes e controle de missoes",
+        "programadora, testadora, arquiteta e modelos especializados funcionando",
+        "medir qualidade, custos e limites por tarefa"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490"
       ]
     },
     {
