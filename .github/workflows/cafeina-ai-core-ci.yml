@@ -130,5 +130,24 @@ jobs:
             assert.equal(data.uniqueBatches,15);
             console.log("GitHub knowledge read-only dry-run PASS.");
           '
+      - name: Simulate menu HTTP poll, acknowledgment and non-execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ai-core run menu:demo --silent > "$RUNNER_TEMP/menu-contract-result.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+              "/menu-contract-result.json","utf8"));
+            assert.equal(r.simulationOnly,true);
+            assert.equal(r.transport,"HTTP_LOOPBACK");
+            assert.equal(r.approved,false);
+            assert.equal(r.executed,false);
+            assert.equal(r.githubPublished,false);
+            assert.equal(r.rawPlayerDataIncluded,false);
+            assert.equal(r.flow.at(-1),"CLOSED_NO_EXECUTION");
+            console.log("Simulated menu transport PASS: no game execution.");
+          '
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress
