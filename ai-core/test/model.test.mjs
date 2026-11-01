@@ -67,3 +67,22 @@ test("recomendacao que nao coincide com a missao vira none",async()=>{
   assert.equal(out.recommendation,"none");
   assert.equal(out.executable,false);
 });
+
+test("modelo recebe schema com enum limitado a lacunas documentadas",async()=>{
+  const result=await askLocalModel({
+    report:report(),role:"Investigadora",model:"demo",
+    request:async(url,opts)=>{
+      const request=JSON.parse(opts.body);
+      assert.equal(request.format.type,"object");
+      assert.equal(request.format.additionalProperties,false);
+      assert.ok(request.format.properties.unknownCode.enum.includes("CAUSALITY_NOT_PROVEN"));
+      assert.ok(!request.format.properties.unknownCode.enum.includes("EXECUTE_SCRIPT"));
+      assert.deepEqual(request.format.properties.recommendation.enum,
+        ["watch_state","observe_gui","none"]);
+      return {ok:true,json:async()=>({
+        response:'{"unknownCode":"CAUSALITY_NOT_PROVEN","recommendation":"watch_state"}'
+      })};
+    }
+  });
+  assert.equal(result.executable,false);
+});
