@@ -67,8 +67,8 @@ export function analyzeSession({ batches, manifest: rawManifest, profile = null 
   const sorted = [...unique.values()].sort((a, b) => a.batch.batchIndex - b.batch.batchIndex);
   const expected = rawManifest.manifest?.dataBatches;
   const lastIndex = sorted.at(-1).batch.batchIndex;
-  const expectedCount = Number.isSafeInteger(expected) && expected >= 0 && expected <= MAX_BATCHES ?
-    expected : lastIndex;
+  const hasDeclaredCount = Number.isSafeInteger(expected) && expected >= 0 && expected <= MAX_BATCHES;
+  const expectedCount = hasDeclaredCount ? expected : lastIndex;
   if (expectedCount < lastIndex) {
     throw new DataError("Contagem declarada no manifesto menor que os lotes recebidos.");
   }
@@ -107,6 +107,11 @@ export function analyzeSession({ batches, manifest: rawManifest, profile = null 
     summary: "Estados de interface observados sem testes causais.",
     evidenceRefs: refs.gui_state.slice(0, 3)
   });
+  if (!hasDeclaredCount) unknowns.push({
+    code: "BATCH_COUNT_UNREPORTED",
+    summary: "Manifesto nao informa quantos lotes de dados eram esperados; cobertura desconhecida.",
+    evidenceRefs: []
+  });
   if (missing.length) unknowns.push({
     code: "MISSING_BATCHES",
     summary: "A cobertura da sessao esta incompleta: ha lotes faltantes.",
@@ -143,10 +148,11 @@ export function analyzeSession({ batches, manifest: rawManifest, profile = null 
       evidenceRefs
     },
     coverage: {
-      expectedDataBatches: expectedCount,
+      expectedDataBatches: hasDeclaredCount ? expectedCount : null,
+      batchCountDeclared: hasDeclaredCount,
       receivedUniqueDataBatches: sorted.length,
       missingBatchIndices: missing,
-      completeBatchSequence: missing.length === 0 && sorted.length === expectedCount,
+      completeBatchSequence: hasDeclaredCount && missing.length === 0 && sorted.length === expectedCount,
       reportedCoveragePresent: manifest.hasCoverage,
       causalValidation: false,
       mechanicsReconstructed: 0

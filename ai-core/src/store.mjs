@@ -101,14 +101,22 @@ export async function persistSession(storeDir, report) {
           throw new Error("CONFLICT: checksum divergente no mesmo lote.");
         }
       }
-      const oldCount=Object.keys(old.batchChecksums).length;
-      const newCount=Object.keys(run.batchChecksums).length;
-      if (oldCount >= newCount) {
-        if (oldCount === newCount && old.completeBatchSequence === false && run.completeBatchSequence) {
-          // Equal membership with updated completeness is permitted if all checksums match.
-        } else {
+      const oldIndices=Object.keys(old.batchChecksums);
+      const newIndices=Object.keys(run.batchChecksums);
+      if (newIndices.length <= oldIndices.length) {
+        // A partial retry is harmless; a different set with equal size is not.
+        if (newIndices.length === oldIndices.length &&
+            oldIndices.some(index => !Object.hasOwn(run.batchChecksums, index))) {
+          throw new Error("CONFLICT: indices divergentes no mesmo runId.");
+        }
+        if (newIndices.length < oldIndices.length ||
+            old.completeBatchSequence || !run.completeBatchSequence) {
           return { status: "UNCHANGED", gameId, totalRuns: Object.keys(previous.sessions).length };
         }
+      }
+      if (newIndices.length > oldIndices.length &&
+          oldIndices.some(index => !Object.hasOwn(run.batchChecksums,index))) {
+        throw new Error("CONFLICT: revisao de sessao remove lote anterior.");
       }
     }
     const next = buildIndex(gameId, {...previous.sessions, [runId]: run});

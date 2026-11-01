@@ -31,5 +31,28 @@ jobs:
         run: npm --prefix ai-core test
       - name: Demonstrate synthetic batch analysis
         run: npm --prefix ai-core run demo
+      - name: Smoke test using an existing historical V3 session (sanitized output)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd ai-core
+          node src/session-cli.mjs \
+            --session-dir ../inventory-traces-v3/10112019404/105352101879443/c59f475c-6740-46cb-9d9b-e7f8c0065433 \
+            --manifest ../inventory-traces-v3/10112019404/105352101879443/latest.json \
+            --profile ../inventory-traces-v3/profiles/10112019404.json \
+            > /tmp/cafeina-safe-analysis.json
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const result=JSON.parse(readFileSync("/tmp/cafeina-safe-analysis.json","utf8"));
+            assert.equal(result.type,"cafeina_ai_session_analysis");
+            assert.equal(result.coverage.expectedDataBatches,15);
+            assert.equal(result.coverage.receivedUniqueDataBatches,15);
+            assert.equal(result.coverage.completeBatchSequence,true);
+            assert.equal(result.privacy.rawRecordsIncluded,false);
+            assert.ok(result.observations.recordCount>0);
+            assert.equal(result.mission?.executable,false);
+            console.log("Historical V3 sanitized smoke PASS: 15 batches, no raw payload.");
+          '
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

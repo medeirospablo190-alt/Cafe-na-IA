@@ -11,3 +11,14 @@
 - Limitar uso de modelos à cota gratuita; nenhum serviço pode ativar cobrança por conta própria.
 
 **Pendente:** autenticação de missões, fila, rate limit, sandbox, política de execução, revisão de privacidade histórica e auditoria completa do canal bidirecional.
+
+## Proteções adicionadas na ingestão multi-batch
+
+- Não ler campos de argumentos, textos, nomes ou conteúdo de remotes para a memória.
+- Validar IDs, nomes de lotes e limites de arquivos, e rejeitar links simbólicos em arquivos JSON.
+- Exigir manifesto da mesma sessão e perfil de mesmo jogo.
+- Recusar sobrescrita de lote previamente indexado com checksum diferente.
+- Persistência atômica local com bloqueio exclusivo; índice remoto não implementado.
+- Falta de quantidade declarada de lotes nunca equivale a cobertura completa.
+
+A execução da CI com uma sessão histórica real **não publica registros brutos nos logs** e não oferece essas capturas a modelos externos. Mesmo assim, a revisão de privacidade dos dados já publicados permanece pendente.

@@ -18,7 +18,7 @@
 ## Primeiro marco, 2026-11-01
 
 - **P0 = 10/10**: estrutura, contratos, documentos e CI verde confirmada: [push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411) e [PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474).
-- **P1 = 5/15**: leitura de um lote e manifesto V3, checksums, referências e proposta de observação. Faltam múltiplas sessões, perfis e memória real.
+- **P1 = 5/15 (a validar para atualização)**: multi-batch, resumo de perfil, armazenamento de metadados por jogo, deduplicação e conflitos agora implementados na branch. Pontos novos apenas após CI e smoke real confirmados; ainda pendem política de dados históricos e memória persistente remota.
 - **Demais etapas = 0**: apenas planejadas.
 
 **Atual: 15/100; faltam 85 pontos.** Registrar links de CI/PR antes de creditar novos pontos.

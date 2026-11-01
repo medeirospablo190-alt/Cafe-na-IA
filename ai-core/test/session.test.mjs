@@ -130,3 +130,10 @@ test("CLI importa diretório de sessão realista sem expor payload",async t=>{
     "--session-dir":dir,"--manifest":mf
   }),/divergentes/);
 });
+
+test("sem contagem oficial nao declara sessao completa",()=>{
+  const r=analyzeSession({batches:[seed()],manifest:manifest()});
+  assert.equal(r.coverage.batchCountDeclared,false);
+  assert.equal(r.coverage.completeBatchSequence,false);
+  assert.ok(r.unknowns.some(x=>x.code==="BATCH_COUNT_UNREPORTED"));
+});
