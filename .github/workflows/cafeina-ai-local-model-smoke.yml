@@ -77,6 +77,14 @@ jobs:
               console.log("Verified local synthetic model call: "+p.model);
             '
           fi
+      - name: Publish sanitized agent decision journal (7 days only)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cafeina-synthetic-agent-journal
+          path: ${{ runner.temp }}/cafeina-agent-journals/
+          retention-days: 7
+          if-no-files-found: error
       - name: Stop inference container
         if: always()
         run: docker rm -f cafeina-ollama || true
