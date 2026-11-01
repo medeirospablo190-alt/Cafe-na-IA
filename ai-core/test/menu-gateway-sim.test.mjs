@@ -64,6 +64,8 @@ test("rejects cross-session acknowledgments and non-allowed result kinds",async 
   assert.equal(cross.status,400);
   const wrongPath=await fetch(origin+"/v1/mission/101/404/demo-run-0001",{headers:headers()});
   assert.equal(wrongPath.status,404);
+  const poll=await fetch(origin+"/v1/mission/101/202/demo-run-0001",{headers:headers()});
+  assert.equal(poll.status,200);
   const received=await fetch(origin+"/v1/mission/ack",{
     method:"POST",headers:headers(),body:JSON.stringify(menuReceipt(proposal,"RECEIVED"))
   });
@@ -83,4 +85,24 @@ test("expired proposals cannot be delivered or acknowledged",async t=>{
   const resp=await fetch(origin+"/v1/mission/101/202/demo-run-0001",{headers:headers()});
   assert.equal(resp.status,410);
   assert.equal(gateway.snapshot().status,"QUEUED");
+});
+
+test("ack before delivery fails; excessively frequent polling is bounded",async t=>{
+  const proposal=createMenuProposal(report(),{nowMs:time});
+  const gateway=createMenuGatewaySimulator({proposal,token,nowMs:()=>time+1000});
+  t.after(()=>gateway.close());
+  const origin=await gateway.start();
+  const ack=await fetch(origin+"/v1/mission/ack",{
+    method:"POST",headers:headers(),
+    body:JSON.stringify(menuReceipt(proposal,"RECEIVED"))
+  });
+  assert.equal(ack.status,409);
+  const url=origin+"/v1/mission/101/202/demo-run-0001";
+  for(let n=0;n<20;n++){
+    const res=await fetch(url,{headers:headers()});
+    assert.equal(res.status,200);
+  }
+  const limited=await fetch(url,{headers:headers()});
+  assert.equal(limited.status,429);
+  assert.equal(gateway.snapshot().executed,false);
 });

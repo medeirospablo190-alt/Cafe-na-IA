@@ -53,6 +53,9 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}
     const sessionPath="/v1/mission/"+stored.identity.gameId+"/"+stored.identity.placeId+
       "/"+stored.identity.runId;
     if(req.method==="GET"&&path===sessionPath){
+      if(polls>=20){
+        json(res,429,{ok:false,error:"POLL_LIMIT"});return;
+      }
       polls++;
       if(status==="QUEUED")status="DELIVERED";
       json(res,200,{ok:true,status,
@@ -70,6 +73,9 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now()}
       return;
     }
     if(path==="/v1/mission/ack"){
+      if(status==="QUEUED"){
+        json(res,409,{ok:false,error:"POLL_REQUIRED"});return;
+      }
       if(receipt.kind!=="RECEIVED"){
         json(res,422,{ok:false,error:"ACK_KIND_REQUIRED"});return;
       }
