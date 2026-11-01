@@ -1,0 +1,31 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {writeFile,readFile,mkdtemp,rm} from "node:fs/promises";
+import {tmpdir} from "node:os";
+import path from "node:path";
+import {analyzeSession} from "../src/session.mjs";
+import {journalFromReport} from "../src/agent-report-cli.mjs";
+const f=n=>JSON.parse(readFileSync(new URL("fixtures/"+n,import.meta.url),"utf8"));
+
+test("pipeline reports -> agents -> sanitized journal is idempotent",async t=>{
+  const tmp=await mkdtemp(path.join(tmpdir(),"cafeina-e2e-"));
+  t.after(()=>rm(tmp,{recursive:true,force:true}));
+  const input=path.join(tmp,"report.json");
+  const report=analyzeSession({batches:[f("batch.json")],manifest:f("latest.json")});
+  await writeFile(input,JSON.stringify(report));
+  const pathToStore=path.join(tmp,"journals");
+  const first=await journalFromReport(input,pathToStore);
+  const second=await journalFromReport(input,pathToStore);
+  assert.equal(first.status,"CREATED");
+  assert.equal(second.status,"UNCHANGED");
+  assert.equal(first.messages,4);
+  assert.equal(first.decision,"WAITING_USER");
+  assert.equal(first.modelCalls,0);
+  assert.equal(first.toolExecutions,0);
+  const stored=await readFile(path.join(pathToStore,"101",
+    "conversation-"+report.identity.runId+"-DETERMINISTIC_REHEARSAL.json"),"utf8").catch(()=>null);
+  // The path has a hash-derived identity; it is deliberately not the runId itself.
+  assert.equal(stored,null);
+  assert.equal(first.journalSha256.length,64);
+});

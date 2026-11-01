@@ -64,6 +64,24 @@ jobs:
             assert.equal(memory.includes("userId"),false);
             console.log("Historical V3 smoke PASS: 15 batches, sanitized memory, no raw payload.");
           '
+      - name: Correlate real historical V3 evidence into safe agent journal
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ai-core/src/agent-report-cli.mjs \
+            /tmp/cafeina-safe-analysis.json \
+            "$RUNNER_TEMP/cafeina-real-agent-journals" \
+            > "$RUNNER_TEMP/cafeina-agent-journal-status.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const s=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/cafeina-agent-journal-status.json","utf8"));
+            assert.equal(s.status,"CREATED");
+            assert.equal(s.messages,4);
+            assert.equal(s.toolExecutions,0);
+            assert.equal(s.decision,"WAITING_USER");
+            console.log("Real V3 -> agents -> sanitized journal PASS.");
+          '
       - name: Demonstrate bounded deterministic agent protocol
         run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
       - name: Read-only GitHub knowledge integration smoke
