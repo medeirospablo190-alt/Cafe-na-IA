@@ -93,7 +93,7 @@ node ai-core/src/planning-demo.mjs /caminho/relatorio-saneado.json /pasta-privad
 ## Canal do menu — simulador P3
 
 - `src/menu-proposal.mjs`: propostas e recibos que nunca concedem autorização.
-- `src/github-menu-queue.mjs`: fila imutável no GitHub; gravação real ainda não verificada.
+- `src/github-menu-queue.mjs`: fila imutável no GitHub; gravação real verificada apenas com metadados sintéticos.
 - `src/menu-gateway-sim.mjs`: HTTP local com polling, confirmação e resposta de não execução.
 - `npm run menu:demo`: prova do fluxo completo usando fixtures sintéticas.
 
@@ -107,3 +107,9 @@ armazenamento opcional de metadados no GitHub por
 HTTP local + API GitHub **simulada** para testar entrega, ACK,
 recusa, repetição e falha fechada quando o armazenamento está indisponível.
 Ainda não há endpoint de produção nem comunicação Roblox real.
+
+## Fluxo GitHub real de propostas e recibos — 48/100
+
+[Workflow aprovado com três runners independentes](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503): proposta sintética publicada na branch de conhecimento, entrega via gateway HTTP **simulado** e confirmação de NOT_EXECUTED persistida na API GitHub real. Não foram usadas informações de jogadores e nenhuma ferramenta executou código Roblox.
+
+**Estado atual: 48/100 pontos.** Ainda faltam autenticação do menu real, integração ao gateway do Render, autorização de ferramentas e provas em experiência própria.

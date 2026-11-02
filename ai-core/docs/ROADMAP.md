@@ -21,10 +21,10 @@
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
-- **P3 = 5/15**: propostas read-only, fila com API GitHub simulada, gateway HTTP isolado, ACK/recusa, estado de recibos persistido por API simulada com revisões e falha segura; sem autenticação ou comunicação Roblox real.
+- **P3 = 8/15**: fila e recibos em API GitHub real validados com dados sintéticos entre três runners, gateway HTTP isolado conectado à persistência real; ainda sem autenticação, Render ou menu Roblox real.
 - **P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 45/100; faltam 55 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 48/100; faltam 52 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -116,3 +116,17 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Nao confirmado:** gravacao real de recibos no GitHub, novo endpoint em Render, autenticacao da sessao Roblox, menu real e execucao de ferramentas.
 
 **Pontuacao atual: P3 5/15; total 45/100; faltam 55 pontos.**
+
+## Validação real da fila e de recibos no GitHub — 2026-11-01
+
+- Runner 1 publicou proposta de observação **sintética** na branch `cafeina-ai-knowledge` usando GitHub Contents API, sem dados de jogadores.
+- Runner 2 recuperou a proposta pelo GitHub, iniciou gateway **simulado** HTTP em 127.0.0.1, recebeu polling e os recibos RECEIVED / NOT_EXECUTED, e só respondeu após gravar DELIVERED / ACKNOWLEDGED / CLOSED_NO_EXECUTION na API real.
+- Runner 3, isolado e com permissão `contents: read`, confirmou `revision=3`, `outcome=NOT_EXECUTED`, `approved=false`, `executed=false`.
+- [Primeiro teste de persistência real, três runners](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365030921).
+- [Teste HTTP loopback → GitHub real → terceiro runner](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503).
+- [CI core aprovada (push e PR)](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365211848).
+- Os arquivos publicados foram inspecionados via GitHub: apenas gameId=101, placeId=202 e runId sintetico, sem TEST_SECRET, nome de jogador, player IDs ou argumentos brutos.
+- **Limitações:** o cliente ainda é um simulador, a autenticação do menu é apenas token efêmero de teste, o gateway real/Render e o coletor continuam inalterados, e não há sistema automático de expurgo de registros antigos.
+- O GitHub é armazenamento durável e executor eventual; não é servidor permanente de mensagens em tempo real.
+
+**Pontuação atual: P3 8/15, total 48/100, faltam 52 pontos.**

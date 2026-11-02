@@ -66,6 +66,11 @@ e a decisão `DECLINED` ou `NOT_EXECUTED`. Todos os registros possuem
 
 Somente os eventos previstos podem mudar o estado; não há endpoint
 para elevar permissões. O gateway **simulado** só confirma eventos
-após confirmação do armazenamento opcional. As integrações GitHub reais
-de recibo ainda não foram exercitadas. Não reutilizar este contrato como
+após confirmação do armazenamento opcional. As integrações reais da API GitHub para recibos foram exercitadas apenas com dados inteiramente sintéticos em runners isolados. Não reutilizar este contrato como
 prova de autenticação de jogadores em Roblox.
+
+## Validação com API real do GitHub, sem acesso Roblox
+
+O experimento `github-menu-real-smoke.mjs` usa somente fixtures sintéticas, GitHub Actions com token efêmero, e branch separada. O gateway HTTP simulado fica em 127.0.0.1, usa uma credencial temporária gerada no processo e não passa credenciais GitHub ao cliente HTTP. Qualquer resposta que afirme aprovação ou execução é rejeitada.
+
+A gravação real deixa metadados sintéticos na branch de conhecimento; definir e testar política de retenção e expurgo antes de uso com dados reais. **A autenticação do simulador não é autenticação Roblox.** Não implantar em produção sem verificação de sessão, propriedade da experiência e limites de uso.
