@@ -53,3 +53,31 @@ test("synthetic reviewer has a closed, one-way decision and expiration",()=>{
   assert.match(script,/Ações reais habilitadas:\s*NÃO/);
   assert.match(script,/PRÉVIA FICTÍCIA|prévia FICTÍCIA/i);
 });
+
+test("mobile preview stays inside the Roblox safe-area and cleans up input listeners",()=>{
+  assert.match(script,/IgnoreGuiInset\s*=\s*false/);
+  assert.match(script,/ScreenInsets\s*=\s*Enum\.ScreenInsets\.CoreUISafeInsets/);
+  assert.match(script,/Size\s*=\s*UDim2\.new\(0\.94,\s*0,\s*0\.86,\s*0\)/);
+  assert.match(script,/local function moveClamped\(/);
+  assert.match(script,/math\.clamp\(x, minX, maxX\)/);
+  assert.match(script,/math\.clamp\(y, minY, maxY\)/);
+  assert.match(script,/UserInputService\.InputChanged:Connect/);
+  assert.match(script,/UserInputService\.InputEnded:Connect/);
+  assert.match(script,/GetPropertyChangedSignal\("AbsoluteSize"\)/);
+  assert.match(script,/dragChangedConnection:Disconnect\(\)/);
+  assert.match(script,/dragEndedConnection:Disconnect\(\)/);
+  assert.match(script,/viewportConnection:Disconnect\(\)/);
+});
+
+test("offline diagnostics and permission countdown never grant live capabilities",()=>{
+  assert.match(script,/Verificar interface \(offline\)/);
+  assert.match(script,/UI_SELF_TEST_OK/);
+  assert.match(script,/UI_SELF_TEST_FAILED/);
+  assert.match(script,/lastSelfTest = ok and "APROVADO" or "FALHOU"/);
+  assert.match(script,/local function permissionSummary\(/);
+  assert.match(script,/permissionStatusLabel\.Text = permissionSummary\(\)/);
+  assert.match(script,/request\.status == "PENDING_REVIEW"/);
+  assert.match(script,/Ações reais habilitadas: NÃO/);
+  assert.match(script,/NETWORK_DISABLED/);
+  assert.match(script,/GitHub: SEM ACESSO/);
+});
