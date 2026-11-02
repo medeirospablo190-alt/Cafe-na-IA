@@ -18,3 +18,16 @@ O sistema precisa de interface real de consentimento, verificação de proprieda
 ## Testar
 
 `npm --prefix ai-core run collector:permissions-demo` verifica pedido, aprovação **sintética**, recusa, consulta da decisão a um registro de teste e auditoria para ambas as ferramentas. A CI exige zero execuções reais e ausência dos campos sensíveis nas saídas.
+
+## Persistência em branch e modelo de exibição
+
+\`src/github-collector-permissions.mjs\` grava, opcionalmente, somente
+metadados de **permissões sintéticas** com um pedido imutável e uma decisão
+final versionada. A gravação real do caso \`DENIED\` foi comprovada em
+três runners GitHub, incluindo recuperação independente:
+https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653
+
+\`src/collector-permission-view.mjs\` fornece um modelo de exibição
+seguro, sem ações, para a futura tela. Isso não é uma UI Roblox
+funcionando e não concede consentimento do usuário. Consulte
+\`docs/COLLECTOR_PERMISSION_STORAGE.md\`.

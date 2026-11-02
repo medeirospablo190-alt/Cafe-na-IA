@@ -118,3 +118,19 @@ adulterada. Isso não autentica operadores nem comprova posse de jogo
 Roblox. A função de despacho de ferramentas reais continua bloqueada
 incondicionalmente. Produção requer nova política de consentimento,
 verificação de proprietário, revogação e auditoria real.
+
+## Registro de permissão com histórico de decisões
+
+O armazenamento \`github-collector-permissions.mjs\` faz validação de
+schema na leitura e na escrita, mantém o pedido imutável, usa revisão
+otimista via SHA e impede substituição de uma decisão final por outra.
+A escrita requer opt-in e token; o padrão é consulta e prévia.
+
+O workflow de prova real usa exclusivamente gameId/placeId sintéticos
+(101/202) e uma recusa de operador **fictício**. Não existe
+autenticação real de operador, consentimento em Roblox, revogação
+distribuída ou execução de ferramenta. A leitura de arquivos públicos
+é apenas leitura e não significa autorização para operar em jogos.
+
+O modelo de exibição não contém scripts ou callbacks e nunca exibe
+aprovação de execução. Nenhum arquivo da produção foi modificado.

@@ -192,5 +192,7 @@ jobs:
             assert.ok(x.requests.every(r=>r.deniedOutcome==="DENIED" && r.realToolExecutions===0));
             console.log("Collector review and no-execution audit PASS.");
           '
+      - name: Validate versioned permission storage and safe menu projection
+        run: node --test ai-core/test/github-collector-permissions.test.mjs ai-core/test/collector-permission-view.test.mjs
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

@@ -162,3 +162,14 @@ cada simulação e nunca transforma um ACK do menu em autorização.
 
 **Progresso oficial: 57/100.** Ainda não é aprovação por usuário real,
 e nenhum recurso do coletor, gateway ou jogo Roblox foi ativado.
+
+## Memória de solicitações do coletor (P4)
+
+\`src/github-collector-permissions.mjs\`: armazenamento opcional de
+pedido pendente + decisão final sintética no GitHub, com revisão e
+controle de conflitos. [Três runners validaram a recusa persistida](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653).
+
+\`src/collector-permission-view.mjs\`: modelo de tela de revisão
+somente para visualização; **não** é menu Roblox instalado.
+
+Consulte \`docs/COLLECTOR_PERMISSION_STORAGE.md\` para os limites.
