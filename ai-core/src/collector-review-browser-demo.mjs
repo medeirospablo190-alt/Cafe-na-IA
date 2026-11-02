@@ -17,7 +17,7 @@ export async function startLocalReviewBrowser({nowMs=()=>Date.now()}={}){
   const issuedAtMs=nowMs();
   const proposal=createMenuProposal(report,{nowMs:issuedAtMs});
   const request=createCollectorPermissionRequest(proposal,{
-    nowMs:issuedAtMs+1,ttlMs:120000
+    nowMs:issuedAtMs,ttlMs:120000
   });
   const ui=createCollectorReviewBrowserDemo({proposal,request,nowMs});
   const origin=await ui.start();

@@ -173,3 +173,13 @@ controle de conflitos. [Três runners validaram a recusa persistida](https://git
 somente para visualização; **não** é menu Roblox instalado.
 
 Consulte \`docs/COLLECTOR_PERMISSION_STORAGE.md\` para os limites.
+
+## Tela local de revisão de ferramentas (protótipo)
+
+A demonstração web **somente local** pode ser iniciada com
+`npm --prefix ai-core run collector:review-browser` e aberta no
+navegador do mesmo dispositivo em `127.0.0.1`. Exibe uma solicitação
+de fixture sintética e aceita apenas recusa ou prévia offline, sem
+conexão com Roblox, GitHub, Render ou o coletor real.
+
+Documentação: `docs/COLLECTOR_REVIEW_BROWSER.md`.

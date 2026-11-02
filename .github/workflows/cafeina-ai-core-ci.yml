@@ -194,5 +194,7 @@ jobs:
           '
       - name: Validate versioned permission storage and safe menu projection
         run: node --test ai-core/test/github-collector-permissions.test.mjs ai-core/test/collector-permission-view.test.mjs
+      - name: Validate local collector permission form security and final-state display
+        run: node --test ai-core/test/collector-review-browser.test.mjs ai-core/test/collector-review-import.test.mjs
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress
