@@ -1,5 +1,5 @@
 --[[
-  CAFEÍNA AI · EXECUTOR UI PREVIEW · v0.1
+  CAFEÍNA AI · EXECUTOR UI PREVIEW · v0.2
   Client-only demonstration for a Roblox Luau executor in the owner's
   own/authorized experience. No privileged executor API is required.
   No HTTP, remotes, collector access, code loading, or Roblox commands.
@@ -61,7 +61,8 @@ end
 local gui = create("ScreenGui", playerGui, {
     Name = GUI_NAME,
     ResetOnSpawn = false,
-    IgnoreGuiInset = true,
+    IgnoreGuiInset = false,
+    ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
     DisplayOrder = 700,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 })
@@ -70,7 +71,7 @@ local window = create("Frame", gui, {
     Name = "Window",
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.new(0.91, 0, 0.76, 0),
+    Size = UDim2.new(0.94, 0, 0.86, 0),
     BackgroundColor3 = palette.base,
     BorderSizePixel = 0
 })
@@ -151,6 +152,7 @@ local request = {
     secondsPerTrial = 10
 }
 
+local lastSelfTest = "NÃO EXECUTADO"
 local journal = {}
 local function log(code)
     table.insert(journal, 1, code)
@@ -200,6 +202,7 @@ local footer = create("TextLabel", window, {
 round(footer, 8)
 
 local tabButtons = {}
+local permissionStatusLabel = nil
 local render
 
 local function updateExpiry()
@@ -209,6 +212,13 @@ local function updateExpiry()
         return true
     end
     return false
+end
+
+local function permissionSummary()
+    local remaining = math.max(0, math.ceil(request.expiresAt - os.clock()))
+    local status = request.status == "REVIEWED" and request.decision or request.status
+    return "Estado: " .. status .. "\nTempo restante: " .. remaining ..
+        " s\nAções reais habilitadas: NÃO"
 end
 
 local function clearContent()
@@ -292,6 +302,7 @@ end
 render = function()
     updateExpiry()
     clearContent()
+    permissionStatusLabel = nil
     for name, button in pairs(tabButtons) do
         button.BackgroundColor3 = activeTab == name and palette.accent or palette.surface
         button.TextColor3 = activeTab == name and palette.base or palette.white
@@ -310,10 +321,8 @@ render = function()
         label("Revisão de ferramentas", 34, true)
         box("A aprovação abaixo permite apenas uma PRÉVIA FICTÍCIA. Não autoriza observações reais nem comandos Roblox.", 90)
         label("watch_state · até 2 prévias / 10 s", 35, true)
-        local remaining = math.max(0, math.ceil(request.expiresAt - os.clock()))
-        local status = request.status == "REVIEWED" and request.decision or request.status
-        box("Estado: " .. status .. "\nTempo restante: " .. remaining ..
-            " s\nAções reais habilitadas: NÃO", 82)
+        local summaryBox = box(permissionSummary(), 82)
+        permissionStatusLabel = summaryBox:FindFirstChildOfClass("TextLabel")
         if request.status == "PENDING_REVIEW" then
             action("Recusar solicitação", "danger", function()
                 review("DENIED")
@@ -328,6 +337,18 @@ render = function()
         label("Diagnóstico", 34, true)
         box("Conectividade: DESATIVADA\nGitHub: SEM ACESSO\nGateway: SEM ACESSO\nColetor: NÃO CONECTADO", 100)
         box("Execuções Roblox: 0\nRemoteEvents enviados: 0\nCredenciais armazenadas: 0", 82)
+        local viewport = gui.AbsoluteSize
+        box("Área útil: " .. math.floor(viewport.X) .. " x " .. math.floor(viewport.Y) ..
+            "\nAutoteste: " .. lastSelfTest, 69)
+        action("Verificar interface (offline)", "normal", function()
+            local area = gui.AbsoluteSize
+            local ok = gui.Parent == playerGui and window.Parent == gui and
+                content.Parent == window and area.X > 0 and area.Y > 0 and
+                window.AbsoluteSize.X > 0 and window.AbsoluteSize.Y > 0
+            lastSelfTest = ok and "APROVADO" or "FALHOU"
+            log(ok and "UI_SELF_TEST_OK" or "UI_SELF_TEST_FAILED")
+            render()
+        end)
         label("Registro da interface", 28, true, palette.orange)
         for index, item in ipairs(journal) do
             label(tostring(index) .. ". " .. item, 26, false, palette.muted)
@@ -367,53 +388,91 @@ bubble.Activated:Connect(function()
     window.Visible = true
 end)
 
--- Touch and mouse dragging; disconnect on GUI destruction or reinjection.
-local dragging = false
-local dragStart
-local startPosition
-local dragInput
-local dragConnection
+-- Touch and mouse dragging. Keep the menu inside the safe UI area.
+-- Reinjecting/closing disconnects global input listeners.
+local activeDrag = nil
+local dragOrigin = nil
+local startCenterX, startCenterY = 0, 0
+
+local function currentCenter()
+    local area = gui.AbsoluteSize
+    local pos = window.Position
+    return area.X * pos.X.Scale + pos.X.Offset,
+        area.Y * pos.Y.Scale + pos.Y.Offset
+end
+
+local function moveClamped(x, y)
+    local area = gui.AbsoluteSize
+    local size = window.AbsoluteSize
+    if area.X <= 0 or area.Y <= 0 then return end
+    local margin = 8
+    local minX = math.min(area.X * 0.5, size.X * 0.5 + margin)
+    local maxX = math.max(area.X * 0.5, area.X - size.X * 0.5 - margin)
+    local minY = math.min(area.Y * 0.5, size.Y * 0.5 + margin)
+    local maxY = math.max(area.Y * 0.5, area.Y - size.Y * 0.5 - margin)
+    window.Position = UDim2.fromOffset(
+        math.clamp(x, minX, maxX),
+        math.clamp(y, minY, maxY)
+    )
+end
 
 header.InputBegan:Connect(function(input)
+    if activeDrag then return end
     local kind = input.UserInputType
     if kind ~= Enum.UserInputType.Touch and kind ~= Enum.UserInputType.MouseButton1 then
         return
     end
-    dragging = true
-    dragStart = input.Position
-    startPosition = window.Position
-    input.Changed:Connect(function()
-        if input.UserInputState == Enum.UserInputState.End then
-            dragging = false
-        end
-    end)
+    activeDrag = input
+    dragOrigin = input.Position
+    startCenterX, startCenterY = currentCenter()
 end)
-header.InputChanged:Connect(function(input)
-    local kind = input.UserInputType
-    if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseMovement then
-        dragInput = input
+
+local dragChangedConnection = UserInputService.InputChanged:Connect(function(input)
+    if not activeDrag then return end
+    if activeDrag.UserInputType == Enum.UserInputType.Touch then
+        if input ~= activeDrag then return end
+    elseif input.UserInputType ~= Enum.UserInputType.MouseMovement then
+        return
+    end
+    local delta = input.Position - dragOrigin
+    moveClamped(startCenterX + delta.X, startCenterY + delta.Y)
+end)
+
+local dragEndedConnection = UserInputService.InputEnded:Connect(function(input)
+    if not activeDrag then return end
+    if input == activeDrag or
+        (activeDrag.UserInputType == Enum.UserInputType.MouseButton1 and
+            input.UserInputType == Enum.UserInputType.MouseButton1) then
+        activeDrag = nil
+        dragOrigin = nil
     end
 end)
-dragConnection = UserInputService.InputChanged:Connect(function(input)
-    if dragging and input == dragInput then
-        local delta = input.Position - dragStart
-        window.Position = UDim2.new(
-            startPosition.X.Scale, startPosition.X.Offset + delta.X,
-            startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
-        )
+
+local viewportConnection = gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+    -- A rotation/reflow must not strand the close button off-screen.
+    if gui.Parent then
+        window.Position = UDim2.fromScale(0.5, 0.5)
+        activeDrag = nil
+        dragOrigin = nil
     end
 end)
+
 gui.Destroying:Connect(function()
-    if dragConnection then
-        dragConnection:Disconnect()
-    end
+    dragChangedConnection:Disconnect()
+    dragEndedConnection:Disconnect()
+    viewportConnection:Disconnect()
 end)
 
 task.spawn(function()
     while gui.Parent do
         task.wait(1)
-        if gui.Parent and updateExpiry() and activeTab == "Permissões" then
+        if not gui.Parent then break end
+        local expired = updateExpiry()
+        if expired and activeTab == "Permissões" then
             render()
+        elseif activeTab == "Permissões" and permissionStatusLabel and
+            request.status == "PENDING_REVIEW" then
+            permissionStatusLabel.Text = permissionSummary()
         end
     end
 end)
