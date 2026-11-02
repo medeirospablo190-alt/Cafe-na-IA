@@ -159,8 +159,8 @@ export function createCollectorReviewBrowserDemo({
         "Referrer-Policy":"no-referrer"
       });
       res.end();
-    }catch{
-      text(res,400,"INVALID_SYNTHETIC_REVIEW");
+    }catch(error){
+      text(res,error?.message==="TOO_LARGE"?413:400,"INVALID_SYNTHETIC_REVIEW");
     }finally{
       locked=false;
     }
