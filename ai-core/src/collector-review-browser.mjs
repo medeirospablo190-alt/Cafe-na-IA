@@ -2,7 +2,8 @@ import {createServer} from "node:http";
 import {randomBytes} from "node:crypto";
 import {validateCollectorPermissionRequest,reviewCollectorPermission}
   from "./collector-permissions.mjs";
-import {createCollectorPermissionEnvelope,applyCollectorPermissionReview}
+import {createCollectorPermissionEnvelope,applyCollectorPermissionReview,
+  validateCollectorPermissionEnvelope}
   from "./github-collector-permissions.mjs";
 import {buildSyntheticCollectorPermissionView}
   from "./collector-permission-view.mjs";
@@ -94,13 +95,20 @@ function page(view,csrf){
  * Never exposes GitHub APIs, collector tool dispatch or network forwarding.
  */
 export function createCollectorReviewBrowserDemo({
-  proposal,request,nowMs=()=>Date.now()
+  proposal,request,initialRecord=null,nowMs=()=>Date.now()
 }={}){
   validateCollectorPermissionRequest(request,proposal);
   if(process.env.NODE_ENV==="production"||typeof nowMs!=="function"){
     throw new Error("Interface de teste indisponivel em producao.");
   }
-  let state=createCollectorPermissionEnvelope(request,proposal);
+  const fresh=createCollectorPermissionEnvelope(request,proposal);
+  if(initialRecord!==null){
+    validateCollectorPermissionEnvelope(initialRecord,proposal);
+    if(JSON.stringify(initialRecord.request)!==JSON.stringify(fresh.request)){
+      throw new Error("Pedido de tela nao coincide com registro importado.");
+    }
+  }
+  let state=initialRecord===null?fresh:JSON.parse(JSON.stringify(initialRecord));
   let nonce=randomBytes(32).toString("hex");
   let locked=false,decisions=0;
   const server=createServer(async(req,res)=>{
