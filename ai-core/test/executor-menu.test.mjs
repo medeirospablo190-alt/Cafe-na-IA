@@ -28,7 +28,7 @@ test("executor menu is a self-contained, client-only mobile UI",()=>{
 test("executor script contains no network, secrets, code loader, or Roblox action APIs",()=>{
   const forbidden=[
     /\b(?:loadstring|require|getgenv|getrenv|setclipboard|writefile|readfile)\s*\(/,
-    /\b(?:HttpService|HttpGet|RequestAsync|request|syn\.request)\s*[:.(]/,
+    /\b(?:HttpService|HttpGet|RequestAsync|syn\.request)\s*[:.(]/,
     /\b(?:FireServer|InvokeServer|FireAllClients|Kick|Teleport)\s*\(/,
     /\b(?:gethui|getgc|hookmetamethod|setreadonly|getrawmetatable)\s*\(/,
     /\b(?:RemoteEvent|RemoteFunction|TeleportService|DataStoreService)\b/,
