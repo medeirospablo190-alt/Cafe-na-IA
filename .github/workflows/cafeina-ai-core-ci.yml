@@ -155,5 +155,24 @@ jobs:
         run: node --test ai-core/test/roblox-server-verifier.test.mjs ai-core/test/roblox-reference.test.mjs
       - name: Verify HTTP check-in and scoped menu receipt E2E
         run: node --test ai-core/test/roblox-checkin-sim.test.mjs
+      - name: Check synthetic passive collector tools and privacy gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ai-core run collector:demo --silent > "$RUNNER_TEMP/collector-sandbox.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const raw=readFileSync(process.env.RUNNER_TEMP+"/collector-sandbox.json","utf8");
+            assert.ok(!/TEST_SECRET|username|userId|password|rawRecords/i.test(raw));
+            const s=JSON.parse(raw);
+            assert.equal(s.mode,"OFFLINE_SIMULATION_ONLY");
+            assert.equal(s.catalogSize,2);
+            assert.deepEqual(s.simulations.map(r=>r.toolId),["watch_state","observe_gui"]);
+            assert.equal(s.totalRealToolExecutions,0);
+            assert.equal(s.robloxConnected,false);
+            assert.equal(s.permissionsGrantedForLiveTools,false);
+            console.log("Passive collector simulation and privacy gates PASS.");
+          '
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress
