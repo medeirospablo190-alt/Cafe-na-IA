@@ -22,9 +22,10 @@
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
 - **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
-- **P4, P6, P7 e P8 = 0**: ainda não implementadas.
+- **P4 = 3/15**: catálogo fechado de observações passivas e motor de simulação com limites, auditoria e privacidade, testados na CI; coletor Roblox real não foi modificado.
+- **P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 52/100; faltam 48 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 55/100; faltam 45 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -153,3 +154,16 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Ainda não existe autenticação Roblox real** nem deployment de gateway, Render, menu, coletor, jogo ou segredos. Nenhuma credencial de produção foi usada.
 
 **Pontuação atual P3 = 12/15; total = 52/100; faltam 48 pontos.**
+
+## Primeira camada do Tool System do coletor — 2026-11-02
+
+- `src/collector-tool-sandbox.mjs` estabelece um catálogo fechado para `watch_state` e `observe_gui`, com privilégio `OFFLINE_METADATA_ONLY`. Este código **não implementa observação real do Roblox**.
+- A simulação valida proposta, identidade do jogo, manifesto, evidências do relatório V3, prazo e verificador de fixture sintética, sem tratar ACK do menu como aprovação real.
+- Cada sessão permite até 2 prévias de 10 segundos de orçamento (não 10 segundos de coleta real); tentativas repetidas são idempotentes e tentativas simultâneas são rejeitadas.
+- `dispatchLiveTool()` sempre lança `LIVE_COLLECTOR_EXECUTION_DISABLED`. Nenhum serviço ou remote é chamado.
+- O retorno inclui contagens limitadas e referências de evidências, sem conteúdo bruto, IDs/nome de jogadores ou argumentos. Auditoria lista somente os IDs das tentativas e orçamentos.
+- `src/collector-sandbox-demo.mjs` e CI validam duas ferramentas em fixtures sintéticas, sem dados de jogadores: [push aprovado](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382183465) e [PR aprovado](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382188608).
+- Documentação detalhada: `docs/COLLECTOR_TOOL_SYSTEM.md`.
+- **Não implementado:** conexão à coleta real, UI de aprovação, sensor Luau, agendamento do coletor, execução de comandos ou testes ativos autorizados.
+
+**P4 = 3/15. Pontuação do projeto = 55/100; faltam 45 pontos.**

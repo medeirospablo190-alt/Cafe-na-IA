@@ -91,3 +91,16 @@ token. O contrato usa uma única credencial por par gameId/placeId
 configurado e consulta registro confiável do JobId para obter o runId.
 A verificação foi feita com segredo e registro **sintéticos**.
 Não há endpoint implantado em rede pública ou comunicação Roblox.
+
+## Tool System do coletor — preview sintético
+
+As únicas ferramentas catalogadas são `watch_state` e `observe_gui`;
+ambas são prévias offline de metadados, não executores. Propostas
+precisam vincular jogo/place/runId, manifesto e evidências observadas,
+permanecendo `approved=false` e `executable=false`. Limites,
+idempotência, auditoria e ausência de dados brutos são cobertos por testes.
+
+O simulador aceita exclusivamente credencial de fixture de teste;
+**não se trata de aprovação do usuário para mexer no Roblox**.
+O método de execução real bloqueia incondicionalmente. O código
+de produção do gateway/Render e do coletor continua intacto.

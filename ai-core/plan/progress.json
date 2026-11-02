@@ -144,15 +144,26 @@
       "id": "P4",
       "title": "Ferramentas passivas e testes controlados no coletor",
       "weight": 15,
-      "earned": 0,
-      "status": "not_started",
-      "done": [],
+      "earned": 3,
+      "status": "in_progress",
+      "done": [
+        "catalogo fechado watch_state e observe_gui com privilegios OFFLINE_METADATA_ONLY e teto de 10 segundos por tentativa",
+        "motor de simulacao exclusivamente sintetico com checagem de fixture, no maximo 2 chamadas, auditoria saneada, idempotencia e rejeicao de paralelismo",
+        "previsoes de contagem e referencias V3 saneadas sem nomes de jogadores, textos, argumentos de remote ou execucao Roblox",
+        "CI testa dois tipos de observacao, dados de teste maliciosos, falta de autorizacao de fixture, expiração e tentativas acima da cota"
+      ],
       "pending": [
-        "catalogo",
-        "Lua",
-        "permissoes",
-        "auditoria",
-        "testes em jogo proprio"
+        "definir autorizacao real por proprietario/jogo/sessao para observacoes ao vivo; recibo de menu nao concede permissao",
+        "implementar ferramentas de observacao passiva no coletor Luau existente, somente apos aprovacao especifica",
+        "validar limites e logs de ferramentas no servidor da experiencia propria ou autorizada",
+        "integrar observacoes autorizadas ao gateway e enviar resultados saneados a memoria de evidencias",
+        "revisar privacidade das capturas V3 historicas antes de qualquer uso em contexto externo",
+        "testar interrupcao de ferramentas, indisponibilidade, limites de recurso, auditoria e recuperação reais"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382028189",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382188608",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382183465"
       ]
     },
     {

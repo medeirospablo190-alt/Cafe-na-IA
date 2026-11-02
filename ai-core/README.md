@@ -131,3 +131,19 @@ Ainda não há endpoint de produção nem comunicação Roblox real.
 - [Testes do PR aprovados](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370033637). O servidor Roblox, menu, Render e coletor reais não foram modificados.
 
 **Progresso oficial: 52/100 pontos; faltam 48.**
+
+## Tool System do coletor — primeira camada P4
+
+O novo `src/collector-tool-sandbox.mjs` contém o catálogo de ferramentas
+passivas e um simulador limitado a fixtures sintéticas. `watch_state` e
+`observe_gui` analisam apenas contagens e referências V3 já saneadas;
+não acessam o Roblox nem os remotes reais. O simulador não concede
+autorização de execução e tem limites de duas prévias de dez segundos
+de orçamento, com trilha de auditoria mínima.
+
+- Executar: `npm --prefix ai-core run collector:demo`.
+- Revisar contratos e pendências: `ai-core/docs/COLLECTOR_TOOL_SYSTEM.md`.
+- [CI do PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382188608).
+
+**Progresso oficial: 55/100.** Faltam ferramentas reais no coletor,
+permissão do proprietário e provas na experiência autorizada.
