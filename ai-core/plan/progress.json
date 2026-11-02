@@ -144,7 +144,7 @@
       "id": "P4",
       "title": "Ferramentas passivas e testes controlados no coletor",
       "weight": 15,
-      "earned": 5,
+      "earned": 7,
       "status": "in_progress",
       "done": [
         "catalogo fechado watch_state e observe_gui com privilegios OFFLINE_METADATA_ONLY e teto de 10 segundos por tentativa",
@@ -154,16 +154,20 @@
         "contrato de solicitacao de permissao com identidade, hash da proposta, motivo enum, prazo e escopo somente sintetico",
         "fluxo de revisao de operador de teste com recusas, validacao contra ACK falso e registro de auditoria sem dados pessoais",
         "registro confiavel de teste revalida permissoes em cada tentativa; negacao, expiracao, falsificacao e ausência de registro bloqueiam",
-        "CI executa pedido → revisao sintetica → preview → auditoria para watch_state e observe_gui sem execucao em Roblox"
+        "CI executa pedido → revisao sintetica → preview → auditoria para watch_state e observe_gui sem execucao em Roblox",
+        "GitHub Contents API armazena pedido sintetico PENDING_REVIEW revisao 0 e decisao final DENIED/SIMULATION_ALLOWED revisao 1 com SHA otimista, conflitos e idempotencia",
+        "pedido e recusa sinteticos gravados na branch de conhecimento e recuperados entre tres runners reais GitHub Actions",
+        "contrato da futura tela de revisao somente leitura mostra ferramenta, motivo, prazo, limites e estado sem callbacks nem autorizacao real"
       ],
       "pending": [
-        "implementar interface real para consentimento do proprietario/jogador em experiencia autorizada; nenhum operador real esta autenticado",
-        "definir documento de autorizacao ao vivo por proprietario, jogo, sessao, ferramenta e prazo separado dos prototipos de fixture",
-        "implementar ferramentas de observacao passiva no coletor Luau existente, somente apos aprovacao especifica",
-        "validar limites, autenticacao e logs com servidor da experiencia propria ou autorizada",
-        "integrar observacoes autorizadas ao gateway e a memoria de evidencias",
-        "revisar privacidade das capturas V3 historicas antes de uso externo e implementar auditoria persistente",
-        "testar interrupcao, indisponibilidade, limite de recursos e recuperacao de ferramentas reais"
+        "implementar interface real para consentimento do proprietario/jogador em experiencia autorizada; modelo de tela atual nao funciona no Roblox",
+        "autenticar operador real e origem da decisao em registro confiavel, com vinculacao a propriedade de jogo; GitHub nao e prova de consentimento",
+        "definir autorizacao ao vivo por proprietario, jogo, sessao, ferramenta e prazo separada das decisoes sinteticas",
+        "implementar ferramentas de observacao passiva no coletor Luau existente somente apos aprovacao especifica",
+        "validar limites e logs com servidor da experiencia propria ou autorizada",
+        "integrar observacoes autorizadas ao gateway e memoria de evidencias",
+        "revisar privacidade historica, revogacao e politica de retencao Git",
+        "testar interrupcao, indisponibilidade e recuperacao de ferramentas reais"
       ],
       "evidence": [
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382028189",
@@ -171,7 +175,10 @@
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382183465",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385278709",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385453948",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386415402",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698"
       ]
     },
     {

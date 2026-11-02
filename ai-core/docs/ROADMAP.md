@@ -22,10 +22,10 @@
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
 - **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
-- **P4 = 5/15**: catálogo fechado e motor de simulação com limites; contrato de revisão por operador de teste, recusas, validade e auditoria. Autorização real e coletor Roblox não foram implementados.
+- **P4 = 7/15**: catálogo fechado, prévias sintéticas, revisão de teste, pedido e recusa persistidos no GitHub real entre três runners e modelo de exibição de permissões. Operador e menu Roblox reais não estão implementados.
 - **P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 57/100; faltam 43 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 59/100; faltam 41 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -179,3 +179,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Não implementado:** consentimento real, login/autenticação de usuário, execução em Roblox, ligação com coletor/gateway de produção, ou auditoria distribuída/persistente.
 
 **Pontuação P4 = 5/15; total = 57/100; faltam 43 pontos.**
+
+## Permissões sintéticas persistentes e visualização futura — 2026-11-02
+
+- `src/github-collector-permissions.mjs` implementa documento por missão com revisões 0 e 1, controle SHA, escrita opt-in, checagem integral do conteúdo, idempotência e bloqueio de decisões contraditórias.
+- Runner 1 gravou um pedido sintético `PENDING_REVIEW`; runner 2 registrou `DENIED` usando **operador fictício de teste**; runner 3 verificou a revisão final com apenas `contents:read`: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653
+- Inspeção direta do documento remoto confirmou `revision=1`, `outcome=DENIED`, `liveExecutionRequested=false`, `authorizedLiveExecution=false`, `robloxConnected=false` e identidade `101/202/synthetic-...`, sem campos brutos de jogadores.
+- `src/collector-permission-view.mjs` projeta para a futura UI uma representação **somente leitura** da finalidade, limite, prazo e estado. As opções de revisão são apenas rótulos visuais sintéticos, sem função de execução.
+- [CI push aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386415402) e [CI PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698).
+- Documentação e riscos: `docs/COLLECTOR_PERMISSION_STORAGE.md`.
+- **Não implementado:** autenticação de usuário/proprietário real, interface Roblox, consentimento real, revogação distribuída, execução no coletor ou encaminhamento de ferramentas ao gateway.
+
+**Pontuação P4=7/15. Total=59/100; faltam 41 pontos.**
