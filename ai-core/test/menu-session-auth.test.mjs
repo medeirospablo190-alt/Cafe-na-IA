@@ -29,7 +29,8 @@ test("trusted-server stub issues short-lived scoped proposal token",async()=>{
   const p=proposal(),{authority,assertion}=mockTrustedServer(p);
   const token=await authority.issue(p,assertion,{ttlMs:60000});
   assert.equal(authority.verify("Bearer "+token,p),true);
-  assert.equal(authority.verify("Bearer "+token.slice(0,-1)+"a",p),false);
+  const changedLastNibble=token.at(-1)==="a"?"b":"a";
+  assert.equal(authority.verify("Bearer "+token.slice(0,-1)+changedLastNibble,p),false);
   assert.equal(authority.verify("Bearer "+token.replace(".","x."),p),false);
   assert.equal(authority.verify("Bearer "+token,{...p,missionId:"mission-"+"f".repeat(16)}),false);
   assert.equal(authority.verify("Bearer "+token,{...p,identity:{...p.identity,gameId:"808"}}),false);
