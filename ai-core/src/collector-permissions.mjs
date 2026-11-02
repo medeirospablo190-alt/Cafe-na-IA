@@ -152,3 +152,56 @@ export function summarizeCollectorPermissionAudit(request,review,proposal){
     approvedForLiveTools:false,realToolExecutions:0
   };
 }
+
+
+/**
+ * Optional adapter for the OFFLINE sandbox only. Review records are NOT bearer
+ * tokens and a copied JSON review is insufficient. Every simulated call checks
+ * an independently trusted test registry callback and the short-lived scope.
+ * Never use this as an authorization gate for real collectors or Roblox tools.
+ */
+export function createSyntheticReviewFixtureVerifier({
+  request,proposal,review,verifyTrustedReview,nowMs=()=>Date.now()
+}={}){
+  validateCollectorPermissionReview(review,request,proposal);
+  if(typeof verifyTrustedReview!=="function"||typeof nowMs!=="function"){
+    throw new Error("Registro de revisao confiavel de teste obrigatorio.");
+  }
+  const captured=clone(review);
+  const req=clone(request);
+  const safeIdentity={...proposal.identity};
+  return async ticket=>{
+    if(captured.outcome!=="SIMULATION_ALLOWED"||!timestamp(nowMs())||
+       nowMs()<captured.reviewedAtMs||nowMs()>=req.expiresAtMs){
+      return null;
+    }
+    try{
+      validateCollectorPermissionReview(ticket,req,proposal);
+    }catch{
+      return null;
+    }
+    if(JSON.stringify(ticket)!==JSON.stringify(captured))return null;
+    let state;
+    try{
+      state=await verifyTrustedReview({
+        requestId:req.requestId,reviewId:captured.reviewId,
+        missionId:req.missionId,scope:req.scope
+      });
+    }catch{
+      return null;
+    }
+    if(!exact(state,["verified","mode","requestId","reviewId","missionId","scope"])||
+       state.verified!==true||
+       state.mode!=="SYNTHETIC_TEST_REVIEW_REGISTRY"||
+       state.requestId!==req.requestId||
+       state.reviewId!==captured.reviewId||
+       state.missionId!==req.missionId||
+       state.scope!=="SYNTHETIC_PREVIEW_ONLY"){
+      return null;
+    }
+    return {
+      verified:true,mode:"SYNTHETIC_TEST_ONLY",
+      missionId:req.missionId,identity:{...safeIdentity}
+    };
+  };
+}
