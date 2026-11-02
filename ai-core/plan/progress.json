@@ -144,7 +144,7 @@
       "id": "P4",
       "title": "Ferramentas passivas e testes controlados no coletor",
       "weight": 15,
-      "earned": 7,
+      "earned": 8,
       "status": "in_progress",
       "done": [
         "catalogo fechado watch_state e observe_gui com privilegios OFFLINE_METADATA_ONLY e teto de 10 segundos por tentativa",
@@ -157,16 +157,19 @@
         "CI executa pedido → revisao sintetica → preview → auditoria para watch_state e observe_gui sem execucao em Roblox",
         "GitHub Contents API armazena pedido sintetico PENDING_REVIEW revisao 0 e decisao final DENIED/SIMULATION_ALLOWED revisao 1 com SHA otimista, conflitos e idempotencia",
         "pedido e recusa sinteticos gravados na branch de conhecimento e recuperados entre tres runners reais GitHub Actions",
-        "contrato da futura tela de revisao somente leitura mostra ferramenta, motivo, prazo, limites e estado sem callbacks nem autorizacao real"
+        "contrato da futura tela de revisao somente leitura mostra ferramenta, motivo, prazo, limites e estado sem callbacks nem autorizacao real",
+        "interface HTML funcional apenas em HTTP de loopback para exibir ferramenta, finalidade, orcamento, prazo e revisar permissao sintetica",
+        "formularios locais com origin e host controlados, desafio CSRF, limite de corpo, estado final unico, recusa e expiracao",
+        "interface aceita estado final importado e validado em modo somente leitura; CI aprovou testes de replay, adulteracao e nao execucao"
       ],
       "pending": [
-        "implementar interface real para consentimento do proprietario/jogador em experiencia autorizada; modelo de tela atual nao funciona no Roblox",
-        "autenticar operador real e origem da decisao em registro confiavel, com vinculacao a propriedade de jogo; GitHub nao e prova de consentimento",
-        "definir autorizacao ao vivo por proprietario, jogo, sessao, ferramenta e prazo separada das decisoes sinteticas",
+        "integrar interface do menu Roblox real sob aprovacao explicita, atualmente demonstracao somente local em navegador",
+        "autenticar usuario/proprietario real e vincular sessao e origem da decisao a experiencia autorizada",
+        "definir politica de revogacao, auditoria e consentimento reais para ferramentas ativas separada do teste sintetico",
         "implementar ferramentas de observacao passiva no coletor Luau existente somente apos aprovacao especifica",
         "validar limites e logs com servidor da experiencia propria ou autorizada",
         "integrar observacoes autorizadas ao gateway e memoria de evidencias",
-        "revisar privacidade historica, revogacao e politica de retencao Git",
+        "revisar privacidade historica e retencao dos registros GitHub",
         "testar interrupcao, indisponibilidade e recuperacao de ferramentas reais"
       ],
       "evidence": [
@@ -178,7 +181,9 @@
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386415402",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387218860",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387223580"
       ]
     },
     {

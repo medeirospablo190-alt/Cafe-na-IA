@@ -22,10 +22,10 @@
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
 - **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
-- **P4 = 7/15**: catálogo fechado, prévias sintéticas, revisão de teste, pedido e recusa persistidos no GitHub real entre três runners e modelo de exibição de permissões. Operador e menu Roblox reais não estão implementados.
+- **P4 = 8/15**: ferramentas e autorizações sintéticas, persistência no GitHub e tela de revisão HTTP local com formulário funcional. Não existe interface Roblox, operador real nem execução de ferramentas.
 - **P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 59/100; faltam 41 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 60/100; faltam 40 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -191,3 +191,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Não implementado:** autenticação de usuário/proprietário real, interface Roblox, consentimento real, revogação distribuída, execução no coletor ou encaminhamento de ferramentas ao gateway.
 
 **Pontuação P4=7/15. Total=59/100; faltam 41 pontos.**
+
+## Interface local funcional de revisão do coletor — 2026-11-02
+
+- `src/collector-review-browser.mjs` oferece uma página de navegador real, servida exclusivamente por HTTP em `127.0.0.1`, com ferramenta, escopo, prazo, orçamento e botões de recusa ou liberação **somente da prévia sintética**.
+- O formulário não usa JavaScript externo, nenhuma rota de coletor ou GitHub; verifica Host/Origin, CSRF, corpo de no máximo 512 bytes, estado final único e prazo. Respostas não equivalem a autenticação de um humano.
+- Pedidos DENIED ou revisões já encerradas podem ser importados somente para exibição, sem reabrir a decisão.
+- `npm --prefix ai-core run collector:review-browser` cria pedido a partir de fixture sintética e imprime endereço de loopback que deve ser aberto no mesmo dispositivo.
+- `docs/COLLECTOR_REVIEW_BROWSER.md` contém instruções e esclarece que o formulário **não autentica usuário real** nem toca no Roblox.
+- [CI push aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387218860) e [CI PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387223580).
+- **Não incluído:** instalação do menu Roblox, autenticação do operador, gateway/Render real, qualquer execução ao vivo ou consentimento de proprietário comprovado.
+
+**Pontuação P4 = 8/15; total = 60/100; restam 40 pontos.**
