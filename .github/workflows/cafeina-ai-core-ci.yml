@@ -196,5 +196,7 @@ jobs:
         run: node --test ai-core/test/github-collector-permissions.test.mjs ai-core/test/collector-permission-view.test.mjs
       - name: Validate local collector permission form security and final-state display
         run: node --test ai-core/test/collector-review-browser.test.mjs ai-core/test/collector-review-import.test.mjs
+      - name: Verify client-only executor menu and safety constraints
+        run: npm --prefix ai-core run check:executor
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress

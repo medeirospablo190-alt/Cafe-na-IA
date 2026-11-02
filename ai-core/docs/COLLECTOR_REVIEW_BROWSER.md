@@ -69,3 +69,7 @@ node --test ai-core/test/collector-review-browser.test.mjs ai-core/test/collecto
 ```
 
 Os testes usam apenas fixtures sintéticas e HTTP local.
+
+## Direcionamento do produto
+
+O objetivo final não é iniciar pelo navegador. A interface de teste do **executor Roblox** está em `roblox-reference/ExecutorMenu.client.luau` e documentada em `docs/EXECUTOR_MENU.md`. O servidor Node local permanece apenas como ensaio de contratos.

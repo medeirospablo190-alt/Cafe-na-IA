@@ -183,3 +183,15 @@ de fixture sintética e aceita apenas recusa ou prévia offline, sem
 conexão com Roblox, GitHub, Render ou o coletor real.
 
 Documentação: `docs/COLLECTOR_REVIEW_BROWSER.md`.
+
+## Menu do executor Roblox (ponto de entrada de teste)
+
+**O menu final deve iniciar diretamente pelo executor Luau no Roblox**, não
+pelo navegador/Node.js. A primeira interface está em
+`roblox-reference/ExecutorMenu.client.luau`, com abas Missões,
+Permissões e Diagnóstico, controles de toque e decisões estritamente
+sintéticas. Instruções de uso no celular e script de carregamento fixado:
+`docs/EXECUTOR_MENU.md`.
+
+**Ainda não há conexão real aos agentes, ao gateway, ao coletor ou às
+permissões do proprietário.** Nenhum jogo foi modificado.
