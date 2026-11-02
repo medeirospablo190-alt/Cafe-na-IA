@@ -39,8 +39,11 @@ test("only expired, fully closed synthetic records qualify for manual review",()
   assert.equal(assessSyntheticMenuRetention(proposal,null,{
     nowMs:initial+60000+8*day
   }).status,"REQUIRES_REVIEW");
-  assert.equal(assessSyntheticMenuRetention({...proposal,
-    identity:{...proposal.identity,gameId:"202"}},null,{
+  const outOfScope={...proposal,
+    identity:{...proposal.identity,gameId:"202"},
+    evidenceRefs:proposal.evidenceRefs.map(ref=>ref.replace(/^v3:101:/,"v3:202:"))
+  };
+  assert.equal(assessSyntheticMenuRetention(outOfScope,null,{
     nowMs:initial+60000+8*day
   }).status,"OUT_OF_SCOPE");
   assert.throws(()=>assessSyntheticMenuRetention(proposal,state,{
