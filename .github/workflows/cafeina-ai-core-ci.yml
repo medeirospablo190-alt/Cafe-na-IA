@@ -1,0 +1,202 @@
+name: CAFEINA AI Core CI
+
+on:
+  pull_request:
+    paths:
+      - "ai-core/**"
+      - ".github/workflows/cafeina-ai-core-ci.yml"
+      - ".github/workflows/cafeina-ai-knowledge.yml"
+  push:
+    branches:
+      - "feat/cafeina-ai-core-*"
+    paths:
+      - "ai-core/**"
+      - ".github/workflows/cafeina-ai-core-ci.yml"
+      - ".github/workflows/cafeina-ai-knowledge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check syntax
+        run: npm --prefix ai-core run check
+      - name: Test safe ingestion and mission proposals
+        run: npm --prefix ai-core test
+      - name: Demonstrate synthetic batch analysis
+        run: npm --prefix ai-core run demo
+      - name: Smoke test using an existing historical V3 session (sanitized output)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd ai-core
+          node src/session-cli.mjs \
+            --session-dir ../inventory-traces-v3/10112019404/105352101879443/c59f475c-6740-46cb-9d9b-e7f8c0065433 \
+            --manifest ../inventory-traces-v3/10112019404/105352101879443/latest.json \
+            --profile ../inventory-traces-v3/profiles/10112019404.json \
+            --store "$RUNNER_TEMP/cafeina-safe-store" \
+            > /tmp/cafeina-safe-analysis.json
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const result=JSON.parse(readFileSync("/tmp/cafeina-safe-analysis.json","utf8"));
+            assert.equal(result.type,"cafeina_ai_session_analysis");
+            assert.equal(result.coverage.expectedDataBatches,15);
+            assert.equal(result.coverage.receivedUniqueDataBatches,15);
+            assert.equal(result.coverage.completeBatchSequence,true);
+            assert.equal(result.privacy.rawRecordsIncluded,false);
+            assert.ok(result.observations.recordCount>0);
+            assert.equal(result.mission?.executable,false);
+            assert.equal(result.persistence.status,"CREATED");
+            const memory=readFileSync(process.env.RUNNER_TEMP + "/cafeina-safe-store/10112019404.json","utf8");
+            const stored=JSON.parse(memory);
+            assert.equal(stored.totals.knownRuns,1);
+            assert.equal(stored.sessions[result.identity.runId].verification,"EXPERIMENTAL");
+            assert.equal(memory.includes("username"),false);
+            assert.equal(memory.includes("userId"),false);
+            console.log("Historical V3 smoke PASS: 15 batches, sanitized memory, no raw payload.");
+          '
+      - name: Correlate real historical V3 evidence into safe agent journal
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ai-core/src/agent-report-cli.mjs \
+            /tmp/cafeina-safe-analysis.json \
+            "$RUNNER_TEMP/cafeina-real-agent-journals" \
+            > "$RUNNER_TEMP/cafeina-agent-journal-status.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const s=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/cafeina-agent-journal-status.json","utf8"));
+            assert.equal(s.status,"CREATED");
+            assert.equal(s.messages,4);
+            assert.equal(s.toolExecutions,0);
+            assert.equal(s.decision,"WAITING_USER");
+            console.log("Real V3 -> agents -> sanitized journal PASS.");
+          '
+      - name: Exercise real V3 offline task state and specialist gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ai-core/src/planning-demo.mjs \
+            /tmp/cafeina-safe-analysis.json \
+            "$RUNNER_TEMP/cafeina-offline-planning" \
+            > "$RUNNER_TEMP/cafeina-offline-status.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const p=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+              "/cafeina-offline-status.json","utf8"));
+            assert.equal(p.taskState,"WAITING_USER");
+            assert.equal(p.recoveredFromDisk,true);
+            assert.deepEqual(p.specialists,["Arquiteta","Programadora","Testadora"]);
+            assert.equal(p.planStatus,"BLOCKED");
+            assert.equal(p.codeGenerated,false);
+            assert.equal(p.toolExecutions,0);
+            assert.equal(p.testsExecuted,0);
+            assert.equal(p.reaHandoffPrepared,true);
+            assert.equal(p.reaEvidenceAuthenticated,false);
+            assert.equal(p.verifiedReconstructionClaims,0);
+            console.log("Historical V3 offline orchestration and specialists PASS.");
+          '
+      - name: Demonstrate bounded deterministic agent protocol
+        run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
+      - name: Read-only GitHub knowledge integration smoke
+        shell: bash
+        env:
+          CAFEINA_GAME_ID: "10112019404"
+          CAFEINA_PLACE_ID: "105352101879443"
+          CAFEINA_RUN_ID: "c59f475c-6740-46cb-9d9b-e7f8c0065433"
+          CAFEINA_PUBLISH: "false"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node ai-core/src/knowledge-workflow.mjs > "$RUNNER_TEMP/knowledge-check.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const data=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/knowledge-check.json","utf8"));
+            assert.equal(data.status,"DRY_RUN");
+            assert.equal(data.published,false);
+            assert.equal(data.uniqueBatches,15);
+            console.log("GitHub knowledge read-only dry-run PASS.");
+          '
+      - name: Simulate menu HTTP poll, acknowledgment and non-execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ai-core run menu:demo --silent > "$RUNNER_TEMP/menu-contract-result.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+              "/menu-contract-result.json","utf8"));
+            assert.equal(r.simulationOnly,true);
+            assert.equal(r.transport,"HTTP_LOOPBACK");
+            assert.equal(r.approved,false);
+            assert.equal(r.executed,false);
+            assert.equal(r.githubPublished,false);
+            assert.equal(r.rawPlayerDataIncluded,false);
+            assert.equal(r.flow.at(-1),"CLOSED_NO_EXECUTION");
+            console.log("Simulated menu transport PASS: no game execution.");
+          '
+      - name: Check simulated versioned menu receipt resilience
+        run: node --test ai-core/test/menu-delivery-e2e.test.mjs
+      - name: Validate server-scoped Roblox bridge prototype
+        run: node --test ai-core/test/roblox-server-verifier.test.mjs ai-core/test/roblox-reference.test.mjs
+      - name: Verify HTTP check-in and scoped menu receipt E2E
+        run: node --test ai-core/test/roblox-checkin-sim.test.mjs
+      - name: Check synthetic passive collector tools and privacy gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ai-core run collector:demo --silent > "$RUNNER_TEMP/collector-sandbox.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const raw=readFileSync(process.env.RUNNER_TEMP+"/collector-sandbox.json","utf8");
+            assert.ok(!/TEST_SECRET|username|userId|password|rawRecords/i.test(raw));
+            const s=JSON.parse(raw);
+            assert.equal(s.mode,"OFFLINE_SIMULATION_ONLY");
+            assert.equal(s.catalogSize,2);
+            assert.deepEqual(s.simulations.map(r=>r.toolId),["watch_state","observe_gui"]);
+            assert.equal(s.totalRealToolExecutions,0);
+            assert.equal(s.robloxConnected,false);
+            assert.equal(s.permissionsGrantedForLiveTools,false);
+            console.log("Passive collector simulation and privacy gates PASS.");
+          '
+      - name: Validate synthetic collector review and no-execution audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ai-core run collector:permissions-demo --silent > "$RUNNER_TEMP/collector-permissions.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const raw=readFileSync(process.env.RUNNER_TEMP+"/collector-permissions.json","utf8");
+            assert.ok(!/TEST_SECRET|username|userId|password|remoteArguments|rawRecords/i.test(raw));
+            const x=JSON.parse(raw);
+            assert.equal(x.mode,"TEST_ONLY_NO_USER_AUTHORIZATION");
+            assert.equal(x.liveExecutionEnabled,false);
+            assert.equal(x.approvedForRealCollector,false);
+            assert.deepEqual(x.requests.map(r=>r.toolId),["watch_state","observe_gui"]);
+            assert.ok(x.requests.every(r=>r.deniedOutcome==="DENIED" && r.realToolExecutions===0));
+            console.log("Collector review and no-execution audit PASS.");
+          '
+      - name: Validate versioned permission storage and safe menu projection
+        run: node --test ai-core/test/github-collector-permissions.test.mjs ai-core/test/collector-permission-view.test.mjs
+      - name: Validate local collector permission form security and final-state display
+        run: node --test ai-core/test/collector-review-browser.test.mjs ai-core/test/collector-review-import.test.mjs
+      - name: Verify client-only executor menu and safety constraints
+        run: npm --prefix ai-core run check:executor
+      - name: Validate roadmap points
+        run: npm --prefix ai-core run progress

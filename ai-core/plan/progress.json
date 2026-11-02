@@ -1,0 +1,259 @@
+{
+  "project": "CAFEINA AI Reconstruction",
+  "asOf": "2026-11-01",
+  "rule": "Pontos apenas com entregas e evidencias verificadas; 100 exige ciclo E2E completo.",
+  "phases": [
+    {
+      "id": "P0",
+      "title": "Fundacao e CI",
+      "weight": 10,
+      "earned": 10,
+      "status": "completed",
+      "done": [
+        "scaffold",
+        "arquitetura",
+        "contratos",
+        "seguranca",
+        "GitHub Actions push + pull_request aprovados"
+      ],
+      "pending": [],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345792411",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41345820474"
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "Ingestao, privacidade e evidencias V3",
+      "weight": 15,
+      "earned": 14,
+      "status": "in_progress",
+      "done": [
+        "leitura local de lote V3 e manifesto",
+        "15 lotes V3 reais com manifesto e perfil V1 compatíveis",
+        "proveniencia SHA256 e referencias por evento",
+        "deduplicacao e rejeicao de indices conflituosos",
+        "deteccao de lotes ausentes, cobertura desconhecida e causalidade nao comprovada",
+        "memoria de metadados por jogo/sessao com lock e escrita atomica",
+        "hipoteses exclusivamente EXPERIMENTAL, sem validar sem provas",
+        "testes sinteticos de privacidade, conflitos e atualizacoes incrementais",
+        "adaptador GitHub testado com API simulada, conflitos e idempotencia",
+        "branch de conhecimento isolada criada e leitura read-only no GitHub Actions aprovada"
+      ],
+      "pending": [
+        "gravar e recuperar memoria entre dois runs reais com permissao de escrita, sob revisao",
+        "revisar a privacidade e a retencao dos historicos de jogadores publicados"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346431425",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/tree/cafeina-ai-knowledge/ai-core/knowledge"
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Modelo e agentes especializados",
+      "weight": 15,
+      "earned": 13,
+      "status": "in_progress",
+      "done": [
+        "protocolo deterministico de quatro agentes com mensagens estruturadas e limite de turnos",
+        "interface opcional de modelo local compatível com Ollama (API simulada nos testes)",
+        "respostas do modelo limitadas a enums e sem execucao de ferramentas",
+        "coordenacao com aconselhamento de modelo preserva decisao segura",
+        "modelo real Qwen2.5 0.5B executado por Ollama CPU no GitHub Actions com dados sinteticos",
+        "saida da IA obrigatoriamente validada por enum JSON e autorizacao nunca automatica",
+        "diario de decisoes saneado com hash e rejeicao de registros conflitantes",
+        "artefato de 7 dias do dialogo gerado por inferencia real com dados sinteticos",
+        "sessao historica V3 processada por agentes deterministas com diario de decisoes",
+        "tarefa de planejamento offline com estados, limites, lease, revisao e recuperacao de interrupcao testados",
+        "Arquiteta, Programadora e Testadora deterministicas com bloqueio de codigo sem evidencias",
+        "CI com sessao historica V3: task state gravado/recarregado e plano de testes sem execucao",
+        "sincronizacao de estado de tarefa em branch GitHub com SHA e revisoes testada por API simulada",
+        "tarefa inteiramente sintetica persistida por um runner e recuperada por segundo runner independente no Actions"
+      ],
+      "pending": [
+        "ligar persistencia entre runners ao orquestrador normal e tratar exclusao/retencao",
+        "executar agentes e modelo mais capazes em mecanicas autorizadas com dados tratados",
+        "agentes Programadora e Testadora com geracao Luau e verificacoes reais (hoje somente planos)"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41347850490",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41352808367",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353005800",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41353072322",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354698722",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41354703167",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362546343"
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Fila segura GitHub ↔ gateway ↔ Roblox",
+      "weight": 15,
+      "earned": 12,
+      "status": "in_progress",
+      "done": [
+        "contratos de propostas de observacao nao executaveis e recibos que nao concedem permissoes",
+        "fila GitHub de propostas imutaveis em modo dry-run com testes de API simulada, conflito e idempotencia",
+        "gateway HTTP apenas no loopback: polling, ACK, recusa, expiração, limites e protecao de sessao com token de teste",
+        "teste E2E sintetico GitHub simulado → gateway local → menu simulado → recibo, CI aprovada",
+        "documentacao da fronteira de permissao e do contrato necessario ao gateway real",
+        "registro de estados e recibos com revisoes e transicoes estritas, sem permissao de execucao",
+        "adaptador de leitura/gravação GitHub de recibos saneados, com API simulada, idempotencia e retry",
+        "gateway HTTP simulado so confirma entrega e resposta apos persistencia; 503 em falha de armazenamento",
+        "teste integrado com API GitHub simulada e recuperacao do recibo por nova leitura, CI aprovada",
+        "proposta de observacao 100% sintetica publicada e recuperada na API real GitHub em branch isolada, com GITHUB_TOKEN efemero",
+        "entrega, ACK e NOT_EXECUTED persistidos na API real do GitHub por tres transicoes versionadas",
+        "gateway HTTP de loopback le proposta real e so confirma eventos apos gravacao real no GitHub; terceiro runner independente verificou o recibo",
+        "inspecao direta dos dois arquivos publicados confirmou identidade sintetica e ausencia de payload bruto de jogadores",
+        "prototipo de credenciais HMAC de curta duracao vinculadas a missao, jogo, place e runId, sem permissao de execucao",
+        "gateway HTTP isolado integra verificador de credencial, rejeita token expirado, alterado e de outra sessao",
+        "modulo read-only de retencao de metadados sinteticos com criterio de 7 a 90 dias e sem comando de exclusao",
+        "scan read-only na API GitHub real validou duas propostas de teste sem exclusao; CI dos contratos passou",
+        "contrato de check-in de servidor Roblox com segredo de experiencia, JobId registrado, clock skew e nonce contra repeticao em testes isolados",
+        "referencia Luau server-only desativada para HttpService:GetSecret e RequestAsync HTTPS, sem credenciais no cliente ou deploy",
+        "HTTP loopback E2E: check-in de servidor simulado → token HMAC limitado → leitura de proposta → ACK e NOT_EXECUTED",
+        "testes de credenciais falsas, vinculo de JobId invalido, replay, limite de corpo e falha de nonce; CI push e PR aprovadas"
+      ],
+      "pending": [
+        "implantar verificador de identidade/propriedade do servidor Roblox e registro duravel autorizado de JobId ↔ runId; testes usam mock",
+        "provisionar segredos por experiencia Roblox e gateway HTTPS apenas apos autorizacao especifica",
+        "implantar no gateway/Render com revogacao, limites e bloqueio de replay distribuidos, sem afetar rotas atuais",
+        "integrar interface do menu no servidor e cliente Roblox de uma experiencia propria autorizada",
+        "comprovar recebimento e resposta em dispositivo/servidor Roblox real, sem expor credenciais",
+        "revisar retencao, historico Git e log de acesso antes de dados de producao"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363716857",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363961534",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41364586743",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365030921",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365211848",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366008560",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366012830",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41369927768",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370030216",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370033637"
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Ferramentas passivas e testes controlados no coletor",
+      "weight": 15,
+      "earned": 9,
+      "status": "in_progress",
+      "done": [
+        "catalogo fechado watch_state e observe_gui com privilegios OFFLINE_METADATA_ONLY e teto de 10 segundos por tentativa",
+        "motor de simulacao exclusivamente sintetico com checagem de fixture, no maximo 2 chamadas, auditoria saneada, idempotencia e rejeicao de paralelismo",
+        "previsoes de contagem e referencias V3 saneadas sem nomes de jogadores, textos, argumentos de remote ou execucao Roblox",
+        "CI testa dois tipos de observacao, dados de teste maliciosos, falta de autorizacao de fixture, expiração e tentativas acima da cota",
+        "contrato de solicitacao de permissao com identidade, hash da proposta, motivo enum, prazo e escopo somente sintetico",
+        "fluxo de revisao de operador de teste com recusas, validacao contra ACK falso e registro de auditoria sem dados pessoais",
+        "registro confiavel de teste revalida permissoes em cada tentativa; negacao, expiracao, falsificacao e ausência de registro bloqueiam",
+        "CI executa pedido → revisao sintetica → preview → auditoria para watch_state e observe_gui sem execucao em Roblox",
+        "GitHub Contents API armazena pedido sintetico PENDING_REVIEW revisao 0 e decisao final DENIED/SIMULATION_ALLOWED revisao 1 com SHA otimista, conflitos e idempotencia",
+        "pedido e recusa sinteticos gravados na branch de conhecimento e recuperados entre tres runners reais GitHub Actions",
+        "contrato da futura tela de revisao somente leitura mostra ferramenta, motivo, prazo, limites e estado sem callbacks nem autorizacao real",
+        "interface HTML funcional apenas em HTTP de loopback para exibir ferramenta, finalidade, orcamento, prazo e revisar permissao sintetica",
+        "formularios locais com origin e host controlados, desafio CSRF, limite de corpo, estado final unico, recusa e expiracao",
+        "interface aceita estado final importado e validado em modo somente leitura; CI aprovou testes de replay, adulteracao e nao execucao",
+        "primeiro menu Luau autocontido para executar no cliente Roblox, com abas Missões/Permissões/Diagnóstico, suporte a toque, arrastar, minimizar, reabrir e recusar ou simular aprovação local",
+        "CI verificou estaticamente a interface do executor e ausencia de API de rede, execução de remotes, carregadores e ferramentas reais; uso em executor de dispositivo ainda não testado"
+      ],
+      "pending": [
+        "testar manualmente a interface Luau em executor e dispositivo de experiencia Roblox propria/autorizada (CI so inspeciona estaticamente)",
+        "integrar menu executor ao gateway seguro sem embutir segredos, autenticar origem e permissoes no servidor; UI atual apenas simula",
+        "autenticar usuario/proprietario real e vincular sessao e origem da decisao a experiencia autorizada",
+        "definir politica de revogacao, auditoria e consentimento reais para ferramentas ativas separada do teste sintetico",
+        "implementar ferramentas de observacao passiva no coletor Luau existente somente apos aprovacao especifica",
+        "validar limites e logs com servidor da experiencia propria ou autorizada",
+        "integrar observacoes autorizadas ao gateway e memoria de evidencias",
+        "revisar privacidade historica e retencao dos registros GitHub",
+        "testar interrupcao, indisponibilidade e recuperacao de ferramentas reais"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382028189",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382188608",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41382183465",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385278709",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385453948",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386181653",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386415402",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387218860",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387223580",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388145593",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388150892"
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "REA executavel e adaptador",
+      "weight": 10,
+      "earned": 3,
+      "status": "in_progress",
+      "done": [
+        "adaptador de handoff REA que preserva somente referencias de observacao e lacunas",
+        "REA CLI 6.7.0 executado em runner do GitHub com ledger vazio autentico, sem criar provas ficticias",
+        "pipeline V3 historico emite handoff de REA nao autenticado e plano read-only",
+        "testes contra falso reconhecimento de evidencias e referencias de outra sessao"
+      ],
+      "pending": [
+        "converter investigacoes autorizadas em registros Evidence reais produzidos pelos recursos REA",
+        "validar adaptador de importacao e comparacao de Evidence, nao somente handoff",
+        "integrar CLI/MCP do REA em execucao de agentes com limites de tempo e recursos",
+        "criar obrigacoes autenticas e testes comparativos de mecanicas de ambiente proprio"
+      ],
+      "evidence": [
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362281164",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41362629393"
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Programacao Luau e reconstrucoes",
+      "weight": 10,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "specs",
+        "geracao",
+        "comparacao",
+        "PR"
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Rojo e publicacao Roblox de teste",
+      "weight": 5,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "build",
+        "ambiente de teste",
+        "aprovacao"
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Validacao total, custos e seguranca",
+      "weight": 5,
+      "earned": 0,
+      "status": "not_started",
+      "done": [],
+      "pending": [
+        "E2E real",
+        "resiliencia",
+        "cotagem",
+        "revisao final"
+      ]
+    }
+  ]
+}

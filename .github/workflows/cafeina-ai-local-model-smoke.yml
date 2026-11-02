@@ -1,0 +1,90 @@
+name: CAFEINA AI Real Local Model Smoke
+
+# One-off, narrow push trigger. No scheduled or always-on model.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/model-smoke.marker"
+      - ".github/workflows/cafeina-ai-local-model-smoke.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cafeina-local-model-once
+  cancel-in-progress: true
+
+jobs:
+  synthetic-inference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout only source code (no credentials retained)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Pull a pinned Ollama container and start bound to loopback only
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker pull ollama/ollama:0.12.10
+          docker run -d --rm --name cafeina-ollama --cpus 3 --memory 6g \
+            -e OLLAMA_NUM_PARALLEL=1 \
+            -e OLLAMA_MAX_LOADED_MODELS=1 \
+            -p 127.0.0.1:11434:11434 \
+            ollama/ollama:0.12.10
+          for attempt in {1..40}; do
+            if curl -fsS --max-time 3 http://127.0.0.1:11434/api/tags > /dev/null; then
+              echo "Local Ollama API ready"
+              break
+            fi
+            if [ "$attempt" -eq 40 ]; then
+              echo "Ollama did not become healthy" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+      - name: Pull the small open model (398MB) without paid inference
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 480 docker exec cafeina-ollama ollama pull qwen2.5:0.5b
+      - name: Real inference, only synthetic V3 fixture
+        env:
+          CAFEINA_MODEL: "qwen2.5:0.5b"
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 180 node ai-core/src/model-smoke.mjs | tee "$RUNNER_TEMP/cafeina-model-safe-result.json"
+      - name: Model probe summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -s "$RUNNER_TEMP/cafeina-model-safe-result.json" ]; then
+            node --input-type=module -e '
+              import {readFileSync} from "node:fs";
+              import assert from "node:assert/strict";
+              const p=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/cafeina-model-safe-result.json","utf8"));
+              assert.equal(p.result,"PASS");
+              assert.equal(p.syntheticDataOnly,true);
+              assert.equal(p.toolExecutions,0);
+              console.log("Verified local synthetic model call: "+p.model);
+            '
+          fi
+      - name: Publish sanitized agent decision journal (7 days only)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cafeina-synthetic-agent-journal
+          path: ${{ runner.temp }}/cafeina-agent-journals/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Stop inference container
+        if: always()
+        run: docker rm -f cafeina-ollama || true

@@ -1,0 +1,65 @@
+name: CAFEINA AI REA CLI Contract Smoke
+
+# Explicit, bounded, development-branch-only smoke. No recurring expense or secrets.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/rea-smoke.marker"
+      - ".github/workflows/cafeina-ai-rea-smoke.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cafeina-rea-smoke
+  cancel-in-progress: true
+
+jobs:
+  rea-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: REA command executes with a pinned public npm package
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -v
+          # This is an EMPTY evidence bundle as documented by REA.
+          # It is intentionally NOT populated with Roblox V3 metadata.
+          node --input-type=module -e '
+            import {reaEmptyLedgerRequest} from "./ai-core/src/rea-adapter.mjs";
+            import {writeFileSync} from "node:fs";
+            writeFileSync(process.env.RUNNER_TEMP+"/rea-empty-input.json",
+              JSON.stringify(reaEmptyLedgerRequest()));
+          '
+          node -e '
+            const v=process.versions.node.split(".").map(Number);
+            if(v[0]<24||(v[0]===24&&v[1]<11))process.exit(1);
+          '
+          npm_config_audit=false npm_config_fund=false \
+            timeout 480 npx --yes --package rea-agents@6.7.0 \
+            rea build-reconstruction-obligation-ledger \
+            "$(cat "$RUNNER_TEMP/rea-empty-input.json")" \
+            --json > "$RUNNER_TEMP/rea-empty-ledger.json"
+      - name: Confirm REA returned structured output with no source evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const file=readFileSync(process.env.RUNNER_TEMP+"/rea-empty-ledger.json","utf8");
+            assert.ok(file.length>50 && file.length<500000);
+            const body=JSON.parse(file);
+            assert.ok(body && typeof body==="object");
+            console.log("REA CLI contract smoke PASS: JSON returned for empty authenticated bundle.");
+            console.log("No Roblox mechanics or reconstructed code verified.");
+          '

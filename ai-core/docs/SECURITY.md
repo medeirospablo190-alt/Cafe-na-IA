@@ -1,0 +1,136 @@
+# Segurança e privacidade
+
+- O histórico V3 no GitHub público pode conter `userId`, `username`, `player`, textos e argumentos de remotes. A existência de campos desses tipos foi confirmada no código do gateway. O protótipo **não publica** esses campos no relatório; armazenar hashes do documento não substitui revisão do histórico.
+- Nunca guardar token de escrita do GitHub em script Lua distribuído a clientes. Autenticar o gateway e limitar comandos.
+- Capturas do jogo e respostas de modelos são **dados não confiáveis**, jamais instruções para shell ou credenciais.
+- O relatório atual só produz `status=PROPOSED` e `executable=false`; não há executor.
+- Testes ativos somente com autorização sobre a experiência Roblox; não burlar controles nem operar em jogos de terceiros.
+- GitHub Actions deve usar `permissions: contents: read`, fixtures sintéticas e sem segredos.
+- Mudanças de gateway/Render/banco/APK e publicação no Roblox exigem aprovação específica, testes e revisão.
+- Proteger dados de jogadores antes de processamento externo ou migração. Eliminar um arquivo de branch pública não elimina automaticamente cópias históricas.
+- Limitar uso de modelos à cota gratuita; nenhum serviço pode ativar cobrança por conta própria.
+
+**Pendente:** autenticação de missões, fila, rate limit, sandbox, política de execução, revisão de privacidade histórica e auditoria completa do canal bidirecional.
+
+## Proteções adicionadas na ingestão multi-batch
+
+- Não ler campos de argumentos, textos, nomes ou conteúdo de remotes para a memória.
+- Validar IDs, nomes de lotes e limites de arquivos, e rejeitar links simbólicos em arquivos JSON.
+- Exigir manifesto da mesma sessão e perfil de mesmo jogo.
+- Recusar sobrescrita de lote previamente indexado com checksum diferente.
+- Persistência atômica local com bloqueio exclusivo; índice remoto não implementado.
+- Falta de quantidade declarada de lotes nunca equivale a cobertura completa.
+
+A execução da CI com uma sessão histórica real **não publica registros brutos nos logs** e não oferece essas capturas a modelos externos. Mesmo assim, a revisão de privacidade dos dados já publicados permanece pendente.
+
+## Modelo local e privilegios de CI
+
+- O cliente de modelo permite somente endpoint HTTP local (127.0.0.1/localhost), impõe timeout e limita os tokens gerados.
+- As respostas do LLM passam por enums restritos, não podem executar ferramentas, aprovar missões ou elevar hipóteses a VALIDATED.
+- Workflow de memória separa dois jobs: leitura com `contents: read` e publicação explícita com `contents: write`.
+- A CI principal nunca grava memória remota; a publicação real continua pendente de revisão e teste controlado.
+
+## Teste real do modelo, fonte e fronteiras
+
+O Qwen2.5 0.5B foi baixado pelo Ollama em container Docker no runner efemero do GitHub Actions. A API so ficou acessivel em `127.0.0.1:11434`, sem acesso a secrets de producao, Render ou menu. A entrada foi uma fixture sintetica com campos maliciosos simulados; o contrato de saida manteve a geracao em enum seguro. O modelo nao pode executar ferramentas, adicionar permissoes nem marcar evidencias como comprovadas.
+
+O diario `decision-journal.mjs` aceita somente IDs de jogo/sessao, papeis de agentes e campos controlados. Nao exporta livremente prompts, nomes, mensagens ou respostas integrais do modelo. Um artefato desse diario dura no maximo sete dias.
+
+## API GitHub e limites de requisicao
+
+Os testes de leitura em runners usam o `github.token` efemero do proprio Actions, com `permissions: contents: read`; isso evita depender de chamadas anonimas sujeitas a limite por IP. O token nao e enviado a modelos nem exibido nos logs. Publicacao continua restrita a um job explicitamente solicitado com `contents: write`.
+
+## Missões offline e recuperação
+
+O estado do planejamento não contém payload bruto, nomes de jogadores, tokens ou instruções livres. Limites de duração, tentativas, revisão e lease reduzem loops e duplicações. Somente transições de estado permitidas são gravadas; atualizações conflitantes e atributos extras são rejeitados. A conclusão exige o ID da conversa derivado da sessão e manifesto; todo trabalho continua `OFFLINE_METADATA_ONLY`.
+
+Essas garantias são locais e não equivalem a autorização de ferramentas no menu Roblox ou a persistência durável entre runners. Não há executor de comandos no novo módulo.
+
+## GitHub tasks e REA (integracao read-only)
+
+- O armazenamento remoto de tarefas é restrito à branch `cafeina-ai-knowledge`, aos caminhos `ai-core/tasks/<gameId>/task-<hash>.json` e a estados com campos validados. Cada gravação exige token e revisão esperada; leitura não executa conteúdo.
+- Teste em runners distintos usou exclusivamente fixtures **sintéticas**, sem dados reais de jogadores, e não habilitou execução no Roblox.
+- O REA foi instalado temporariamente por versão fixada, sem credenciais e com dados vazios. O handoff V3 informa `reaEvidenceAuthenticated=false` e não cria obrigações verificadas de reconstrução.
+- Nenhuma dessas integrações fornece autonomamente autoridade para inspecionar jogos de terceiros, executar remotes ou publicar código.
+## Propostas e recibos do menu
+
+Toda proposta é não executável e exige aprovação independente. Referências devem pertencer à mesma sessão. O token de teste do gateway local não representa identidade Roblox; o servidor real precisará autenticar a sessão e gerenciar seus próprios tokens. O cliente não recebe acesso GitHub. Nenhuma rota foi adicionada ao Render.
+
+## Registros de ACK e estado de entrega
+
+O registro de missão não contém qualquer resultado de observação nem
+identidade do jogador. Ele armazena apenas IDs de jogo/sessão,
+hash da proposta, quatro estados enumerados, três instantes, revisão
+e a decisão `DECLINED` ou `NOT_EXECUTED`. Todos os registros possuem
+`approved=false` e `executed=false`.
+
+Somente os eventos previstos podem mudar o estado; não há endpoint
+para elevar permissões. O gateway **simulado** só confirma eventos
+após confirmação do armazenamento opcional. As integrações reais da API GitHub para recibos foram exercitadas apenas com dados inteiramente sintéticos em runners isolados. Não reutilizar este contrato como
+prova de autenticação de jogadores em Roblox.
+
+## Validação com API real do GitHub, sem acesso Roblox
+
+O experimento `github-menu-real-smoke.mjs` usa somente fixtures sintéticas, GitHub Actions com token efêmero, e branch separada. O gateway HTTP simulado fica em 127.0.0.1, usa uma credencial temporária gerada no processo e não passa credenciais GitHub ao cliente HTTP. Qualquer resposta que afirme aprovação ou execução é rejeitada.
+
+A gravação real deixa metadados sintéticos na branch de conhecimento; definir e testar política de retenção e expurgo antes de uso com dados reais. **A autenticação do simulador não é autenticação Roblox.** Não implantar em produção sem verificação de sessão, propriedade da experiência e limites de uso.
+
+## Escopos de sessão e retenção (somente protótipo)
+
+A credencial de menu usa HMAC-SHA256 com chave somente de servidor (mínimo 32 bytes), assinatura verificada por comparação de tempo constante, prazo curto, público e escopos fixos, vínculo a jogo/place/run/mission e ao checksum da proposta. Requisições com credencial vencida ou manipulada são recusadas. A emissão exige um verificador de experiência confiável **ainda inexistente**: os testes usam um callback simulado.
+
+Tokens portadores ainda podem ser reutilizados dentro da validade se forem roubados; o protocolo de eventos só admite confirmações idempotentes e não libera execução. Revogação distribuída, autenticação de origem Roblox e rate limiting permanecem pendentes.
+
+A prévia de retenção usa somente GET e não implementa exclusão; a API real do GitHub retornou duas propostas sintéticas, ambas dentro da janela, com zero exclusões.
+
+## HTTP de check-in isolado
+
+`roblox-checkin-sim.mjs` só aceita POST local com cabeçalho `x-api-key`
+e não registra segredos nem payloads nos logs; retorno de erro não inclui
+token. O contrato usa uma única credencial por par gameId/placeId
+configurado e consulta registro confiável do JobId para obter o runId.
+A verificação foi feita com segredo e registro **sintéticos**.
+Não há endpoint implantado em rede pública ou comunicação Roblox.
+
+## Tool System do coletor — preview sintético
+
+As únicas ferramentas catalogadas são `watch_state` e `observe_gui`;
+ambas são prévias offline de metadados, não executores. Propostas
+precisam vincular jogo/place/runId, manifesto e evidências observadas,
+permanecendo `approved=false` e `executable=false`. Limites,
+idempotência, auditoria e ausência de dados brutos são cobertos por testes.
+
+O simulador aceita exclusivamente credencial de fixture de teste;
+**não se trata de aprovação do usuário para mexer no Roblox**.
+O método de execução real bloqueia incondicionalmente. O código
+de produção do gateway/Render e do coletor continua intacto.
+
+## Revisão de permissão de ferramentas — fixture somente
+
+O pedido inclui apenas campos limitados por enum, ID da missão, hash da
+proposta, identidade e prazo. A decisão de fixture pode negar ou permitir
+somente visualização offline de dados já saneados. A auditoria não
+persiste credenciais, respostas de modelo ou conteúdo de jogador.
+
+`createSyntheticReviewFixtureVerifier` consulta um verificador confiável
+**de teste** em cada prévia, bloqueando revisão negada, expirada ou
+adulterada. Isso não autentica operadores nem comprova posse de jogo
+Roblox. A função de despacho de ferramentas reais continua bloqueada
+incondicionalmente. Produção requer nova política de consentimento,
+verificação de proprietário, revogação e auditoria real.
+
+## Registro de permissão com histórico de decisões
+
+O armazenamento \`github-collector-permissions.mjs\` faz validação de
+schema na leitura e na escrita, mantém o pedido imutável, usa revisão
+otimista via SHA e impede substituição de uma decisão final por outra.
+A escrita requer opt-in e token; o padrão é consulta e prévia.
+
+O workflow de prova real usa exclusivamente gameId/placeId sintéticos
+(101/202) e uma recusa de operador **fictício**. Não existe
+autenticação real de operador, consentimento em Roblox, revogação
+distribuída ou execução de ferramenta. A leitura de arquivos públicos
+é apenas leitura e não significa autorização para operar em jogos.
+
+O modelo de exibição não contém scripts ou callbacks e nunca exibe
+aprovação de execução. Nenhum arquivo da produção foi modificado.
