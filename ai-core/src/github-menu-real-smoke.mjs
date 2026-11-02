@@ -4,10 +4,12 @@
  * production services. All evidence originates from the bundled synthetic V3 fixture.
  */
 import {readFileSync} from "node:fs";
+import {randomBytes} from "node:crypto";
 import {fileURLToPath} from "node:url";
 import path from "node:path";
 import {analyzeSession} from "./session.mjs";
-import {createMenuProposal} from "./menu-proposal.mjs";
+import {createMenuProposal,menuReceipt} from "./menu-proposal.mjs";
+import {createMenuGatewaySimulator} from "./menu-gateway-sim.mjs";
 import {readGithubMenuProposal,publishGithubMenuProposal} from "./github-menu-queue.mjs";
 import {readGithubMenuDelivery,syncGithubMenuDeliveryEvent} from "./github-menu-receipts.mjs";
 
@@ -75,29 +77,65 @@ export async function syntheticGithubMenuSmoke(mode,env=process.env){
   const proposal=item.proposal;
   const receipts={repository,proposal,token};
   if(mode==="acknowledge"){
+    // The token below is ephemeral and exists only within the loopback simulator.
+    // The simulated menu sends NO GitHub credentials with its HTTP requests.
+    const clientToken=randomBytes(24).toString("hex");
+    const simulator=createMenuGatewaySimulator({
+      proposal,token:clientToken,
+      persistEvent:(event,nowMs)=>syncGithubMenuDeliveryEvent({
+        ...receipts,event,nowMs,dryRun:false
+      })
+    });
     const verified=[];
-    for(const [event,expected] of [
-      ["DELIVERED","DELIVERED"],
-      ["RECEIVED","ACKNOWLEDGED"],
-      ["NOT_EXECUTED","CLOSED_NO_EXECUTION"]
-    ]){
-      const result=await syncGithubMenuDeliveryEvent({
-        ...receipts,event,nowMs:Date.now(),dryRun:false
-      });
-      if(!["SAVED","UNCHANGED"].includes(result.status)||
-         result.deliveryStatus!==expected){
-        throw new Error("Etapa de recibo nao foi salva.");
+    try{
+      const origin=await simulator.start();
+      const headers={
+        Authorization:"Bearer "+clientToken,
+        "Content-Type":"application/json"
+      };
+      const sessionPath="/v1/mission/"+proposal.identity.gameId+"/"+
+        proposal.identity.placeId+"/"+proposal.identity.runId;
+      const delivery=await fetch(origin+sessionPath,{headers});
+      if(!delivery.ok)throw new Error("Gateway local nao entregou proposta.");
+      const envelope=await delivery.json();
+      if(envelope?.proposal?.missionId!==proposal.missionId||
+         envelope.proposal.executable!==false||envelope.status!=="DELIVERED"){
+        throw new Error("Entrega HTTP nao validada.");
       }
-      const fresh=await readGithubMenuDelivery(receipts);
-      if(fresh.status!=="FOUND"||fresh.state.status!==expected||
-         fresh.state.approved!==false||fresh.state.executed!==false){
-        throw new Error("Recibo nao recuperado apos gravacao.");
+      verified.push("DELIVERED");
+      for(const [url,kind,want] of [
+        ["/v1/mission/ack","RECEIVED","ACKNOWLEDGED"],
+        ["/v1/mission/report","NOT_EXECUTED","CLOSED_NO_EXECUTION"]
+      ]){
+        const result=await fetch(origin+url,{
+          method:"POST",headers,
+          body:JSON.stringify(menuReceipt(proposal,kind))
+        });
+        if(!result.ok)throw new Error("Gateway local nao recebeu "+kind+".");
+        const payload=await result.json();
+        if(payload.status!==want||payload.approved!==false||
+           payload.executed!==false){
+          throw new Error("Resposta HTTP inconsistente.");
+        }
+        verified.push(want);
       }
-      verified.push(expected);
+      if(simulator.snapshot().status!=="CLOSED_NO_EXECUTION"||
+         simulator.snapshot().executed!==false){
+        throw new Error("Estado local inseguro.");
+      }
+    }finally{
+      await simulator.close();
+    }
+    const fresh=await readGithubMenuDelivery(receipts);
+    if(fresh.status!=="FOUND"||fresh.state.status!=="CLOSED_NO_EXECUTION"||
+       fresh.state.revision!==3||fresh.state.outcome!=="NOT_EXECUTED"||
+       fresh.state.approved!==false||fresh.state.executed!==false){
+      throw new Error("Resultado nao persistiu no GitHub.");
     }
     return {
       step:"ACKNOWLEDGE",status:"SAVED_AND_VERIFIED",
       missionId:proposal.missionId,states:verified,
+      transport:"HTTP_LOOPBACK_TO_GITHUB_API",
       syntheticOnly:true,approved:false,executed:false
     };
   }
