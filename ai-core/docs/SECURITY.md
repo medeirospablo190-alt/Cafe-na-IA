@@ -82,3 +82,12 @@ A credencial de menu usa HMAC-SHA256 com chave somente de servidor (mínimo 32 b
 Tokens portadores ainda podem ser reutilizados dentro da validade se forem roubados; o protocolo de eventos só admite confirmações idempotentes e não libera execução. Revogação distribuída, autenticação de origem Roblox e rate limiting permanecem pendentes.
 
 A prévia de retenção usa somente GET e não implementa exclusão; a API real do GitHub retornou duas propostas sintéticas, ambas dentro da janela, com zero exclusões.
+
+## HTTP de check-in isolado
+
+`roblox-checkin-sim.mjs` só aceita POST local com cabeçalho `x-api-key`
+e não registra segredos nem payloads nos logs; retorno de erro não inclui
+token. O contrato usa uma única credencial por par gameId/placeId
+configurado e consulta registro confiável do JobId para obter o runId.
+A verificação foi feita com segredo e registro **sintéticos**.
+Não há endpoint implantado em rede pública ou comunicação Roblox.

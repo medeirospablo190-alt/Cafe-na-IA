@@ -73,3 +73,22 @@ Propostas continuam com `approved=false` e `executable=false`.
 Os testes Node simulam o segredo, o registro do JobId e a proteção
 contra repetição, além de exercitarem o ciclo HTTP por loopback.
 Eles não podem demonstrar autenticidade Roblox nem validar Studio.
+
+## Prova de transporte HTTP em loopback
+
+O módulo `src/roblox-checkin-sim.mjs` implementa `POST /v1/server/checkin`
+apenas em `127.0.0.1`, aceita `x-api-key`, limita o tamanho da mensagem
+e retorna uma credencial HMAC de visualização de proposta somente depois
+da validação do servidor registrado, timestamp e nonce.
+
+O teste `test/roblox-checkin-sim.test.mjs` executa HTTP local em duas etapas:
+servidor simulado → check-in → token temporário; depois menu simulado →
+leitura de proposta → ACK → NOT_EXECUTED.
+
+Inclui tentativas falsas, JobId desconhecido, nonce repetido e falha
+de armazenamento de nonces. A credencial do servidor não é repassada ao menu.
+
+**Importante:** o serviço de check-in acima é um simulador de loopback, não
+foi instalado no gateway Render. Em produção será necessário HTTPS real,
+registry durável de JobId/RunId, proteção distribuída contra replay,
+configuração dos segredos e teste na experiência própria.

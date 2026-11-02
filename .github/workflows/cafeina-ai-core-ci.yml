@@ -153,5 +153,7 @@ jobs:
         run: node --test ai-core/test/menu-delivery-e2e.test.mjs
       - name: Validate server-scoped Roblox bridge prototype
         run: node --test ai-core/test/roblox-server-verifier.test.mjs ai-core/test/roblox-reference.test.mjs
+      - name: Verify HTTP check-in and scoped menu receipt E2E
+        run: node --test ai-core/test/roblox-checkin-sim.test.mjs
       - name: Validate roadmap points
         run: npm --prefix ai-core run progress
