@@ -113,3 +113,11 @@ Ainda não há endpoint de produção nem comunicação Roblox real.
 [Workflow aprovado com três runners independentes](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503): proposta sintética publicada na branch de conhecimento, entrega via gateway HTTP **simulado** e confirmação de NOT_EXECUTED persistida na API GitHub real. Não foram usadas informações de jogadores e nenhuma ferramenta executou código Roblox.
 
 **Estado atual: 48/100 pontos.** Ainda faltam autenticação do menu real, integração ao gateway do Render, autorização de ferramentas e provas em experiência própria.
+
+## Segurança do menu e prévia de retenção (50/100)
+
+- `src/menu-session-auth.mjs`: prova isolada de credencial temporária HMAC e escopos limitados, **não** atestação Roblox real.
+- `src/menu-retention.mjs`: varredura em modo `DRY_RUN` de metadados sintéticos antigos, sem ações de exclusão.
+- [CI do PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366012830); [scan real read-only](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661).
+
+**Progresso oficial atual: 50/100.** O gateway real, o coletor, Render e a interface Roblox não foram modificados.

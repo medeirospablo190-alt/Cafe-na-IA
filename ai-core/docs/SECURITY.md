@@ -74,3 +74,11 @@ prova de autenticação de jogadores em Roblox.
 O experimento `github-menu-real-smoke.mjs` usa somente fixtures sintéticas, GitHub Actions com token efêmero, e branch separada. O gateway HTTP simulado fica em 127.0.0.1, usa uma credencial temporária gerada no processo e não passa credenciais GitHub ao cliente HTTP. Qualquer resposta que afirme aprovação ou execução é rejeitada.
 
 A gravação real deixa metadados sintéticos na branch de conhecimento; definir e testar política de retenção e expurgo antes de uso com dados reais. **A autenticação do simulador não é autenticação Roblox.** Não implantar em produção sem verificação de sessão, propriedade da experiência e limites de uso.
+
+## Escopos de sessão e retenção (somente protótipo)
+
+A credencial de menu usa HMAC-SHA256 com chave somente de servidor (mínimo 32 bytes), assinatura verificada por comparação de tempo constante, prazo curto, público e escopos fixos, vínculo a jogo/place/run/mission e ao checksum da proposta. Requisições com credencial vencida ou manipulada são recusadas. A emissão exige um verificador de experiência confiável **ainda inexistente**: os testes usam um callback simulado.
+
+Tokens portadores ainda podem ser reutilizados dentro da validade se forem roubados; o protocolo de eventos só admite confirmações idempotentes e não libera execução. Revogação distribuída, autenticação de origem Roblox e rate limiting permanecem pendentes.
+
+A prévia de retenção usa somente GET e não implementa exclusão; a API real do GitHub retornou duas propostas sintéticas, ambas dentro da janela, com zero exclusões.

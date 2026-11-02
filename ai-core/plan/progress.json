@@ -92,7 +92,7 @@
       "id": "P3",
       "title": "Fila segura GitHub ↔ gateway ↔ Roblox",
       "weight": 15,
-      "earned": 8,
+      "earned": 10,
       "status": "in_progress",
       "done": [
         "contratos de propostas de observacao nao executaveis e recibos que nao concedem permissoes",
@@ -107,15 +107,19 @@
         "proposta de observacao 100% sintetica publicada e recuperada na API real GitHub em branch isolada, com GITHUB_TOKEN efemero",
         "entrega, ACK e NOT_EXECUTED persistidos na API real do GitHub por tres transicoes versionadas",
         "gateway HTTP de loopback le proposta real e so confirma eventos apos gravacao real no GitHub; terceiro runner independente verificou o recibo",
-        "inspecao direta dos dois arquivos publicados confirmou identidade sintetica e ausencia de payload bruto de jogadores"
+        "inspecao direta dos dois arquivos publicados confirmou identidade sintetica e ausencia de payload bruto de jogadores",
+        "prototipo de credenciais HMAC de curta duracao vinculadas a missao, jogo, place e runId, sem permissao de execucao",
+        "gateway HTTP isolado integra verificador de credencial, rejeita token expirado, alterado e de outra sessao",
+        "modulo read-only de retencao de metadados sinteticos com criterio de 7 a 90 dias e sem comando de exclusao",
+        "scan read-only na API GitHub real validou duas propostas de teste sem exclusao; CI dos contratos passou"
       ],
       "pending": [
-        "projetar e implantar autenticacao do menu e vinculacao autorizada ao jogo, place e runId no gateway real",
-        "integrar gateway/Render real apenas mediante aprovacao especifica, com limite de polling e protecao contra replay",
-        "integrar interface do menu Roblox em experiencia propria ou autorizada e obter ACK de dispositivo real",
-        "estabelecer expiracao, limpeza e retencao da fila de propostas e recibos (incluindo os testes sinteticos)",
-        "integrar autorizacao separada para observacoes permitidas e resultados do coletor sob controle do usuario",
-        "testar fluxo de dispositivo real e validar fronteiras de sessao sem scripts arbitrarios nem tokens GitHub no cliente"
+        "implementar verificador confiavel da identidade/propriedade do servidor Roblox no gateway real (atualmente mock em teste)",
+        "implantar no gateway/Render apenas com autorizacao especifica e autenticar conexoes reais via HTTPS",
+        "integrar menu Roblox em uma experiencia propria/autorizada, com status, recusa e ACK de dispositivo",
+        "controlar revogacao e replay de token em servidor distribuido, com rate limit e identidades de sessao verificadas",
+        "validar politica de retencao de dados reais e limpeza de objetos antigos com aprovacao explicita e auditoria",
+        "testar ponta a ponta com servidor e dispositivo Roblox verdadeiros, sem tokens GitHub no cliente"
       ],
       "evidence": [
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41363716857",
@@ -123,7 +127,10 @@
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41364586743",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365030921",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365211848"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365211848",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366008560",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366012830",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661"
       ]
     },
     {

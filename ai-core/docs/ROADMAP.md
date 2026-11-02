@@ -21,10 +21,10 @@
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
-- **P3 = 8/15**: fila e recibos em API GitHub real validados com dados sintéticos entre três runners, gateway HTTP isolado conectado à persistência real; ainda sem autenticação, Render ou menu Roblox real.
+- **P3 = 10/15**: fila e recibos reais GitHub testados com três runners e gateway simulado; protótipo de credenciais HMAC restritas, vinculadas à missão, e varredura de retenção somente leitura. Autenticação Roblox, Render e menu reais continuam pendentes.
 - **P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 48/100; faltam 52 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 50/100; faltam 50 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -130,3 +130,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - O GitHub é armazenamento durável e executor eventual; não é servidor permanente de mensagens em tempo real.
 
 **Pontuação atual: P3 8/15, total 48/100, faltam 52 pontos.**
+
+## Credenciais de sessão e retenção — 2026-11-01
+
+- `src/menu-session-auth.mjs`: protótipo de credencial temporária HMAC-SHA256 vinculada a missão, SHA da proposta, gameId, placeId, runId, prazo de até 5 minutos e escopos limitados a READ_PROPOSAL / SEND_NON_EXECUTION_RECEIPT.
+- A emissão depende de `validateTrustedServerSession` que foi **simulada nos testes**. O módulo não contém um verificador de identidade/autorização Roblox e não pode ser implantado sozinho.
+- O gateway HTTP de loopback aceita o novo verificador de credencial e bloqueia tokens adulterados, expirados ou referentes a outra proposta. Nem token nem verificador autorizam execução Roblox.
+- `src/menu-retention.mjs`: classificação e leitura segura da pasta de propostas **sintéticas** no GitHub, sem implementação de DELETE, PUT ou POST.
+- Scan read-only [aprovado no GitHub Actions](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661): `scanned=2`, `eligible=0`, `notYetEligible=2`, `deleted=0`.
+- Testes de segurança, retenção e fluxo HTTP [CI push](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366008560) e [CI PR](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366012830) aprovados.
+- **Falta:** atestação confiável de servidor de experiência Roblox, autenticação de conexões reais, HTTPS, mecanismo durável de revogação/replay e interface do menu.
+
+**Pontuação oficial: 50/100. P3 = 10/15. Faltam 50 pontos.**

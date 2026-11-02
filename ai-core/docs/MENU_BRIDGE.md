@@ -64,3 +64,19 @@ O workflow `.github/workflows/cafeina-ai-menu-real-roundtrip.yml` executa três 
 Resultado aprovado: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365207503
 
 Este workflow não se comunica com Roblox, não altera o Render e não cria autorização de execução. O token GitHub só é usado no runner do servidor simulado, enquanto o menu de teste envia apenas token opaco local. A autenticação Roblox de produção continua pendente. O workflow não é agendado nem fica permanentemente ativo.
+
+## Credencial assinada de sessão — protótipo isolado
+
+`menu-session-auth.mjs` emite um token de sessão HMAC-SHA256, com identidade e hash exato da proposta, validade máxima de cinco minutos e escopo restrito a leitura e envio de recibos de **não execução**. É diferente de um token do GitHub. A chave de assinatura nunca deve ser enviada para scripts Roblox.
+
+Para emitir o token, um callback do servidor `validateTrustedServerSession` precisa fornecer atestado de identidade verificado de forma independente. **Neste estágio ele é apenas um mock de teste.** IDs fornecidos por cliente ou executor não comprovam propriedade/autorização da experiência. O módulo sozinho não autentica Roblox, não impede roubo de token válido e não substitui HTTPS, limitação de taxa, revogação distribuída ou controle de sessões.
+
+O gateway simulado pode receber um callback `authorizeRequest`, em vez do antigo token de teste, e continua isolado em `127.0.0.1`.
+
+## Retenção e privacidade
+
+`menu-retention.mjs` inspeciona apenas metadados de propostas do jogo sintético 101/202 e `runId` do tipo `synthetic-<id>`. A janela mínima é sete dias **após a expiração**. Uma proposta só aparece para revisão de limpeza se seu recibo final também indicar `CLOSED_NO_EXECUTION`. Arquivos incompletos exigem revisão adicional. O scanner usa apenas GET e **não exclui nada**.
+
+Scan real somente leitura: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661 — duas propostas lidas, nenhuma elegível, zero exclusões.
+
+Antes de expurgo real, é necessário autorização explícita, política de retenção, auditoria, e considerar também histórico de commits Git — apagar da branch não remove dados previamente publicados do histórico.
