@@ -147,3 +147,18 @@ de orçamento, com trilha de auditoria mínima.
 
 **Progresso oficial: 55/100.** Faltam ferramentas reais no coletor,
 permissão do proprietário e provas na experiência autorizada.
+
+## Revisão offline de permissões (P4)
+
+O módulo `src/collector-permissions.mjs` cria pedido de prévia sintética,
+exige revisão explícita por operador **de teste**, valida decisões vinculadas
+à missão e ao prazo e registra auditoria sem conteúdo bruto. Existe caminho
+de recusa `DENIED`. A validação de registro confiável é repetida para
+cada simulação e nunca transforma um ACK do menu em autorização.
+
+- Demonstração: `npm --prefix ai-core run collector:permissions-demo`.
+- Contratos: `docs/COLLECTOR_PERMISSIONS.md`.
+- [CI do PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825).
+
+**Progresso oficial: 57/100.** Ainda não é aprovação por usuário real,
+e nenhum recurso do coletor, gateway ou jogo Roblox foi ativado.

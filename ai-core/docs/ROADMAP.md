@@ -22,10 +22,10 @@
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
 - **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
-- **P4 = 3/15**: catálogo fechado de observações passivas e motor de simulação com limites, auditoria e privacidade, testados na CI; coletor Roblox real não foi modificado.
+- **P4 = 5/15**: catálogo fechado e motor de simulação com limites; contrato de revisão por operador de teste, recusas, validade e auditoria. Autorização real e coletor Roblox não foram implementados.
 - **P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 55/100; faltam 45 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 57/100; faltam 43 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -167,3 +167,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Não implementado:** conexão à coleta real, UI de aprovação, sensor Luau, agendamento do coletor, execução de comandos ou testes ativos autorizados.
 
 **P4 = 3/15. Pontuação do projeto = 55/100; faltam 45 pontos.**
+
+## Solicitação e revisão de permissão somente sintética — 2026-11-02
+
+- `src/collector-permissions.mjs` adiciona pedidos com `PENDING_REVIEW`, motivo de enum, hash da proposta, prazo e privilégio exclusivo de `SYNTHETIC_PREVIEW_ONLY`.
+- A função de revisão exige callback de operador **de fixture**, separado dos ACKs do menu. Os únicos resultados são `DENIED` ou `SIMULATION_ALLOWED`, ambos com `authorizedLiveExecution=false`.
+- Nova verificação de registro de revisão sintético a cada simulação, incluindo tentativas repetidas. A recusa, expiração, JSON alterado e falta de registro confiável não liberam prévia.
+- `src/collector-permissions-demo.mjs` percorre pedido → revisão → prévia → auditoria para `watch_state` e `observe_gui`, sem nenhuma execução real.
+- [CI push aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385453948) e [CI PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41385457825).
+- Documentação de segurança: `docs/COLLECTOR_PERMISSIONS.md`.
+- **Não implementado:** consentimento real, login/autenticação de usuário, execução em Roblox, ligação com coletor/gateway de produção, ou auditoria distribuída/persistente.
+
+**Pontuação P4 = 5/15; total = 57/100; faltam 43 pontos.**

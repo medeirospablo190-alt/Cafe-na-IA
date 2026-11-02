@@ -104,3 +104,17 @@ O simulador aceita exclusivamente credencial de fixture de teste;
 **não se trata de aprovação do usuário para mexer no Roblox**.
 O método de execução real bloqueia incondicionalmente. O código
 de produção do gateway/Render e do coletor continua intacto.
+
+## Revisão de permissão de ferramentas — fixture somente
+
+O pedido inclui apenas campos limitados por enum, ID da missão, hash da
+proposta, identidade e prazo. A decisão de fixture pode negar ou permitir
+somente visualização offline de dados já saneados. A auditoria não
+persiste credenciais, respostas de modelo ou conteúdo de jogador.
+
+`createSyntheticReviewFixtureVerifier` consulta um verificador confiável
+**de teste** em cada prévia, bloqueando revisão negada, expirada ou
+adulterada. Isso não autentica operadores nem comprova posse de jogo
+Roblox. A função de despacho de ferramentas reais continua bloqueada
+incondicionalmente. Produção requer nova política de consentimento,
+verificação de proprietário, revogação e auditoria real.
