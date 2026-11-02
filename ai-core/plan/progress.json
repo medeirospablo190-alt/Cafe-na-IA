@@ -144,7 +144,7 @@
       "id": "P4",
       "title": "Ferramentas passivas e testes controlados no coletor",
       "weight": 15,
-      "earned": 8,
+      "earned": 9,
       "status": "in_progress",
       "done": [
         "catalogo fechado watch_state e observe_gui com privilegios OFFLINE_METADATA_ONLY e teto de 10 segundos por tentativa",
@@ -160,10 +160,13 @@
         "contrato da futura tela de revisao somente leitura mostra ferramenta, motivo, prazo, limites e estado sem callbacks nem autorizacao real",
         "interface HTML funcional apenas em HTTP de loopback para exibir ferramenta, finalidade, orcamento, prazo e revisar permissao sintetica",
         "formularios locais com origin e host controlados, desafio CSRF, limite de corpo, estado final unico, recusa e expiracao",
-        "interface aceita estado final importado e validado em modo somente leitura; CI aprovou testes de replay, adulteracao e nao execucao"
+        "interface aceita estado final importado e validado em modo somente leitura; CI aprovou testes de replay, adulteracao e nao execucao",
+        "primeiro menu Luau autocontido para executar no cliente Roblox, com abas Missões/Permissões/Diagnóstico, suporte a toque, arrastar, minimizar, reabrir e recusar ou simular aprovação local",
+        "CI verificou estaticamente a interface do executor e ausencia de API de rede, execução de remotes, carregadores e ferramentas reais; uso em executor de dispositivo ainda não testado"
       ],
       "pending": [
-        "integrar interface do menu Roblox real sob aprovacao explicita, atualmente demonstracao somente local em navegador",
+        "testar manualmente a interface Luau em executor e dispositivo de experiencia Roblox propria/autorizada (CI so inspeciona estaticamente)",
+        "integrar menu executor ao gateway seguro sem embutir segredos, autenticar origem e permissoes no servidor; UI atual apenas simula",
         "autenticar usuario/proprietario real e vincular sessao e origem da decisao a experiencia autorizada",
         "definir politica de revogacao, auditoria e consentimento reais para ferramentas ativas separada do teste sintetico",
         "implementar ferramentas de observacao passiva no coletor Luau existente somente apos aprovacao especifica",
@@ -183,7 +186,9 @@
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386415402",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41386420698",
         "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387218860",
-        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387223580"
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41387223580",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388145593",
+        "https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388150892"
       ]
     },
     {

@@ -22,10 +22,10 @@
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
 - **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
-- **P4 = 8/15**: ferramentas e autorizações sintéticas, persistência no GitHub e tela de revisão HTTP local com formulário funcional. Não existe interface Roblox, operador real nem execução de ferramentas.
+- **P4 = 9/15**: catálogo e permissões sintéticas, persistência no GitHub, tela local de navegador e primeiro menu Luau cliente para executor móvel, validado estaticamente. Ainda faltam prova em executor real, operador autenticado e execução autorizada.
 - **P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 60/100; faltam 40 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 61/100; faltam 39 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -203,3 +203,15 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Não incluído:** instalação do menu Roblox, autenticação do operador, gateway/Render real, qualquer execução ao vivo ou consentimento de proprietário comprovado.
 
 **Pontuação P4 = 8/15; total = 60/100; restam 40 pontos.**
+
+## Ponto de entrada do menu no executor Roblox — 2026-11-02
+
+- Correção de destino: o menu final **abre no executor Luau do Roblox**, não pelo servidor Node nem pelo navegador localhost. O navegador permanece apenas como apoio para testar contratos.
+- Novo `roblox-reference/ExecutorMenu.client.luau` cria UI local com três abas, toque, arrastar, minimizar/reabrir, estado de pedido sintético, recusa e prévia fictícia. A UI não carrega serviços externos nem envia remotes.
+- Carregamento no executor, com script completo e opção de URL de commit fixada: `docs/EXECUTOR_MENU.md`. O carregamento remoto é opcional e depende das funções suportadas pelo executor; o script Luau em si usa APIs comuns de interface do Roblox.
+- `test/executor-menu.test.mjs` assegura estaticamente padrões de UI cliente e rejeita chamadas de HTTP, execução de código Lua, RemoteEvents, acesso a segredos e APIs privilegiadas.
+- [CI push aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388145593) e [CI PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41388150892).
+- **Limite:** não foi executado em executor Roblox real. A autorização é local e fictícia; cliente não é origem de confiança, e o servidor/gateway deve autenticar qualquer integração futura.
+- Nenhuma mudança em Roblox publicado, coletor, Render, credenciais, banco de dados ou branch `main`.
+
+**P4 = 9/15. Total = 61/100. Restam 39 pontos.**
