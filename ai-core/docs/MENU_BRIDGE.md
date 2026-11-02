@@ -80,3 +80,16 @@ O gateway simulado pode receber um callback `authorizeRequest`, em vez do antigo
 Scan real somente leitura: https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661 — duas propostas lidas, nenhuma elegível, zero exclusões.
 
 Antes de expurgo real, é necessário autorização explícita, política de retenção, auditoria, e considerar também histórico de commits Git — apagar da branch não remove dados previamente publicados do histórico.
+
+## Contrato de check-in do servidor Roblox — não implantado
+
+O verificador novo só pode emitir uma credencial temporária se o servidor
+apresentar segredo provisionado para o gameId/placeId, um JobId ativo
+cadastrado em registro de confiança, nonce único e timestamp válido.
+Os testes do servidor e o protocolo HTTP são feitos em loopback e
+**não** são atestação de origem Roblox. A configuração real de registro
+de servidor, credenciais, HTTPS e proteção anti-replay distribuída
+continua pendente.
+
+Veja `docs/ROBLOX_SERVER_BRIDGE.md` e o exemplo Luau desativado em
+`roblox-reference/ServerBridgeReference.server.luau`.

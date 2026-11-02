@@ -7,8 +7,8 @@ const plan=JSON.parse(readFileSync(new URL("../plan/progress.json",import.meta.u
 
 test("progresso total 100 e sem conclusao prematura",()=>{
   const result=computeProgress(plan);
-  assert.equal(result.overallPercent,50);
-  assert.equal(result.remainingPercent,50);
+  assert.equal(result.overallPercent,52);
+  assert.equal(result.remainingPercent,48);
   assert.equal(result.isComplete,false);
 });
 test("impede porcentagem inflada, etapa duplicada e soma diferente de 100",()=>{

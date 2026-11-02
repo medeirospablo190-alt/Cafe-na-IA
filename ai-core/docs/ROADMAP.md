@@ -21,10 +21,10 @@
 - **P1 = 14/15**: leitura de sessão V3 completa, perfil V1, metadados por jogo, deduplicação, conflitos, relatórios redigidos e CI com [15 lotes reais](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41346427994). A leitura remota e a fusao por GitHub foram testadas; continuam pendentes uma escrita remota real validada e a revisao da privacidade historica.
 - **P2 = 13/15**: modelo Qwen2.5 0.5B validado no Actions, agentes, planejamento offline e estado sintético persistido e recuperado por dois runners independentes; integração de persistência no orquestrador completo e qualidade das IAs ainda pendentes.
 - **P5 = 3/10**: CLI do REA executada em runner e handoff conservador de evidências V3 testado. Ainda falta Evidence autentica, REA MCP e testes comparativos.
-- **P3 = 10/15**: fila e recibos reais GitHub testados com três runners e gateway simulado; protótipo de credenciais HMAC restritas, vinculadas à missão, e varredura de retenção somente leitura. Autenticação Roblox, Render e menu reais continuam pendentes.
+- **P3 = 12/15**: fila e recibos reais GitHub com três runners, verificação de segredo/JOB autorizados em ambiente simulado e check-in HTTP de loopback integrado a token HMAC; experiência Roblox, registro confiável real e Render permanecem pendentes.
 - **P4, P6, P7 e P8 = 0**: ainda não implementadas.
 
-**Atual: 50/100; faltam 50 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
+**Atual: 52/100; faltam 48 pontos.** Registrar links de CI/PR antes de creditar novos pontos.
 
 ## Ordem técnica
 
@@ -142,3 +142,14 @@ As propostas emitidas permanecem `PROPOSED` e `executable: false`; modelo de IA 
 - **Falta:** atestação confiável de servidor de experiência Roblox, autenticação de conexões reais, HTTPS, mecanismo durável de revogação/replay e interface do menu.
 
 **Pontuação oficial: 50/100. P3 = 10/15. Faltam 50 pontos.**
+
+## Contrato de check-in de servidor Roblox e transporte — 2026-11-01
+
+- `src/roblox-server-verifier.mjs` valida segredo de experiência por `x-api-key`, jogo/place, JobId, missão, relógio e nonce. A função `resolveTrustedJob` **não** está integrada a uma fonte Roblox/servidor real; os testes usam registro sintético. `claimNonce` precisa ser atômico entre servidores em produção.
+- `roblox-reference/ServerBridgeReference.server.luau` é um exemplo **desativado** de `ServerScriptService` usando `HttpService:GetSecret` e `HttpService:RequestAsync`, sem URL real e sem instalar no jogo.
+- `src/roblox-checkin-sim.mjs` testa POST HTTP local do servidor simulado até a emissão de um token temporário, depois entrega ao menu simulado com ACK e NOT_EXECUTED, sem execução de ferramentas.
+- [CI push aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370030216) e [CI PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370033637).
+- Documentação do contrato, limites e fontes oficiais: `docs/ROBLOX_SERVER_BRIDGE.md`.
+- **Ainda não existe autenticação Roblox real** nem deployment de gateway, Render, menu, coletor, jogo ou segredos. Nenhuma credencial de produção foi usada.
+
+**Pontuação atual P3 = 12/15; total = 52/100; faltam 48 pontos.**

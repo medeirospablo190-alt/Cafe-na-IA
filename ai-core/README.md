@@ -121,3 +121,13 @@ Ainda não há endpoint de produção nem comunicação Roblox real.
 - [CI do PR aprovada](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41366012830); [scan real read-only](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41365933661).
 
 **Progresso oficial atual: 50/100.** O gateway real, o coletor, Render e a interface Roblox não foram modificados.
+
+## Ponte do servidor Roblox — protótipo, 52/100
+
+- `src/roblox-server-verifier.mjs`: validação de segredo por experiência, associação de JobId ao runId por registro de confiança e nonce de uso único; mocks nos testes.
+- `src/roblox-checkin-sim.mjs`: check-in HTTP de loopback até a emissão de credencial limitada.
+- `roblox-reference/ServerBridgeReference.server.luau`: exemplo de Script no servidor Roblox, **ENABLED=false**.
+- `docs/ROBLOX_SERVER_BRIDGE.md`: configuração e limites da integração real.
+- [Testes do PR aprovados](https://github.com/medeirospablo190-alt/Cafe-na-IA/actions/runs/41370033637). O servidor Roblox, menu, Render e coletor reais não foram modificados.
+
+**Progresso oficial: 52/100 pontos; faltam 48.**
