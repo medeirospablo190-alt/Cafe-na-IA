@@ -28,16 +28,20 @@ async function readSmallJson(req){
 
 /**
  * Loopback-only reference gateway. Never import this module in the production gateway.
- * This is not Roblox authentication: callers supply an opaque simulator-only token.
+ * This is not Roblox authentication. Supports opaque test token OR a scoped
+ * verifier callback, but never validates real Roblox server identity itself.
  * Only proposal delivery, acknowledgement and non-execution reports are supported.
  */
-export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now(),persistEvent=null}){
+export function createMenuGatewaySimulator({proposal,token=null,nowMs=()=>Date.now(),persistEvent=null,authorizeRequest=null}){
   if(process.env.NODE_ENV==="production"){
     throw new Error("Simulador nao deve executar em producao.");
   }
   validateMenuProposal(proposal);
-  if(typeof token!=="string"||token.length<16||token.length>128||
-    typeof nowMs!=="function")throw new Error("Credencial de teste invalida.");
+  if(typeof nowMs!=="function" ||
+    (authorizeRequest===null && (typeof token!=="string"||token.length<16||token.length>128)) ||
+    (authorizeRequest!==null && (typeof authorizeRequest!=="function"||token!==null))){
+    throw new Error("Credencial de teste invalida.");
+  }
   if(persistEvent!==null&&typeof persistEvent!=="function"){
     throw new Error("Persistencia do simulador invalida.");
   }
@@ -60,7 +64,15 @@ export function createMenuGatewaySimulator({proposal,token,nowMs=()=>Date.now(),
     }
   }
   const server=createServer(async(req,res)=>{
-    if(!equalTokens(req.headers.authorization,token)){
+    let authorized=false;
+    try{
+      authorized=authorizeRequest===null
+        ?equalTokens(req.headers.authorization,token)
+        :await authorizeRequest(req.headers.authorization)===true;
+    }catch{
+      authorized=false;
+    }
+    if(!authorized){
       json(res,401,{ok:false,error:"UNAUTHORIZED"});return;
     }
     let path;
