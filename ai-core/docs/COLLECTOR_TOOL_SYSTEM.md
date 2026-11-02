@@ -64,3 +64,7 @@ Para ferramentas ativas reais:
    limites verificáveis no servidor;
 4. registrar resultados reais saneados com trilha de auditoria e
    comparar evidências sem assumir causalidade.
+
+## Revisão de permissões offline
+
+Veja `docs/COLLECTOR_PERMISSIONS.md`. O fluxo admite aprovação apenas de prévia **sintética**; autorização real e ferramentas ao vivo continuam desativadas.
