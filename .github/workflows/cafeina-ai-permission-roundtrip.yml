@@ -1,0 +1,70 @@
+name: CAFEINA AI Synthetic Permission Decision Persistence
+
+# One-off, synthetic-only integration test across three GitHub runners.
+# No Roblox, Render, collector, real user approval or live tool execution.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/collector-permission-roundtrip.marker"
+      - ".github/workflows/cafeina-ai-permission-roundtrip.yml"
+
+concurrency:
+  group: cafeina-ai-synthetic-collector-permission
+  cancel-in-progress: false
+
+jobs:
+  publish-request:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Publish a synthetic request in isolated GitHub knowledge branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/collector-permissions-real-smoke.mjs publish
+  deny-request:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    needs: publish-request
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Deny the request with a synthetic test operator callback
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/collector-permissions-real-smoke.mjs deny
+  verify-independent:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    needs: deny-request
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Retrieve persisted denial as read-only third runner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/collector-permissions-real-smoke.mjs verify

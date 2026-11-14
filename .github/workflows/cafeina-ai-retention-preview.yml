@@ -1,0 +1,29 @@
+name: CAFEINA AI Synthetic Retention Preview
+
+# Read-only one-off scan. Does not delete anything or access production data.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/retention-preview.marker"
+      - ".github/workflows/cafeina-ai-retention-preview.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Inspect synthetic-only metadata without deletion
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/menu-retention-cli.mjs

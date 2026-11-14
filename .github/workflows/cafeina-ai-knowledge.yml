@@ -1,0 +1,72 @@
+name: CAFEINA AI Knowledge (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      game_id:
+        description: "GameId existente no repositorio"
+        required: true
+        type: string
+      place_id:
+        description: "PlaceId da coleta"
+        required: true
+        type: string
+      run_id:
+        description: "RunId completo de uma sessao"
+        required: true
+        type: string
+      publish_knowledge:
+        description: "Salvar apenas metadados saneados na branch de conhecimento?"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: cafeina-ai-knowledge-single-writer
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: ${{ !inputs.publish_knowledge }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dry-run sanitized analysis
+        run: node ai-core/src/knowledge-workflow.mjs
+        env:
+          CAFEINA_GAME_ID: ${{ inputs.game_id }}
+          CAFEINA_PLACE_ID: ${{ inputs.place_id }}
+          CAFEINA_RUN_ID: ${{ inputs.run_id }}
+          CAFEINA_PUBLISH: "false"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+  publish:
+    if: ${{ inputs.publish_knowledge }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Publish only sanitized metadata (explicit opt-in)
+        run: node ai-core/src/knowledge-workflow.mjs
+        env:
+          CAFEINA_GAME_ID: ${{ inputs.game_id }}
+          CAFEINA_PLACE_ID: ${{ inputs.place_id }}
+          CAFEINA_RUN_ID: ${{ inputs.run_id }}
+          CAFEINA_PUBLISH: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

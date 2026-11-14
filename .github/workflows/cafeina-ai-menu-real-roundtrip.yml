@@ -1,0 +1,70 @@
+name: CAFEINA AI Synthetic GitHub Menu Roundtrip
+
+# A one-off test of the real GitHub API with strictly synthetic metadata.
+# No cron, no workflow_dispatch, no production gateway or Roblox access.
+on:
+  push:
+    branches:
+      - "feat/cafeina-ai-core-fase-0-1"
+    paths:
+      - "ai-core/experiments/github-menu-roundtrip.marker"
+      - ".github/workflows/cafeina-ai-menu-real-roundtrip.yml"
+
+concurrency:
+  group: cafeina-ai-synthetic-menu-real-roundtrip
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Publish a synthetic unapproved proposal to the isolated branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/github-menu-real-smoke.mjs publish
+  record-receipt:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Record delivery, ACK and NOT_EXECUTED on GitHub
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/github-menu-real-smoke.mjs acknowledge
+  verify-in-fresh-runner:
+    if: github.repository == 'medeirospablo190-alt/Cafe-na-IA'
+    needs: record-receipt
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Independently read proposal and receipt without writing
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ai-core/src/github-menu-real-smoke.mjs verify
