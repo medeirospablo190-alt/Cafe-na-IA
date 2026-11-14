@@ -63,7 +63,8 @@ async function send(base,operation,overrides={},secret=SERVER_KEY){
       "x-cafeina-server-key":secret},
     body:JSON.stringify(body(operation,overrides))
   });
-  return {status:res.status,...await res.json()};
+  const result=await res.json();
+  return {...result,deliveryStatus:result.status,status:res.status};
 }
 test("bridge requires scoped server-only configuration",()=>{
   assert.throws(()=>createOwnerMenuBridge(),/requires a pre-authorized/);
@@ -100,7 +101,7 @@ test("a valid, allowlisted Roblox job can poll -> ack -> decline via durable Git
     assert.equal(f.stored.revision,1);
     const ack=await send(base,"ACK");
     assert.equal(ack.status,200);
-    assert.equal(ack.status,200);
+    assert.equal(ack.deliveryStatus,"ACKNOWLEDGED");
     assert.equal(f.stored.status,"ACKNOWLEDGED");
     assert.equal(f.stored.revision,2);
     const decline=await send(base,"DECLINE");
