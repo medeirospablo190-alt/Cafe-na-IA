@@ -31,7 +31,7 @@ test("executor script contains no network, secrets, code loader, or Roblox actio
     /\b(?:HttpService|HttpGet|RequestAsync|syn\.request)\s*[:.(]/,
     /\b(?:FireServer|InvokeServer|FireAllClients|Kick|Teleport)\s*\(/,
     /\b(?:gethui|getgc|hookmetamethod|setreadonly|getrawmetatable)\s*\(/,
-    /\b(?:RemoteEvent|RemoteFunction|TeleportService|DataStoreService)\b/,
+    /\b(?:RemoteEvent|TeleportService|DataStoreService)\b/,
     /(?:https?:\/\/|Bearer\s+|GITHUB_TOKEN|secret[_-]?key|api\.github\.com)/i
   ];
   for(const pattern of forbidden){
@@ -40,7 +40,7 @@ test("executor script contains no network, secrets, code loader, or Roblox actio
   }
   assert.match(script,/NETWORK_DISABLED/);
   assert.match(script,/AÇÕES NO JOGO:\s*0/);
-  assert.match(script,/Executions Roblox: 0|Execuções Roblox: 0/);
+  assert.match(script,/Ferramentas executadas: 0/);
 });
 
 test("synthetic reviewer has a closed, one-way decision and expiration",()=>{
@@ -80,4 +80,19 @@ test("offline diagnostics and permission countdown never grant live capabilities
   assert.match(script,/Ações reais habilitadas: NÃO/);
   assert.match(script,/NETWORK_DISABLED/);
   assert.match(script,/GitHub: SEM ACESSO/);
+});
+
+test("connected menu uses only a known server RemoteFunction, never direct GitHub/HTTP",()=>{
+  assert.match(script,/ReplicatedStorage:FindFirstChild\("CAFEINA_MENU_REMOTE"\)/);
+  assert.match(script,/remote:IsA\("RemoteFunction"\)/);
+  assert.match(script,/remote:InvokeServer\(operation\)/);
+  assert.match(script,/requestBridge\("POLL"\)/);
+  assert.match(script,/requestBridge\("ACK"\)/);
+  assert.match(script,/requestBridge\("DECLINE"\)/);
+  assert.match(script,/requestBridge\("NO_EXECUTION"\)/);
+  assert.match(script,/requestBridge\("STATUS"\)/);
+  assert.match(script,/Credenciais no cliente: 0/);
+  assert.doesNotMatch(script,/HttpGet|RequestAsync|Authorization:|GetSecret|GITHUB_TOKEN/);
+  assert.doesNotMatch(script,/loadstring\s*\(|(?:FireServer|FireAllClients)\s*\(/);
+  assert.doesNotMatch(script,/https?:\/\//);
 });
