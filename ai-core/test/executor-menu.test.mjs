@@ -29,7 +29,7 @@ test("executor script contains no network, secrets, code loader, or Roblox actio
   const forbidden=[
     /\b(?:loadstring|require|getgenv|getrenv|setclipboard|writefile|readfile)\s*\(/,
     /\b(?:HttpService|HttpGet|RequestAsync|syn\.request)\s*[:.(]/,
-    /\b(?:FireServer|InvokeServer|FireAllClients|Kick|Teleport)\s*\(/,
+    /\b(?:FireServer|FireAllClients|Kick|Teleport)\s*\(/,
     /\b(?:gethui|getgc|hookmetamethod|setreadonly|getrawmetatable)\s*\(/,
     /\b(?:RemoteEvent|TeleportService|DataStoreService)\b/,
     /(?:https?:\/\/|Bearer\s+|GITHUB_TOKEN|secret[_-]?key|api\.github\.com)/i
@@ -79,7 +79,7 @@ test("offline diagnostics and permission countdown never grant live capabilities
   assert.match(script,/request\.status == "PENDING_REVIEW"/);
   assert.match(script,/Ações reais habilitadas: NÃO/);
   assert.match(script,/NETWORK_DISABLED/);
-  assert.match(script,/GitHub: SEM ACESSO/);
+  assert.match(script,/GitHub: somente via servidor/);
 });
 
 test("connected menu uses only a known server RemoteFunction, never direct GitHub/HTTP",()=>{
