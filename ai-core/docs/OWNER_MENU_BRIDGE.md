@@ -20,6 +20,30 @@ Fluxo: **menu (cliente não confiável) → RemoteFunction com UserId validado �
 - Propostas permanecem `approved=false`, `executable=false`; a interface não concede permissão para coleta real.
 - O botão Diagnóstico da interface mostra a presença da ponte e permite solicitar `STATUS` ao servidor Roblox, sem chamar o gateway.
 
+## Trabalhador de análise no GitHub (sem processamento no celular)
+
+O módulo `src/mission-worker.mjs` aceita um **relatório V3 já saneado**,
+confere a missão e gera um plano de observação com prazo de 10 minutos.
+O comando `src/mission-worker-cli.mjs` lê o relatório de disco e grava uma
+proposta JSON limitada, sem interação com Roblox:
+
+```bash
+node ai-core/src/mission-worker-cli.mjs /tmp/relatorio-v3-saneado.json /tmp/proposta.json
+```
+
+**Por padrão, é DRY_RUN, sem rede e sem publicação.** A publicação pela API
+GitHub requer explicitamente `CAFEINA_WORKER_PUBLISH=true`,
+`CAFEINA_OWNER_APPROVED=yes`, `CAFEINA_AUTHORIZED_GAME_ID` e
+`CAFEINA_AUTHORIZED_RUN_ID` correspondentes à missão, além de
+`GITHUB_REPOSITORY` e `GITHUB_TOKEN` do servidor. Sem isso,
+recusa publicar. O pipeline de CI produz uma prévia de missão de uma
+sessão V3 já existente, mas não salva missões na branch de conhecimento.
+
+Esse trabalhador **não reconstrói código, não coleta do jogo e não executa
+comandos**: ainda falta integrar especialistas, ferramentas passivas
+autorizadas, comparações do REA e validação de código Luau original.
+O usuário precisa autorizar especificamente uma publicação/implantação real.
+
 ## Configuração necessária para um teste real na SUA experiência
 
 **1. GitHub:** criar ou selecionar uma proposta de observação válida e ainda não expirada na branch `cafeina-ai-knowledge`, usando o pipeline V3 existente e `publishGithubMenuProposal` (a escrita é opt-in). Anotar `gameId`, `placeId`, `runId` e `missionId`. Não colocar dados brutos de jogadores no GitHub.
