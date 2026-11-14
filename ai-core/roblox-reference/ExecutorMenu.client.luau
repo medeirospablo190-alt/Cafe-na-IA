@@ -1,12 +1,14 @@
 --[[
-  CAFEÍNA AI · EXECUTOR UI PREVIEW · v0.2
+  CAFEÍNA AI · EXECUTOR UI · v0.3
   Client-only demonstration for a Roblox Luau executor in the owner's
   own/authorized experience. No privileged executor API is required.
-  No HTTP, remotes, collector access, code loading, or Roblox commands.
-  Decisions are synthetic and local to this UI session only.
+  Uses ONLY the owner-installed CAFEINA_MENU_REMOTE for restricted,
+  non-executing mission status/receipt operations. No HTTP, GitHub keys,
+  code loading, collector access, or arbitrary Roblox commands.
 ]]
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 assert(player, "CAFEINA: execute no cliente Roblox, nao no servidor.")
@@ -104,7 +106,7 @@ create("TextLabel", header, {
     Position = UDim2.fromOffset(19, 36),
     Size = UDim2.new(1, -125, 0, 16),
     Font = Enum.Font.Gotham,
-    Text = "EXECUTOR  /  TESTE OFFLINE",
+    Text = "EXECUTOR / PONTE OPCIONAL",
     TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Left,
     TextColor3 = palette.muted
@@ -204,6 +206,52 @@ round(footer, 8)
 local tabButtons = {}
 local permissionStatusLabel = nil
 local render
+local bridgeBusy = false
+local bridgeResult = nil
+local bridgeProposal = nil
+
+local function bridgeRemote()
+    local remote = ReplicatedStorage:FindFirstChild("CAFEINA_MENU_REMOTE")
+    if remote and remote:IsA("RemoteFunction") then
+        return remote
+    end
+    return nil
+end
+
+local function requestBridge(operation)
+    if bridgeBusy then return end
+    local remote = bridgeRemote()
+    if not remote then
+        bridgeResult = {ok = false, error = "SERVER_BRIDGE_NOT_INSTALLED"}
+        log("BRIDGE_NOT_INSTALLED")
+        render()
+        return
+    end
+    bridgeBusy = true
+    log("SERVER_REQUEST_STARTED")
+    render()
+    task.spawn(function()
+        local ok, result = pcall(function()
+            return remote:InvokeServer(operation)
+        end)
+        if not gui.Parent then return end
+        bridgeBusy = false
+        if ok and type(result) == "table" and type(result.ok) == "boolean" then
+            bridgeResult = result
+            if result.ok and type(result.proposal) == "table" then
+                bridgeProposal = result.proposal
+            end
+            if result.status == "CLOSED_NO_EXECUTION" then
+                bridgeProposal = nil
+            end
+            log(result.ok and "BRIDGE_RESPONSE_OK" or "BRIDGE_RESPONSE_DENIED")
+        else
+            bridgeResult = {ok = false, error = "SERVER_REQUEST_FAILED"}
+            log("BRIDGE_CALL_FAILED")
+        end
+        render()
+    end)
+end
 
 local function updateExpiry()
     if request.status == "PENDING_REVIEW" and os.clock() >= request.expiresAt then
@@ -303,6 +351,9 @@ render = function()
     updateExpiry()
     clearContent()
     permissionStatusLabel = nil
+    footer.Text = bridgeRemote() and
+        "PONTE DISPONÍVEL  •  AÇÕES NO JOGO: 0" or
+        "OFFLINE  •  AÇÕES NO JOGO: 0"
     for name, button in pairs(tabButtons) do
         button.BackgroundColor3 = activeTab == name and palette.accent or palette.surface
         button.TextColor3 = activeTab == name and palette.base or palette.white
@@ -310,10 +361,39 @@ render = function()
 
     if activeTab == "Missões" then
         label("Centro de missões", 34, true)
-        box("Modo de diagnóstico local. Nenhuma missão foi recebida do GitHub ou do Roblox.", 72)
+        if bridgeRemote() then
+            box("Ponte detectada no servidor deste jogo. As missões são consultadas pelo servidor; o menu não acessa GitHub diretamente.", 88)
+            action(bridgeBusy and "Consultando servidor..." or "Consultar missão autorizada",
+                "normal", function()
+                    requestBridge("POLL")
+                end)
+            if bridgeResult then
+                local status = bridgeResult.status or bridgeResult.error or "INDEFINIDO"
+                box("Último retorno do servidor: " .. tostring(status), 62)
+            end
+            if bridgeProposal and bridgeResult and bridgeResult.ok then
+                box("Missão: " .. tostring(bridgeProposal.missionId) ..
+                    "\nObservação proposta: " .. tostring(bridgeProposal.toolId) ..
+                    "\nExecução automática: NÃO", 98)
+                if bridgeResult.status == "DELIVERED" then
+                    action("Confirmar recebimento (sem executar)", "normal", function()
+                        requestBridge("ACK")
+                    end)
+                elseif bridgeResult.status == "ACKNOWLEDGED" then
+                    action("Recusar missão", "danger", function()
+                        requestBridge("DECLINE")
+                    end)
+                    action("Registrar não execução", "normal", function()
+                        requestBridge("NO_EXECUTION")
+                    end)
+                end
+            end
+        else
+            box("Ponte do servidor não instalada nesta experiência. O menu continua em modo offline.", 76)
+        end
         label("Solicitação demonstrativa", 26, true, palette.orange)
         box("Ferramenta: watch_state\nFonte: dados fictícios\nMissão: " .. request.missionId, 82)
-        action("Ver permissões", "normal", function()
+        action("Ver permissões de prévia", "normal", function()
             activeTab = "Permissões"
             render()
         end)
@@ -335,8 +415,15 @@ render = function()
         end
     else
         label("Diagnóstico", 34, true)
-        box("Conectividade: DESATIVADA\nGitHub: SEM ACESSO\nGateway: SEM ACESSO\nColetor: NÃO CONECTADO", 100)
-        box("Execuções Roblox: 0\nRemoteEvents enviados: 0\nCredenciais armazenadas: 0", 82)
+        local detected = bridgeRemote() ~= nil
+        box("Ponte Roblox: " .. (detected and "DETECTADA" or "NÃO INSTALADA") ..
+            "\nGitHub: somente via servidor\nColetor: NÃO CONECTADO", 100)
+        if detected then
+            action("Diagnosticar ponte do servidor", "normal", function()
+                requestBridge("STATUS")
+            end)
+        end
+        box("Ferramentas executadas: 0\nAções de jogo enviadas: 0\nCredenciais no cliente: 0", 82)
         local viewport = gui.AbsoluteSize
         box("Área útil: " .. math.floor(viewport.X) .. " x " .. math.floor(viewport.Y) ..
             "\nAutoteste: " .. lastSelfTest, 69)
@@ -478,4 +565,4 @@ task.spawn(function()
 end)
 
 render()
-print("[CAFEINA AI] Interface do executor carregada. Modo sintético offline; execução real desativada.")
+print("[CAFEINA AI] Menu v0.3 carregado. Ponte opcional; ferramentas reais desativadas.")
