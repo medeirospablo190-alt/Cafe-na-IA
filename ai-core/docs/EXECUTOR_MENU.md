@@ -1,4 +1,4 @@
-# CAFEÍNA AI — Entrada pelo executor Roblox (prévia v0.2)
+# CAFEÍNA AI — Entrada pelo executor Roblox (prévia v0.3)
 
 **O destino do menu é o executor Luau do Roblox no celular.** O navegador
 local e o Node.js eram apenas ensaios auxiliares; não são mais o ponto de
@@ -13,7 +13,7 @@ Para um executor que suporte `loadstring` e `game:HttpGet`,
 execute esta linha para carregar uma **versão fixada** do script:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/32cad54aef6b2a7b83cb8654dce7c1ea8a4ce767/ai-core/roblox-reference/ExecutorMenu.client.luau"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/medeirospablo190-alt/Cafe-na-IA/df543e66623322fba2496edc190e6db284d9210b/ai-core/roblox-reference/ExecutorMenu.client.luau"))()
 ```
 
 A versão está fixada no commit acima, para que mudanças futuras na
@@ -29,11 +29,10 @@ tenha autorização para testar.** Não há integração com outros jogos.
 
 A interface no `PlayerGui` possui três abas:
 
-- **Missões:** informa o estado local e exibe uma proposta sintética.
+- **Missões:** exibe a proposta sintética local e, se a ponte estiver instalada pelo proprietário no servidor da experiência, consulta propostas não executáveis no GitHub por intermédio desse servidor.
 - **Permissões:** mostra `watch_state`, prazo de 120 segundos, limite
   de 2 prévias, recusa e botão de prévia **fictícia**.
-- **Diagnóstico:** indica que GitHub, gateway, coletor e Roblox real
-  continuam desconectados, mostra dimensões úteis da interface,
+- **Diagnóstico:** mostra a presença do RemoteFunction autorizado, permite consultar o status local do servidor e mostra dimensões úteis da interface,
   exibe eventos locais limitados e permite executar **autodiagnóstico offline**.
 
 O menu funciona ao toque, pode ser arrastado pelo cabeçalho, minimizado,
@@ -45,11 +44,10 @@ Uma nova execução remove somente a instância anterior, para evitar duplicatas
 
 ## Limites importantes
 
-Este é um **protótipo de apresentação e decisão sintética na memória do
-cliente**, não uma autorização real. Não possui
-`HttpService`, execução Lua dinâmica, `RemoteEvent`,
-`RemoteFunction`, acesso a segredos ou chamada a ferramentas.
-A aprovação do botão não é enviada para nenhum servidor ou GitHub.
+Este é um **protótipo de comunicação restrita**, sem autorização de ferramentas reais.
+Não possui `HttpService`, acesso HTTP direto, segredos, execução Lua dinâmica ou chamadas a ferramentas de coleta.
+Usa somente o `RemoteFunction` nomeado `CAFEINA_MENU_REMOTE`, se o servidor autorizado o tiver instalado.
+O botão de aprovação na aba Permissões permanece fictício; apenas a leitura, confirmação e recusa de missões não executáveis pode atravessar a ponte.
 
 **Um executor é um cliente não confiável**: valores, UI e decisões locais
 podem ser alterados pelo próprio cliente. O servidor de um jogo de
@@ -58,10 +56,9 @@ permissões e validade de forma independente. Nunca coloque tokens do
 GitHub, segredos de servidor, credenciais de IA ou dados de jogadores no
 executor ou no script do menu.
 
-Este script **não foi executado dentro de um executor real** por nossa CI.
-Os testes automatizados são estáticos e verificam a ausência de APIs
-proibidas; só um teste manual em ambiente Roblox autorizado pode comprovar
-compatibilidade de execução e toque.
+O usuário já informou que a versão v0.2 abriu no dispositivo. A versão v0.3
+com integração opcional ainda **não** foi testada manualmente no Roblox.
+O CI apenas verifica os contratos e simula o transporte pelo Node; não valida o Studio nem o gateway público.
 
 A versão de navegador permanece disponível em
 `docs/COLLECTOR_REVIEW_BROWSER.md` exclusivamente para testes do
@@ -87,13 +84,6 @@ Anotar apenas: modelo/versão do Android, modo retrato/paisagem, executor
 utilizado se quiser informar, etapa que falhou e mensagem de erro.
 **Não compartilhar senhas, tokens, IDs privados ou dados de jogadores.**
 
-## Próximos passos
+## Próximo marco
 
-1. Executar os seis testes manuais acima e registrar
-   eventuais erros de compatibilidade.
-2. Adaptar o modelo de estado do menu para ler propostas permitidas do
-   gateway com credencial curta e autenticação validada no servidor.
-3. Exibir fluxos reais de permissões sem confundir confirmação do cliente
-   com aprovação segura do proprietário.
-4. Somente após autorização explícita integrar observações limitadas à
-   experiência própria; nada disso existe nesta versão.
+Instalar e configurar, em experiência Roblox própria/autorizada, o script de servidor e o gateway isolado descritos em [`OWNER_MENU_BRIDGE.md`](OWNER_MENU_BRIDGE.md). Validar no Android o fluxo de consulta, confirmação e recusa. Nenhuma ferramenta real será executada nesse teste.
