@@ -107,6 +107,26 @@ jobs:
             assert.equal(p.verifiedReconstructionClaims,0);
             console.log("Historical V3 offline orchestration and specialists PASS.");
           '
+      - name: Build sanitized observation work order on GitHub runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ai-core/src/mission-worker-cli.mjs \
+            /tmp/cafeina-safe-analysis.json \
+            "$RUNNER_TEMP/cafeina-observation-work-order.json" \
+            > "$RUNNER_TEMP/cafeina-mission-worker-result.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const data=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/cafeina-mission-worker-result.json","utf8"));
+            const mission=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/cafeina-observation-work-order.json","utf8"));
+            assert.equal(data.mode,"DRY_RUN");
+            assert.equal(data.published,false);
+            assert.equal(mission.executable,false);
+            assert.equal(mission.approved,false);
+            assert.equal(mission.approvalRequired,true);
+            console.log("Server/GitHub analysis work order PASS: no Roblox tool execution.");
+          '
       - name: Demonstrate bounded deterministic agent protocol
         run: npm --prefix ai-core run agents:demo > "$RUNNER_TEMP/agents-sanitized.json"
       - name: Read-only GitHub knowledge integration smoke
